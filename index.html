@@ -4,10 +4,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap">
-<title>Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=256"><link rel="preload" as="image" href="assets/vintage-hedonista-logo.png" fetchpriority="high"></head><body class="home-page">
+<script>
+/* V257: start the public settings request while HTML/CSS/scripts are still downloading.
+   This removes the settings -> hero-image serial waterfall that dominated mobile LCP. */
+window.__VH_BOOT_SETTINGS_PROMISE=fetch('https://yffwjgwwkapdrpwyjwfp.supabase.co/rest/v1/site_settings?id=eq.1&select=*',{
+  headers:{apikey:'sb_publishable_2AL5ZWdwunfhVlrVuAr9Ww_3boXE_iM'}
+}).then(function(r){if(!r.ok)throw new Error('settings '+r.status);return r.json()}).then(function(rows){
+  var s=rows&&rows[0]?rows[0]:null;
+  if(s&&s.hero_main_image){
+    var l=document.createElement('link');l.rel='preload';l.as='image';l.href=s.hero_main_image;l.fetchPriority='high';document.head.appendChild(l);
+  }
+  return s;
+}).catch(function(){return null});
+</script>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
+<title>Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=257"></head><body class="home-page">
 <header><div class="wrap head">
-<a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo.png" alt="Vintage Hedonista" loading="eager" decoding="sync" fetchpriority="high"></a>
+<a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
 <nav class="nav">
 <a class="active" href="index.html">ГОЛОВНА</a>
 <a href="catalog.html">КАТАЛОГ</a>
@@ -134,7 +148,7 @@
 <footer class="site-footer-v64">
   <div class="wrap footer-v64">
     <div class="footer-v64-brand">
-      <a class="footer-v64-logo vh-footer-logo-link" href="index.html"><img class="vh-footer-logo-img" src="assets/vintage-hedonista-logo.png" loading="lazy" decoding="async" alt="Vintage Hedonista"></a>
+      <a class="footer-v64-logo vh-footer-logo-link" href="index.html"><img class="vh-footer-logo-img" src="assets/vintage-hedonista-logo-v257.webp" loading="lazy" decoding="async" alt="Vintage Hedonista"></a>
       <div class="footer-v64-copy">© 2026 Vintage Hedonista</div>
     </div>
 
@@ -153,7 +167,7 @@
   </div>
 </footer><div id="toast" class="toast"></div>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="config.js"></script><script defer src="site.js?v=256"></script>
+<script defer src="config.js"></script><script defer src="site.js?v=257"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   initHome();
