@@ -1,0 +1,9 @@
+АДМІНКА
+
+Локально через Live Server:
+http://127.0.0.1:5500/admin/
+
+На GitHub Pages:
+https://USERNAME.github.io/REPOSITORY/admin/
+
+Замініть USERNAME і REPOSITORY на ваш GitHub логін та назву репозиторію.

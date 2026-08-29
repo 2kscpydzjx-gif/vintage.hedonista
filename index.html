@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap">
+<title>Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=255"><link rel="preload" as="image" href="assets/vintage-hedonista-logo.png" fetchpriority="high"></head><body class="home-page">
+<header><div class="wrap head">
+<a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo.png" alt="Vintage Hedonista" loading="eager" decoding="sync" fetchpriority="high"></a>
+<nav class="nav">
+<a class="active" href="index.html">ГОЛОВНА</a>
+<a href="catalog.html">КАТАЛОГ</a>
+<a href="about.html">ПРО НАС</a>
+<a href="journal.html">ЖУРНАЛ</a>
+<a href="delivery.html">ДОСТАВКА І ОПЛАТА</a>
+<a href="contacts.html">КОНТАКТИ</a>
+</nav>
+<button class="vh-mobile-menu-btn" type="button" aria-label="Відкрити меню" aria-expanded="false">
+  <span></span><span></span><span></span>
+</button>
+<div class="header-icons" aria-label="Навігаційні іконки">
+<button class="header-icon-btn" type="button" data-header-search aria-label="Пошук">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
+</button>
+<button class="header-icon-btn" type="button" data-header-profile aria-label="Профіль">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 20c.7-4.1 3-6.2 6.5-6.2s5.8 2.1 6.5 6.2"></path></svg>
+</button>
+<button class="header-icon-btn bag-icon" type="button" data-header-cart aria-label="Кошик">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8.5h12l1.2 11H4.8z"></path><path d="M9 9V6.5a3 3 0 0 1 6 0V9"></path></svg>
+<span class="bag-count">0</span>
+</button>
+</div></div></header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="hero-live-text" id="heroLiveText">
+        <div class="eyebrow" id="heroEyebrow">ОДЯГ З МИНУЛОГО. СТИЛЬ ПОЗА ЧАСОМ.</div>
+        <h1 id="heroTitle">VINTAGE<br>HEDONISTA</h1>
+        <p id="heroDescription">Добірний вінтажний одяг з Європи.<br>Унікальні речі в єдиному екземплярі.</p>
+      </div>
+
+      <div class="buttons hero-live-buttons">
+        <a class="btn light" id="heroCatalogBtn" href="catalog.html">ДИВИТИСЬ КАТАЛОГ</a>
+        <a class="btn ghost" id="heroAboutBtn" href="about.html">ПРО НАС</a>
+      </div>
+    </div>
+    <div class="hero-media">
+      <div id="heroMain" class="hero-main"></div>
+      <div class="hero-stack">
+        <div id="heroSide1" class="hero-small"></div>
+        <div id="heroSide2" class="hero-small"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section paper">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="newArrivalsTitle">НОВІ НАДХОДЖЕННЯ</h2>
+      
+    </div>
+    <div class="new-arrivals-carousel">
+      <button id="newArrivalsPrev" class="vh-unified-arrow vh-arrow-prev" type="button" aria-label="Попередні товари"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3 5.5 8l5 5"/></svg></button>
+      <div id="newArrivals" class="cards new-arrivals-track"><div class="loading">Завантаження...</div></div>
+      <button id="newArrivalsNext" class="vh-unified-arrow vh-arrow-next" type="button" aria-label="Наступні товари"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 3 5 5-5 5"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<section class="editorial">
+  <div id="editorialMedia" class="editorial-media"></div>
+  <div class="editorial-copy">
+    <div id="editorialKicker" class="eyebrow">VINTAGE HEDONISTA</div>
+    <h2 id="editorialTitle">РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.</h2>
+    <p id="editorialText">Ми відбираємо найкращий вінтаж, щоб ви могли носити історію та створювати власний стиль.</p>
+    <div class="buttons"><a id="editorialBtn" class="btn" href="about.html">ПРО НАС</a></div>
+  </div>
+</section>
+
+<section class="section paper">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="topTitle">ЗАРАЗ У ТОПІ</h2>
+      <a id="topLink" class="section-link" href="catalog.html">ДИВИТИСЬ ВСІ ТОВАРИ →</a>
+    </div>
+    <div id="topGrid" class="top-grid"><div class="loading">Завантаження...</div></div>
+  </div>
+</section>
+
+<section class="section paper category-section">
+  <div class="wrap">
+    <div class="section-head category-head">
+      <h2 id="categoriesTitle">КАТЕГОРІЇ</h2>
+    </div>
+    <div class="category-viewport">
+      <div class="category-nav" aria-label="Перемикання категорій">
+        <button id="categoryPrev" class="vh-unified-arrow vh-arrow-prev" type="button" aria-label="Попередні категорії"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3 5.5 8l5 5"/></svg></button>
+        <button id="categoryNext" class="vh-unified-arrow vh-arrow-next" type="button" aria-label="Наступні категорії"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 3 5 5-5 5"/></svg></button>
+      </div>
+      <div id="categoryGrid" class="category-grid category-carousel"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section paper journal-section">
+  <div class="wrap">
+    <div class="section-head journal-head">
+      <h2 id="journalTitle">HEDONISTA JOURNAL</h2>
+      <a id="journalLink" class="section-link" href="journal.html">ВЕСЬ ЖУРНАЛ →</a>
+    </div>
+    <div class="journal-mobile-viewport">
+      <div class="journal-mobile-nav" aria-label="Перемикання вінтажних хронік">
+        <button id="journalPrev" class="vh-unified-arrow vh-arrow-prev" type="button" aria-label="Попередня стаття"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3 5.5 8l5 5"/></svg></button>
+        <button id="journalNext" class="vh-unified-arrow vh-arrow-next" type="button" aria-label="Наступна стаття"><svg class="vh-carousel-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 3 5 5-5 5"/></svg></button>
+      </div>
+      <div id="homeNews" class="journal-grid"></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="brand-statement">
+  <div class="wrap">
+    <h2 id="brandStatementTitle">VINTAGE HEDONISTA</h2>
+    <p id="brandLine1">Одяг з минулого.</p>
+    <p id="brandLine2">Стиль поза часом.</p>
+    <small id="brandLocation">Odesa, Ukraine</small>
+  </div>
+</section>
+
+<footer class="site-footer-v64">
+  <div class="wrap footer-v64">
+    <div class="footer-v64-brand">
+      <a class="footer-v64-logo vh-footer-logo-link" href="index.html"><img class="vh-footer-logo-img" src="assets/vintage-hedonista-logo.png" loading="lazy" decoding="async" alt="Vintage Hedonista"></a>
+      <div class="footer-v64-copy">© 2026 Vintage Hedonista</div>
+    </div>
+
+    <div class="footer-v64-center">
+      <p>Вінтажний одяг з історією, відібраний зі смаком.</p>
+    </div>
+
+    <div class="footer-v64-socials">
+      <a class="footer-social-btn" data-footer-instagram href="#" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17.4" cy="6.7" r="1"></circle></svg>
+      </a>
+      <a class="footer-social-btn" data-footer-telegram href="#" target="_blank" rel="noopener" aria-label="Telegram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.7 11.2 19.2 5c.8-.3 1.5.2 1.2 1.2l-2.6 12.2c-.2.9-.8 1.1-1.5.7l-4-3-1.9 1.9c-.2.2-.4.4-.8.4l.3-4.1 7.5-6.8c.3-.3-.1-.5-.5-.2l-9.3 5.9-4-.1c-.9 0-1.2-.3-.4-.7Z"></path></svg>
+      </a>
+    </div>
+  </div>
+</footer><div id="toast" class="toast"></div>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="config.js"></script><script defer src="site.js?v=255"></script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  initHome();
+  const btn=document.querySelector('.vh-mobile-menu-btn');
+  const nav=document.querySelector('.nav');
+  if(btn&&nav){
+    btn.addEventListener('click',()=>{
+      const open=document.body.classList.toggle('vh-mobile-menu-open');
+      btn.setAttribute('aria-expanded',String(open));
+    });
+    nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+      document.body.classList.remove('vh-mobile-menu-open');
+      btn.setAttribute('aria-expanded','false');
+    }));
+  }
+});
+</script>
+</body></html>

@@ -1,0 +1,79 @@
+Vintage Hedonista — clean working build V215
+
+Це очищена робоча версія сайту без історичних README та одноразових SQL-міграцій.
+
+Збережено:
+- сайт і адмінка;
+- усі assets;
+- Supabase client logic;
+- Supabase Edge Function resend-email;
+- поточна email-автоматизація;
+- усі функціональні файли, потрібні для запуску сайту.
+
+Видалені SQL/README не потрібні для щоденної роботи сайту після того,
+як зміни вже застосовані в Supabase. Окремий backup цих файлів створено
+разом із цією версією.
+
+Поточний email-режим до підключення домену:
+TEST_MODE=true.
+
+Перед production:
+- домен + хостинг;
+- Resend domain verification;
+- змінити from у Edge Function;
+- TEST_MODE=false;
+- фінальна перевірка замовлень, email, mobile та контактів.
+
+
+V216 MOBILE HOME
+- dedicated compact mobile header;
+- hamburger navigation;
+- responsive hero;
+- swipeable new arrivals and categories;
+- 2-column top products;
+- single-column editorial/journal;
+- mobile footer;
+- no horizontal page overflow.
+
+
+V217 — rebuilt mobile Home based on real iPhone screenshots; desktop unchanged.
+
+V218 — mobile home: fixed Hero CTA visibility; 2-card new-arrivals swipe carousel; category arrows; journal swipe+arrows; compact 3-column footer; clearer open menu.
+
+V219 — unified overlay arrows for categories/journal, tighter mobile section spacing, icon-only square socials, right-side mobile drawer, header icons before menu.
+
+V220 — category arrows now reuse the exact New Arrivals arrow classes and styling.
+
+V221 — all mobile carousel arrows use one canonical CSS system with CSS-drawn chevrons; reduced spacing between Top, Categories and Vintage Chronicles.
+
+V222 — removed duplicated arrow glyphs; all carousel arrows now use one SVG background chevron; reduced Categories → Vintage Chronicles gap.
+
+V224 — killed legacy category pseudo-arrows with higher-specificity selectors; restored normal Categories → Vintage Chronicles spacing; cache-bust v224.
+
+V225 — mobile Catalog: Home-identical header/footer, aligned intro, compact sorting, interactive filter drawer above overlay, larger filter counts, removed dead space before products.
+
+V226 — fixed mobile catalog header baseline, filter drawer scrolling/stacking, and compact sorting arrow spacing.
+
+V227 — catalog header icons forced onto one baseline; sort bar rebuilt to wide label + compact value/arrow with native select removed from layout; Home new-arrival thumbnails set to 1:1.
+
+V228 — catalog now uses exact Home header markup and geometry; sort arrow centered in its own cell; category filters toggle off when tapped again.
+
+V229 — single SVG sort chevron; category selection visibly highlighted and toggles off on second tap; active filter chips removed from result toolbar.
+
+V230 — exact Home header/footer duplicated across public pages; product breadcrumb fixed; product mobile typography aligned; product content pulled up slightly; measurements switched to 2-column table.
+
+V232 — mobile product title/price switched to desktop-style Georgia serif; recommendation section made positioning context so arrows align to exact image midpoint.
+
+V233 — mobile product title/price now use exact desktop V51 Bodoni Moda 600 rules; recommendation arrows are permanently rendered on mobile and continuously re-centered with ResizeObserver/image/font/scroll updates.
+
+V236 — exact Home mobile header/side drawer copied to all public pages; About vertical rhythm tightened; editorial gallery changed to 1 large + 2 square; values block converted to compact stacked rows; final CTA pulled upward.
+
+V237 — About mobile hero strips removed; editorial->selection spacing tightened; 1/1/EUROPE/HANDPICKED rebuilt as clean horizontal rows without left border or broken words; global real backdrop added so side menu links work and outside tap closes drawer on every page.
+
+V238 — About hero background zoomed/cropped to remove top/bottom bands; values text centered opposite 1/1, EUROPE, HANDPICKED; non-home mobile drawers forced to exact Home drawer geometry while retaining clickable outside backdrop.
+
+V239 — About hero uses true background-size:cover with zero gap; non-home drawer header lifted above backdrop so links receive taps; navigation fallback added for legacy page handlers.
+
+V240 — Mobile About hero now zooms the actual background image to 118–120% height to crop the brown bands embedded at its top/bottom; hero copy gets 26–28px breathing room below the photo.
+
+V241 — About values table redesigned to match 'Як ми відбираємо речі': each of 1/1, EUROPE, HANDPICKED is centered as a large title with its descriptor centered below; no numbering added.

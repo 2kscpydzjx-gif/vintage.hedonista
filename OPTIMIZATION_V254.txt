@@ -1,0 +1,11 @@
+V254 — PERFORMANCE / IMAGE OPTIMIZATION
+
+1. Google Fonts moved from CSS @import into HTML with preconnect.
+2. Added preconnect for jsDelivr and Supabase.
+3. Local hero fallback converted to WebP and references switched to WebP.
+4. Admin image preparation now always re-encodes uploads instead of passing through large same-size JPEGs.
+5. New admin uploads are saved as WebP when supported, with long browser cache metadata.
+6. Product main image is explicitly eager/high-priority; below-fold account images are lazy/async.
+7. Cache-busting versions updated to v254.
+
+No layout/design rules were intentionally changed.

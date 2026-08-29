@@ -1,0 +1,31 @@
+VINTAGE HEDONISTA — GITHUB PAGES V255
+
+Ця збірка перевірена для публікації в GitHub Pages як project site:
+https://USERNAME.github.io/REPOSITORY/
+
+Що перевірено:
+- Основні HTML/CSS/JS посилання відносні, без прив'язки до кореня домену.
+- assets/ та admin/ працюють як вкладені папки.
+- Немає посилань на localhost / 192.168.x.x у робочому коді.
+- Додано .nojekyll для прямої статичної публікації GitHub Pages.
+- Supabase URL використовує HTTPS; publishable key може бути присутнім у браузерному фронтенді.
+- Версію cache-busting піднято до v255.
+
+ВАЖЛИВО ПРИ ЗАЛИВЦІ:
+Завантажуй ВМІСТ цієї папки в корінь репозиторію так, щоб index.html був у корені репозиторію, а не всередині додаткової папки.
+
+Правильна структура:
+/index.html
+/styles.css
+/site.js
+/config.js
+/assets/...
+/admin/...
+
+GitHub → Settings → Pages:
+Source: Deploy from a branch
+Branch: main
+Folder: / (root)
+
+Адмінка після публікації:
+https://USERNAME.github.io/REPOSITORY/admin/

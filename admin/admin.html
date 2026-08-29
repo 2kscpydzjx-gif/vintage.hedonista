@@ -1,0 +1,1053 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap">
+<title>Vintage Hedonista · Admin</title><link rel="stylesheet" href="styles.css"></head><body><div id="app" class="app hidden"><aside class="sidebar" id="sidebar"><div class="brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-admin.png" alt="Vintage Hedonista"></div><div class="nav-section"><div class="nav-title">ГОЛОВНЕ</div><div class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span>Панель керування</div><div class="nav-item" data-page="homepage"><span class="nav-icon">▦</span>Головна сторінка</div></div><div class="nav-section"><div class="nav-title">МАГАЗИН</div><div class="nav-item" data-page="products"><span class="nav-icon">▣</span>Товари</div><div class="nav-item" data-page="categories"><span class="nav-icon">□</span>Категорії</div><div class="nav-item" data-page="orders"><span class="nav-icon">▤</span>Замовлення <span class="badge" id="ordersBadge">0</span></div><div class="nav-item" data-page="customers"><span class="nav-icon">◎</span>Клієнти <span class="badge" id="customersBadge">0</span></div></div><div class="nav-section"><div class="nav-title">КОНТЕНТ</div><div class="nav-item" data-page="news"><span class="nav-icon">▧</span>Вінтажні хроніки</div><div class="nav-item" data-page="aboutPage"><span class="nav-icon">◫</span>Про нас</div>
+<div class="nav-item" data-page="deliveryPage"><span class="nav-icon">◇</span>Доставка і оплата</div>
+<div class="nav-item" data-page="contactsPage"><span class="nav-icon">○</span>Контакти</div></div><div class="nav-section"><div class="nav-title">СИСТЕМА</div><div class="nav-item" data-page="media"><span class="nav-icon">▧</span>Медіатека</div><div class="nav-item" data-page="settings"><span class="nav-icon">⚙</span>Налаштування</div><div class="nav-item" id="logout"><span class="nav-icon">↪</span>Вихід</div></div><div class="sidebar-foot">Vintage Hedonista Admin<br>© 2026</div></aside><main class="main"><div class="topbar"><div class="menu-btn" id="menuBtn">☰</div><div class="page-title" id="pageTitle">Панель керування</div><div class="top-spacer"></div>
+<div class="constructor-top-actions">
+  <button class="constructor-top-btn" id="constructorSectionsBtn" type="button">СЕКЦІЇ</button>
+  <button class="constructor-top-btn" id="constructorPreviewBtn" type="button">PREVIEW</button>
+</div>
+<div class="admin-chip"><div class="avatar"></div><span id="adminName">Адміністратор</span></div></div><div class="content"><section class="page active" id="dashboard">
+<div class="admin-page-intro">
+  <div>
+    <div class="admin-page-kicker">VINTAGE HEDONISTA · ADMIN</div>
+    <h1>ПАНЕЛЬ КЕРУВАННЯ</h1>
+    <p>Товари, контент, замовлення та сторінки сайту — в одному місці.</p>
+  </div>
+  <div class="admin-intro-actions">
+    <button class="btn" onclick="window.open('../index.html','_blank')">ПЕРЕГЛЯНУТИ САЙТ ↗</button>
+    <button class="btn primary" onclick="openProductForm()">＋ ДОДАТИ ТОВАР</button>
+  </div>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-label">ЗАМОВЛЕНЬ СЬОГОДНІ</div><div class="stat-value" id="statOrders">0</div><div class="stat-foot">Нові заявки</div></div>
+<div class="stat"><div class="stat-label">ВИРУЧКА СЬОГОДНІ</div><div class="stat-value" id="statRevenue">₴0</div><div class="stat-foot">За завершеними замовленнями</div></div>
+<div class="stat"><div class="stat-label">ТОВАРІВ НА САЙТІ</div><div class="stat-value" id="statProducts">0</div><div class="stat-foot">Опубліковані товари</div></div>
+<div class="stat"><div class="stat-label">НОВИХ ЗАМОВЛЕНЬ</div><div class="stat-value" id="statNewOrders">0</div><div class="stat-foot"><span class="green">Потребують уваги</span></div></div></div>
+<div class="dashboard-grid"><div><div class="panel"><div class="panel-head"><div class="panel-title">Останні товари</div><div class="panel-spacer"></div><button class="btn" onclick="goPage('products')">Перейти до всіх товарів</button></div><div id="recentProducts"></div></div><div class="panel"><div class="panel-head"><div class="panel-title">Останні новини</div><div class="panel-spacer"></div><button class="btn" onclick="goPage('news')">Перейти до всіх новин</button></div><div id="recentNews" class="news-grid"></div></div></div>
+<div><div class="panel"><div class="panel-head"><div class="panel-title">Швидкі дії</div></div><div class="quick-actions"><button class="btn" onclick="openProductForm()">＋ Додати товар</button><button class="btn" onclick="goPage('categories')">□ Додати категорію</button><button class="btn" onclick="openNewsForm()">▧ Додати новину</button><button class="btn" onclick="openHeroForm()">▨ Додати банер</button></div></div><div class="panel"><div class="panel-head"><div class="panel-title">Останні замовлення</div><div class="panel-spacer"></div><button class="btn" onclick="goPage('orders')">Перейти</button></div><div id="recentOrders" class="orders-mini"></div></div></div></div></section>
+<section class="page" id="homepage">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">СТОРІНКИ САЙТУ</div><h1>ГОЛОВНА СТОРІНКА</h1><p>Редагуйте Hero, фото, категорії, журнал та фінальні блоки головної.</p></div>
+  <div class="admin-intro-actions"><button class="btn" onclick="window.open('../index.html','_blank')">ПЕРЕГЛЯНУТИ ГОЛОВНУ ↗</button></div>
+</div>
+<div class="home-admin-stack">
+<div class="panel home-admin-section">
+<div class="panel-head"><div><div class="section-number">01</div><div class="panel-title">Hero / верхній екран</div></div></div>
+
+<div class="form-grid">
+  <div class="field full"><label>Малий текст над заголовком</label><input class="input" id="hpHeroKicker"></div>
+  <div class="field full"><label>Великий заголовок</label><textarea class="input short-textarea" id="hpHeroTitle"></textarea></div>
+  <div class="field full"><label>Опис</label><textarea class="input" id="hpHeroDescription"></textarea></div>
+  <div class="field"><label>Кнопка 1 — текст</label><input class="input" id="hpHeroPrimaryText"></div>
+  <div class="field"><label>Кнопка 1 — посилання</label><input class="input" id="hpHeroPrimaryUrl"></div>
+  <div class="field"><label>Кнопка 2 — текст</label><input class="input" id="hpHeroSecondaryText"></div>
+  <div class="field"><label>Кнопка 2 — посилання</label><input class="input" id="hpHeroSecondaryUrl"></div>
+
+  <div class="field full">
+    <label>Фон Hero / шапки</label>
+    <div class="photo-guide">
+      <b>Рекомендовано: 1920 × 900 px</b>
+      <span>Фонове фото Hero. Воно показується без додаткового тексту поверх. Можна замінити через адмінку.</span>
+    </div>
+    <input class="input" id="hpHeroBackgroundImage" type="file" accept="image/*">
+    <div id="hpHeroBackgroundPreview" class="preview-row hero-bg-preview"></div>
+    <button class="btn danger hidden" type="button" id="removeHeroBackgroundBtn" style="margin-top:8px">СКИНУТИ ДО СТАНДАРТНОГО ФОНУ</button>
+  </div>
+</div>
+
+<div class="form-actions">
+  <button class="btn primary" id="saveHomepageTextBtn">ЗБЕРЕГТИ ГОЛОВНУ</button>
+</div>
+
+<div class="subpanel hero-fixed-editor">
+  <div class="subpanel-head">
+    <div>
+      <b>3 фото Hero</b>
+      <small>Поки без прокрутки. На головній завжди показуються саме ці 3 фото. Натискання на них нічого не робить.</small>
+    </div>
+  </div>
+
+  <div class="hero-fixed-grid">
+    <div class="hero-fixed-card">
+      <div class="hero-fixed-title">1. ГОЛОВНЕ ФОТО</div>
+      <div class="photo-guide compact">
+        <b>1200 × 1200 px (4:5)</b>
+        <span>Велике вертикальне фото. Інший формат автоматично підганяється без обрізання.</span>
+      </div>
+      <div id="hpHeroMainPreview" class="hero-fixed-preview hero-fixed-preview-main"></div>
+      <input class="input" id="hpHeroMainImage" type="file" accept="image/*">
+      <button class="btn danger hidden" type="button" id="removeHeroMainBtn">ПРИБРАТИ ФОТО</button>
+    </div>
+
+    <div class="hero-fixed-card">
+      <div class="hero-fixed-title">2. ВЕРХНЄ ПРАВЕ ФОТО</div>
+      <div class="photo-guide compact">
+        <b>1200 × 1200 px (1:1)</b>
+        <span>Верхній квадрат справа. Інший формат автоматично підганяється без обрізання.</span>
+      </div>
+      <div id="hpHeroTopPreview" class="hero-fixed-preview"></div>
+      <input class="input" id="hpHeroTopImage" type="file" accept="image/*">
+      <button class="btn danger hidden" type="button" id="removeHeroTopBtn">ПРИБРАТИ ФОТО</button>
+    </div>
+
+    <div class="hero-fixed-card">
+      <div class="hero-fixed-title">3. НИЖНЄ ПРАВЕ ФОТО</div>
+      <div class="photo-guide compact">
+        <b>1200 × 1200 px (1:1)</b>
+        <span>Нижній квадрат справа. Інший формат автоматично підганяється без обрізання.</span>
+      </div>
+      <div id="hpHeroBottomPreview" class="hero-fixed-preview"></div>
+      <input class="input" id="hpHeroBottomImage" type="file" accept="image/*">
+      <button class="btn danger hidden" type="button" id="removeHeroBottomBtn">ПРИБРАТИ ФОТО</button>
+    </div>
+  </div>
+</div>
+</div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">02</div><div class="panel-title">Нові надходження</div></div></div><div class="simple-form"><div class="admin-info">Товари беруться автоматично з прапорця <b>«Новинка»</b> у товарі.</div><div class="field"><label>Заголовок блока</label><input class="input" id="hpNewTitle"></div><div class="field"><label>Текст посилання</label><input class="input" id="hpNewLinkText"></div></div></div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">03</div><div class="panel-title">Editorial / Про бренд</div></div></div><div class="form-grid"><div class="field full"><label>Фото</label><div class="photo-guide"><b>1200 × 1200 px (4:5)</b><span>Фото автоматично підганяється без обрізання.</span></div><input class="input" id="hpEditorialImage" type="file" accept="image/*"><div id="hpEditorialPreview" class="preview-row"></div></div><div class="field"><label>Малий заголовок</label><input class="input" id="hpEditorialKicker"></div><div class="field"><label>Текст кнопки</label><input class="input" id="hpEditorialButtonText"></div><div class="field full"><label>Великий заголовок</label><input class="input" id="hpEditorialTitle"></div><div class="field full"><label>Опис</label><textarea class="input" id="hpEditorialText"></textarea></div><div class="field full"><label>Посилання кнопки</label><input class="input" id="hpEditorialButtonUrl"></div></div></div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">04</div><div class="panel-title">Зараз у топі</div></div></div>
+<div class="simple-form">
+<div class="admin-info">Ці 4 фото на головній тепер редагуються вручну. Для кожного можна завантажити своє фото та вказати посилання на конкретний товар.</div>
+<div class="field"><label>Заголовок блока</label><input class="input" id="hpTopTitle"></div>
+<div class="field"><label>Текст посилання справа</label><input class="input" id="hpTopLinkText"></div>
+<div class="top-admin-grid"><div class="top-admin-card">
+<div class="top-admin-name">01 · Ліве велике фото</div>
+<div class="photo-guide compact"><b>1000 × 1100 px</b><span>Фото автоматично підганяється. Натискання на фото веде за вказаним посиланням.</span></div>
+<input class="input" id="topImage1" type="file" accept="image/*">
+<div id="topPreview1" class="preview-row top-slot-preview"></div>
+<div class="field"><label>Підпис на фото (необов'язково)</label><input class="input" id="topCaption1" placeholder="Наприклад: Куртка · 2 800 грн"></div>
+<div class="field"><label>Посилання на товар</label><input class="input" id="topLink1" placeholder="product.html?slug=..."></div>
+<button class="btn primary" type="button" onclick="saveTopSlot(1)">ЗБЕРЕГТИ ФОТО 01</button>
+</div><div class="top-admin-card">
+<div class="top-admin-name">02 · Центральне верхнє</div>
+<div class="photo-guide compact"><b>1600 × 700 px</b><span>Фото автоматично підганяється. Натискання на фото веде за вказаним посиланням.</span></div>
+<input class="input" id="topImage2" type="file" accept="image/*">
+<div id="topPreview2" class="preview-row top-slot-preview"></div>
+<div class="field"><label>Підпис на фото (необов'язково)</label><input class="input" id="topCaption2" placeholder="Наприклад: Куртка · 2 800 грн"></div>
+<div class="field"><label>Посилання на товар</label><input class="input" id="topLink2" placeholder="product.html?slug=..."></div>
+<button class="btn primary" type="button" onclick="saveTopSlot(2)">ЗБЕРЕГТИ ФОТО 02</button>
+</div><div class="top-admin-card">
+<div class="top-admin-name">03 · Центральне нижнє</div>
+<div class="photo-guide compact"><b>1600 × 700 px</b><span>Фото автоматично підганяється. Натискання на фото веде за вказаним посиланням.</span></div>
+<input class="input" id="topImage3" type="file" accept="image/*">
+<div id="topPreview3" class="preview-row top-slot-preview"></div>
+<div class="field"><label>Підпис на фото (необов'язково)</label><input class="input" id="topCaption3" placeholder="Наприклад: Куртка · 2 800 грн"></div>
+<div class="field"><label>Посилання на товар</label><input class="input" id="topLink3" placeholder="product.html?slug=..."></div>
+<button class="btn primary" type="button" onclick="saveTopSlot(3)">ЗБЕРЕГТИ ФОТО 03</button>
+</div><div class="top-admin-card">
+<div class="top-admin-name">04 · Праве велике фото</div>
+<div class="photo-guide compact"><b>900 × 1100 px</b><span>Фото автоматично підганяється. Натискання на фото веде за вказаним посиланням.</span></div>
+<input class="input" id="topImage4" type="file" accept="image/*">
+<div id="topPreview4" class="preview-row top-slot-preview"></div>
+<div class="field"><label>Підпис на фото (необов'язково)</label><input class="input" id="topCaption4" placeholder="Наприклад: Куртка · 2 800 грн"></div>
+<div class="field"><label>Посилання на товар</label><input class="input" id="topLink4" placeholder="product.html?slug=..."></div>
+<button class="btn primary" type="button" onclick="saveTopSlot(4)">ЗБЕРЕГТИ ФОТО 04</button>
+</div></div>
+</div></div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">05</div><div>
+        <div class="panel-title">Категорії</div>
+        <div class="admin-info compact-info">Порядок на головній задається стрілками ↑ ↓ або числом у полі «Порядок». Менше число = категорія показується раніше.</div>
+      </div></div></div><div class="simple-form"><div class="admin-info">На головній показуються перші 3 активні категорії. Обкладинки редагуються в розділі «Категорії».</div><div class="field"><label>Заголовок блока</label><input class="input" id="hpCategoriesTitle"></div><button class="btn" onclick="goPage('categories')">ПЕРЕЙТИ ДО КАТЕГОРІЙ</button></div></div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">06</div><div class="panel-title">Вінтажні хроніки</div></div></div><div class="simple-form"><div class="admin-info">На головній показуються 3 останні опубліковані «Вінтажні хроніки» з обкладинкою.</div><div class="field"><label>Заголовок блока</label><input class="input" id="hpJournalTitle"></div><div class="field"><label>Текст посилання</label><input class="input" id="hpJournalLinkText"></div><button class="btn" onclick="goPage('news')">ПЕРЕЙТИ ДО НОВИН</button></div></div>
+<div class="panel home-admin-section"><div class="panel-head"><div><div class="section-number">07</div><div class="panel-title">Фінальний бренд-блок</div></div></div><div class="form-grid"><div class="field"><label>Заголовок</label><input class="input" id="hpBrandTitle"></div><div class="field"><label>Локація</label><input class="input" id="hpBrandLocation"></div><div class="field"><label>Рядок 1</label><input class="input" id="hpBrandLine1"></div><div class="field"><label>Рядок 2</label><input class="input" id="hpBrandLine2"></div></div></div>
+</div></section><section class="page" id="aboutPage">
+  <div class="about-admin-top">
+    <div>
+      <div class="admin-page-kicker">СТОРІНКИ САЙТУ · ABOUT</div>
+      <h1>ПРО НАС</h1>
+      <p>Редагування сторінки по блоках. Фото, тексти та збереження тепер знаходяться саме там, де ви їх очікуєте.</p>
+    </div>
+    <div class="about-admin-top-actions">
+      <button class="btn" type="button" onclick="window.open('../about.html','_blank')">ПЕРЕГЛЯНУТИ СТОРІНКУ ↗</button>
+    </div>
+  </div>
+
+  <div class="about-admin-layout">
+    <div class="about-admin-main">
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">01</span>
+          <div><h2>ПЕРШИЙ ЕКРАН</h2><p>Головне фото та текст, який відвідувач бачить одразу.</p></div>
+        </div>
+        <div class="about-hero-editor-grid">
+          <div class="about-media-card about-main-media-card-v210">
+            <div class="about-media-title"><b>ГОЛОВНЕ ФОТО</b><span>1500 × 1400 px · 15:14</span></div>
+            <div class="about-image-preview about-image-preview-hero" id="aHeroImagePreview"><span>Фото не завантажено</span></div>
+            <label class="btn about-file-btn">ЗАМІНИТИ<input id="aHeroImage" type="file" accept="image/*" hidden></label>
+          </div>
+          <div class="about-fields-stack">
+            <div class="field"><label>Заголовок</label><textarea class="input about-title-area" id="aHeroTitle"></textarea></div>
+            <div class="field"><label>Опис</label><textarea class="input about-copy-area" id="aHeroText"></textarea></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">02</span>
+          <div><h2>НАША ФІЛОСОФІЯ</h2><p>Текстовий блок одразу після першого екрану.</p></div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Заголовок</label><textarea class="input about-title-area" id="aPhilTitle"></textarea></div>
+          <div class="field"><label>Текст</label><textarea class="input about-copy-area" id="aPhilText"></textarea></div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">03</span>
+          <div><h2>EDITORIAL ФОТО</h2><p>Три фотографії композиції. Поточні фото видно одразу.</p></div>
+        </div>
+        <div class="about-editorial-admin-grid">
+          <div class="about-media-card">
+            <div class="about-media-title"><b>ФОТО 01</b><span>1200 × 1500 px</span></div>
+            <div class="about-image-preview portrait" id="aEd1Preview"><span>Фото не завантажено</span></div>
+            <label class="btn about-file-btn">ЗАМІНИТИ<input id="aEd1" type="file" accept="image/*" hidden></label>
+          </div>
+          <div class="about-media-card">
+            <div class="about-media-title"><b>ФОТО 02</b><span>1200 × 800 px</span></div>
+            <div class="about-image-preview landscape" id="aEd2Preview"><span>Фото не завантажено</span></div>
+            <label class="btn about-file-btn">ЗАМІНИТИ<input id="aEd2" type="file" accept="image/*" hidden></label>
+          </div>
+          <div class="about-media-card">
+            <div class="about-media-title"><b>ФОТО 03</b><span>1200 × 800 px</span></div>
+            <div class="about-image-preview landscape" id="aEd3Preview"><span>Фото не завантажено</span></div>
+            <label class="btn about-file-btn">ЗАМІНИТИ<input id="aEd3" type="file" accept="image/*" hidden></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">04</span>
+          <div><h2>ЯК МИ ВІДБИРАЄМО РЕЧІ</h2><p>Чотири короткі принципи. Кожен пункт редагується окремо.</p></div>
+        </div>
+        <div class="about-principles-grid">
+          <div class="about-principle"><span>01</span><div class="field"><label>Заголовок</label><input class="input" id="aP1Title"></div><div class="field"><label>Текст</label><textarea class="input" id="aP1Text"></textarea></div></div>
+          <div class="about-principle"><span>02</span><div class="field"><label>Заголовок</label><input class="input" id="aP2Title"></div><div class="field"><label>Текст</label><textarea class="input" id="aP2Text"></textarea></div></div>
+          <div class="about-principle"><span>03</span><div class="field"><label>Заголовок</label><input class="input" id="aP3Title"></div><div class="field"><label>Текст</label><textarea class="input" id="aP3Text"></textarea></div></div>
+          <div class="about-principle"><span>04</span><div class="field"><label>Заголовок</label><input class="input" id="aP4Title"></div><div class="field"><label>Текст</label><textarea class="input" id="aP4Text"></textarea></div></div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">05</span>
+          <div><h2>МАНІФЕСТ</h2><p>Великий акцентний текст посередині сторінки.</p></div>
+        </div>
+        <div class="form-grid">
+          <div class="field full"><label>Заголовок</label><textarea class="input about-title-area" id="aManifestTitle"></textarea></div>
+          <div class="field full"><label>Підпис</label><input class="input" id="aManifestText"></div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">06</span>
+          <div><h2>ВІД ЄВРОПИ ДО ВАШОГО ГАРДЕРОБУ</h2><p>Фото та текст про відбір речей.</p></div>
+        </div>
+        <div class="about-origin-admin-grid">
+          <div class="about-media-card">
+            <div class="about-media-title"><b>ФОТО БЛОКУ</b><span>1200 × 1200 px</span></div>
+            <div class="about-image-preview square" id="aOriginImagePreview"><span>Фото не завантажено</span></div>
+            <label class="btn about-file-btn">ЗАМІНИТИ<input id="aOriginImage" type="file" accept="image/*" hidden></label>
+          </div>
+          <div class="about-fields-stack">
+            <div class="field"><label>Заголовок</label><textarea class="input about-title-area" id="aOriginTitle"></textarea></div>
+            <div class="field"><label>Текст</label><textarea class="input about-copy-area" id="aOriginText"></textarea></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-builder-card">
+        <div class="about-builder-head">
+          <span class="about-builder-num">07</span>
+          <div><h2>ФІНАЛЬНИЙ БЛОК</h2><p>Останній банер перед футером.</p></div>
+        </div>
+        <div class="about-final-admin-grid">
+          <div class="about-media-card">
+            <div class="about-media-title"><b>ФОНОВЕ ФОТО</b><span>1920 × 900 px</span></div>
+            <div class="about-image-preview banner" id="aFinalImagePreview"><span>Фото не завантажено</span></div>
+            <div class="about-photo-actions">
+              <label class="btn about-file-btn">ЗАМІНИТИ<input id="aFinalImage" type="file" accept="image/*" hidden></label>
+            </div>
+          </div>
+          <div class="about-fields-stack">
+            <div class="field"><label>Заголовок</label><input class="input" id="aFinalTitle"></div>
+            <div class="field"><label>Текст</label><textarea class="input about-copy-area" id="aFinalText"></textarea></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section><section class="page" id="products">
+  <div class="admin-page-intro products-page-intro">
+    <div>
+      <div class="admin-page-kicker">МАГАЗИН</div>
+      <h1>ТОВАРИ</h1>
+      <p>Керуйте асортиментом, статусами, цінами та відображенням речей на сайті.</p>
+    </div>
+    <div class="admin-intro-actions">
+      <button class="btn" onclick="window.open('../catalog.html','_blank')">ВІДКРИТИ КАТАЛОГ ↗</button>
+      <button class="btn primary" onclick="openProductForm()">＋ ДОДАТИ ТОВАР</button>
+    </div>
+  </div>
+
+  <div class="products-controlbar">
+    <div class="products-search-wrap">
+      <span class="products-search-icon">⌕</span>
+      <input class="input" id="productSearch" placeholder="Пошук за назвою, брендом, категорією...">
+    </div>
+    <select id="productCategoryFilter" class="input products-category-select">
+      <option value="">Всі категорії</option>
+    </select>
+    <select id="productSeasonFilter" class="input products-status-select">
+      <option value="">Всі сезони</option>
+      <option value="Зима">Зима</option>
+      <option value="Літо">Літо</option>
+      <option value="Демісезон">Демісезон</option>
+      <option value="Всесезон">Всесезон</option>
+    </select>
+    <select id="productStatus" class="input products-status-select">
+      <option value="">Всі статуси</option>
+      <option value="published">В наявності</option>
+      <option value="reserved">Зарезервовано</option>
+      <option value="sold">Продано</option>
+      <option value="hidden">Приховано</option>
+      <option value="draft">Чернетка</option>
+    </select>
+  </div>
+
+  <div class="panel products-list-panel">
+    <div class="panel-head products-list-head">
+      <div>
+        <div class="panel-title">АСОРТИМЕНТ</div>
+        <small>Натисніть «Редагувати», щоб відкрити повну картку товару.</small>
+      </div>
+    </div>
+    <div id="productsTable"></div>
+  </div>
+</section>
+
+<section class="page" id="productForm">
+  <div class="product-editor-top">
+    <button class="product-back-btn" type="button" onclick="goPage('products')">← ДО ТОВАРІВ</button>
+    <div class="product-editor-heading">
+      <div class="admin-page-kicker">РЕДАКТОР ТОВАРУ</div>
+      <h1 id="productFormTitle">Новий товар</h1>
+    </div>
+    <div class="product-editor-top-actions">
+      <button class="btn product-preview-btn" type="button" id="previewProductBtn">ПЕРЕГЛЯНУТИ ↗</button>
+      <button class="btn primary" type="button" id="saveProductTopBtn">ЗБЕРЕГТИ</button>
+    </div>
+  </div>
+
+  <div class="product-editor-layout">
+    <div class="product-editor-main">
+
+      <section class="admin-builder-section">
+        <div class="builder-section-head">
+          <span>01</span>
+          <div><h2>ОСНОВНЕ</h2><p>Назва, бренд, категорія, ціна та статус товару.</p></div>
+        </div>
+        <div class="form-grid builder-form-grid">
+          <div class="field"><label>Назва товару</label><input class="input" id="pName"></div>
+          <div class="field"><label>Slug</label><input class="input" id="pSlug"></div>
+          <div class="field full"><label>Бренд</label><input class="input" id="pBrand" placeholder="Наприклад: Burberry, Chanel, Max Mara"><small>Бренд відображається на сторінці товару та використовується у фільтрі каталогу.</small></div>
+          <div class="field"><label>Категорія</label><select class="input" id="pCategory"></select></div>
+          <div class="field"><label>Статус</label><select class="input" id="pStatus"><option value="draft">Чернетка</option><option value="published">В наявності</option><option value="reserved">Зарезервовано</option><option value="sold">Продано</option><option value="hidden">Приховано</option></select></div>
+          <div class="field"><label>Ціна</label><input class="input" id="pPrice" type="number" step="0.01"></div>
+          <div class="field"><label>Стара ціна</label><input class="input" id="pOldPrice" type="number" step="0.01"></div>
+        </div>
+      </section>
+
+      <section class="admin-builder-section">
+        <div class="builder-section-head">
+          <span>02</span>
+          <div><h2>ФОТО</h2><p>Головне фото, додаткові ракурси та порядок зображень.</p></div>
+        </div>
+        <div class="field full builder-photo-field">
+          <div class="photo-guide">
+            <b>Рекомендований розмір: 1200 × 1200 px (1:1)</b>
+            <span>Перше фото — головне. Перетягуйте мініатюри мишкою або використовуйте стрілки для зміни порядку.</span>
+          </div>
+          <div class="builder-photo-toolbar">
+            <label class="upload-box builder-upload" for="pImages">＋ ДОДАТИ ФОТО<input id="pImages" type="file" accept="image/*" multiple hidden></label>
+            <span>Додано: <b id="galleryCount" class="upload-count">0</b></span>
+          </div>
+          <div id="productGallery" class="gallery-grid"></div>
+        </div>
+      </section>
+
+      <section class="admin-builder-section">
+        <div class="builder-section-head">
+          <span>03</span>
+          <div><h2>ХАРАКТЕРИСТИКИ</h2><p>Параметри, які покупець бачить поруч із назвою та ціною.</p></div>
+        </div>
+        <div class="form-grid builder-form-grid">
+          <div class="field"><label>Розмір</label><input class="input" id="pSize"></div>
+          <div class="field"><label>Сезон</label><select class="input" id="pSeason"><option value="">Не вказано</option><option value="Зима">Зима</option><option value="Літо">Літо</option><option value="Демісезон">Демісезон</option><option value="Всесезон">Всесезон</option></select></div>
+          <div class="field"><label>Колір</label><input class="input" id="pColor"></div>
+          <div class="field"><label>Матеріал</label><input class="input" id="pMaterial"></div>
+          <div class="field"><label>Стан</label><input class="input" id="pCondition"></div>
+        </div>
+      </section>
+
+      <section class="admin-builder-section">
+        <div class="builder-section-head">
+          <span>04</span>
+          <div><h2>ОПИС</h2><p>Короткий текст біля товару та повний опис нижче.</p></div>
+        </div>
+        <div class="form-grid builder-form-grid">
+          <div class="field full"><label>Короткий опис</label><input class="input" id="pShort"></div>
+          <div class="field full"><label>Повний опис</label><textarea class="input builder-large-textarea" id="pDescription"></textarea></div>
+          <div class="field full"><label>Стан та деталі</label><textarea class="input" id="pDetailsText" placeholder="Нюанси стану, потертості, особливості речі..."></textarea></div>
+        </div>
+      </section>
+
+      <section class="admin-builder-section" id="productMeasurementsSection">
+        <div class="builder-section-head">
+          <span>05</span>
+          <div>
+            <h2>ЗАМІРИ</h2>
+            <p id="measurementHintV148">Поля автоматично змінюються залежно від категорії товару.</p>
+          </div>
+        </div>
+        <div class="form-grid builder-form-grid measurement-fields-v148" id="measurementFieldsV148">
+          <div class="field" data-measure-key="shoulders"><label>Плечі</label><input class="input" id="pMeasureShoulders" placeholder="46 см"></div>
+          <div class="field" data-measure-key="chest"><label>Груди</label><input class="input" id="pMeasureChest" placeholder="54 см"></div>
+          <div class="field" data-measure-key="waist"><label>Талія / пояс</label><input class="input" id="pMeasureWaist" placeholder="72 см"></div>
+          <div class="field" data-measure-key="hips"><label>Стегна</label><input class="input" id="pMeasureHips" placeholder="96 см"></div>
+          <div class="field" data-measure-key="length"><label>Довжина виробу</label><input class="input" id="pMeasureLength" placeholder="72 см"></div>
+          <div class="field" data-measure-key="sleeve"><label>Довжина рукава</label><input class="input" id="pMeasureSleeve" placeholder="63 см"></div>
+          <div class="field" data-measure-key="inseam"><label>Внутрішній шов</label><input class="input" id="pMeasureInseam" placeholder="78 см"></div>
+          <div class="field" data-measure-key="insole"><label>Довжина устілки</label><input class="input" id="pMeasureInsole" placeholder="24,5 см"></div>
+          <div class="field" data-measure-key="head"><label>Обхват голови</label><input class="input" id="pMeasureHead" placeholder="56 см"></div>
+          <div class="field" data-measure-key="width"><label>Ширина</label><input class="input" id="pMeasureWidth" placeholder="28 см"></div>
+          <div class="field" data-measure-key="height"><label>Висота</label><input class="input" id="pMeasureHeight" placeholder="20 см"></div>
+          <div class="field" data-measure-key="depth"><label>Глибина</label><input class="input" id="pMeasureDepth" placeholder="10 см"></div>
+        </div>
+      </section>
+
+      <section class="admin-builder-section">
+        <div class="builder-section-head">
+          <span>06</span>
+          <div><h2>ВІДОБРАЖЕННЯ</h2><p>Де цей товар має з’являтися на сайті.</p></div>
+        </div>
+        <div class="builder-check-grid">
+          <label><input id="pNew" type="checkbox"><span><b>НОВИНКА</b><small>Показувати у «Нових надходженнях».</small></span></label>
+          <label><input id="pTop" type="checkbox"><span><b>ЗАРАЗ У ТОПІ</b><small>Додати у вибірку на головній.</small></span></label>
+          <label><input id="pHome" type="checkbox"><span><b>ГОЛОВНА СТОРІНКА</b><small>Дозволити показ товару на головній.</small></span></label>
+        </div>
+      </section>
+
+      <section class="admin-builder-section related-products-builder-v197">
+        <div class="builder-section-head">
+          <span>07</span>
+          <div>
+            <h2>СУПУТНІ ТОВАРИ</h2>
+            <p>Оберіть речі, з якими цей товар добре стилізується. Вони з’являться у стрічці «Вам також може сподобатись».</p>
+          </div>
+        </div>
+
+        <div class="related-products-toolbar-v197">
+          <div class="products-search-wrap related-products-search-v197">
+            <span class="products-search-icon">⌕</span>
+            <input class="input" id="relatedProductSearchV197" placeholder="Пошук за назвою, брендом або категорією...">
+          </div>
+          <div class="related-products-count-v197">ВИБРАНО: <b id="relatedProductCountV197">0</b></div>
+        </div>
+
+        <div class="related-products-note-v197">
+          Почніть вводити назву або бренд товару — нижче з’являться відповідні результати.
+          Якщо нічого не вибрати, сайт автоматично покаже інші доступні товари.
+        </div>
+
+        <div id="relatedProductsSelectedV197" class="related-products-selected-v197"></div>
+        <div id="relatedProductsGridV197" class="related-products-grid-v197"></div>
+      </section>
+
+      <section class="admin-danger-zone">
+        <div><b>НЕБЕЗПЕЧНА ЗОНА</b><small>Видалення товару неможливо скасувати.</small></div>
+        <button class="btn danger hidden" id="deleteProductBtn">ВИДАЛИТИ ТОВАР</button>
+      </section>
+    </div>
+
+    <aside class="product-editor-side">
+      <div class="editor-side-card">
+        <div class="editor-side-label">СТАТУС РЕДАГУВАННЯ</div>
+        <div class="editor-save-state" id="productSaveState"><span></span>Зміни збережені</div>
+        <p>Після внесення змін натисніть «Зберегти». Дані одразу оновляться на сайті.</p>
+      </div>
+      <div class="editor-side-card editor-side-actions">
+        <button class="btn primary" id="saveProductBtn">ЗБЕРЕГТИ ТОВАР</button>
+        <button class="btn" onclick="goPage('products')">СКАСУВАТИ</button>
+      </div>
+      <div class="editor-side-card">
+        <div class="editor-side-label">ПІДКАЗКА</div>
+        <p>Для каталогу найкраще працюють квадратні фото 1200 × 1200 px на однаковому фоні.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="page" id="categories">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">МАГАЗИН</div><h1>КАТЕГОРІЇ</h1><p>Назва, обкладинка, порядок та видимість категорій у каталозі й на головній.</p></div>
+  <div class="admin-intro-actions"><button class="btn" onclick="window.open('../catalog.html','_blank')">ВІДКРИТИ КАТАЛОГ ↗</button></div>
+</div>
+
+<div class="split categories-builder-layout">
+  <div class="panel categories-list-panel">
+    <div class="panel-head">
+      <div><div class="panel-title">СПИСОК КАТЕГОРІЙ</div><small class="panel-help">Редагуйте категорію кнопкою у відповідному рядку.</small></div>
+    </div>
+    <div id="categoriesTable"></div>
+  </div>
+
+  <div class="panel category-editor-panel">
+    <div class="panel-head">
+      <div><div class="admin-page-kicker">РЕДАКТОР КАТЕГОРІЇ</div><div class="panel-title" id="categoryFormTitle">Додати категорію</div></div>
+    </div>
+    <div class="simple-form">
+      <div class="field"><label>Назва</label><input class="input" id="catName"></div>
+      <div class="field"><label>Slug</label><input class="input" id="catSlug"></div>
+      
+
+      <div class="check-row">
+        <label><input id="catActive" type="checkbox" checked> Активна категорія</label>
+        <label><input id="catShowHome" type="checkbox" checked> Показувати на головній</label>
+      </div>
+
+      <div class="field">
+        <label>Обкладинка категорії</label>
+        <div class="photo-guide compact">
+          <b>1600 × 800 px (2:1)</b>
+          <span>Фото підганяється автоматично без обрізання.</span>
+        </div>
+        <input class="input" id="catImage" type="file" accept="image/*">
+        <div id="catImagePreview" class="preview-row"></div>
+      </div>
+
+      <div class="form-actions category-actions">
+        <button class="btn hidden" id="cancelCategoryEditBtn" type="button">СКАСУВАТИ</button>
+        <button class="btn danger hidden" id="deleteCategoryBtn" type="button">ВИДАЛИТИ</button>
+        <button class="btn primary" id="saveCategoryBtn" type="button">ДОДАТИ</button>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+<section class="page" id="orders">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">МАГАЗИН · CRM</div><h1>ЗАМОВЛЕННЯ</h1><p>Обробка заявок від нового замовлення до відправлення та завершення.</p></div>
+</div>
+
+<div class="order-kpis-v135">
+  <button type="button" data-order-quick="new"><small>НОВІ</small><b id="orderKpiNew">0</b><span>потребують уваги</span></button>
+  <button type="button" data-order-quick="confirmed"><small>ПІДТВЕРДЖЕНІ</small><b id="orderKpiConfirmed">0</b><span>готуються до відправлення</span></button>
+  <button type="button" data-order-quick="shipped"><small>ВІДПРАВЛЕНІ</small><b id="orderKpiShipped">0</b><span>в дорозі</span></button>
+  <button type="button" data-order-quick="completed"><small>ОТРИМАНО</small><b id="orderKpiRevenue">₴0</b><span>сума отриманих</span></button>
+</div>
+
+<div class="orders-toolbar orders-toolbar-v135">
+  <input class="input" id="orderSearch" placeholder="Пошук: клієнт, товар, телефон, місто, № замовлення...">
+  <select class="input" id="orderStatusFilter">
+    <option value="">Всі статуси</option>
+    <option value="new">Нове</option>
+    <option value="confirmed">Підтверджено</option>
+    <option value="shipped">Відправлено</option>
+    <option value="received">Отримано</option>
+    <option value="cancelled">Скасовано</option>
+  </select>
+  <select class="input" id="orderDateFilter">
+    <option value="">За весь час</option>
+    <option value="today">Сьогодні</option>
+    <option value="7">Останні 7 днів</option>
+    <option value="30">Останні 30 днів</option>
+  </select>
+  <select class="input" id="orderSortFilter">
+    <option value="newest">Спочатку нові</option>
+    <option value="oldest">Спочатку старі</option>
+    <option value="amount_desc">Сума: від більшої</option>
+    <option value="amount_asc">Сума: від меншої</option>
+  </select>
+</div>
+
+<div class="panel orders-panel-v135">
+  <div class="panel-head">
+    <div><div class="panel-title">Усі замовлення</div><small class="orders-caption-v135">Натисніть на замовлення, щоб побачити всі дані та історію статусів.</small></div>
+    <div class="panel-spacer"></div>
+    <div id="ordersCount" class="orders-count-v135"></div>
+  </div>
+  <div id="ordersTable"></div>
+</div>
+</section>
+
+<section class="page" id="customers">
+  <div class="admin-page-intro">
+    <div>
+      <div class="admin-page-kicker">МАГАЗИН · CRM</div>
+      <h1>КЛІЄНТИ</h1>
+      <p>Зареєстровані покупці, контакти, кількість замовлень та сума покупок.</p>
+    </div>
+  </div>
+
+  <div class="panel account-header-admin collapsed" id="accountHeaderAdmin">
+    <div class="panel-head account-header-admin-head">
+      <div>
+        <div class="panel-title">Оформлення особистого кабінету</div>
+        <small>Фото у верхній шапці сторінки account.html</small>
+      </div>
+      <div class="panel-spacer"></div>
+      <button class="btn account-header-toggle" id="accountHeaderToggle" type="button" aria-expanded="false">РОЗГОРНУТИ ＋</button>
+    </div>
+    <div class="account-header-admin-body">
+      <div class="admin-info">Рекомендований формат: <b>1600 × 500 px</b>. На сайті фото заповнює всю шапку через cover.</div>
+      <div class="account-header-editor-grid">
+        <div id="accountHeaderPreview" class="account-header-preview"><span>Фото ще не додано</span></div>
+        <div class="account-header-controls">
+          <label>ЗАМІНИТИ ФОТО</label>
+          <input class="input" id="accountHeaderImageInput" type="file" accept="image/*">
+          <div class="form-actions compact-actions">
+            <button class="btn primary" id="saveAccountHeaderBtn" type="button">ЗБЕРЕГТИ ФОТО</button>
+            <button class="btn" id="removeAccountHeaderBtn" type="button">ВИДАЛИТИ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="orders-toolbar customer-toolbar">
+    <input class="input" id="customerSearch" placeholder="Пошук: ім’я, email, телефон, місто...">
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">Особисті кабінети</div>
+      <div class="panel-spacer"></div>
+      <div id="customersCount" style="color:#817970;font-size:11px"></div>
+    </div>
+    <div id="customersTable"></div>
+  </div>
+</section>
+<section class="page" id="news">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">КОНТЕНТ</div><h1>HEDONISTA JOURNAL</h1><p>Статті, гіди, головна публікація, порядок і оформлення сторінки журналу.</p></div>
+  <div class="admin-intro-actions"><button class="btn" onclick="window.open('../journal.html','_blank')">ПЕРЕГЛЯНУТИ ЖУРНАЛ ↗</button><button class="btn primary" onclick="openNewsForm()">＋ НОВА СТАТТЯ</button></div>
+</div>
+
+  <div class="journal37-admin">
+    <div class="panel journal37-settings">
+      <div class="panel-head journal-page-settings-head">
+        <div>
+          <div class="section-number">01</div>
+          <div>
+            <div class="panel-title">Сторінка «Вінтажні хроніки»</div>
+            <small class="journal-section-caption">Заголовки, назви секцій і нижній банер.</small>
+          </div>
+        </div>
+        <button class="journal-settings-toggle" id="journalSettingsToggle" type="button" aria-expanded="false" title="Розгорнути секцію">＋</button>
+      </div>
+      <div class="admin-info">Ці поля змінюють назви та нижній банер сторінки. Склад статей керується через кожну статтю.</div>
+
+      <div class="form-grid">
+        <div class="field"><label>Заголовок сторінки</label><input class="input" id="jPageTitle"></div>
+        <div class="field"><label>Підзаголовок</label><input class="input" id="jPageSubtitle"></div>
+        <div class="field"><label>Назва секції з 3 статтями</label><input class="input" id="jNewTitle"></div>
+        <div class="field"><label>Заголовок Guide</label><textarea class="input" id="jGuideTitle"></textarea></div>
+        <div class="field"><label>Підпис Guide</label><input class="input" id="jGuideSubtitle"></div>
+        <div class="field"><label>Назва інших публікацій</label><input class="input" id="jOtherTitle"></div>
+
+        <div class="field"><label>Нижній банер — заголовок</label><input class="input" id="jCtaTitle"></div>
+        <div class="field"><label>Нижній банер — текст</label><input class="input" id="jCtaText"></div>
+        <div class="field"><label>Текст кнопки</label><input class="input" id="jCtaLinkText"></div>
+        <div class="field"><label>Посилання кнопки</label><input class="input" id="jCtaLinkUrl"></div>
+        <div class="field full">
+          <label>Фонове фото блока «Знайшли натхнення?»</label>
+          <div class="photo-guide compact"><b>1920 × 600 px</b><span>Фото заповнює весь фон нижнього блока. Текст і кнопка залишаються поверх нього.</span></div>
+          <input class="input" id="jCtaImage" type="file" accept="image/*">
+          <div id="journalCtaPreview" class="preview-row"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn primary" id="saveJournalSettingsBtn" type="button">ЗБЕРЕГТИ СТОРІНКУ</button>
+      </div>
+    </div>
+
+    <div class="panel journal37-articles">
+      <div class="panel-head journal-articles-head">
+        <div class="journal-articles-title">
+          <div class="section-number">02</div>
+          <div>
+            <div class="panel-title">Статті «Вінтажних хронік»</div>
+            <small class="journal-section-caption">Керуйте публікаціями, категоріями та місцем їх показу.</small>
+          </div>
+        </div>
+        <div class="journal-articles-head-actions">
+          <button class="btn primary journal37-add" type="button" onclick="openNewsForm()">＋ ДОДАТИ СТАТТЮ</button>
+        </div>
+      </div>
+
+      <div class="journal-placement-intro">
+        <b>РОЗМІЩЕННЯ СТАТЕЙ</b>
+        <span>Позначки нижче пояснюють, де саме матеріал з’являється на сторінці Journal.</span>
+      </div>
+      <div class="journal37-help">
+        <div><b>ГОЛОВНА</b><span>Велика стаття на першому екрані.</span></div>
+        <div><b>НОВЕ НА САЙТІ</b><span>До 3 матеріалів у великій сітці після головної.</span></div>
+        <div><b>GUIDE</b><span>До 4 матеріалів у темній горизонтальній секції.</span></div>
+        <div><b>ІНШІ</b><span>Решта матеріалів автоматично потрапляє нижче.</span></div>
+      </div>
+
+      <div id="newsTable"></div>
+    </div>
+  </div>
+</section>
+<section class="page" id="newsForm">
+<div class="content-editor-top">
+  <button class="product-back-btn" type="button" onclick="goPage('news')">← ДО ЖУРНАЛУ</button>
+  <div class="product-editor-heading"><div class="admin-page-kicker">РЕДАКТОР СТАТТІ</div><h1>СТАТТЯ / GUIDE</h1></div>
+  <div class="product-editor-top-actions"><button class="btn" type="button" id="previewNewsTopBtn">ПЕРЕГЛЯНУТИ ↗</button><button class="btn primary" type="button" id="saveNewsTopBtn">ЗБЕРЕГТИ</button></div>
+</div>
+
+  <div class="journal-editor-shell">
+    <div class="panel journal-editor-main">
+      <div class="panel-head article-editor-title-head">
+        <div class="panel-title" id="newsFormTitle">Нова стаття</div>
+      </div>
+
+      <div class="journal-editor-group">
+        <div class="journal-editor-group-title">01 · Основна інформація</div>
+        <div class="form-grid">
+          <div class="field full"><label>Заголовок</label><input class="input" id="nTitle"></div>
+          <div class="field"><label>Slug</label><input class="input" id="nSlug"></div>
+          <div class="field journal-category-field">
+            <label>Категорія</label>
+            <div class="journal-category-row">
+              <select class="input" id="nCategory"></select>
+              <button class="btn journal-category-add" type="button" id="addJournalCategoryBtn">+ ДОДАТИ КАТЕГОРІЮ</button>
+            </div>
+            <div class="journal-category-manager" id="journalCategoryManager"></div>
+            <small class="field-note">Категорії зі списку можна видаляти хрестиком. Нова категорія одразу з’явиться у цьому списку та у «Вінтажних хроніках» після використання в статті.</small>
+          </div>
+          <div class="field full"><label>Короткий опис</label><textarea class="input short-textarea" id="nExcerpt"></textarea></div>
+        </div>
+      </div>
+
+      <div class="journal-editor-group">
+        <div class="journal-editor-group-title">02 · Текст статті</div>
+        <div class="admin-info">
+          Складай статтю з блоків. Підзаголовок автоматично отримає журнальне оформлення, фото можна вставляти прямо між абзацами. Блоки можна перетягувати за маркер зліва.
+        </div>
+        <textarea id="nContent" hidden></textarea>
+        <div id="journalBlockEditor" class="journal-block-editor"></div>
+        <div class="journal-block-add">
+          <button class="btn" type="button" data-add-journal-block="paragraph">+ АБЗАЦ</button>
+          <button class="btn" type="button" data-add-journal-block="heading">+ ПІДЗАГОЛОВОК</button>
+          <button class="btn" type="button" data-add-journal-block="image">+ ФОТО</button>
+        </div>
+      </div>
+
+      <div class="journal-editor-group">
+        <div class="journal-editor-group-title">03 · Фото</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Головна обкладинка</label>
+            <div class="photo-guide compact"><b>1600 × 1000 px</b><span>Використовується на сторінці Journal і в самій статті.</span></div>
+            <input class="input" id="nImage" type="file" accept="image/*">
+            <div id="newsImagePreview" class="preview-row"></div>
+          </div>
+          <div class="field">
+            <label>Додаткові фото</label>
+            <div class="photo-guide compact"><b>1200 × 1200 px</b><span>Можна вибрати кілька фото.</span></div>
+            <input class="input" id="nGallery" type="file" accept="image/*" multiple>
+            <div id="newsGalleryPreview" class="gallery-preview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel journal-editor-side">
+      <div class="journal-editor-group-title">Публікація</div>
+      <div class="field">
+        <label>Статус</label>
+        <select class="input" id="nStatus">
+          <option value="draft">Чернетка</option>
+          <option value="published">Опубліковано</option>
+          <option value="hidden">Приховано</option>
+        </select>
+      </div>
+
+      <div class="journal-placement-options">
+        <label class="journal-placement-card">
+          <input type="checkbox" id="nFeatured">
+          <div><b>ГОЛОВНА СТАТТЯ</b><span>Велика стаття зверху Journal. Одночасно може бути тільки одна.</span></div>
+        </label>
+
+        <label class="journal-placement-card">
+          <input type="checkbox" id="nNewSection">
+          <div><b>НОВЕ НА САЙТІ</b><span>Додасть матеріал у сітку з трьох великих статей після головної.</span></div>
+        </label>
+
+        <label class="journal-placement-card">
+          <input type="checkbox" id="nGuide">
+          <div><b>HEDONISTA GUIDE</b><span>Покаже статтю в Guide і оформить її текст як покроковий матеріал.</span></div>
+        </label>
+
+        <label class="journal-placement-card">
+          <input type="checkbox" id="nShowJournal" checked>
+          <div><b>ПОКАЗУВАТИ В JOURNAL</b><span>Якщо вимкнути — стаття не буде показана у стрічці Journal, навіть якщо вона опублікована.</span></div>
+        </label>
+
+        <label class="journal-placement-card">
+          <input type="checkbox" id="nShowHome" checked>
+          <div><b>ПОКАЗУВАТИ НА ГОЛОВНІЙ</b><span>Стаття зможе потрапити в Journal-блок головної сторінки.</span></div>
+        </label>
+      </div>
+
+      <!-- Порядок більше не задається вручну цифрами. Значення лишаються прихованими для сумісності з поточною БД. -->
+      <input id="nDisplayOrder" type="hidden" value="0">
+      <input id="nNewOrder" type="hidden" value="0">
+      <input id="nGuideOrder" type="hidden" value="0">
+
+      <div class="journal-editor-actions">
+        <button class="btn primary" id="saveNewsBtn" type="button">ЗБЕРЕГТИ СТАТТЮ</button>
+        <button class="btn" type="button" onclick="goPage('news')">СКАСУВАТИ</button>
+        <button class="btn danger hidden" id="deleteNewsBtn" type="button">ВИДАЛИТИ</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="page" id="deliveryPage">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">СТОРІНКИ САЙТУ</div><h1>ДОСТАВКА І ОПЛАТА</h1><p>Редагуйте інформацію про доставку, оплату, етапи замовлення та CTA.</p></div>
+  <div class="admin-intro-actions"><button class="btn" onclick="window.open('../delivery.html','_blank')">ПЕРЕГЛЯНУТИ ↗</button></div>
+</div>
+
+  <div class="home-admin-stack">
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">01</div><div class="panel-title">Доставка і оплата — верх сторінки</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Малий напис</label><input class="input" id="adDeliveryKicker"></div>
+        <div class="field"><label>Головний заголовок</label><textarea class="input" id="adDeliveryTitle"></textarea></div>
+        <div class="field full"><label>Вступний текст</label><textarea class="input" id="adDeliveryIntro"></textarea></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">02</div><div class="panel-title">Три основні блоки</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>01 — Заголовок</label><input class="input" id="adDeliveryShippingTitle"></div>
+        <div class="field"><label>01 — Текст</label><textarea class="input" id="adDeliveryShippingText"></textarea></div>
+        <div class="field"><label>02 — Заголовок</label><input class="input" id="adDeliveryPaymentTitle"></div>
+        <div class="field"><label>02 — Текст</label><textarea class="input" id="adDeliveryPaymentText"></textarea></div>
+        <div class="field"><label>03 — Заголовок</label><input class="input" id="adDeliveryExtraTitle"></div>
+        <div class="field"><label>03 — Текст</label><textarea class="input" id="adDeliveryExtraText"></textarea></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">03</div><div class="panel-title">Як це працює</div></div></div>
+      <div class="form-grid">
+        <div class="field full"><label>Заголовок секції</label><input class="input" id="adDeliveryProcessTitle"></div>
+        <div class="field"><label>Крок 1 — заголовок</label><input class="input" id="adDeliveryStep1Title"></div>
+        <div class="field"><label>Крок 1 — текст</label><textarea class="input" id="adDeliveryStep1Text"></textarea></div>
+        <div class="field"><label>Крок 2 — заголовок</label><input class="input" id="adDeliveryStep2Title"></div>
+        <div class="field"><label>Крок 2 — текст</label><textarea class="input" id="adDeliveryStep2Text"></textarea></div>
+        <div class="field"><label>Крок 3 — заголовок</label><input class="input" id="adDeliveryStep3Title"></div>
+        <div class="field"><label>Крок 3 — текст</label><textarea class="input" id="adDeliveryStep3Text"></textarea></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">04</div><div class="panel-title">Нижній CTA</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Заголовок</label><input class="input" id="adDeliveryCtaTitle"></div>
+        <div class="field"><label>Текст</label><textarea class="input" id="adDeliveryCtaText"></textarea></div>
+        <div class="field"><label>Текст кнопки</label><input class="input" id="adDeliveryCtaLinkText"></div>
+        <div class="field"><label>Посилання кнопки</label><input class="input" id="adDeliveryCtaLinkUrl"></div>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="saveDeliveryPageBtn">ЗБЕРЕГТИ СТОРІНКУ</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="contactsPage">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">СТОРІНКИ САЙТУ</div><h1>КОНТАКТИ</h1><p>Соціальні мережі, email, телефон та інформаційні блоки сторінки.</p></div>
+  <div class="admin-intro-actions"><button class="btn" onclick="window.open('../contacts.html','_blank')">ПЕРЕГЛЯНУТИ ↗</button></div>
+</div>
+
+  <div class="home-admin-stack">
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">01</div><div class="panel-title">Контакти — верх сторінки</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Малий напис</label><input class="input" id="adContactsKicker"></div>
+        <div class="field"><label>Головний заголовок</label><input class="input" id="adContactsTitle"></div>
+        <div class="field full"><label>Вступний текст</label><textarea class="input" id="adContactsIntro"></textarea></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">02</div><div class="panel-title">Контакти та посилання</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Заголовок блока</label><input class="input" id="adContactsListTitle"></div>
+        <div class="field"><label>Instagram — текст</label><input class="input" id="adContactsInstagramText"></div>
+        <div class="field"><label>Instagram — URL</label><input class="input" id="adContactsInstagramUrl"></div>
+        <div class="field"><label>Telegram — текст</label><input class="input" id="adContactsTelegramText"></div>
+        <div class="field"><label>Telegram — URL</label><input class="input" id="adContactsTelegramUrl"></div>
+        <div class="field"><label>Email</label><input class="input" id="adContactsEmailText"></div>
+        <div class="field"><label>Телефон</label><input class="input" id="adContactsPhoneText"></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">03</div><div class="panel-title">Допомога з вибором</div></div></div>
+      <div class="form-grid">
+        <div class="field"><label>Заголовок</label><input class="input" id="adContactsHelpTitle"></div>
+        <div class="field"><label>Текст</label><textarea class="input" id="adContactsHelpText"></textarea></div>
+      </div>
+    </div>
+    <div class="panel home-admin-section">
+      <div class="panel-head"><div><div class="section-number">04</div><div class="panel-title">Що можна уточнити</div></div></div>
+      <div class="form-grid">
+        <div class="field full"><label>Заголовок секції</label><input class="input" id="adContactsTopicsTitle"></div>
+        <div class="field"><label>01 — заголовок</label><input class="input" id="adContactsTopic1Title"></div>
+        <div class="field"><label>01 — текст</label><textarea class="input" id="adContactsTopic1Text"></textarea></div>
+        <div class="field"><label>02 — заголовок</label><input class="input" id="adContactsTopic2Title"></div>
+        <div class="field"><label>02 — текст</label><textarea class="input" id="adContactsTopic2Text"></textarea></div>
+        <div class="field"><label>03 — заголовок</label><input class="input" id="adContactsTopic3Title"></div>
+        <div class="field"><label>03 — текст</label><textarea class="input" id="adContactsTopic3Text"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="saveContactsPageBtn">ЗБЕРЕГТИ СТОРІНКУ</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="media">
+  <div class="admin-page-intro">
+    <div>
+      <div class="admin-page-kicker">VINTAGE HEDONISTA · MEDIA</div>
+      <h1>МЕДІАТЕКА</h1>
+      <p>Архів усіх фото сайту. Заміна товару або сторінки не видаляє фото з архіву.</p>
+    </div>
+    <div class="admin-intro-actions">
+      <button class="btn" type="button" id="syncMediaLibraryBtn">↻ СИНХРОНІЗУВАТИ ІСНУЮЧІ</button>
+      <button class="btn primary" type="button" id="uploadMediaLibraryBtn">＋ ЗАВАНТАЖИТИ ФОТО</button>
+      <input id="mediaLibraryUploadInput" type="file" accept="image/*" multiple hidden>
+    </div>
+  </div>
+  <div class="media-toolbar-v132">
+    <input class="input" id="mediaSearchInput" placeholder="Пошук за назвою, папкою або джерелом...">
+    <select class="input" id="mediaCategoryFilter">
+      <option value="">Усі фото</option>
+      <option value="products">Товари</option>
+      <option value="categories">Категорії</option>
+      <option value="journal">Journal</option>
+      <option value="pages">Сторінки / банери</option>
+      <option value="instagram">Instagram</option>
+      <option value="storage">Інше / Storage</option>
+    </select>
+    <div class="media-count-v132" id="mediaLibraryCount"></div>
+  </div>
+  <div id="mediaLibraryGrid" class="media-grid-v132"></div>
+</section>
+<section class="page" id="settings">
+<div class="admin-page-intro">
+  <div><div class="admin-page-kicker">СИСТЕМА</div><h1>НАЛАШТУВАННЯ</h1><p>Базові контакти й загальні дані, які використовуються в різних частинах сайту.</p></div>
+</div>
+<div class="panel form-panel"><div class="panel-head"><div class="panel-title">Загальні налаштування сайту</div></div><div class="form-grid"><div class="field"><label>Instagram</label><input class="input" id="sInstagram"></div><div class="field"><label>Telegram</label><input class="input" id="sTelegram"></div><div class="field"><label>Телефон</label><input class="input" id="sPhone"></div><div class="field"><label>Email</label><input class="input" id="sEmail"></div><div class="field"><label>Місто</label><input class="input" id="sCity"></div><div class="field full"><label>Доставка</label><textarea class="input" id="sShipping"></textarea></div><div class="field full"><label>Оплата</label><textarea class="input" id="sPayment"></textarea></div></div><div class="form-actions"><button class="btn primary" id="saveSettingsBtn">ЗБЕРЕГТИ НАЛАШТУВАННЯ</button></div></div></section></div></main></div><div class="login-wrap" id="loading"><div style="color:#c59657">Підключення до Supabase...</div></div><div id="orderModal" class="order-modal hidden">
+  <div class="order-modal-card">
+    <div class="order-modal-head">
+      <h3 id="orderModalTitle">Замовлення</h3>
+      <button class="close" onclick="closeOrderModal()">×</button>
+    </div>
+    <div class="order-modal-body">
+      <div class="order-modal-product" id="orderModalProduct"></div>
+      <div>
+        <div class="order-detail-grid">
+          <div class="order-detail"><label>КЛІЄНТ</label><div id="odCustomer"></div></div>
+          <div class="order-detail"><label>КОНТАКТ</label><div id="odContact"></div></div>
+          <div class="order-detail"><label>ТОВАР</label><div id="odProduct"></div></div>
+          <div class="order-detail"><label>СУМА</label><div id="odAmount"></div></div>
+          <div class="order-detail"><label>ДАТА І ЧАС</label><div id="odDate"></div></div>
+          <div class="order-detail"><label>ПОТОЧНИЙ СТАТУС</label><div id="odStatus"></div></div>
+          <div class="order-detail"><label>МІСТО</label><div id="odCity"></div></div>
+          <div class="order-detail"><label>НОВА ПОШТА / ВІДДІЛЕННЯ</label><div id="odDelivery"></div></div>
+          <div class="order-detail full"><label>КОМЕНТАР КЛІЄНТА</label><div id="odComment"></div></div>
+        </div>
+        <div class="order-admin-fields-v145">
+          <div class="field"><label>ТТН</label><input class="input" id="odTtn" placeholder="Наприклад: 2045..."></div>
+          <div class="field"><label>КОМЕНТАР АДМІНІСТРАТОРА</label><textarea class="input" id="odAdminNote" rows="3" placeholder="Внутрішня примітка до замовлення"></textarea></div>
+          
+        </div>
+        <div class="order-status-actions" id="orderStatusActions"></div>
+        <div class="order-modal-history-v135">
+          <div class="order-history-title-v135">ІСТОРІЯ СТАТУСІВ</div>
+          <div id="orderStatusHistoryV135"></div>
+        </div>
+      </div>
+    </div>
+    <div class="order-modal-footer order-modal-footer-v143">
+      <button class="btn order-delete-modal-v143" type="button" onclick="deleteOrderV143(document.getElementById('orderModal').dataset.id)">ВИДАЛИТИ ЗАМОВЛЕННЯ</button>
+      <button class="btn primary order-save-modal-v210" id="saveOrderMetaV145" type="button">ЗБЕРЕГТИ</button>
+    </div>
+  </div>
+</div>
+
+<div class="media-picker-v132 hidden" id="mediaPickerV132">
+  <div class="media-picker-backdrop-v132" data-media-close></div>
+  <div class="media-picker-panel-v132">
+    <div class="media-picker-head-v132">
+      <div><small>МЕДІАТЕКА</small><b>ОБЕРІТЬ ФОТО</b></div>
+      <button type="button" data-media-close>×</button>
+    </div>
+    <div class="media-picker-toolbar-v132">
+      <input class="input" id="mediaPickerSearch" placeholder="Пошук фото...">
+      <button class="btn" type="button" id="mediaPickerUploadBtn">＋ НОВЕ ФОТО</button>
+      <input id="mediaPickerUploadInput" type="file" accept="image/*" hidden>
+    </div>
+    <div id="mediaPickerGrid" class="media-picker-grid-v132"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js"></script>
+
+<div class="constructor-nav-drawer" id="constructorNavDrawer">
+  <div class="constructor-drawer-head">
+    <div><small>КОНСТРУКТОР</small><b>СЕКЦІЇ СТОРІНКИ</b></div>
+    <button type="button" id="closeConstructorNav">×</button>
+  </div>
+  <div id="constructorSectionList" class="constructor-section-list"></div>
+</div>
+<div class="constructor-preview-drawer" id="constructorPreviewDrawer">
+  <div class="constructor-drawer-head">
+    <div><small>LIVE PREVIEW</small><b id="constructorPreviewTitle">ПЕРЕГЛЯД СТОРІНКИ</b></div>
+    <div class="constructor-preview-actions">
+      <button type="button" id="refreshConstructorPreview">↻</button>
+      <button type="button" id="openConstructorPreview">↗</button>
+      <button type="button" id="closeConstructorPreview">×</button>
+    </div>
+  </div>
+  <div class="constructor-preview-note">Preview показує останню збережену версію сайту. Після змін натисніть «Зберегти» і ↻.</div>
+  <iframe id="constructorPreviewFrame" title="Live preview"></iframe>
+</div>
+<div class="constructor-backdrop" id="constructorBackdrop"></div>
+
+<div class="journal-category-modal" id="journalCategoryModal" hidden>
+  <div class="journal-category-modal__backdrop" data-close-journal-category></div>
+  <div class="journal-category-modal__box" role="dialog" aria-modal="true" aria-labelledby="journalCategoryModalTitle">
+    <button type="button" class="journal-category-modal__close" data-close-journal-category aria-label="Закрити">×</button>
+    <div class="eyebrow">ВІНТАЖНІ ХРОНІКИ</div>
+    <h3 id="journalCategoryModalTitle">Додати категорію</h3>
+    <input class="input" id="newJournalCategoryName" placeholder="Наприклад: ІСТОРІЇ БРЕНДІВ" autocomplete="off">
+    <div class="journal-category-modal__actions">
+      <button class="btn" type="button" data-close-journal-category>СКАСУВАТИ</button>
+      <button class="btn primary" type="button" id="saveJournalCategoryBtn">ДОДАТИ</button>
+    </div>
+  </div>
+</div>
+
+</body></html>

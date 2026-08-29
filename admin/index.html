@@ -1,0 +1,31 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap">
+<title>Vintage Hedonista Admin — Вхід</title><link rel="stylesheet" href="styles.css"></head><body>
+<div class="login-wrap"><div class="login-card"><div class="login-brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo.png" alt="Vintage Hedonista"></div><div class="login-sub">Адміністративна панель</div><input class="input" id="email" type="email" placeholder="Email"><input class="input" id="password" type="password" placeholder="Пароль"><button class="btn primary block" id="loginBtn">УВІЙТИ</button><div class="error" id="error"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script>
+<script>
+const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}});
+(async()=>{
+ const {data:{session},error:sessionError}=await sb.auth.getSession();
+ if(sessionError){
+   console.error(sessionError);
+   await sb.auth.signOut().catch(()=>{});
+   return
+ }
+ if(!session)return;
+
+ const {data:isAdmin,error}=await sb.rpc('is_admin');
+ if(!error&&isAdmin===true){
+   location.replace('admin.html');
+   return
+ }
+
+ // Session may belong to a deleted/non-admin account. Clear it instead of login/admin redirect loop.
+ console.warn(error||'Stored session is not admin');
+ await sb.auth.signOut().catch(()=>{});
+})();
+loginBtn.onclick=async()=>{error.textContent='';const emailV=email.value.trim(),passwordV=password.value;if(!emailV||!passwordV){error.textContent='Введи email і пароль';return}const {data,error:e}=await sb.auth.signInWithPassword({email:emailV,password:passwordV});if(e){error.textContent=e.message;return}const {data:isAdmin,error:aerr}=await sb.rpc('is_admin');if(aerr||isAdmin!==true){console.error(aerr);await sb.auth.signOut();error.textContent='Цей акаунт не має прав адміністратора';return}location.href='admin.html'};
+</script></body></html>
