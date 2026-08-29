@@ -12,10 +12,45 @@ let SITE_SETTINGS={};
 function money(v){return Number(v||0).toLocaleString('uk-UA')+' грн'}
 function toast(msg){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
 function placeholder(label,size){return `<div class="placeholder"><div><b>${label}</b>${size}<br>Додайте фото в адмінці</div></div>`}
-function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
+
+/* V258 Images/LCP: Supabase Storage can serve resized variants from the render endpoint.
+   We use those variants for mobile/card imagery and keep the original URL as an automatic
+   fallback, so the site still works if image transformations are unavailable. */
+function vhStorageRenderUrl(url,width,quality=74){
+ const raw=String(url||'');
+ if(!raw.includes('/storage/v1/object/public/'))return raw;
+ const parts=raw.split('?');
+ const base=parts[0].replace('/storage/v1/object/public/','/storage/v1/render/image/public/');
+ const q=`width=${Math.max(64,Math.round(Number(width)||640))}&quality=${Math.max(20,Math.min(100,Math.round(Number(quality)||74)))}`;
+ return base+'?'+q;
+}
+function vhImageMarkup(url,alt='',opts={}){
+ const raw=String(url||'');
+ if(!raw)return '';
+ const loading=opts.eager?'eager':'lazy';
+ const priority=opts.eager?'high':'low';
+ const draggable=opts.draggable===false?' draggable="false"':'';
+ if(!raw.includes('/storage/v1/object/public/'))return `<img src="${raw}" alt="${alt}" loading="${loading}" decoding="async" fetchpriority="${priority}"${draggable}>`;
+ const widths=(opts.widths||[320,480,640,768,960]).filter((v,i,a)=>v&&a.indexOf(v)===i);
+ const quality=opts.quality||74;
+ const srcWidth=opts.srcWidth||(opts.eager?640:480);
+ const src=vhStorageRenderUrl(raw,srcWidth,quality);
+ const srcset=widths.map(w=>`${vhStorageRenderUrl(raw,w,quality)} ${w}w`).join(', ');
+ const sizes=opts.sizes||'(max-width:520px) 46vw, (max-width:760px) 42vw, 280px';
+ return `<img src="${src}" srcset="${srcset}" sizes="${sizes}" data-vh-original="${raw}" alt="${alt}" loading="${loading}" decoding="async" fetchpriority="${priority}"${draggable}>`;
+}
+document.addEventListener('error',e=>{
+ const img=e.target;
+ if(!(img instanceof HTMLImageElement)||!img.dataset.vhOriginal||img.dataset.vhFallbackDone)return;
+ img.dataset.vhFallbackDone='1';
+ img.removeAttribute('srcset');img.removeAttribute('sizes');
+ img.src=img.dataset.vhOriginal;
+},{capture:true});
+
+function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?vhImageMarkup(p.cover_image,p.name,{widths:[240,320,480,640],srcWidth:480,sizes:'(max-width:520px) 46vw, (max-width:760px) 45vw, 260px',quality:72}):placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
 document.addEventListener('click',e=>{if(e.target.classList.contains('heart'))e.target.textContent=e.target.textContent==='♡'?'♥':'♡'});
 
-const VH_SETTINGS_CACHE_KEY='vh-site-settings-v257';
+const VH_SETTINGS_CACHE_KEY='vh-site-settings-v258';
 function applySettingsMeta(s={}){SITE_SETTINGS=s||{};document.querySelectorAll('[data-instagram]').forEach(el=>el.textContent=SITE_SETTINGS.instagram||'@vintage_hedonista');document.querySelectorAll('[data-telegram]').forEach(el=>el.textContent=SITE_SETTINGS.telegram||'Vintage Hedonista');document.querySelectorAll('[data-city]').forEach(el=>el.textContent=SITE_SETTINGS.city||'Одеса, Україна');if($('shippingText')&&SITE_SETTINGS.shipping_text)$('shippingText').textContent=SITE_SETTINGS.shipping_text;if($('paymentText')&&SITE_SETTINGS.payment_text)$('paymentText').textContent=SITE_SETTINGS.payment_text}
 function cachedSettings(){try{return JSON.parse(localStorage.getItem(VH_SETTINGS_CACHE_KEY)||'{}')||{}}catch{return {}}}
 async function loadSettings(){
@@ -45,7 +80,17 @@ async function initHome(){
  const heroSection=document.querySelector('.hero');
  if(heroSection){
    const heroBg=s.hero_background_image||'assets/hero-background-clean.webp';
-   heroSection.style.setProperty('--hero-bg-image',`url("${heroBg}")`);
+   const mobileHeroBg=window.innerWidth<=760&&String(heroBg).includes('/storage/v1/object/public/')
+     ? vhStorageRenderUrl(heroBg,960,68)
+     : heroBg;
+   heroSection.style.setProperty('--hero-bg-image',`url("${mobileHeroBg}")`);
+   // If Supabase image transformations are unavailable, recover the original
+   // admin background without leaving a broken visual.
+   if(mobileHeroBg!==heroBg){
+     const probe=new Image();
+     probe.onerror=()=>heroSection.style.setProperty('--hero-bg-image',`url("${heroBg}")`);
+     probe.src=mobileHeroBg;
+   }
    heroSection.classList.remove('hero-no-bg');
  }
  const heroLiveText=document.getElementById('heroLiveText');
@@ -93,8 +138,14 @@ async function initHome(){
  const main=$('heroMain'),side1=$('heroSide1'),side2=$('heroSide2');
  const drawFixedHero=(el,url,label,size)=>{
    const isMain=el===main;
+   const isSide=!isMain;
    el.innerHTML=url
-     ? `<img src="${url}" alt="${label}" draggable="false" decoding="async" ${isMain?'fetchpriority="high" loading="eager"':'fetchpriority="low" loading="lazy"'}>`
+     ? vhImageMarkup(url,label,{
+         eager:isMain,draggable:false,quality:isMain?72:70,
+         widths:isMain?[360,480,640,768,960]:[180,240,320,480],
+         srcWidth:isMain?640:320,
+         sizes:isMain?'(max-width:760px) 65vw, 56vw':'(max-width:760px) 35vw, 190px'
+       })
      : placeholder(label,size)
  };
  drawFixedHero(main,s.hero_main_image,'Головне Hero фото','1200 × 1500 px · 4:5');
@@ -119,7 +170,7 @@ async function initHome(){
  $('newArrivals').innerHTML=newItems.length?newItems.map(productCard).join(''):'<div class="empty">Позначте товари як «Новинка» в адмінці</div>';
  initNewArrivalsCarousel();
 
- $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
+ $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?vhImageMarkup(s.homepage_editorial_image,'',{widths:[480,640,768,960],srcWidth:640,sizes:'(max-width:760px) 100vw, 50vw',quality:72}):placeholder('Editorial фото','1600 × 1200 px');
 
  $('topTitle').textContent=s.homepage_top_title||'ЗАРАЗ У ТОПІ';$('topLink').textContent=(s.homepage_top_link_text||'ДИВИТИСЬ ВСІ ТОВАРИ')+' →';
 const {data:topItems,error:topItemsError}=topRes;
@@ -128,7 +179,7 @@ const topSizes=['1000 × 1100 px','1600 × 700 px','1600 × 700 px','900 × 1100
 const topMap=new Map((topItems||[]).map(x=>[Number(x.slot),x]));
 $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const x=topMap.get(slot)||{};
- const inner=x.image_url?`<img src="${x.image_url}" alt="${x.caption||''}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото «Зараз у топі»',topSizes[i]);
+ const inner=x.image_url?vhImageMarkup(x.image_url,x.caption||'',{widths:[320,480,640,768],srcWidth:480,sizes:'(max-width:760px) 48vw, 32vw',quality:72}):placeholder('Фото «Зараз у топі»',topSizes[i]);
  const cap=x.caption?`<span class="top-caption">${x.caption}</span>`:'';
  return x.link_url?`<a class="top-item" href="${x.link_url}">${inner}${cap}</a>`:`<div class="top-item">${inner}${cap}</div>`;
 }).join('');
@@ -137,7 +188,7 @@ $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const {data:cats,error:catError}=catsRes;
  if(catError)console.error(catError);
  const categoryItems=cats||[];
- $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="catalog.html?category=${encodeURIComponent(c.slug)}">${c.cover_image?`<img src="${c.cover_image}" alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
+ $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="catalog.html?category=${encodeURIComponent(c.slug)}">${c.cover_image?vhImageMarkup(c.cover_image,c.name,{widths:[320,480,640,768],srcWidth:480,sizes:'(max-width:760px) 78vw, 31vw',quality:72}):placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
  initCategoryCarousel();
 
  $('journalTitle').textContent=s.homepage_journal_title||'HEDONISTA JOURNAL';$('journalLink').textContent=(s.homepage_journal_link_text||'ВЕСЬ ЖУРНАЛ')+' →';const {data:news,error:newsError}=newsRes;if(newsError)console.error(newsError);$('homeNews').innerHTML=(news||[]).length?(news||[]).map(newsCard).join(''):'<div class="empty">Опублікуйте першу новину в адмінці</div>';
@@ -238,7 +289,7 @@ function initCategoryCarousel(){
  requestAnimationFrame(update);
 }
 
-function newsCard(n){const href=`article.html?slug=${encodeURIComponent(n.slug)}`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
+function newsCard(n){const href=`article.html?slug=${encodeURIComponent(n.slug)}`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?vhImageMarkup(n.cover_image,n.title,{widths:[320,480,640,768],srcWidth:480,sizes:'(max-width:760px) 100vw, 32vw',quality:72}):placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
 
 function initHomeJournalCarousel(){
  const track=$('homeNews'),prev=$('journalPrev'),next=$('journalNext');
@@ -727,9 +778,9 @@ function catalogProductCard(p){
    <a class="catalog-luxury-photo ${hasSecond?'has-second-photo':''}" href="${href}">
      <div class="catalog-photo-stack">
        ${primaryImage
-         ? `<img class="catalog-photo-primary" src="${primaryImage}" alt="${p.name}">`
+         ? vhImageMarkup(primaryImage,p.name,{widths:[240,320,480,640,768],srcWidth:480,sizes:'(max-width:760px) 48vw, 25vw',quality:72}).replace('<img ','<img class="catalog-photo-primary" ')
          : placeholder('Фото товару','1200 × 1500 px')}
-       ${hasSecond?`<img class="catalog-photo-secondary" src="${secondImage}" alt="${p.name} — друге фото" loading="lazy" fetchpriority="low">`:''}
+       ${hasSecond?vhImageMarkup(secondImage,`${p.name} — друге фото`,{widths:[240,320,480,640],srcWidth:480,sizes:'(max-width:760px) 48vw, 25vw',quality:72}).replace('<img ','<img class="catalog-photo-secondary" '):''}
      </div>
 
      <div class="catalog-card-badges">
@@ -861,7 +912,7 @@ function recommendedProductCard(p){
  const image=p.cover_image||gallery[0]?.image_url||'';
  return `<article class="recommended-card">
    <a class="recommended-photo" href="${href}">
-     ${image?`<img src="${image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1200 px')}
+     ${image?vhImageMarkup(image,p.name,{widths:[240,320,480,640],srcWidth:480,sizes:'(max-width:760px) 46vw, 240px',quality:72}):placeholder('Фото товару','1200 × 1200 px')}
    </a>
    <div class="recommended-info">
      ${p.brand?`<div class="recommended-brand">${p.brand}</div>`:''}

@@ -66,10 +66,10 @@ async function prepareImage(file,targetW,targetH,bg='#2a1d14',quality=.92){
   // V254 PERFORMANCE: even an already correctly-sized upload is re-encoded,
   // so a multi-megabyte camera JPEG never reaches Storage unchanged.
   // WebP gives materially smaller product/catalog images in modern Safari/Chrome.
-  const webpQuality=Math.min(Number(quality)||.88,.88);
+  const webpQuality=Math.min(Number(quality)||.82,.82);
   let blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',webpQuality));
   if(!blob || blob.type!=='image/webp') {
-    blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',Math.min(webpQuality,.88)));
+    blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',Math.min(webpQuality,.82)));
   }
   if(!blob)throw new Error('Не вдалося підготувати фото');
   const isWebp=blob.type==='image/webp';
@@ -696,7 +696,7 @@ $('saveCategoryBtn').onclick=async()=>{
 
    const original=$('catImage').files[0];
    if(original){
-     const f=await prepareImage(original,1600,800,'#35291d',.92);
+     const f=await prepareImage(original,1200,600,'#35291d',.82);
      cover=await uploadFile(f,`categories/${editingCategoryId||crypto.randomUUID()}-${Date.now()}.jpg`)
    }
 
@@ -1896,7 +1896,7 @@ $('saveNewsBtn').onclick=async()=>{
 
    const original=$('nImage').files[0];
    if(original){
-     const f=await prepareImage(original,1600,1000,'#eadbc7',.92);
+     const f=await prepareImage(original,1200,750,'#eadbc7',.82);
      cover=await uploadFile(f,`news/${Date.now()}-${crypto.randomUUID()}.jpg`)
    }
 
@@ -2177,14 +2177,14 @@ $('saveHomepageTextBtn').onclick=async()=>{
    let editorialImage=HOMEPAGE_SETTINGS.homepage_editorial_image||null;
    const editorialOriginal=$('hpEditorialImage').files[0];
    if(editorialOriginal){
-     const f=await prepareImage(editorialOriginal,1600,1200,'#493522',.93);
+     const f=await prepareImage(editorialOriginal,1200,900,'#493522',.82);
      editorialImage=await uploadFile(f,`homepage/editorial-${Date.now()}.jpg`)
    }
 
    let heroBackground=HOMEPAGE_SETTINGS.hero_background_image||null;
    const bgOriginal=$('hpHeroBackgroundImage').files[0];
    if(bgOriginal){
-     const f=await prepareImage(bgOriginal,1920,900,'#0e0c09',.93);
+     const f=await prepareImage(bgOriginal,1440,675,'#0e0c09',.80);
      heroBackground=await uploadFile(f,`homepage/hero-background-${Date.now()}.jpg`)
    }
 
@@ -2197,15 +2197,15 @@ $('saveHomepageTextBtn').onclick=async()=>{
    const bottomOriginal=$('hpHeroBottomImage').files[0];
 
    if(mainOriginal){
-     const f=await prepareImage(mainOriginal,1200,1500,'#35291d',.93);
+     const f=await prepareImage(mainOriginal,960,1200,'#35291d',.82);
      heroMain=await uploadFile(f,`homepage/hero-main-${Date.now()}.jpg`)
    }
    if(topOriginal){
-     const f=await prepareImage(topOriginal,1200,1200,'#35291d',.93);
+     const f=await prepareImage(topOriginal,720,720,'#35291d',.80);
      heroTop=await uploadFile(f,`homepage/hero-top-${Date.now()}.jpg`)
    }
    if(bottomOriginal){
-     const f=await prepareImage(bottomOriginal,1200,1200,'#35291d',.93);
+     const f=await prepareImage(bottomOriginal,720,720,'#35291d',.80);
      heroBottom=await uploadFile(f,`homepage/hero-bottom-${Date.now()}.jpg`)
    }
 
