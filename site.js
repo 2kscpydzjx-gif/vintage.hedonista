@@ -15,7 +15,20 @@ function placeholder(label,size){return `<div class="placeholder"><div><b>${labe
 function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
 document.addEventListener('click',e=>{if(e.target.classList.contains('heart'))e.target.textContent=e.target.textContent==='♡'?'♥':'♡'});
 
-async function loadSettings(){const {data,error}=await sb.from('site_settings').select('*').eq('id',1).maybeSingle();if(error){console.error(error);return {}}SITE_SETTINGS=data||{};document.querySelectorAll('[data-instagram]').forEach(el=>el.textContent=SITE_SETTINGS.instagram||'@vintage_hedonista');document.querySelectorAll('[data-telegram]').forEach(el=>el.textContent=SITE_SETTINGS.telegram||'Vintage Hedonista');document.querySelectorAll('[data-city]').forEach(el=>el.textContent=SITE_SETTINGS.city||'Одеса, Україна');if($('shippingText')&&SITE_SETTINGS.shipping_text)$('shippingText').textContent=SITE_SETTINGS.shipping_text;if($('paymentText')&&SITE_SETTINGS.payment_text)$('paymentText').textContent=SITE_SETTINGS.payment_text;return SITE_SETTINGS}
+const VH_SETTINGS_CACHE_KEY='vh-site-settings-v256';
+function applySettingsMeta(s={}){SITE_SETTINGS=s||{};document.querySelectorAll('[data-instagram]').forEach(el=>el.textContent=SITE_SETTINGS.instagram||'@vintage_hedonista');document.querySelectorAll('[data-telegram]').forEach(el=>el.textContent=SITE_SETTINGS.telegram||'Vintage Hedonista');document.querySelectorAll('[data-city]').forEach(el=>el.textContent=SITE_SETTINGS.city||'Одеса, Україна');if($('shippingText')&&SITE_SETTINGS.shipping_text)$('shippingText').textContent=SITE_SETTINGS.shipping_text;if($('paymentText')&&SITE_SETTINGS.payment_text)$('paymentText').textContent=SITE_SETTINGS.payment_text}
+function cachedSettings(){try{return JSON.parse(localStorage.getItem(VH_SETTINGS_CACHE_KEY)||'{}')||{}}catch{return {}}}
+async function loadSettings(){
+ const cached=cachedSettings();
+ if(Object.keys(cached).length)applySettingsMeta(cached);
+ // Public settings do not need the customer auth/session client. This avoids auth
+ // recovery work on the critical homepage path and is friendlier to mobile LCP.
+ const {data,error}=await publicSb.from('site_settings').select('*').eq('id',1).maybeSingle();
+ if(error){console.error(error);return cached}
+ const fresh=data||cached||{};applySettingsMeta(fresh);
+ try{localStorage.setItem(VH_SETTINGS_CACHE_KEY,JSON.stringify(fresh))}catch{}
+ return fresh
+}
 
 async function initHome(){
  const s=await loadSettings();
@@ -69,8 +82,9 @@ async function initHome(){
 
  const main=$('heroMain'),side1=$('heroSide1'),side2=$('heroSide2');
  const drawFixedHero=(el,url,label,size)=>{
+   const isMain=el===main;
    el.innerHTML=url
-     ? `<img src="${url}" alt="${label}" draggable="false" decoding="async" ${el===main?'fetchpriority="high" loading="eager"':'loading="eager"'}>`
+     ? `<img src="${url}" alt="${label}" draggable="false" decoding="async" ${isMain?'fetchpriority="high" loading="eager"':'fetchpriority="low" loading="lazy"'}>`
      : placeholder(label,size)
  };
  drawFixedHero(main,s.hero_main_image,'Головне Hero фото','1200 × 1500 px · 4:5');

@@ -17695,3 +17695,12 @@ header .vh-brand-logo-link{
     margin-top:0!important;
   }
 }
+
+/* V256 PERFORMANCE — skip layout/paint for homepage sections until they approach viewport. */
+@supports (content-visibility:auto){
+  .home-page .editorial,
+  .home-page .category-section,
+  .home-page .journal-section,
+  .home-page .brand-statement,
+  .home-page .site-footer-v64{content-visibility:auto;contain-intrinsic-size:auto 700px}
+}
