@@ -17695,3 +17695,132 @@ header .vh-brand-logo-link{
     margin-top:0!important;
   }
 }
+
+/* V256 PERFORMANCE — skip layout/paint for homepage sections until they approach viewport. */
+@supports (content-visibility:auto){
+  .home-page .editorial,
+  .home-page .category-section,
+  .home-page .journal-section,
+  .home-page .brand-statement,
+  .home-page .site-footer-v64{content-visibility:auto;contain-intrinsic-size:auto 700px}
+}
+
+
+/* ==========================================================
+   V260 — Nested category/subcategory filters
+   ========================================================== */
+#subcategoryFilterSection{display:none !important}
+#categoryFilters{
+  max-height:none !important;
+  overflow:visible !important;
+  gap:0 !important;
+}
+#categoryFilters .category-filter-item{
+  display:block;
+  border-bottom:1px solid rgba(33,24,15,.055);
+  padding:1px 0;
+}
+#categoryFilters .category-filter-item:last-child{border-bottom:0}
+#categoryFilters .category-parent-option,
+#categoryFilters .category-filter-all>.filter-option{
+  width:100%;
+  box-sizing:border-box;
+}
+#categoryFilters .category-subcategories{
+  display:grid;
+  gap:2px;
+  margin:2px 0 8px 21px;
+  padding:5px 0 3px 10px;
+  border-left:1px solid rgba(56,41,28,.22);
+  animation:vhSubcategoryOpen .16s ease-out both;
+}
+#categoryFilters .subcategory-option{
+  min-height:27px !important;
+  padding:2px 0 !important;
+  color:#756556 !important;
+}
+#categoryFilters .subcategory-option span{
+  font-size:9.5px !important;
+  font-weight:400 !important;
+  color:#6d5e51 !important;
+}
+#categoryFilters .subcategory-option input[type="radio"]{
+  width:11px !important;
+  height:11px !important;
+  flex:0 0 11px !important;
+}
+#categoryFilters .subcategory-option.is-active span,
+#categoryFilters .subcategory-option:has(input:checked) span{
+  color:#21180f !important;
+  font-weight:600 !important;
+}
+#categoryFilters .subcategory-option:has(input:checked)::before{display:none !important}
+#categoryFilters .subcategory-option:has(input:checked){grid-template-columns:auto minmax(0,1fr) auto !important}
+#categoryFilters .subcategory-option:has(input:checked) input{display:block !important}
+@keyframes vhSubcategoryOpen{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+@media(max-width:900px){
+  body.catalog-mobile-page #categoryFilters{max-height:none !important;overflow:visible !important}
+  body.catalog-mobile-page #categoryFilters .category-subcategories{margin-left:18px;padding-left:10px}
+}
+
+
+/* ==========================================================
+   V261 — Subcategory alignment + clearer typography
+   ========================================================== */
+#categoryFilters .category-subcategories{
+  margin:2px 0 8px 0 !important;
+  padding:4px 0 5px 0 !important;
+  border-left:0 !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+}
+#categoryFilters .subcategory-option{
+  width:100% !important;
+  box-sizing:border-box !important;
+  min-height:30px !important;
+  padding:3px 0 !important;
+}
+#categoryFilters .subcategory-option span{
+  font-size:11px !important;
+  line-height:1.3 !important;
+  font-weight:400 !important;
+}
+#categoryFilters .subcategory-option.is-active span,
+#categoryFilters .subcategory-option:has(input:checked) span{
+  font-weight:600 !important;
+}
+@media(max-width:900px){
+  body.catalog-mobile-page #categoryFilters .category-subcategories{
+    margin-left:0 !important;
+    padding-left:0 !important;
+  }
+  body.catalog-mobile-page #categoryFilters .subcategory-option span{
+    font-size:11.5px !important;
+  }
+}
+
+/* ==========================================================
+   V266 — Mobile subcategory radio circles
+   Keep nested subcategory selectors perfectly round on phones.
+   ========================================================== */
+@media(max-width:900px){
+  body.catalog-mobile-page #categoryFilters .subcategory-option input[type="radio"]{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    box-sizing:border-box !important;
+    width:21px !important;
+    height:21px !important;
+    min-width:21px !important;
+    min-height:21px !important;
+    max-width:21px !important;
+    max-height:21px !important;
+    flex:0 0 21px !important;
+    aspect-ratio:1 / 1 !important;
+    border-radius:50% !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+  body.catalog-mobile-page #categoryFilters .subcategory-option{
+    grid-template-columns:28px minmax(0,1fr) 38px !important;
+  }
+}

@@ -1,0 +1,1 @@
+V265: Admin product list shows only the main category. Subcategory remains stored and editable but is hidden from the all-products/recent-products table.

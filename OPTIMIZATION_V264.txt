@@ -1,0 +1,6 @@
+V264 — automatic category slugs
+- Category slug is generated automatically from the Ukrainian category name.
+- Slug updates while editing existing categories too.
+- Category slug field is read-only.
+- Duplicate slugs receive -2, -3, etc.
+- Subcategory slugs remain automatic.

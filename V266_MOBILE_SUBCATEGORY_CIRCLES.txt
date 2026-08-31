@@ -1,0 +1,4 @@
+V266 — Mobile subcategory controls
+• Fixed flattened/oval subcategory radio controls on mobile.
+• Subcategory selectors now use the same 21×21 circular geometry as category selectors.
+• No data, Supabase schema, filtering logic, or desktop layout changes.

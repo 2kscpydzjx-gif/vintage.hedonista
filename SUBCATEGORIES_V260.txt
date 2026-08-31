@@ -1,0 +1,8 @@
+V260 — categories/subcategories UI corrections
+
+- Catalog subcategories now expand directly under the selected main category.
+- The separate lower "Підкатегорії" filter block is hidden.
+- Category filter no longer clips the list at 300px, so all active categories are visible.
+- Admin category table gets stable readable columns; names/slugs no longer break letter-by-letter.
+- Product editor header is no longer sticky and no longer overlaps the sidebar/main divider.
+- No database migration beyond V259 is required.

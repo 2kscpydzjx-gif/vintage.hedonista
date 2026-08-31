@@ -12,10 +12,33 @@ let SITE_SETTINGS={};
 function money(v){return Number(v||0).toLocaleString('uk-UA')+' грн'}
 function toast(msg){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
 function placeholder(label,size){return `<div class="placeholder"><div><b>${label}</b>${size}<br>Додайте фото в адмінці</div></div>`}
-function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
+function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
 document.addEventListener('click',e=>{if(e.target.classList.contains('heart'))e.target.textContent=e.target.textContent==='♡'?'♥':'♡'});
 
-async function loadSettings(){const {data,error}=await sb.from('site_settings').select('*').eq('id',1).maybeSingle();if(error){console.error(error);return {}}SITE_SETTINGS=data||{};document.querySelectorAll('[data-instagram]').forEach(el=>el.textContent=SITE_SETTINGS.instagram||'@vintage_hedonista');document.querySelectorAll('[data-telegram]').forEach(el=>el.textContent=SITE_SETTINGS.telegram||'Vintage Hedonista');document.querySelectorAll('[data-city]').forEach(el=>el.textContent=SITE_SETTINGS.city||'Одеса, Україна');if($('shippingText')&&SITE_SETTINGS.shipping_text)$('shippingText').textContent=SITE_SETTINGS.shipping_text;if($('paymentText')&&SITE_SETTINGS.payment_text)$('paymentText').textContent=SITE_SETTINGS.payment_text;return SITE_SETTINGS}
+const VH_SETTINGS_CACHE_KEY='vh-site-settings-v257';
+function applySettingsMeta(s={}){SITE_SETTINGS=s||{};document.querySelectorAll('[data-instagram]').forEach(el=>el.textContent=SITE_SETTINGS.instagram||'@vintage_hedonista');document.querySelectorAll('[data-telegram]').forEach(el=>el.textContent=SITE_SETTINGS.telegram||'Vintage Hedonista');document.querySelectorAll('[data-city]').forEach(el=>el.textContent=SITE_SETTINGS.city||'Одеса, Україна');if($('shippingText')&&SITE_SETTINGS.shipping_text)$('shippingText').textContent=SITE_SETTINGS.shipping_text;if($('paymentText')&&SITE_SETTINGS.payment_text)$('paymentText').textContent=SITE_SETTINGS.payment_text}
+function cachedSettings(){try{return JSON.parse(localStorage.getItem(VH_SETTINGS_CACHE_KEY)||'{}')||{}}catch{return {}}}
+async function loadSettings(){
+ const cached=cachedSettings();
+ if(Object.keys(cached).length)applySettingsMeta(cached);
+ // V257: the homepage starts this REST request directly from <head>, before the
+ // Supabase SDK and site.js have finished downloading. Reuse that same response
+ // instead of creating a second settings request on the critical LCP path.
+ let boot=null;
+ if(window.__VH_BOOT_SETTINGS_PROMISE){
+   try{boot=await window.__VH_BOOT_SETTINGS_PROMISE}catch{}
+ }
+ if(boot){
+   applySettingsMeta(boot);
+   try{localStorage.setItem(VH_SETTINGS_CACHE_KEY,JSON.stringify(boot))}catch{}
+   return boot;
+ }
+ const {data,error}=await publicSb.from('site_settings').select('*').eq('id',1).maybeSingle();
+ if(error){console.error(error);return cached}
+ const fresh=data||cached||{};applySettingsMeta(fresh);
+ try{localStorage.setItem(VH_SETTINGS_CACHE_KEY,JSON.stringify(fresh))}catch{}
+ return fresh
+}
 
 async function initHome(){
  const s=await loadSettings();
@@ -69,8 +92,9 @@ async function initHome(){
 
  const main=$('heroMain'),side1=$('heroSide1'),side2=$('heroSide2');
  const drawFixedHero=(el,url,label,size)=>{
+   const isMain=el===main;
    el.innerHTML=url
-     ? `<img src="${url}" alt="${label}" draggable="false" decoding="async" ${el===main?'fetchpriority="high" loading="eager"':'loading="eager"'}>`
+     ? `<img src="${url}" alt="${label}" draggable="false" decoding="async" ${isMain?'fetchpriority="high" loading="eager"':'fetchpriority="low" loading="lazy"'}>`
      : placeholder(label,size)
  };
  drawFixedHero(main,s.hero_main_image,'Головне Hero фото','1200 × 1500 px · 4:5');
@@ -95,7 +119,7 @@ async function initHome(){
  $('newArrivals').innerHTML=newItems.length?newItems.map(productCard).join(''):'<div class="empty">Позначте товари як «Новинка» в адмінці</div>';
  initNewArrivalsCarousel();
 
- $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async">`:placeholder('Editorial фото','1600 × 1200 px');
+ $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
 
  $('topTitle').textContent=s.homepage_top_title||'ЗАРАЗ У ТОПІ';$('topLink').textContent=(s.homepage_top_link_text||'ДИВИТИСЬ ВСІ ТОВАРИ')+' →';
 const {data:topItems,error:topItemsError}=topRes;
@@ -104,7 +128,7 @@ const topSizes=['1000 × 1100 px','1600 × 700 px','1600 × 700 px','900 × 1100
 const topMap=new Map((topItems||[]).map(x=>[Number(x.slot),x]));
 $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const x=topMap.get(slot)||{};
- const inner=x.image_url?`<img src="${x.image_url}" alt="${x.caption||''}" loading="lazy" decoding="async">`:placeholder('Фото «Зараз у топі»',topSizes[i]);
+ const inner=x.image_url?`<img src="${x.image_url}" alt="${x.caption||''}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото «Зараз у топі»',topSizes[i]);
  const cap=x.caption?`<span class="top-caption">${x.caption}</span>`:'';
  return x.link_url?`<a class="top-item" href="${x.link_url}">${inner}${cap}</a>`:`<div class="top-item">${inner}${cap}</div>`;
 }).join('');
@@ -113,7 +137,7 @@ $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const {data:cats,error:catError}=catsRes;
  if(catError)console.error(catError);
  const categoryItems=cats||[];
- $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="catalog.html?category=${encodeURIComponent(c.slug)}">${c.cover_image?`<img src="${c.cover_image}" alt="${c.name}" loading="lazy" decoding="async">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
+ $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="catalog.html?category=${encodeURIComponent(c.slug)}">${c.cover_image?`<img src="${c.cover_image}" alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
  initCategoryCarousel();
 
  $('journalTitle').textContent=s.homepage_journal_title||'HEDONISTA JOURNAL';$('journalLink').textContent=(s.homepage_journal_link_text||'ВЕСЬ ЖУРНАЛ')+' →';const {data:news,error:newsError}=newsRes;if(newsError)console.error(newsError);$('homeNews').innerHTML=(news||[]).length?(news||[]).map(newsCard).join(''):'<div class="empty">Опублікуйте першу новину в адмінці</div>';
@@ -214,7 +238,7 @@ function initCategoryCarousel(){
  requestAnimationFrame(update);
 }
 
-function newsCard(n){const href=`article.html?slug=${encodeURIComponent(n.slug)}`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
+function newsCard(n){const href=`article.html?slug=${encodeURIComponent(n.slug)}`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
 
 function initHomeJournalCarousel(){
  const track=$('homeNews'),prev=$('journalPrev'),next=$('journalNext');
@@ -252,11 +276,13 @@ function initHomeJournalCarousel(){
 
 let catalogProducts=[];
 let catalogCategories=[];
+let catalogSubcategories=[];
 let catalogFiltered=[];
 let catalogVisibleCount=12;
 const CATALOG_PAGE_SIZE=12;
 const catalogState={
  category:null,
+ subcategory:null,
  brands:new Set(),
  sizes:new Set(),
  seasons:new Set(),
@@ -285,15 +311,19 @@ function catalogPlural(n){
 async function initCatalog(){
  document.body.classList.add('vh-catalog-motion');
 
- const [, {data:productsData,error:productsError},{data:categoriesData,error:categoriesError}]=await Promise.all([
+ const [, {data:productsData,error:productsError},{data:categoriesData,error:categoriesError},{data:subcategoriesData,error:subcategoriesError}]=await Promise.all([
    loadSettings(),
    publicSb.from('products')
-     .select('*,categories(id,name,slug),product_images(id,image_url,sort_order)')
+     .select('*,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(id,image_url,sort_order)')
      .in('status',['published','reserved','sold'])
      .order('created_at',{ascending:false}),
    publicSb.from('categories')
      .select('id,name,slug,sort_order,is_active')
      .eq('is_active',true)
+     .order('sort_order',{ascending:true})
+     .order('created_at',{ascending:true}),
+   publicSb.from('subcategories')
+     .select('id,category_id,name,slug,sort_order')
      .order('sort_order',{ascending:true})
      .order('created_at',{ascending:true})
  ]);
@@ -304,16 +334,24 @@ async function initCatalog(){
    return
  }
  if(categoriesError)console.error(categoriesError);
+ if(subcategoriesError)console.error(subcategoriesError);
 
  catalogProducts=productsData||[];
  catalogCategories=categoriesData||[];
+ catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
  catalogState.category=params.get('category')||null;
+ catalogState.subcategory=params.get('subcategory')||null;
 
  // If URL contains an old/non-active category, return to all products.
  if(catalogState.category&&!catalogCategories.some(c=>c.slug===catalogState.category)){
    catalogState.category=null;
+   catalogState.subcategory=null;
+   updateCatalogUrl()
+ }
+ if(catalogState.subcategory&&!catalogSubcategories.some(x=>x.slug===catalogState.subcategory)){
+   catalogState.subcategory=null;
    updateCatalogUrl()
  }
 
@@ -322,25 +360,68 @@ async function initCatalog(){
  applyCatalog(true)
 }
 
-function buildCatalogFilters(){
+
+function categorySubcategoryMarkup(category){
+ const list=catalogSubcategories.filter(x=>String(x.category_id)===String(category.id));
+ if(catalogState.category!==category.slug||!list.length)return '';
+ const counts=new Map();
+ catalogProducts.forEach(p=>{
+   if(p.categories?.slug!==category.slug)return;
+   const slug=p.subcategories?.slug;
+   if(slug)counts.set(slug,(counts.get(slug)||0)+1)
+ });
+ if(catalogState.subcategory&&!list.some(x=>x.slug===catalogState.subcategory))catalogState.subcategory=null;
+ return `<div class="category-subcategories" data-parent-category="${category.slug}">
+   <label class="filter-option subcategory-option ${!catalogState.subcategory?'is-active':''}">
+     <input type="radio" name="subcategory" value="" ${!catalogState.subcategory?'checked':''}>
+     <span>Усі товари категорії</span>
+   </label>
+   ${list.map(x=>`<label class="filter-option subcategory-option ${catalogState.subcategory===x.slug?'is-active':''}">
+     <input type="radio" name="subcategory" value="${x.slug}" ${catalogState.subcategory===x.slug?'checked':''}>
+     <span>${x.name}</span>
+     <small class="filter-option-count">${counts.get(x.slug)||0}</small>
+   </label>`).join('')}
+ </div>`
+}
+
+function renderSubcategoryFilters(){
+ // V260: subcategories live directly under the selected parent category.
+ // Keep the legacy standalone section hidden for backwards-compatible markup.
+ const section=$('subcategoryFilterSection');
+ if(section)section.classList.add('hidden');
+ const box=$('subcategoryFilters');
+ if(box)box.innerHTML='';
+ renderCategoryFilters()
+}
+
+function renderCategoryFilters(){
+ const box=$('categoryFilters');
+ if(!box)return;
  const counts=new Map();
  catalogProducts.forEach(p=>{
    const slug=p.categories?.slug;
    if(slug)counts.set(slug,(counts.get(slug)||0)+1)
  });
-
- $('categoryFilters').innerHTML=
-   `<label class="filter-option">
+ box.innerHTML=
+   `<div class="category-filter-item category-filter-all"><label class="filter-option">
       <input type="checkbox" name="category" value="" ${!catalogState.category?'checked':''}>
       <span>Усі товари</span>
       <small class="filter-option-count">${catalogProducts.length}</small>
-    </label>`+
-   catalogCategories.map(c=>`
-    <label class="filter-option">
+    </label></div>`+
+   catalogCategories.map(c=>`<div class="category-filter-item ${catalogState.category===c.slug?'is-open':''}" data-category-item="${c.slug}">
+    <label class="filter-option category-parent-option">
       <input type="checkbox" name="category" value="${c.slug}" ${catalogState.category===c.slug?'checked':''}>
       <span>${c.name}</span>
       <small class="filter-option-count">${counts.get(c.slug)||0}</small>
-    </label>`).join('');
+    </label>
+    ${categorySubcategoryMarkup(c)}
+   </div>`).join('')
+}
+
+function buildCatalogFilters(){
+ renderCategoryFilters();
+ const legacySubcategorySection=$('subcategoryFilterSection');
+ if(legacySubcategorySection)legacySubcategorySection.classList.add('hidden');
 
  const brands=uniqueFilterValues(catalogProducts.map(p=>p.brand).filter(Boolean));
  $('brandFilters').innerHTML=brands.length
@@ -386,12 +467,12 @@ function bindCatalogControls(){
      return
    }
    const matches=catalogProducts.filter(p=>{
-     const hay=[p.name,p.brand,p.categories?.name,p.size,p.season,p.color].map(normalizeFilterValue).join(' ');
+     const hay=[p.name,p.brand,p.categories?.name,p.subcategories?.name,p.size,p.season,p.color].map(normalizeFilterValue).join(' ');
      return hay.includes(q)
    }).slice(0,6);
    suggestions.innerHTML=matches.length?matches.map(p=>`
      <a class="search-suggestion-row" href="product.html?slug=${encodeURIComponent(p.slug)}">
-       ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="search-suggestion-placeholder"></span>'}
+       ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="search-suggestion-placeholder"></span>'}
        <span><b>${p.name}</b><small>${p.brand||p.categories?.name||''}</small></span>
        <strong>${money(p.price)}</strong>
      </a>`).join(''):`<div class="search-no-results">Нічого не знайдено</div>`;
@@ -462,7 +543,9 @@ function bindCatalogControls(){
    if(!value){
      // "Усі товари" always clears category selection.
      catalogState.category=null;
+     catalogState.subcategory=null;
    }else if(input.checked){
+     if(catalogState.category!==value)catalogState.subcategory=null;
      // Select this category and uncheck all others.
      catalogState.category=value;
    }else if(catalogState.category===value){
@@ -474,6 +557,17 @@ function bindCatalogControls(){
      x.checked = catalogState.category ? x.value===catalogState.category : x.value==='';
    });
 
+   renderCategoryFilters();
+   updateCatalogUrl();
+   applyCatalog(true)
+ });
+
+ // V260: subcategory choices are nested directly under the selected category.
+ $('categoryFilters').addEventListener('change',e=>{
+   const input=e.target.closest('input[name="subcategory"]');
+   if(!input)return;
+   catalogState.subcategory=input.value||null;
+   renderCategoryFilters();
    updateCatalogUrl();
    applyCatalog(true)
  });
@@ -557,11 +651,14 @@ function updateCatalogUrl(){
  const url=new URL(location.href);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
  else url.searchParams.delete('category');
+ if(catalogState.subcategory)url.searchParams.set('subcategory',catalogState.subcategory);
+ else url.searchParams.delete('subcategory');
  history.replaceState({},'',url)
 }
 
 function resetCatalogFilters(){
  catalogState.category=null;
+ catalogState.subcategory=null;
  catalogState.brands.clear();
  catalogState.sizes.clear();
  catalogState.seasons.clear();
@@ -571,6 +668,7 @@ function resetCatalogFilters(){
  catalogState.availability='all';
 
  document.querySelectorAll('input[name="category"]').forEach(x=>x.checked=x.value==='');
+ renderSubcategoryFilters();
  document.querySelectorAll('#brandFilters input,#sizeFilters input,#seasonFilters input,#colorFilters input').forEach(x=>x.checked=false);
  document.querySelector('input[name="availability"][value="all"]').checked=true;
  $('priceMin').value='';
@@ -634,6 +732,7 @@ function applyCatalog(resetVisible=false){
 
  catalogFiltered=catalogProducts.filter(p=>{
    if(catalogState.category&&p.categories?.slug!==catalogState.category)return false;
+   if(catalogState.subcategory&&p.subcategories?.slug!==catalogState.subcategory)return false;
    if(catalogState.brands.size&&![...catalogState.brands].some(v=>normalizeFilterValue(v)===normalizeFilterValue(p.brand)))return false;
    if(!productMatchesMultiValue(p.size,catalogState.sizes))return false;
    if(catalogState.seasons.size&&![...catalogState.seasons].some(v=>normalizeFilterValue(v)===normalizeFilterValue(p.season)))return false;
@@ -646,7 +745,7 @@ function applyCatalog(resetVisible=false){
 
    if(q){
      const haystack=[
-       p.name,p.brand,p.short_description,p.description,p.material,p.color,p.size,p.season,p.categories?.name
+       p.name,p.brand,p.short_description,p.description,p.material,p.color,p.size,p.season,p.categories?.name,p.subcategories?.name
      ].map(normalizeFilterValue).join(' ');
      if(!haystack.includes(q))return false
    }
@@ -705,7 +804,7 @@ function catalogProductCard(p){
        ${primaryImage
          ? `<img class="catalog-photo-primary" src="${primaryImage}" alt="${p.name}">`
          : placeholder('Фото товару','1200 × 1500 px')}
-       ${hasSecond?`<img class="catalog-photo-secondary" src="${secondImage}" alt="${p.name} — друге фото" loading="lazy">`:''}
+       ${hasSecond?`<img class="catalog-photo-secondary" src="${secondImage}" alt="${p.name} — друге фото" loading="lazy" fetchpriority="low">`:''}
      </div>
 
      <div class="catalog-card-badges">
@@ -732,6 +831,10 @@ function renderActiveFilters(){
  if(catalogState.category){
    const name=catalogProducts.find(p=>p.categories?.slug===catalogState.category)?.categories?.name||catalogState.category;
    chips.push({label:name,action:"category"})
+ }
+ if(catalogState.subcategory){
+   const name=catalogSubcategories.find(x=>x.slug===catalogState.subcategory)?.name||catalogState.subcategory;
+   chips.push({label:name,action:"subcategory"})
  }
  catalogState.brands.forEach(v=>chips.push({label:`Бренд: ${v}`,action:`brand:${v}`}));
  catalogState.seasons.forEach(v=>chips.push({label:`Сезон: ${v}`,action:`season:${v}`}));
@@ -764,7 +867,7 @@ async function initProduct(){
    loadSettings(),
    publicSb
    .from('products')
-   .select('*,categories(name,slug),product_images(*)')
+   .select('*,categories(name,slug),subcategories(name,slug),product_images(*)')
    .eq('slug',slug)
    .maybeSingle()
  ]);
@@ -837,7 +940,7 @@ function recommendedProductCard(p){
  const image=p.cover_image||gallery[0]?.image_url||'';
  return `<article class="recommended-card">
    <a class="recommended-photo" href="${href}">
-     ${image?`<img src="${image}" alt="${p.name}" loading="lazy" decoding="async">`:placeholder('Фото товару','1200 × 1200 px')}
+     ${image?`<img src="${image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1200 px')}
    </a>
    <div class="recommended-info">
      ${p.brand?`<div class="recommended-brand">${p.brand}</div>`:''}
@@ -850,7 +953,7 @@ function recommendedProductCard(p){
 
 
 function productMeasurementProfileV148(p){
- const text=`${p?.categories?.name||''} ${p?.categories?.slug||''}`.toLowerCase();
+ const text=`${p?.categories?.name||''} ${p?.categories?.slug||''} ${p?.subcategories?.name||''} ${p?.subcategories?.slug||''}`.toLowerCase();
 
  if(/взут|shoe|boot|чоб|туф|черев|крос|босон/.test(text)){
    return [
@@ -883,7 +986,7 @@ function productMeasurementProfileV148(p){
    ]
  }
  if(/голов|капелю|шап|берет|hat|headwear/.test(text)){
-   return [['ОБХВАТ ГОЛОВИ',p.measurement_head]]
+   return [['ОБ’ЄМ / ОБХВАТ ГОЛОВИ',p.measurement_head]]
  }
  if(/сумк|аксес|bag|accessor/.test(text)){
    return [
@@ -1299,7 +1402,7 @@ function journalDate(n){
 function journalCategoryName(n){return n.category||'ІСТОРІЇ РЕЧЕЙ'}
 function journalArticleHref(n){return `article.html?slug=${encodeURIComponent(n.slug)}`}
 function journalCover(n,label='Обкладинка статті',size='1200 × 1200 px'){
-  return n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async">`:placeholder(label,size)
+  return n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(label,size)
 }
 function journalSorted(items){
   return [...items].sort((a,b)=>{
@@ -1560,7 +1663,7 @@ function renderEditorialArticleContent(content,title){
      const blocks=JSON.parse(raw.slice('VH_BLOCKS_V1:'.length));
      return (Array.isArray(blocks)?blocks:[]).map(b=>{
        if(b.type==='heading'&&!articleSameText(b.text,title))return `<section class="article-v71-section"><h2>${escapeArticleHtml(b.text||'')}</h2>${b.after?`<p>${escapeArticleHtml(b.after).replace(/\n/g,'<br>')}</p>`:''}</section>`;
-       if(b.type==='image'&&b.url)return `<figure class="article-v185-inline-image"><img src="${b.url}" alt="${escapeArticleHtml(b.caption||'')}" loading="lazy" decoding="async">${b.caption?`<figcaption>${escapeArticleHtml(b.caption)}</figcaption>`:''}</figure>`;
+       if(b.type==='image'&&b.url)return `<figure class="article-v185-inline-image"><img src="${b.url}" alt="${escapeArticleHtml(b.caption||'')}" loading="lazy" decoding="async" fetchpriority="low">${b.caption?`<figcaption>${escapeArticleHtml(b.caption)}</figcaption>`:''}</figure>`;
        if(b.type==='paragraph'&&!articleSameText(b.text,title))return `<p>${escapeArticleHtml(b.text||'').replace(/\n/g,'<br>')}</p>`;
        return '';
      }).join('')||'<p>Текст статті буде додано.</p>';
@@ -1620,7 +1723,7 @@ async function initArticle(){
 
      ${gallery.length?`
        <section class="article-v71-gallery">
-         ${gallery.map(u=>`<img src="${u}" alt="" loading="lazy" decoding="async">`).join('')}
+         ${gallery.map(u=>`<img src="${u}" alt="" loading="lazy" decoding="async" fetchpriority="low">`).join('')}
        </section>`:''}
 
      <nav class="article-v71-bottom">
@@ -1831,7 +1934,7 @@ async function vhRunGlobalSearch(raw){
  if(!q){box.innerHTML='<div class="vh-search-hint">Почніть вводити назву речі або бренду.</div>';return}
  if(!VH_SEARCH_CACHE || Date.now()-VH_SEARCH_CACHE_AT>60000){
    const {data,error}=await publicSb.from('products')
-     .select('id,name,slug,brand,price,cover_image,status,categories(name)')
+     .select('id,name,slug,brand,price,cover_image,status,categories(name),subcategories(name)')
      .eq('status','published')
      .order('created_at',{ascending:false})
      .limit(80);
@@ -1839,10 +1942,10 @@ async function vhRunGlobalSearch(raw){
    VH_SEARCH_CACHE=data||[];
    VH_SEARCH_CACHE_AT=Date.now();
  }
- const matches=VH_SEARCH_CACHE.filter(p=>[p.name,p.brand,p.categories?.name].map(normalizeFilterValue).join(' ').includes(q)).slice(0,8);
+ const matches=VH_SEARCH_CACHE.filter(p=>[p.name,p.brand,p.categories?.name,p.subcategories?.name].map(normalizeFilterValue).join(' ').includes(q)).slice(0,8);
  box.innerHTML=matches.length?matches.map(p=>`
    <a class="vh-search-result" href="product.html?slug=${encodeURIComponent(p.slug)}">
-     ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="vh-result-placeholder"></span>'}
+     ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-result-placeholder"></span>'}
      <span><b>${p.name}</b><small>${p.brand||p.categories?.name||''}</small></span>
      <strong>${vhMoney(p.price)}</strong>
    </a>`).join(''):'<div class="vh-search-hint">Нічого не знайдено.</div>'
@@ -1856,7 +1959,7 @@ function vhRenderCart(){
  $('vhCheckoutLink').classList.toggle('disabled',!cart.length);
  box.innerHTML=cart.length?cart.map((item,i)=>`
    <div class="vh-cart-item">
-     <a href="product.html?slug=${encodeURIComponent(item.slug)}">${item.cover_image?`<img src="${item.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="vh-cart-placeholder"></span>'}</a>
+     <a href="product.html?slug=${encodeURIComponent(item.slug)}">${item.cover_image?`<img src="${item.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-cart-placeholder"></span>'}</a>
      <div class="vh-cart-item-copy">
        <small>${item.brand||'VINTAGE HEDONISTA'}</small>
        <a href="product.html?slug=${encodeURIComponent(item.slug)}"><b>${item.name}</b></a>
@@ -1914,7 +2017,7 @@ async function initCheckoutPage(){
  }
  $('checkoutItems').innerHTML=cart.length?cart.map((x,i)=>`
    <div class="checkout-item">
-     ${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="checkout-placeholder"></span>'}
+     ${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="checkout-placeholder"></span>'}
      <div><small>${x.brand||'VINTAGE HEDONISTA'}</small><b>${x.name}</b></div>
      <strong>${vhMoney(x.price)}</strong>
      <button type="button" onclick="checkoutRemoveItem(${i})">×</button>
@@ -2671,7 +2774,7 @@ async function initAccountPage(){
     const product=o.products||{};
     const img=product.cover_image||'';
     return `<a class="vh128-order-card" href="${product.slug?`product.html?slug=${encodeURIComponent(product.slug)}`:'#'}">
-      <div class="vh128-order-thumb">${img?`<img src="${img}" alt="" loading="lazy" decoding="async">`:'<span></span>'}</div>
+      <div class="vh128-order-thumb">${img?`<img src="${img}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span></span>'}</div>
       <div class="vh128-order-copy">
         <small>${vhAccountDate(o.created_at)} · #${vhEscape(String(o.id||'').slice(-6))}</small>
         <b>${vhEscape(o.product_name||product.name||'Товар')}</b>
@@ -2684,7 +2787,7 @@ async function initAccountPage(){
   const favCards=favorites.length?favorites.map(f=>{
     const x=f.products||{};
     return `<a class="vh129-fav-card" href="product.html?slug=${encodeURIComponent(x.slug||'')}">
-      <div class="vh129-fav-thumb">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async">`:`<span></span>`}</div>
+      <div class="vh129-fav-thumb">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:`<span></span>`}</div>
       <div class="vh129-fav-copy">
         <small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small>
         <b>${vhEscape(x.name||'Товар')}</b>
@@ -2814,8 +2917,8 @@ function vhAccountDashboard(user,data){
      </div>
      <button class="vh-primary-btn compact" type="button" onclick="vhSaveAccountProfile('contacts')">ЗБЕРЕГТИ КОНТАКТИ</button>
    </div>
-   <div class="vh-account-view" data-vh-account-view="orders"><div class="vh-account-section-head"><b>МОЇ ЗАМОВЛЕННЯ</b><span>Статус змінюється після обробки в адмінці.</span></div><div class="vh-account-orders">${orders.length?orders.map(o=>`<a class="vh-account-order" href="${o.products?.slug?`product.html?slug=${encodeURIComponent(o.products.slug)}`:'#'}">${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="vh-account-order-placeholder"></span>'}<span class="vh-account-order-main"><small>${vhAccountDate(o.created_at)} · #${o.order_number||String(o.id).slice(0,6)}</small><b>${vhEscape(o.product_name||o.products?.name||'Товар')}</b><em>${vhMoney(o.amount)}</em></span><strong class="vh-account-status status-${o.status}">${vhAccountStatusName(o.status)}</strong></a>`).join(''):'<div class="vh-account-empty">У вас ще немає замовлень.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
-   <div class="vh-account-view" data-vh-account-view="favorites"><div class="vh-account-section-head"><b>МОЇ ВПОДОБАННЯ</b><span>Збережені речі вашого акаунта.</span></div><div class="vh-account-favorites">${favorites.length?favorites.map(f=>{const x=f.products||{};return `<a class="vh-account-favorite" href="product.html?slug=${encodeURIComponent(x.slug||'')}">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async">`:'<span class="vh-account-favorite-placeholder"></span>'}<span><small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small><b>${vhEscape(x.name||'Товар')}</b><strong>${vhMoney(x.price)}</strong></span></a>`}).join(''):'<div class="vh-account-empty">Ви ще нічого не зберегли.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
+   <div class="vh-account-view" data-vh-account-view="orders"><div class="vh-account-section-head"><b>МОЇ ЗАМОВЛЕННЯ</b><span>Статус змінюється після обробки в адмінці.</span></div><div class="vh-account-orders">${orders.length?orders.map(o=>`<a class="vh-account-order" href="${o.products?.slug?`product.html?slug=${encodeURIComponent(o.products.slug)}`:'#'}">${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-order-placeholder"></span>'}<span class="vh-account-order-main"><small>${vhAccountDate(o.created_at)} · #${o.order_number||String(o.id).slice(0,6)}</small><b>${vhEscape(o.product_name||o.products?.name||'Товар')}</b><em>${vhMoney(o.amount)}</em></span><strong class="vh-account-status status-${o.status}">${vhAccountStatusName(o.status)}</strong></a>`).join(''):'<div class="vh-account-empty">У вас ще немає замовлень.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
+   <div class="vh-account-view" data-vh-account-view="favorites"><div class="vh-account-section-head"><b>МОЇ ВПОДОБАННЯ</b><span>Збережені речі вашого акаунта.</span></div><div class="vh-account-favorites">${favorites.length?favorites.map(f=>{const x=f.products||{};return `<a class="vh-account-favorite" href="product.html?slug=${encodeURIComponent(x.slug||'')}">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-favorite-placeholder"></span>'}<span><small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small><b>${vhEscape(x.name||'Товар')}</b><strong>${vhMoney(x.price)}</strong></span></a>`}).join(''):'<div class="vh-account-empty">Ви ще нічого не зберегли.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
  </div>`
 }
 

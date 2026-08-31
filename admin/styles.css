@@ -7081,3 +7081,115 @@ footer .vh-site-logo,
     max-width:100% !important;
   }
 }
+
+/* V259 — subcategories */
+.subcategory-admin-box{border:1px solid rgba(151,119,78,.28);background:rgba(255,255,255,.018);padding:16px;margin:8px 0 18px}
+.subcategory-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.subcategory-admin-head label{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#eadbc7}
+.subcategory-admin-head small,.subcategory-manager-hint{display:block;margin-top:5px;color:#9f927f;font-size:12px;line-height:1.45}
+.subcategory-manager-controls.hidden,.subcategory-manager-hint.hidden{display:none}
+.subcategory-add-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.subcategory-add-row .btn{white-space:nowrap}
+.subcategory-list{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.subcategory-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid rgba(151,119,78,.22);background:#1f1a15}
+.subcategory-item-copy{min-width:0}
+.subcategory-item-copy b{display:block;color:#eadbc7;font-size:13px;font-weight:600}
+.subcategory-item-copy small{display:block;color:#817565;font-size:11px;margin-top:2px}
+.subcategory-delete{border:1px solid rgba(177,101,88,.42);background:transparent;color:#d9aa9f;width:30px;height:30px;cursor:pointer;font-size:18px;line-height:1}
+.subcategory-delete:hover{background:rgba(177,101,88,.12)}
+.subcategory-empty{padding:10px 0;color:#817565;font-size:12px}
+@media(max-width:700px){.subcategory-add-row{grid-template-columns:1fr}.subcategory-add-row .btn{width:100%}}
+
+
+/* ==========================================================
+   V260 — Category table + product editor header corrections
+   ========================================================== */
+/* Keep the category list readable instead of breaking names/slugs letter-by-letter. */
+#categories .categories-builder-layout{
+  grid-template-columns:minmax(0,1.8fr) minmax(320px,.7fr) !important;
+}
+#categoriesTable .category-sort-table{
+  width:100% !important;
+  min-width:790px !important;
+  table-layout:auto !important;
+}
+#categoriesTable .category-sort-table th:nth-child(2),
+#categoriesTable .category-sort-table td:nth-child(2){width:74px !important}
+#categoriesTable .category-sort-table th:nth-child(3),
+#categoriesTable .category-sort-table td:nth-child(3){min-width:145px !important}
+#categoriesTable .category-sort-table th:nth-child(4),
+#categoriesTable .category-sort-table td:nth-child(4){min-width:125px !important}
+#categoriesTable .category-sort-table th:nth-child(5),
+#categoriesTable .category-sort-table td:nth-child(5){min-width:95px !important}
+#categoriesTable .category-sort-table th:nth-child(6),
+#categoriesTable .category-sort-table td:nth-child(6),
+#categoriesTable .category-sort-table th:nth-child(7),
+#categoriesTable .category-sort-table td:nth-child(7){min-width:78px !important}
+#categoriesTable .category-sort-table th:last-child,
+#categoriesTable .category-sort-table td:last-child{min-width:92px !important}
+#categoriesTable .pname{
+  min-width:0 !important;
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+  hyphens:none !important;
+  line-height:1.2 !important;
+}
+#categoriesTable .category-sort-table td:nth-child(4){
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+  hyphens:none !important;
+}
+
+/* The "Редагувати товар" bar is part of normal document flow: it no longer follows scrolling
+   and no longer overlaps the divider between the sidebar and main content. */
+#productForm .product-editor-top{
+  position:relative !important;
+  top:auto !important;
+  left:auto !important;
+  right:auto !important;
+  z-index:1 !important;
+  width:auto !important;
+  margin:0 0 16px !important;
+  padding:0 0 14px !important;
+  background:transparent !important;
+  backdrop-filter:none !important;
+  border-bottom:1px solid #33281f !important;
+  box-sizing:border-box !important;
+}
+@media(max-width:1100px){
+  #categories .categories-builder-layout{grid-template-columns:1fr !important}
+  #categories .category-editor-panel{position:static !important}
+}
+
+
+/* ==========================================================
+   V262 — Compact categories table
+   Remove redundant Active/Home columns from the list so the edit
+   action stays visible without horizontal scrolling.
+   ========================================================== */
+#categoriesTable .table-wrap{
+  overflow-x:hidden !important;
+}
+#categoriesTable .category-sort-table{
+  min-width:0 !important;
+  width:100% !important;
+  table-layout:auto !important;
+}
+#categoriesTable .category-sort-table th:nth-child(2),
+#categoriesTable .category-sort-table td:nth-child(2){width:72px !important;min-width:72px !important}
+#categoriesTable .category-sort-table th:nth-child(3),
+#categoriesTable .category-sort-table td:nth-child(3){min-width:140px !important}
+#categoriesTable .category-sort-table th:nth-child(4),
+#categoriesTable .category-sort-table td:nth-child(4){min-width:120px !important}
+#categoriesTable .category-sort-table th:nth-child(5),
+#categoriesTable .category-sort-table td:nth-child(5){width:92px !important;min-width:92px !important}
+#categoriesTable .category-sort-table th:nth-child(6),
+#categoriesTable .category-sort-table td:nth-child(6){width:104px !important;min-width:104px !important}
+@media(max-width:900px){
+  #categoriesTable .category-sort-table th,
+  #categoriesTable .category-sort-table td{padding-left:10px !important;padding-right:10px !important}
+  #categoriesTable .category-sort-table th:nth-child(3),
+  #categoriesTable .category-sort-table td:nth-child(3){min-width:125px !important}
+  #categoriesTable .category-sort-table th:nth-child(4),
+  #categoriesTable .category-sort-table td:nth-child(4){min-width:105px !important}
+}

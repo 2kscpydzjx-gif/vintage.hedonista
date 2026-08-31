@@ -1,0 +1,26 @@
+V258 — Images / Mobile LCP
+
+Goal: reduce transferred image bytes on mobile and shorten LCP without changing the visual layout.
+
+What changed
+1. Supabase Storage images now get responsive mobile variants through the Storage render endpoint.
+   - Hero main: 360/480/640/768/960 widths, high priority.
+   - Hero side images: 180/240/320/480 widths.
+   - Product cards, categories, Journal, Editorial and "Зараз у топі" use responsive srcset/sizes.
+   - Catalog/recommended cards also use responsive variants.
+2. Robust fallback: if the Supabase render endpoint is unavailable, the image automatically falls back to the original public Storage URL.
+3. Mobile hero preload now preloads the 640px optimized hero instead of the full original. Desktop preloads a 960px variant.
+4. Mobile custom hero background requests a 960px / quality 68 optimized version, with fallback to the original if transformations are unavailable.
+5. Admin upload pipeline now caps WebP quality at 82% instead of 88% and uses more realistic stored dimensions for homepage imagery:
+   - Hero main: 960x1200
+   - Hero side: 720x720
+   - Hero background: 1440x675
+   - Editorial: 1200x900
+   - Categories: 1200x600
+   - News cover: 1200x750
+6. Cache-busting bumped to v258.
+
+Important
+- Existing images already stored in Supabase are optimized immediately at delivery time when the render endpoint is available.
+- Re-uploading old homepage/catalog/news images through the admin additionally reduces the original files stored in Storage and is recommended after V258 is deployed.
+- If Supabase image transformations are unavailable on the current project/plan, the automatic fallback keeps all images visible; performance improvement from responsive delivery will then be smaller.
