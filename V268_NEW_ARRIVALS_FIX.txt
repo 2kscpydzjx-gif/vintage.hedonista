@@ -1,0 +1,4 @@
+V268 — New Arrivals recovery
+- Restores existing “Новинка” products if show_on_home values would otherwise empty the section.
+- Falls back to legacy query if show_on_home is unavailable.
+- Keeps V267 mobile carousel and admin history fixes.

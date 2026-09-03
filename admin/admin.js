@@ -1,7 +1,7 @@
 
 const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}});
 const $=id=>document.getElementById(id);
-let products=[],categories=[],orders=[],news=[],heroSlides=[],instagramFeed=[],editingProductId=null,editingNewsId=null,editingCategoryId=null;
+let products=[],categories=[],subcategories=[],orders=[],news=[],heroSlides=[],instagramFeed=[],editingProductId=null,editingNewsId=null,editingCategoryId=null;
 let MEDIA_LIBRARY_V132=[];
 let MEDIA_PICKER_TARGET_V132=null;
 let NEWS_COVER_CURRENT=null;
@@ -43,7 +43,28 @@ function productInventoryName(v){
    draft:'Чернетка'
  })[v]||v
 }
-function slugify(s){return s.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'')}
+function slugify(s){
+ const map={
+  'а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ye','ж':'zh','з':'z','и':'y','і':'i','ї':'yi','й':'i','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ю':'yu','я':'ya',
+  'ы':'y','э':'e','ъ':'','ь':'','ё':'yo'
+ };
+ return String(s||'')
+   .toLowerCase().trim()
+   .split('').map(ch=>map[ch]??ch).join('')
+   .normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+   .replace(/[^a-z0-9]+/g,'-')
+   .replace(/^-+|-+$/g,'')
+   .replace(/-{2,}/g,'-')
+}
+function uniqueProductSlugV263(name,currentId){
+ const base=slugify(name)||`product-${Date.now()}`;
+ let candidate=base, n=2;
+ const used=new Set((products||[])
+   .filter(p=>String(p.id)!==String(currentId||''))
+   .map(p=>String(p.slug||'').toLowerCase()));
+ while(used.has(candidate.toLowerCase()))candidate=`${base}-${n++}`;
+ return candidate
+}
 
 /* Автопідготовка фото без обрізання.
    Фото вписується повністю у рекомендований формат, а вільні поля заповнюються фоном. */
@@ -246,12 +267,22 @@ async function boot(){
  }else{
    goPage('dashboard',{remember:false})
  }
+ VH_ADMIN_HISTORY_READY=true;
 }
 const VH_ADMIN_PAGE_KEY='vh-admin-current-page-v135';
 const VH_ADMIN_EDIT_PRODUCT_KEY='vh-admin-edit-product-v135';
 const VH_ADMIN_EDIT_NEWS_KEY='vh-admin-edit-news-v135';
+let VH_ADMIN_HISTORY_READY=false;
+let VH_ADMIN_HISTORY_RESTORING=false;
 
-function goPage(id,{remember=true}={}){
+function adminHistoryState(id){
+ const state={vhAdmin:true,page:id};
+ if(id==='productForm'&&editingProductId)state.productId=editingProductId;
+ if(id==='newsForm'&&editingNewsId)state.newsId=editingNewsId;
+ return state
+}
+
+function goPage(id,{remember=true,history=true}={}){
  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
  const page=$(id);
  if(page)page.classList.add('active');
@@ -259,8 +290,34 @@ function goPage(id,{remember=true}={}){
  const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',news:'Вінтажні хроніки',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
  $('pageTitle').textContent=names[id]||'Vintage Hedonista';
  if(remember)localStorage.setItem(VH_ADMIN_PAGE_KEY,id);
+
+ const state=adminHistoryState(id);
+ if(!VH_ADMIN_HISTORY_READY || VH_ADMIN_HISTORY_RESTORING || history===false){
+   if(!VH_ADMIN_HISTORY_READY)window.history.replaceState(state,'',window.location.href);
+ }else{
+   const current=window.history.state||{};
+   const same=current.vhAdmin===true && current.page===state.page && String(current.productId||'')===String(state.productId||'') && String(current.newsId||'')===String(state.newsId||'');
+   if(!same)window.history.pushState(state,'',window.location.href)
+ }
  if(innerWidth<760)$('sidebar').classList.remove('open')
 }
+
+window.addEventListener('popstate',async e=>{
+ const state=e.state;
+ if(!VH_ADMIN_HISTORY_READY||!state?.vhAdmin)return;
+ VH_ADMIN_HISTORY_RESTORING=true;
+ try{
+   if(state.page==='productForm'&&state.productId&&products.some(p=>String(p.id)===String(state.productId))){
+     await editProduct(state.productId)
+   }else if(state.page==='newsForm'&&state.newsId&&news.some(n=>String(n.id)===String(state.newsId))){
+     await editNews(state.newsId)
+   }else if($(state.page)){
+     goPage(state.page,{history:false})
+   }
+ }finally{
+   VH_ADMIN_HISTORY_RESTORING=false
+ }
+});
 window.goPage=goPage;
 document.querySelectorAll('[data-order-quick]').forEach(btn=>btn.addEventListener('click',()=>{
  const status=btn.dataset.orderQuick;
@@ -540,6 +597,101 @@ function initMediaLibraryV132(){
  $('mediaPickerUploadInput')?.addEventListener('change',async e=>{await uploadMediaFilesV132([...e.target.files]);e.target.value='';renderMediaPickerV132()});
  document.querySelectorAll('[data-media-close]').forEach(x=>x.addEventListener('click',closeMediaPickerV132))
 }
+
+async function loadSubcategories(){
+ const {data,error}=await sb.from('subcategories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+ if(error){
+   console.error('SUBCATEGORIES LOAD ERROR:',error);
+   subcategories=[];
+   renderSubcategoryManager();
+   updateProductSubcategorySelect();
+   return
+ }
+ subcategories=data||[];
+ renderSubcategoryManager();
+ updateProductSubcategorySelect()
+}
+
+function subcategoriesForCategory(categoryId){
+ return subcategories
+   .filter(x=>String(x.category_id)===String(categoryId||''))
+   .sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.name||'').localeCompare(String(b.name||''),'uk-UA'))
+}
+
+function updateProductSubcategorySelect(selectedValue){
+ const select=$('pSubcategory');
+ if(!select)return;
+ const categoryId=$('pCategory')?.value||'';
+ const current=selectedValue!==undefined?String(selectedValue||''):String(select.value||'');
+ const list=categoryId?subcategoriesForCategory(categoryId):[];
+ select.innerHTML='<option value="">Без підкатегорії</option>'+list.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+ select.disabled=!categoryId||!list.length;
+ if([...select.options].some(o=>o.value===current))select.value=current;
+ else select.value=''
+}
+window.updateProductSubcategorySelect=updateProductSubcategorySelect;
+
+function renderSubcategoryManager(){
+ const hint=$('subcategoryManagerHint');
+ const controls=$('subcategoryManagerControls');
+ const list=$('subcategoryList');
+ if(!hint||!controls||!list)return;
+ if(!editingCategoryId){
+   hint.classList.remove('hidden');
+   controls.classList.add('hidden');
+   list.innerHTML='';
+   return
+ }
+ hint.classList.add('hidden');
+ controls.classList.remove('hidden');
+ const rows=subcategoriesForCategory(editingCategoryId);
+ list.innerHTML=rows.length?rows.map(x=>`
+   <div class="subcategory-item">
+     <div class="subcategory-item-copy"><b>${x.name}</b><small>${x.slug||''}</small></div>
+     <button class="subcategory-delete" type="button" data-delete-subcategory="${x.id}" title="Видалити підкатегорію" aria-label="Видалити ${x.name}">×</button>
+   </div>`).join(''):'<div class="subcategory-empty">Підкатегорій поки немає.</div>'
+}
+
+function normalizeFilterValueAdminV259(value){
+ return String(value||'').trim().toLocaleLowerCase('uk-UA')
+}
+
+async function addSubcategory(){
+ if(!editingCategoryId)return toast('Спочатку збережіть основну категорію');
+ const input=$('subcategoryName');
+ const name=input?.value.trim()||'';
+ if(!name)return toast('Вкажіть назву підкатегорії');
+ const slugBase=slugify(name);
+ let slug=slugBase||`subcategory-${Date.now()}`;
+ const siblings=subcategoriesForCategory(editingCategoryId);
+ if(siblings.some(x=>normalizeFilterValueAdminV259(x.name)===normalizeFilterValueAdminV259(name)))return toast('Така підкатегорія вже є');
+ let suffix=2;
+ while(siblings.some(x=>x.slug===slug)){slug=`${slugBase}-${suffix++}`}
+ const maxOrder=siblings.length?Math.max(...siblings.map(x=>Number(x.sort_order||0))):0;
+ const {error}=await sb.from('subcategories').insert({
+   category_id:editingCategoryId,
+   name,
+   slug,
+   sort_order:maxOrder+10
+ });
+ if(error)return toast(error.message);
+ input.value='';
+ toast('Підкатегорію додано');
+ await loadSubcategories()
+}
+
+async function deleteSubcategory(id){
+ const item=subcategories.find(x=>String(x.id)===String(id));
+ if(!item)return;
+ if(!confirm(`Видалити підкатегорію «${item.name}»? У товарів вона буде очищена.`))return;
+ const {error}=await sb.from('subcategories').delete().eq('id',id);
+ if(error)return toast(error.message);
+ toast('Підкатегорію видалено');
+ await loadSubcategories();
+ await loadProducts()
+}
+window.deleteSubcategory=deleteSubcategory;
+
 async function loadCategories(){
  const {data,error}=await sb.from('categories').select('*').order('sort_order');
  if(error){console.error(error);return}
@@ -553,19 +705,18 @@ async function loadCategories(){
  }
 
  $('categoriesTable').innerHTML=categories.length?`<div class="table-wrap"><table class="table category-sort-table">
- <thead><tr><th class="category-drag-col"></th><th>ОБКЛАДИНКА</th><th>НАЗВА</th><th>SLUG</th><th>ПОРЯДОК</th><th>АКТИВНА</th><th>ГОЛОВНА</th><th>ДІЇ</th></tr></thead>
+ <thead><tr><th class="category-drag-col"></th><th>ОБКЛАДИНКА</th><th>НАЗВА</th><th>SLUG</th><th>ПОРЯДОК</th><th>ДІЇ</th></tr></thead>
  <tbody>${categories.map(c=>`<tr class="category-sort-row" draggable="true" data-category-id="${c.id}">
    <td class="category-drag-cell"><button class="category-drag-handle" type="button" title="Перетягніть категорію">⋮⋮</button></td>
    <td>${c.cover_image?`<img class="thumb" src="${c.cover_image}">`:`<div class="thumb"></div>`}</td>
    <td><div class="pname">${c.name}</div></td>
    <td>${c.slug}</td>
    <td><div class="category-order-actions"><button class="btn tiny" type="button" onclick="moveCategory('${c.id}',-1)" title="Підняти вище">↑</button><button class="btn tiny" type="button" onclick="moveCategory('${c.id}',1)" title="Опустити нижче">↓</button></div></td>
-   <td>${c.is_active?'Так':'Ні'}</td>
-   <td>${c.show_on_home?'Так':'Ні'}</td>
    <td><button class="btn small-action" onclick="editCategory('${c.id}')">Редагувати</button></td>
  </tr>`).join('')}</tbody></table></div>`:'<div class="empty">Категорій немає</div>';
 
- bindCategoryDragAndDrop()
+ bindCategoryDragAndDrop();
+ await loadSubcategories()
 }
 
 function resetCategoryForm(){
@@ -580,6 +731,7 @@ function resetCategoryForm(){
  $('saveCategoryBtn').textContent='ДОДАТИ';
  $('cancelCategoryEditBtn').classList.add('hidden');
  $('deleteCategoryBtn').classList.add('hidden');
+ renderSubcategoryManager();
 }
 
 function editCategory(id){
@@ -595,6 +747,7 @@ function editCategory(id){
  $('saveCategoryBtn').textContent='ЗБЕРЕГТИ';
  $('cancelCategoryEditBtn').classList.remove('hidden');
  $('deleteCategoryBtn').classList.remove('hidden');
+ renderSubcategoryManager();
 }
 window.editCategory=editCategory;
 window.moveCategory=async function(id,direction){
@@ -681,15 +834,29 @@ function bindCategoryDragAndDrop(){
 }
 window.bindCategoryDragAndDrop=bindCategoryDragAndDrop;
 
-$('catName').oninput=e=>{if(!editingCategoryId&&!$('catSlug').value)$('catSlug').value=slugify(e.target.value)};
+$('catName').oninput=e=>{ $('catSlug').value=slugify(e.target.value) };
+$('catSlug').readOnly=true;
+$('addSubcategoryBtn')?.addEventListener('click',addSubcategory);
+$('subcategoryName')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSubcategory()}});
+$('subcategoryList')?.addEventListener('click',e=>{
+ const btn=e.target.closest('[data-delete-subcategory]');
+ if(btn)deleteSubcategory(btn.dataset.deleteSubcategory)
+});
+
 $('catImage').onchange=e=>{const f=e.target.files[0];$('catImagePreview').innerHTML=f?`<img src="${URL.createObjectURL(f)}">`:''};
 
 $('saveCategoryBtn').onclick=async()=>{
  const btn=$('saveCategoryBtn');btn.disabled=true;btn.textContent='ЗБЕРЕЖЕННЯ...';
  try{
    const name=$('catName').value.trim();
-   const slug=$('catSlug').value.trim()||slugify(name);
-   if(!name||!slug)throw new Error('Вкажи назву і slug');
+   let slug=slugify(name);
+   if(!name||!slug)throw new Error('Вкажи назву категорії');
+   const slugBase=slug;
+   let slugSuffix=2;
+   while(categories.some(c=>String(c.id)!==String(editingCategoryId||'') && c.slug===slug)){
+     slug=`${slugBase}-${slugSuffix++}`;
+   }
+   $('catSlug').value=slug;
 
    const current=editingCategoryId?categories.find(x=>x.id===editingCategoryId):null;
    let cover=current?.cover_image||null;
@@ -741,7 +908,7 @@ $('deleteCategoryBtn').onclick=async()=>{
 };
 
 async function loadProducts(){
- const {data,error}=await sb.from('products').select('*,categories(name),product_images(*)').order('created_at',{ascending:false});
+ const {data,error}=await sb.from('products').select('*,categories(name),subcategories(name),product_images(*)').order('created_at',{ascending:false});
  if(error){console.error(error);return}
  products=(data||[]).map(p=>({...p,product_images:(p.product_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))}));
  renderProducts(products);renderRecentProducts();$('statProducts').textContent=products.filter(p=>p.status==='published').length;
@@ -860,8 +1027,8 @@ const MEASUREMENT_PROFILES_V148={
   }
 };
 
-function measurementProfileKeyV148(category){
- const text=`${category?.name||''} ${category?.slug||''}`.toLowerCase();
+function measurementProfileKeyV148(category,subcategory){
+ const text=`${category?.name||''} ${category?.slug||''} ${subcategory?.name||''} ${subcategory?.slug||''}`.toLowerCase();
  if(/взут|shoe|boot|чоб|туф|черев|крос|босон/.test(text))return 'footwear';
  if(/штан|брюк|джин|trouser|pant/.test(text))return 'pants';
  if(/спідниц|skirt/.test(text))return 'skirt';
@@ -875,10 +1042,15 @@ function currentProductCategoryV148(){
  const id=$('pCategory')?.value||'';
  return categories.find(c=>String(c.id)===String(id))||null
 }
+function currentProductSubcategoryV263(){
+ const id=$('pSubcategory')?.value||'';
+ return subcategories.find(c=>String(c.id)===String(id))||null
+}
 
 function updateMeasurementFieldsV148(){
  const category=currentProductCategoryV148();
- const profile=MEASUREMENT_PROFILES_V148[measurementProfileKeyV148(category)]||MEASUREMENT_PROFILES_V148.upper;
+ const subcategory=currentProductSubcategoryV263();
+ const profile=MEASUREMENT_PROFILES_V148[measurementProfileKeyV148(category,subcategory)]||MEASUREMENT_PROFILES_V148.upper;
  const active=new Set(profile.keys);
 
  document.querySelectorAll('#measurementFieldsV148 [data-measure-key]').forEach(field=>{
@@ -887,12 +1059,15 @@ function updateMeasurementFieldsV148(){
 
  const hint=$('measurementHintV148');
  if(hint)hint.textContent=category
-   ? profile.hint
+   ? (measurementProfileKeyV148(category,subcategory)==='headwear'
+       ? 'Для головних уборів вкажіть об’єм / обхват голови в сантиметрах.'
+       : profile.hint)
    : 'Оберіть категорію — набір замірів автоматично підлаштується під тип товару.';
 }
 window.updateMeasurementFieldsV148=updateMeasurementFieldsV148;
 
-$('pCategory')?.addEventListener('change',updateMeasurementFieldsV148);
+$('pCategory')?.addEventListener('change',()=>{updateProductSubcategorySelect();updateMeasurementFieldsV148()});
+$('pSubcategory')?.addEventListener('change',updateMeasurementFieldsV148);
 
 
 /* ==========================================================
@@ -1030,6 +1205,8 @@ function resetProductForm(){
  productField('pPrice');
  productField('pOldPrice');
  productField('pCategory');
+ updateProductSubcategorySelect('');
+ productField('pSubcategory');
  productField('pStatus','draft');
  productField('pSize');
  productField('pSeason');
@@ -1053,7 +1230,6 @@ function resetProductForm(){
  productField('pDetailsText');
 
  productCheck('pNew',false);
- productCheck('pTop',false);
  productCheck('pHome',true);
 
  $('pImages').value='';
@@ -1084,6 +1260,8 @@ async function editProduct(id){
  productField('pPrice',p.price);
  productField('pOldPrice',p.old_price);
  productField('pCategory',p.category_id);
+ updateProductSubcategorySelect(p.subcategory_id);
+ productField('pSubcategory',p.subcategory_id);
  productField('pStatus',p.status||'draft');
  productField('pSize',p.size);
  productField('pSeason',p.season);
@@ -1107,8 +1285,7 @@ async function editProduct(id){
  productField('pDetailsText',p.details_text);
 
  productCheck('pNew',p.is_new);
- productCheck('pTop',p.is_top);
- productCheck('pHome',p.show_on_home);
+ productCheck('pHome',p.show_on_home!==false);
 
  PRODUCT_GALLERY=(p.product_images||[])
    .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
@@ -1133,7 +1310,8 @@ async function editProduct(id){
 window.editProduct=editProduct;
 
 $('pName')?.addEventListener('input',e=>{
- if(!editingProductId&&!$('pSlug').value)$('pSlug').value=slugify(e.target.value)
+ const slug=uniqueProductSlugV263(e.target.value,editingProductId);
+ $('pSlug').value=slug
 });
 
 $('pImages')?.addEventListener('change',e=>{
@@ -1208,7 +1386,9 @@ $('saveProductBtn').onclick=async()=>{
 
  try{
    const name=$('pName').value.trim();
-   const slug=$('pSlug').value.trim()||slugify(name);
+   // V263: slug is canonical and always follows the current product name.
+   const slug=uniqueProductSlugV263(name,editingProductId);
+   $('pSlug').value=slug;
    const price=Number($('pPrice').value||0);
 
    if(!name)throw new Error('Вкажи назву товару');
@@ -1222,6 +1402,7 @@ $('saveProductBtn').onclick=async()=>{
      price,
      old_price:$('pOldPrice').value===''?null:Number($('pOldPrice').value),
      category_id:$('pCategory').value||null,
+     subcategory_id:$('pSubcategory')?.value||null,
      status:$('pStatus').value||'draft',
      size:$('pSize').value.trim()||null,
      season:$('pSeason').value||null,
@@ -1244,7 +1425,6 @@ $('saveProductBtn').onclick=async()=>{
      measurement_depth:$('pMeasureDepth').value.trim()||null,
      details_text:$('pDetailsText').value.trim()||null,
      is_new:$('pNew').checked,
-     is_top:$('pTop').checked,
      show_on_home:$('pHome').checked
    };
 
@@ -1268,10 +1448,10 @@ $('saveProductBtn').onclick=async()=>{
 
    await saveRelatedProductsV197(productId);
 
-   toast(editingProductId?'Товар оновлено':'Товар додано');
-   resetProductForm();
+   const wasEditing=Boolean(editingProductId);
    await loadProducts();
-   goPage('products')
+   await editProduct(productId);
+   toast(wasEditing?'Товар оновлено':'Товар додано');
  }catch(e){
    console.error(e);
    toast(e.message||'Помилка збереження товару')
@@ -2662,8 +2842,9 @@ resetProductForm=function(){
 
 const originalEditProduct=editProduct;
 editProduct=function(id){
- originalEditProduct(id);
- updateProductEditorState(false)
+ const result=originalEditProduct(id);
+ updateProductEditorState(false);
+ return result
 };
 window.editProduct=editProduct;
 window.openProductForm=function(){

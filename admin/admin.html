@@ -2,8 +2,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap">
-<title>Vintage Hedonista · Admin</title><link rel="stylesheet" href="styles.css"></head><body><div id="app" class="app hidden"><aside class="sidebar" id="sidebar"><div class="brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-admin.png" alt="Vintage Hedonista"></div><div class="nav-section"><div class="nav-title">ГОЛОВНЕ</div><div class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span>Панель керування</div><div class="nav-item" data-page="homepage"><span class="nav-icon">▦</span>Головна сторінка</div></div><div class="nav-section"><div class="nav-title">МАГАЗИН</div><div class="nav-item" data-page="products"><span class="nav-icon">▣</span>Товари</div><div class="nav-item" data-page="categories"><span class="nav-icon">□</span>Категорії</div><div class="nav-item" data-page="orders"><span class="nav-icon">▤</span>Замовлення <span class="badge" id="ordersBadge">0</span></div><div class="nav-item" data-page="customers"><span class="nav-icon">◎</span>Клієнти <span class="badge" id="customersBadge">0</span></div></div><div class="nav-section"><div class="nav-title">КОНТЕНТ</div><div class="nav-item" data-page="news"><span class="nav-icon">▧</span>Вінтажні хроніки</div><div class="nav-item" data-page="aboutPage"><span class="nav-icon">◫</span>Про нас</div>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
+<title>Vintage Hedonista · Admin</title><link rel="stylesheet" href="styles.css?v=263"></head><body><div id="app" class="app hidden"><aside class="sidebar" id="sidebar"><div class="brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-admin.png" alt="Vintage Hedonista"></div><div class="nav-section"><div class="nav-title">ГОЛОВНЕ</div><div class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span>Панель керування</div><div class="nav-item" data-page="homepage"><span class="nav-icon">▦</span>Головна сторінка</div></div><div class="nav-section"><div class="nav-title">МАГАЗИН</div><div class="nav-item" data-page="products"><span class="nav-icon">▣</span>Товари</div><div class="nav-item" data-page="categories"><span class="nav-icon">□</span>Категорії</div><div class="nav-item" data-page="orders"><span class="nav-icon">▤</span>Замовлення <span class="badge" id="ordersBadge">0</span></div><div class="nav-item" data-page="customers"><span class="nav-icon">◎</span>Клієнти <span class="badge" id="customersBadge">0</span></div></div><div class="nav-section"><div class="nav-title">КОНТЕНТ</div><div class="nav-item" data-page="news"><span class="nav-icon">▧</span>Вінтажні хроніки</div><div class="nav-item" data-page="aboutPage"><span class="nav-icon">◫</span>Про нас</div>
 <div class="nav-item" data-page="deliveryPage"><span class="nav-icon">◇</span>Доставка і оплата</div>
 <div class="nav-item" data-page="contactsPage"><span class="nav-icon">○</span>Контакти</div></div><div class="nav-section"><div class="nav-title">СИСТЕМА</div><div class="nav-item" data-page="media"><span class="nav-icon">▧</span>Медіатека</div><div class="nav-item" data-page="settings"><span class="nav-icon">⚙</span>Налаштування</div><div class="nav-item" id="logout"><span class="nav-icon">↪</span>Вихід</div></div><div class="sidebar-foot">Vintage Hedonista Admin<br>© 2026</div></aside><main class="main"><div class="topbar"><div class="menu-btn" id="menuBtn">☰</div><div class="page-title" id="pageTitle">Панель керування</div><div class="top-spacer"></div>
 <div class="constructor-top-actions">
@@ -357,9 +358,10 @@
         </div>
         <div class="form-grid builder-form-grid">
           <div class="field"><label>Назва товару</label><input class="input" id="pName"></div>
-          <div class="field"><label>Slug</label><input class="input" id="pSlug"></div>
+          <div class="field"><label>Slug</label><input class="input" id="pSlug" readonly><small>Створюється автоматично латиницею з назви товару.</small></div>
           <div class="field full"><label>Бренд</label><input class="input" id="pBrand" placeholder="Наприклад: Burberry, Chanel, Max Mara"><small>Бренд відображається на сторінці товару та використовується у фільтрі каталогу.</small></div>
           <div class="field"><label>Категорія</label><select class="input" id="pCategory"></select></div>
+          <div class="field"><label>Підкатегорія</label><select class="input" id="pSubcategory"><option value="">Без підкатегорії</option></select><small>Список залежить від вибраної основної категорії.</small></div>
           <div class="field"><label>Статус</label><select class="input" id="pStatus"><option value="draft">Чернетка</option><option value="published">В наявності</option><option value="reserved">Зарезервовано</option><option value="sold">Продано</option><option value="hidden">Приховано</option></select></div>
           <div class="field"><label>Ціна</label><input class="input" id="pPrice" type="number" step="0.01"></div>
           <div class="field"><label>Стара ціна</label><input class="input" id="pOldPrice" type="number" step="0.01"></div>
@@ -427,7 +429,7 @@
           <div class="field" data-measure-key="sleeve"><label>Довжина рукава</label><input class="input" id="pMeasureSleeve" placeholder="63 см"></div>
           <div class="field" data-measure-key="inseam"><label>Внутрішній шов</label><input class="input" id="pMeasureInseam" placeholder="78 см"></div>
           <div class="field" data-measure-key="insole"><label>Довжина устілки</label><input class="input" id="pMeasureInsole" placeholder="24,5 см"></div>
-          <div class="field" data-measure-key="head"><label>Обхват голови</label><input class="input" id="pMeasureHead" placeholder="56 см"></div>
+          <div class="field" data-measure-key="head"><label>Об’єм / обхват голови</label><input class="input" id="pMeasureHead" placeholder="Наприклад: 56 см"></div>
           <div class="field" data-measure-key="width"><label>Ширина</label><input class="input" id="pMeasureWidth" placeholder="28 см"></div>
           <div class="field" data-measure-key="height"><label>Висота</label><input class="input" id="pMeasureHeight" placeholder="20 см"></div>
           <div class="field" data-measure-key="depth"><label>Глибина</label><input class="input" id="pMeasureDepth" placeholder="10 см"></div>
@@ -441,8 +443,7 @@
         </div>
         <div class="builder-check-grid">
           <label><input id="pNew" type="checkbox"><span><b>НОВИНКА</b><small>Показувати у «Нових надходженнях».</small></span></label>
-          <label><input id="pTop" type="checkbox"><span><b>ЗАРАЗ У ТОПІ</b><small>Додати у вибірку на головній.</small></span></label>
-          <label><input id="pHome" type="checkbox"><span><b>ГОЛОВНА СТОРІНКА</b><small>Дозволити показ товару на головній.</small></span></label>
+          <label><input id="pHome" type="checkbox"><span><b>ГОЛОВНА СТОРІНКА</b><small>Дозволити товару з’являтися в автоматичних товарних блоках головної. Для «Нових надходжень» також увімкніть «Новинка».</small></span></label>
         </div>
       </section>
 
@@ -516,12 +517,29 @@
     </div>
     <div class="simple-form">
       <div class="field"><label>Назва</label><input class="input" id="catName"></div>
-      <div class="field"><label>Slug</label><input class="input" id="catSlug"></div>
+      <div class="field"><label>Slug</label><input class="input" id="catSlug" readonly title="Slug формується автоматично з назви категорії"></div>
       
 
       <div class="check-row">
         <label><input id="catActive" type="checkbox" checked> Активна категорія</label>
         <label><input id="catShowHome" type="checkbox" checked> Показувати на головній</label>
+      </div>
+
+      <div class="subcategory-admin-box" id="subcategoryManager">
+        <div class="subcategory-admin-head">
+          <div>
+            <label>Підкатегорії</label>
+            <small>Створіть підкатегорії саме для цієї основної категорії.</small>
+          </div>
+        </div>
+        <div id="subcategoryManagerHint" class="subcategory-manager-hint">Спочатку збережіть основну категорію, потім зможете додавати підкатегорії.</div>
+        <div id="subcategoryManagerControls" class="subcategory-manager-controls hidden">
+          <div class="subcategory-add-row">
+            <input class="input" id="subcategoryName" placeholder="Наприклад: Міні, Міді, Максі">
+            <button class="btn primary" id="addSubcategoryBtn" type="button">+ ДОДАТИ</button>
+          </div>
+          <div id="subcategoryList" class="subcategory-list"></div>
+        </div>
       </div>
 
       <div class="field">
@@ -1013,7 +1031,7 @@
     <div id="mediaPickerGrid" class="media-picker-grid-v132"></div>
   </div>
 </div>
-<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js"></script>
+<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js?v=267"></script>
 
 <div class="constructor-nav-drawer" id="constructorNavDrawer">
   <div class="constructor-drawer-head">

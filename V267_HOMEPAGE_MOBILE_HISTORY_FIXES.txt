@@ -1,0 +1,8 @@
+V267 — homepage product display, mobile carousel boundaries, admin browser history
+
+1. Removed the obsolete product-level “ЗАРАЗ У ТОПІ” checkbox. The “Зараз у топі” homepage block remains fully manual in the homepage editor (4 dedicated images + captions + links).
+2. “ГОЛОВНА СТОРІНКА” now actually controls eligibility for automatic homepage product display. A product marked “Новинка” is shown in “Нові надходження” unless “Головна сторінка” is explicitly disabled. Legacy null values remain allowed for compatibility.
+3. Fixed mobile “Нові надходження” arrows: left arrow disappears at the start, right arrow disappears at the real end, clicks are clamped to the valid scroll range, swipe behavior remains native.
+4. Added History API navigation inside admin so the browser Back button returns from product/article editors to the previous admin section instead of leaving the admin page.
+
+No new Supabase SQL is required.

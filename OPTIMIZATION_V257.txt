@@ -1,0 +1,11 @@
+Vintage Hedonista V257 — Mobile Performance pass
+
+1. Homepage site_settings request starts from <head> via native fetch, before Supabase SDK/site.js.
+2. The dynamic hero main image is preloaded immediately when that early response returns.
+3. loadSettings() reuses the early response, removing the duplicate/serial settings request.
+4. Below-fold dynamically rendered images receive fetchpriority=low in addition to lazy loading.
+5. Google Fonts stylesheet loads non-render-blocking with a noscript fallback.
+6. Header/footer logo is a 320px WebP (~12 KB instead of ~86 KB PNG).
+7. Cache-busting updated to v257.
+
+Visual layout and Supabase/admin/order logic are intentionally unchanged.

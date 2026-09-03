@@ -1,0 +1,7 @@
+V261 — catalog subcategory alignment + product editor save behavior
+
+- Nested subcategories now align directly under the parent category instead of being indented.
+- Subcategory labels are slightly larger for readability.
+- Saving a new or existing product keeps the admin on that product editor page.
+- After save, the form is refreshed from Supabase so the administrator can immediately verify the saved values and continue editing.
+- No new Supabase SQL is required after V259.

@@ -1,0 +1,10 @@
+V256 — mobile performance pass
+
+1. site_settings now loads through the public Supabase client, avoiding customer auth/session recovery on the critical homepage path.
+2. site settings are cached locally after the first successful load; repeat visits can paint dynamic hero/settings immediately while fresh data is requested.
+3. Only the main hero image is eager/high-priority. The two secondary hero images are lazy/low-priority so they do not compete with the mobile LCP image.
+4. Heavy homepage sections below the first screen use content-visibility:auto where supported.
+5. Cache-busting updated to v256.
+
+IMPORTANT FOR CURRENT IMAGES:
+The admin already automatically converts newly uploaded images to WebP and caps quality at 0.88. Existing older Supabase images are not recompressed by a code deployment. For the biggest PageSpeed image savings, re-save/re-upload the current homepage hero/top/category images through the admin once; the new upload will be optimized automatically.
