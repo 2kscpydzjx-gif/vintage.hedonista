@@ -1067,13 +1067,14 @@ function renderProductMeasurementsV148(p){
 }
 
 function renderProduct(){
+ const vhPlainText=value=>String(value??'').replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39);/gi,m=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'",'&nbsp;':' ','&#39;':"'"}[m.toLowerCase()]||m));
  const p=currentProduct;
- $('productBreadcrumb').textContent=p.name||'ТОВАР';
- if($('productBrandFact'))$('productBrandFact').textContent=p.brand||'—';
+ $('productBreadcrumb').textContent=vhPlainText(p.name)||'ТОВАР';
+ if($('productBrandFact'))$('productBrandFact').textContent=vhPlainText(p.brand)||'—';
  if($('productSeason'))$('productSeason').textContent=p.season||'—';
- $('productName').textContent=p.name;
+ $('productName').textContent=vhPlainText(p.name);
  $('productPrice').textContent=money(p.price);
- $('productShortDescription').textContent=p.short_description||'';
+ $('productShortDescription').textContent=vhPlainText(p.short_description);
  $('productShortDescription').classList.toggle('hidden',!p.short_description);
  window.VHSafeRich.render($('productDesc'),p.description||p.short_description||'Опис буде додано.');
  $('productSize').textContent=p.size||'Уточнюйте';

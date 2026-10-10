@@ -37,8 +37,14 @@ const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sit
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.
 const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article)');
 const seoMap=new Map(seo.map(x=>[x.entity_type+':'+x.entity_id,x]));
-const htmlEscape=x=>String(x??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-const strip=x=>String(x??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+// Decode already-escaped HTML entities before escaping output once.
+// CMS fields may contain literal "&amp;" from rich text editing.
+const decodeEntities=x=>String(x??'').replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39|#x([0-9a-f]+)|#([0-9]+));/gi,(match,hex,dec)=>{
+ if(hex||dec){const cp=parseInt(hex||dec,hex?16:10);return cp>0&&cp<=0x10ffff&&!(cp>=0xd800&&cp<=0xdfff)?String.fromCodePoint(cp):match}
+ return {'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'",'&nbsp;':' ','&#39;':"'"}[match.toLowerCase()]??match;
+});
+const htmlEscape=x=>decodeEntities(x).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+const strip=x=>decodeEntities(String(x??'').replace(/<[^>]*>/g,' ')).replace(/\s+/g,' ').trim();
 function snapshot(kind,row){
  const isProduct=kind==='product';
  const dir=isProduct?'seo-product':'seo-article';
