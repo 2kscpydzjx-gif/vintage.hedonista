@@ -11,7 +11,7 @@ function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existi
  const media=el.querySelector('#homeCapsulesMedia');
  if(media&&typeof e.capsuleImage==='string'){
   if(e.capsuleImage==='__removed__')media.replaceChildren();
-  else if(/^(https?:\/\/|\/|\.\/?|..\//i.test(e.capsuleImage)){
+  else if(['https://','http://','/','./','../'].some(prefix=>e.capsuleImage.startsWith(prefix))){
    const img=document.createElement('img');img.src=e.capsuleImage;img.alt='Фото капсул';img.loading='eager';img.style.cssText='width:100%;height:100%;object-fit:cover;display:block';media.replaceChildren(img);
   }
  }
