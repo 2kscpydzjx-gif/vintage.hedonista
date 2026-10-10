@@ -12,6 +12,13 @@
    if(node.tagName==='IMG'){if(ok(src)&&!/^mailto:|^tel:|^#/i.test(src)){node.setAttribute('src',src);node.setAttribute('alt',alt||'');node.setAttribute('loading','lazy')}else node.remove()}
    if(node.tagName==='FIGURE'){if(w&&/^\d{2,3}$/.test(w))node.setAttribute('data-vh-width',w);if(['left','right','center'].includes(align))node.setAttribute('data-vh-align',align)}
   }}visit(root);return root.innerHTML}
- function render(node,value){if(!node)return;const v=String(value??'');if(/<\s*\/?\s*(?:p|div|br|a|strong|b|em|i|ul|ol|li|h[2-4]|blockquote|figure|img)\b/i.test(v)){node.innerHTML=clean(v)}else{node.textContent=v;node.style.whiteSpace='pre-line'}}
+ // Decode entity-encoded ampersands in text only, after sanitizing rich HTML.
+ function decodeAmpText(root){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let textNode;while((textNode=walker.nextNode())){
+   if(textNode.nodeValue.includes('&amp;'))textNode.nodeValue=textNode.nodeValue.replace(/&amp;/gi,'&');
+  }
+ }
+ function render(node,value){if(!node)return;const v=String(value??'');if(/<\s*\/?\s*(?:p|div|br|a|strong|b|em|i|ul|ol|li|h[2-4]|blockquote|figure|img)\b/i.test(v)){node.innerHTML=clean(v);decodeAmpText(node)}else{node.textContent=v.replace(/&amp;/gi,'&');node.style.whiteSpace='pre-line'}}
  window.VHSafeRich={clean,render,ok};
 })();
