@@ -1,0 +1,354 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
+<title>Капсула 4 — Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=263"><style>
+/* CAPSULES — local draft */
+.capsule-page{background:var(--mockup-paper,#f4eadc)}
+.capsule-hero{background:#15100c;color:#eadac3}
+.capsule-hero-grid{min-height:420px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(420px,.88fr);align-items:stretch}
+.capsule-hero-copy{display:flex;flex-direction:column;justify-content:center;padding:58px 70px 58px 0}
+.capsule-kicker{font:500 9px/1 Arial,sans-serif;letter-spacing:.18em;color:#bda486;margin-bottom:19px}
+.capsule-hero h1{margin:0;color:#f2e8dc;font:400 clamp(48px,5vw,72px)/.95 Georgia,serif;letter-spacing:-.035em}
+.capsule-hero h2{margin:17px 0 10px;color:#e8dac8;font:400 23px/1.15 Georgia,serif}
+.capsule-hero p{max-width:430px;margin:0;color:#bfae9b;font-size:11px;line-height:1.65}
+.capsule-hero-btn{align-self:flex-start;margin-top:25px;min-height:38px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #f1e9df;background:#f1e9df;color:#17120d;font-size:9px;font-weight:600;letter-spacing:.08em}
+.capsule-hero-photo{position:relative;align-self:stretch;margin:22px 0 22px 28px;min-height:376px;display:grid;place-items:center;text-align:center;border:1px dashed rgba(234,218,195,.34);background:#211812;color:#a99278;font-size:10px;letter-spacing:.08em;line-height:1.7}
+.capsule-hero-photo small{font-size:8px;color:#806f5e}
+.capsule-intro{padding:58px 0 52px}
+.capsule-intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;border-bottom:1px solid rgba(75,52,35,.18);padding-bottom:48px}
+.capsule-intro h2{margin:0;font:400 32px/1.05 Georgia,serif;color:#21170f}
+.capsule-intro p{margin:2px 0 0;justify-self:end;width:min(100%,430px);font:400 23px/1.35 Georgia,serif;color:#4f4034}
+.capsule-empty{min-height:360px}
+
+.capsule-cards{padding:0 0 72px}
+.capsule-cards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.capsule-card{position:relative;aspect-ratio:4/3;min-height:220px;overflow:hidden;background:#15100c;border:1px solid rgba(21,16,12,.12);color:#bda486}
+.capsule-card-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:10px;letter-spacing:.08em;line-height:1.7}
+.capsule-card-placeholder small{display:block;font-size:8px;color:#806f5e}
+.capsule-card-link{position:absolute;left:16px;bottom:16px;z-index:2;min-height:34px;padding:0 15px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #eadac3;background:rgba(21,16,12,.88);color:#f2e8dc;font-size:8px;font-weight:600;letter-spacing:.09em;transition:.2s ease}
+.capsule-card-link:hover{background:#f1e9df;color:#17120d}
+.capsule-detail-page{background:var(--mockup-paper,#f4eadc)}
+.capsule-detail-hero{background:#15100c;color:#eadac3}
+.capsule-detail-hero .wrap{min-height:420px;display:grid;place-items:center}
+.capsule-detail-placeholder{width:100%;min-height:376px;display:grid;place-items:center;text-align:center;border:1px dashed rgba(234,218,195,.34);background:#211812;color:#a99278;font-size:10px;letter-spacing:.08em;line-height:1.7}
+.capsule-detail-placeholder small{font-size:8px;color:#806f5e}
+.capsule-detail-empty{min-height:520px;background:var(--mockup-paper,#f4eadc)}
+@media(max-width:900px){.capsule-hero-grid{grid-template-columns:1fr 46%;}.capsule-hero-copy{padding-right:30px}.capsule-hero-photo{margin-left:12px}.capsule-intro-grid{gap:30px}}
+@media(max-width:900px){.capsule-cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.capsule-hero-grid{grid-template-columns:1fr;}.capsule-hero-copy{padding:48px 0 34px}.capsule-hero-photo{margin:0 0 18px;min-height:360px}.capsule-intro{padding:42px 0}.capsule-intro-grid{grid-template-columns:1fr;gap:20px;padding-bottom:38px}.capsule-intro p{justify-self:start}.capsule-empty{min-height:220px}.capsule-cards{padding-bottom:48px}.capsule-cards-grid{grid-template-columns:1fr;gap:12px}.capsule-card{min-height:240px}.capsule-detail-hero .wrap{min-height:390px}.capsule-detail-placeholder{min-height:350px}.capsule-detail-empty{min-height:300px}}
+
+/* STEP 21 — rebalance capsule showcase after Step 20 */
+@media (min-width:901px){
+  body.capsule-style-live .capsule-showcase{padding:42px 0 58px!important}
+  body.capsule-style-live .capsule-showcase>.wrap{max-width:1240px!important}
+  body.capsule-style-live .capsule-page-nav-compact{margin-bottom:24px!important}
+  body.capsule-style-live .capsule-showcase-grid{
+    grid-template-columns:420px minmax(0,1fr)!important;
+    gap:64px!important;
+    align-items:start!important;
+    max-width:1080px!important;
+    margin:0 auto!important;
+  }
+  body.capsule-style-live .capsule-main-visual{
+    width:420px!important;
+    height:525px!important;
+    min-height:0!important;
+    max-width:none!important;
+    aspect-ratio:auto!important;
+    justify-self:start!important;
+    background:#15100c!important;
+    border:0!important;
+    outline:0!important;
+    box-shadow:none!important;
+  }
+  body.capsule-style-live .capsule-main-visual img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center!important;
+    display:block!important;
+  }
+  body.capsule-style-live .capsule-info{padding-top:8px!important;min-width:0!important}
+  body.capsule-style-live .capsule-looks{margin-top:24px!important}
+  body.capsule-style-live .capsule-look-track{
+    grid-template-columns:repeat(3,132px)!important;
+    gap:12px!important;
+    justify-content:start!important;
+  }
+  body.capsule-style-live .capsule-look-thumb{width:132px!important;aspect-ratio:4/5!important}
+  body.capsule-style-live .capsule-products{margin-top:44px!important;padding-top:28px!important}
+}
+@media (min-width:901px) and (max-width:1180px){
+  body.capsule-style-live .capsule-showcase-grid{grid-template-columns:380px minmax(0,1fr)!important;gap:42px!important;max-width:960px!important}
+  body.capsule-style-live .capsule-main-visual{width:380px!important;height:475px!important}
+  body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(3,116px)!important}
+  body.capsule-style-live .capsule-look-thumb{width:116px!important}
+}
+
+</style>
+<style id="style-page-hero-step19">
+/* STEP 19 — style page HERO mirrors the Capsules HERO geometry */
+body.capsule-style-live .capsule-detail-hero{height:590px;min-height:590px;background:#0e0c09;color:#f2e8dc;overflow:hidden}
+body.capsule-style-live .capsule-detail-hero>.wrap{width:100%!important;max-width:none!important;height:590px!important;min-height:590px!important;margin:0!important;padding:0!important;display:grid!important;grid-template-columns:minmax(0,44%) minmax(0,56%)!important;place-items:stretch!important;align-items:stretch!important}
+body.capsule-style-live .capsule-style-hero-copy{grid-column:1;grid-row:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:64px clamp(32px,5vw,82px);background:#0e0c09;min-width:0}
+body.capsule-style-live .capsule-style-hero-copy:before{content:'VINTAGE HEDONISTA';display:block;margin-bottom:24px;color:#bda486;font:500 11px/1 Montserrat,Arial,sans-serif;letter-spacing:.18em}
+body.capsule-style-live .capsule-style-hero-copy h1{margin:0;color:#f2e8dc;font:400 clamp(54px,5vw,82px)/.94 Georgia,serif;letter-spacing:-.035em;max-width:620px}
+body.capsule-style-live .capsule-style-hero-copy p{margin:24px 0 0;max-width:540px;color:#c5b6a5;font:400 14px/1.75 Montserrat,Arial,sans-serif}
+body.capsule-style-live .capsule-detail-placeholder{grid-column:2;grid-row:1;width:100%!important;height:590px!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:#211812;overflow:hidden;display:grid;place-items:center;color:#a99278}
+body.capsule-style-live .capsule-detail-placeholder img{width:100%!important;height:100%!important;max-width:none!important;display:block!important;object-fit:cover!important;object-position:center center!important}
+/* Products are supporting content, not the dominant block */
+body.capsule-style-live .capsule-products{margin-top:56px;padding-top:28px}
+body.capsule-style-live .capsule-products-head{margin-bottom:16px}
+body.capsule-style-live .capsule-products-head h2{font-size:27px}
+body.capsule-style-live .capsule-product-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:start}
+body.capsule-style-live .capsule-product-photo{aspect-ratio:1/1}
+body.capsule-style-live .capsule-product-card h3{margin:7px 0 3px;font-size:12px;line-height:1.18}
+body.capsule-style-live .capsule-product-card p{font-size:8px}
+body.capsule-style-live .capsule-product-open{display:inline-block;margin-top:6px;color:#3b2b20;font-size:7px;font-weight:600;letter-spacing:.08em;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:1100px){body.capsule-style-live .capsule-style-hero-copy{padding-left:32px;padding-right:32px}body.capsule-style-live .capsule-style-hero-copy h1{font-size:58px}body.capsule-style-live .capsule-product-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:760px){body.capsule-style-live .capsule-detail-hero{height:auto;min-height:0}body.capsule-style-live .capsule-detail-hero>.wrap{height:auto!important;min-height:0!important;grid-template-columns:1fr!important}body.capsule-style-live .capsule-style-hero-copy{grid-column:1;grid-row:1;padding:46px 22px 38px}body.capsule-style-live .capsule-style-hero-copy h1{font-size:46px}body.capsule-style-live .capsule-style-hero-copy p{font-size:13px;margin-top:18px}body.capsule-style-live .capsule-detail-placeholder{grid-column:1;grid-row:2;height:460px!important;min-height:460px!important}body.capsule-style-live .capsule-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}body.capsule-style-live .capsule-product-card h3{font-size:12px}}
+
+/* STEP 20 — cleaner capsule imagery + viewport-friendly main visual */
+body.capsule-style-live .capsule-main-visual{
+  width:auto!important;
+  height:clamp(460px,68vh,620px)!important;
+  min-height:0!important;
+  max-width:100%!important;
+  aspect-ratio:4/5!important;
+  justify-self:start!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+body.capsule-style-live .capsule-main-visual img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+body.capsule-style-live .capsule-look-thumb,
+body.capsule-style-live .capsule-look-thumb.has-image,
+body.capsule-style-live .capsule-look-option.active .capsule-look-thumb{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+body.capsule-style-live .capsule-look-thumb img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  display:block!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+body.capsule-style-live .capsule-look-option.active>span{font-weight:600}
+@media(max-width:900px){
+  body.capsule-style-live .capsule-main-visual{height:clamp(430px,64vh,560px)!important}
+}
+@media(max-width:760px){
+  body.capsule-style-live .capsule-main-visual{width:100%!important;height:auto!important;aspect-ratio:1/1!important}
+}
+</style>
+
+<style id="capsule-main-visual-step22">
+/* STEP 22 — larger capsule main image, keeping the balanced desktop layout */
+@media (min-width:1181px){
+  body.capsule-style-live .capsule-showcase>.wrap{max-width:1320px!important}
+  body.capsule-style-live .capsule-showcase-grid{
+    grid-template-columns:510px minmax(0,1fr)!important;
+    gap:58px!important;
+    max-width:1180px!important;
+  }
+  body.capsule-style-live .capsule-main-visual{
+    width:510px!important;
+    height:510px!important;
+    aspect-ratio:1/1!important;
+  }
+}
+@media (min-width:901px) and (max-width:1180px){
+  body.capsule-style-live .capsule-showcase-grid{
+    grid-template-columns:440px minmax(0,1fr)!important;
+    gap:42px!important;
+    max-width:1040px!important;
+  }
+  body.capsule-style-live .capsule-main-visual{
+    width:440px!important;
+    height:440px!important;
+    aspect-ratio:1/1!important;
+  }
+}
+@media (min-width:1181px) and (max-height:820px){
+  body.capsule-style-live .capsule-showcase-grid{grid-template-columns:480px minmax(0,1fr)!important;max-width:1140px!important}
+  body.capsule-style-live .capsule-main-visual{width:480px!important;height:480px!important;aspect-ratio:1/1!important}
+}
+</style>
+
+
+<style id="capsule-step25-layout-fix">
+/* STEP 25 — four looks in one row + larger square main image */
+@media (min-width:1181px){
+  body.capsule-style-live .capsule-showcase>.wrap{max-width:1380px!important}
+  body.capsule-style-live .capsule-showcase-grid{grid-template-columns:560px minmax(0,1fr)!important;gap:58px!important;max-width:1260px!important}
+  body.capsule-style-live .capsule-main-visual{width:560px!important;height:560px!important;aspect-ratio:1/1!important}
+  body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(4,112px)!important;gap:10px!important}
+  body.capsule-style-live .capsule-look-thumb{width:112px!important}
+}
+@media (min-width:1181px) and (max-height:820px){
+  body.capsule-style-live .capsule-showcase-grid{grid-template-columns:540px minmax(0,1fr)!important;max-width:1240px!important}
+  body.capsule-style-live .capsule-main-visual{width:540px!important;height:540px!important;aspect-ratio:1/1!important}
+}
+@media (min-width:901px) and (max-width:1180px){
+  body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(4,96px)!important;gap:8px!important}
+  body.capsule-style-live .capsule-look-thumb{width:96px!important}
+}
+</style>
+
+<style id="capsule-step45-polish">
+@media(min-width:761px){body.capsule-style-live .capsule-detail-hero,body.capsule-style-live .capsule-detail-hero>.wrap{height:550px!important;min-height:550px!important}body.capsule-style-live .capsule-detail-hero>.wrap{grid-template-columns:minmax(0,40%) minmax(0,60%)!important}body.capsule-style-live .capsule-detail-placeholder{height:550px!important}}
+body.capsule-style-live .capsule-style-hero-copy p{font-size:16px;line-height:1.7}
+body.capsule-style-live .capsule-page-nav-compact .capsule-page-nav-current{font-size:12px!important;color:#5a4030!important;opacity:1!important;font-weight:600}
+body.capsule-style-live .capsule-page-nav-arrow{width:35px;height:35px;font-size:20px;border-color:rgba(75,52,35,.55)}
+body.capsule-style-live .capsule-info-kicker{font-size:11px;color:#674a36}
+body.capsule-style-live .capsule-info-description{font-size:14px;line-height:1.7}
+body.capsule-style-live .capsule-buy-meta span,body.capsule-style-live .capsule-looks-head span{font-size:10px;color:#644b37}
+body.capsule-style-live .capsule-look-option>span{font-size:15px;line-height:1.25;transition:color .25s ease}
+body.capsule-style-live .capsule-look-option.active>span{color:#8a6038;font-weight:700}
+body.capsule-style-live .capsule-look-option.active .capsule-look-thumb{box-shadow:inset 0 0 0 2px #a67d4d!important;outline:2px solid #a67d4d!important;outline-offset:2px!important}
+@media(min-width:1181px){body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(4,106px)!important}body.capsule-style-live .capsule-look-thumb{width:106px!important}}
+body.capsule-style-live .capsule-product-card h3{font-weight:600;font-size:13px;line-height:1.3}
+body.capsule-style-live .capsule-product-brand{color:#a17b48;font-size:10px;font-weight:600;margin:4px 0}
+body.capsule-style-live .capsule-product-card p{font-size:10px}
+body.capsule-style-live .capsule-product-open{font-size:10px;font-weight:700;letter-spacing:.04em}
+body.capsule-style-live .capsule-product-photo{overflow:hidden}body.capsule-style-live .capsule-product-photo img{transition:transform .45s ease}body.capsule-style-live .capsule-product-photo:hover img{transform:scale(1.045)}
+body.capsule-style-live .capsule-main-visual{cursor:zoom-in}
+body.capsule-style-live .capsule-showcase-grid{transition:opacity .25s ease,transform .3s ease}body.capsule-style-live .capsule-showcase-grid.capsule-swipe-out{opacity:0;transform:translateX(calc(var(--swipe-dir)* -26px))}body.capsule-style-live .capsule-showcase-grid.capsule-swipe-in{transition:none;opacity:0;transform:translateX(calc(var(--swipe-dir)* 26px))}
+body.capsule-style-live .capsule-style-hero-copy{animation:vh45-rise .7s ease both}body.capsule-style-live .capsule-detail-placeholder img{animation:vh45-photo .85s ease both}@keyframes vh45-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes vh45-photo{from{opacity:.65;transform:scale(1.035)}to{opacity:1;transform:scale(1)}}
+.capsule-photo-lightbox{position:fixed;inset:0;z-index:99999;background:rgba(10,8,6,.95);display:flex;align-items:center;justify-content:center;padding:30px;cursor:zoom-out}.capsule-photo-lightbox img{max-width:100%;max-height:95vh;object-fit:contain;cursor:default}.capsule-photo-lightbox button{position:absolute;right:24px;top:16px;color:white;background:transparent;border:0;font-size:36px;cursor:pointer}
+@media(max-width:760px){body.capsule-style-live .capsule-style-hero-copy p{font-size:14px}body.capsule-style-live .capsule-look-option>span{font-size:12px}}
+@media(prefers-reduced-motion:reduce){body.capsule-style-live .capsule-style-hero-copy,body.capsule-style-live .capsule-detail-placeholder img{animation:none!important}body.capsule-style-live .capsule-showcase-grid{transition:none!important}}
+</style>
+<style id="capsule-step47-focused-fixes">
+@media(min-width:761px){body.capsule-style-live .capsule-detail-hero,body.capsule-style-live .capsule-detail-hero>.wrap{height:505px!important;min-height:505px!important}body.capsule-style-live .capsule-detail-placeholder{height:505px!important}}
+body.capsule-style-live .capsule-look-option{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;word-break:normal!important}
+body.capsule-style-live .capsule-look-option>span{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;hyphens:auto!important;box-sizing:border-box!important}
+@media(min-width:1181px){body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(4,minmax(0,110px))!important;gap:10px!important}body.capsule-style-live .capsule-look-thumb{width:100%!important}}
+@media(min-width:901px) and (max-width:1180px){body.capsule-style-live .capsule-look-track{grid-template-columns:repeat(4,minmax(0,100px))!important;gap:9px!important}body.capsule-style-live .capsule-look-thumb{width:100%!important}}
+body.capsule-style-live .capsule-main-visual,body.capsule-style-live .capsule-product-grid{will-change:transform,opacity}
+body.capsule-style-live .vh47-slide-out{opacity:0!important;transform:translateX(calc(var(--vh47-dir,1)* -22px))!important;transition:transform .16s ease-in,opacity .16s ease-in!important}
+body.capsule-style-live .vh47-slide-in{opacity:0!important;transform:translateX(calc(var(--vh47-dir,1)* 22px))!important;transition:none!important}
+body.capsule-style-live .vh47-slide-settle{opacity:1!important;transform:translateX(0)!important;transition:transform .24s ease-out,opacity .24s ease-out!important}
+@media(prefers-reduced-motion:reduce){body.capsule-style-live .vh47-slide-out,body.capsule-style-live .vh47-slide-in,body.capsule-style-live .vh47-slide-settle{transition:none!important;transform:none!important;opacity:1!important}}
+</style>
+<style id="capsule-step48-stable-thumbnails-crisp-type">
+/* Selection changes the outline only; no vertical movement or row reflow. */
+body.capsule-style-live .capsule-look-track{align-items:start!important}
+body.capsule-style-live .capsule-look-option{align-self:start!important;transform:none!important;translate:none!important;transition:none!important;vertical-align:top!important}
+body.capsule-style-live .capsule-look-option:hover,body.capsule-style-live .capsule-look-option:focus,body.capsule-style-live .capsule-look-option.active{transform:none!important;translate:none!important;margin-top:0!important}
+body.capsule-style-live .capsule-look-option>span{font-weight:600!important;min-height:2.6em!important;line-height:1.3!important;transition:color .2s ease!important}
+body.capsule-style-live .capsule-look-option.active>span{font-weight:600!important}
+body.capsule-style-live .capsule-look-thumb{transform:none!important;translate:none!important}
+/* Only the image moves in hover zoom; never rasterize the product labels. */
+body.capsule-style-live .capsule-product-grid{will-change:auto!important}
+body.capsule-style-live .capsule-product-card,body.capsule-style-live .capsule-product-card h3,body.capsule-style-live .capsule-product-card p,body.capsule-style-live .capsule-product-brand,body.capsule-style-live .capsule-product-open{transform:none!important;filter:none!important;backdrop-filter:none!important;text-shadow:none!important;will-change:auto!important;-webkit-font-smoothing:auto!important}
+body.capsule-style-live .capsule-product-card h3{font-weight:600!important}
+</style>
+<style id="vh-step49-preppy-full-hero">
+/* STEP 49 — PREPPY full-bleed HERO test; other styles unchanged. */
+@media (min-width:761px){
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-hero,
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-hero>.wrap{height:505px!important;min-height:505px!important}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-hero>.wrap{display:block!important;position:relative!important;isolation:isolate}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;z-index:0;overflow:hidden}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 48%!important}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(12,9,7,.92) 0%,rgba(15,11,9,.81) 23%,rgba(17,12,9,.53) 44%,rgba(18,12,9,.13) 68%,transparent 100%)}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy{position:absolute!important;inset:0 auto 0 0;z-index:1;width:min(49%,680px);min-width:0;background:transparent!important;pointer-events:none;padding:48px clamp(32px,5vw,82px)!important}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy h1{color:#f6ebdf;text-shadow:0 2px 14px rgba(0,0,0,.18)}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy p{color:#e7d9c8;text-shadow:0 1px 8px rgba(0,0,0,.24)}
+}
+@media (max-width:760px){
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-hero{height:420px!important;min-height:0!important}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-hero>.wrap{height:100%!important;min-height:0!important;display:block!important;position:relative!important;isolation:isolate}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;grid-column:auto;grid-row:auto;overflow:hidden;z-index:0}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:66% center!important}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-detail-placeholder::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(12,9,7,.93) 0%,rgba(12,9,7,.66) 38%,rgba(12,9,7,.1) 85%)}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy{position:absolute!important;inset:auto 0 0!important;z-index:1;display:flex!important;background:transparent!important;padding:34px 24px 40px!important;pointer-events:none}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy h1{color:#f6ebdf;font-size:clamp(42px,11vw,58px)}
+ body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy p{color:#e7d9c8;font-size:14px}
+}
+</style>
+</head><body><header><div class="wrap head">
+<a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
+<nav class="nav">
+<a href="index.html">ГОЛОВНА</a>
+<a href="catalog.html">КАТАЛОГ</a>
+<a href="about.html">ПРО НАС</a>
+<a href="journal.html">ЖУРНАЛ</a>
+<a href="delivery.html">ДОСТАВКА І ОПЛАТА</a>
+<a href="contacts.html">КОНТАКТИ</a>
+</nav>
+<button class="vh-mobile-menu-btn" type="button" aria-label="Відкрити меню" aria-expanded="false">
+  <span></span><span></span><span></span>
+</button>
+<div class="header-icons" aria-label="Навігаційні іконки">
+<button class="header-icon-btn" type="button" data-header-search aria-label="Пошук">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>
+</button>
+<button class="header-icon-btn" type="button" data-header-profile aria-label="Профіль">
+<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 20c.7-4.1 3-6.2 6.5-6.2s5.8 2.1 6.5 6.2"></path></svg>
+</button>
+<button class="header-icon-btn bag-icon" type="button" data-header-cart aria-label="Кошик">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8.5h12l1.2 11H4.8z"></path><path d="M9 9V6.5a3 3 0 0 1 6 0V9"></path></svg>
+<span class="bag-count">0</span>
+</button>
+</div></div></header><main class="capsule-detail-page">
+<section class="capsule-detail-hero">
+  <div class="wrap">
+    <div class="capsule-detail-placeholder" aria-label="Місце для фото капсули">
+      <span>HERO ФОТО<br><small>РЕКОМЕНДОВАНО 1920 × 900 px</small></span>
+    </div>
+  </div>
+</section>
+<section class="capsule-detail-empty" aria-hidden="true"></section>
+</main>
+<footer class="site-footer-v64">
+  <div class="wrap footer-v64">
+    <div class="footer-v64-brand">
+      <a class="footer-v64-logo vh-footer-logo-link" href="index.html"><img class="vh-footer-logo-img" src="assets/vintage-hedonista-logo-v257.webp" loading="lazy" decoding="async" alt="Vintage Hedonista"></a>
+      <div class="footer-v64-copy">© 2026 Vintage Hedonista</div>
+    </div>
+
+    <div class="footer-v64-center">
+      <p>Вінтажний одяг з історією, відібраний зі смаком.</p>
+    </div>
+
+    <div class="footer-v64-socials">
+      <a class="footer-social-btn" data-footer-instagram href="#" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17.4" cy="6.7" r="1"></circle></svg>
+      </a>
+      <a class="footer-social-btn" data-footer-telegram href="#" target="_blank" rel="noopener" aria-label="Telegram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.7 11.2 19.2 5c.8-.3 1.5.2 1.2 1.2l-2.6 12.2c-.2.9-.8 1.1-1.5.7l-4-3-1.9 1.9c-.2.2-.4.4-.8.4l.3-4.1 7.5-6.8c.3-.3-.1-.5-.5-.2l-9.3 5.9-4-.1c-.9 0-1.2-.3-.4-.7Z"></path></svg>
+      </a>
+    </div>
+  </div>
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=267"></script><script id="vh-unified-menu-bound-v230">
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.querySelector('.vh-mobile-menu-btn');
+  const nav=document.querySelector('header .nav');
+  if(!btn||!nav||btn.dataset.vhBound==='1')return;
+  btn.dataset.vhBound='1';
+  btn.addEventListener('click',()=>{
+    const open=document.body.classList.toggle('vh-mobile-menu-open');
+    btn.setAttribute('aria-expanded',String(open));
+  });
+  nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    document.body.classList.remove('vh-mobile-menu-open');
+    btn.setAttribute('aria-expanded','false');
+  }));
+});
+</script></body></html>

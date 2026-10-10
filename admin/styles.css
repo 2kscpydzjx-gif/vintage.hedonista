@@ -7193,3 +7193,478 @@ footer .vh-site-logo,
   #categoriesTable .category-sort-table th:nth-child(4),
   #categoriesTable .category-sort-table td:nth-child(4){min-width:105px !important}
 }
+
+/* V268 — Capsules admin */
+.capsule-admin-stack{display:grid;gap:16px}.capsule-admin-panel .panel-head{align-items:center}.capsule-admin-note{display:block;margin-top:5px;color:#817970;font-size:10px;font-weight:400}.capsule-styles-list{padding:18px;display:grid;gap:12px}.capsule-style-admin-card{display:grid;grid-template-columns:120px 1fr auto;gap:16px;align-items:start;padding:14px;border:1px solid #39322b;background:#17130f}.capsule-style-thumb{width:120px;aspect-ratio:4/3;border:1px solid #4b4035;background:#211a14;display:flex;align-items:center;justify-content:center;color:#7f7469;font-size:9px;text-align:center;overflow:hidden}.capsule-style-thumb img{width:100%;height:100%;object-fit:cover}.capsule-style-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.capsule-style-fields .full{grid-column:1/-1}.capsule-style-actions{display:flex;flex-direction:column;gap:8px;min-width:116px}.capsule-style-actions .btn{width:100%}.capsule-style-status{display:flex;align-items:center;gap:7px;color:#a39c95;font-size:10px}.capsule-style-status input{accent-color:#b99566}.capsule-admin-empty{padding:28px;text-align:center;border:1px dashed #40372f;color:#817970;font-size:11px}@media(max-width:850px){.capsule-style-admin-card{grid-template-columns:90px 1fr}.capsule-style-thumb{width:90px}.capsule-style-actions{grid-column:1/-1;flex-direction:row}.capsule-style-fields{grid-template-columns:1fr}}@media(max-width:560px){.capsule-style-admin-card{grid-template-columns:1fr}.capsule-style-thumb{width:100%;max-width:220px}.capsule-style-actions{grid-column:auto}}
+
+/* CAPSULES ADMIN V2 — same clean accordion language as other page editors */
+#capsules .capsule-admin-top{margin-bottom:18px}
+#capsules .capsule-admin-stack{display:grid;gap:12px;max-width:none}
+#capsules .capsule-builder-card{margin:0;border:1px solid #34291f;background:#100d0b;overflow:hidden}
+#capsules .capsule-builder-head{position:relative;min-height:76px;padding:14px 58px 14px 16px;cursor:pointer;user-select:none;background:#12100d}
+#capsules .capsule-builder-head:hover{background:#16120f}
+#capsules .capsule-builder-head::after{content:'−';position:absolute;right:18px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:1px solid #4b392b;display:grid;place-items:center;color:#d0a675;font:18px/1 Georgia,serif;background:#0d0b09}
+#capsules .capsule-builder-card.is-collapsed>.capsule-builder-head::after{content:'+'}
+#capsules .capsule-builder-card.is-collapsed>.capsule-builder-body{display:none}
+#capsules .capsule-head-copy h2{margin:0 0 4px;font:400 16px/1.1 Georgia,serif;color:#eadfd2}
+#capsules .capsule-head-copy p{margin:0;color:#80766d;font-size:10px;line-height:1.4}
+#capsules .capsule-builder-body{padding:0 18px 18px;border-top:1px solid #30261e}
+#capsules .capsule-editor-group{padding:18px 0;border-bottom:1px solid #2d251e}
+#capsules .capsule-editor-label{margin-bottom:14px;color:#a98560;font-size:8px;letter-spacing:1.1px}
+#capsules .capsule-editor-group .form-grid{margin:0}
+#capsules .capsule-photo-field .photo-guide{margin-bottom:8px}
+#capsules .capsule-section-save{display:flex;justify-content:flex-end;padding-top:18px}
+#capsules .capsule-list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-bottom:1px solid #2d251e}
+#capsules .capsule-list-toolbar>div{display:grid;gap:3px}
+#capsules .capsule-list-toolbar b{color:#d9cbbb;font-size:10px;letter-spacing:.8px;font-weight:500}
+#capsules .capsule-list-toolbar span{color:#7e756d;font-size:9px}
+#capsules .capsule-styles-list{padding:16px 0 0;gap:10px}
+#capsules .capsule-style-admin-card{background:#12100d;border-color:#332a22}
+@media(max-width:700px){#capsules .capsule-list-toolbar{align-items:stretch;flex-direction:column}#capsules .capsule-list-toolbar .btn{width:100%}}
+/* CAPSULES ADMIN V3 — structured editor */
+#capsules .capsule-toolbar-actions{display:flex;gap:8px;align-items:center}#capsules .capsule-toolbar-actions .input{min-width:180px;height:38px}
+#capsules .capsule-mini-grid{padding:16px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#capsules .capsule-mini-card{border:1px solid #332a22;background:#12100d;min-width:0}.capsule-mini-card-media{aspect-ratio:4/3;background:#211a14;display:grid;place-items:center;color:#75695f;font-size:9px;overflow:hidden}.capsule-mini-card-media img{width:100%;height:100%;object-fit:cover}.capsule-mini-card-body{padding:12px}.capsule-mini-card-body b{display:block;color:#e4d8ca;font:400 15px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.capsule-mini-card-body small{display:block;color:#817970;margin-top:5px;min-height:14px}.capsule-mini-card-foot{display:flex;justify-content:space-between;align-items:center;padding:0 12px 12px;gap:8px}.capsule-mini-card-foot span{font-size:8px;color:#a98560;letter-spacing:.08em}.capsule-mini-card-foot .btn{padding:8px 10px}
+.capsule-modal{position:fixed;inset:0;z-index:999;display:none}.capsule-modal.show{display:block}.capsule-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(3px)}.capsule-editor-modal{position:absolute;right:0;top:0;height:100%;width:min(720px,94vw);background:#0e0c0a;border-left:1px solid #3b3027;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.38)}.capsule-editor-wide{width:min(1080px,96vw)}.capsule-modal-head{padding:18px 22px;border-bottom:1px solid #30271f;display:flex;align-items:center;justify-content:space-between}.capsule-modal-head span{font-size:8px;letter-spacing:.16em;color:#a98560}.capsule-modal-head h2{margin:4px 0 0;font:400 22px Georgia,serif;color:#eadfd2}.capsule-modal-head>button{width:36px;height:36px;border:1px solid #493a2e;background:none;color:#cbb9a5;font-size:22px}.capsule-modal-scroll{padding:0 22px 24px;overflow:auto;flex:1}.capsule-form-section{padding:22px 0;border-bottom:1px solid #2c241d}.capsule-modal-actions{padding:14px 22px;border-top:1px solid #30271f;display:flex;justify-content:flex-end;gap:8px;background:#100d0b}.capsule-image-preview{margin-top:9px;width:180px;aspect-ratio:4/3;background:#211a14;border:1px solid #3d332a;display:grid;place-items:center;color:#75695f;font-size:9px;overflow:hidden}.capsule-image-preview img{width:100%;height:100%;object-fit:cover}.capsule-hero-preview{width:100%;max-width:420px;aspect-ratio:16/7}.capsule-check{display:flex;gap:8px;align-items:center;padding-top:18px;color:#aaa098;font-size:10px}.capsule-section-row{display:flex;justify-content:space-between;align-items:center;gap:14px}.capsule-section-row small{color:#746d66}.capsule-looks-editor{display:grid;gap:10px;margin-top:14px}.capsule-look-edit{display:grid;grid-template-columns:100px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid #332a22;background:#12100d}.capsule-look-thumb{width:100px;aspect-ratio:4/5;background:#211a14;display:grid;place-items:center;color:#75695f;font-size:8px;text-align:center;overflow:hidden}.capsule-look-thumb img{width:100%;height:100%;object-fit:cover}.capsule-look-edit .look-fields{display:grid;gap:7px}.capsule-auto-price{height:39px;border:1px solid #3c322a;background:#0c0a08;display:flex;align-items:center;padding:0 12px;color:#d9cbbb}.capsule-product-picker{display:grid;grid-template-columns:220px 1fr;gap:14px;margin-top:12px}.capsule-product-picker aside{border-right:1px solid #30271f;padding-right:14px}.capsule-product-filters{display:grid;gap:4px;margin-top:10px}.capsule-product-filters button{border:0;background:none;color:#8d837a;text-align:left;padding:7px 8px;font-size:9px;cursor:pointer}.capsule-product-filters button.active,.capsule-product-filters button:hover{background:#1b1511;color:#d9cbbb}.capsule-product-filters .sub{padding-left:20px;font-size:8px}.capsule-selected-products{padding:12px;border:1px solid #3a3027;background:#14100d;margin-bottom:12px}.capsule-selected-products>b{font-size:8px;letter-spacing:.12em;color:#a98560}.capsule-selected-products>div{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.capsule-selected-chip{display:flex;align-items:center;gap:6px;border:1px solid #40352b;padding:5px 7px;color:#b8aca0;font-size:8px}.capsule-selected-chip button{border:0;background:none;color:#9f8065;cursor:pointer}.capsule-product-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:430px;overflow:auto}.capsule-product-result{display:grid;grid-template-columns:58px 1fr auto;gap:9px;align-items:center;padding:7px;border:1px solid #302820;background:#12100d}.capsule-product-result img{width:58px;height:58px;object-fit:cover;background:#211a14}.capsule-product-result b{display:block;color:#d8cbbb;font-size:10px}.capsule-product-result small{display:block;color:#817970;margin-top:3px}.capsule-product-result button{width:28px;height:28px;border:1px solid #4a3a2d;background:none;color:#c8a67c;cursor:pointer}
+@media(max-width:900px){#capsules .capsule-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.capsule-product-picker{grid-template-columns:1fr}.capsule-product-picker aside{border-right:0;border-bottom:1px solid #30271f;padding:0 0 12px}.capsule-product-results{grid-template-columns:1fr}}@media(max-width:560px){#capsules .capsule-mini-grid{grid-template-columns:1fr}.capsule-look-edit{grid-template-columns:75px 1fr}.capsule-look-thumb{width:75px}.capsule-look-edit>.btn{grid-column:1/-1}.capsule-toolbar-actions{flex-direction:column;align-items:stretch!important}}
+/* V276 — Style/Capsule editors: exact Product editor shell, no nested scrolling */
+#capsuleStyleForm,#capsuleForm{overflow:visible!important;max-width:none!important}
+#capsuleStyleForm .product-editor-layout,#capsuleForm .product-editor-layout{display:grid!important;grid-template-columns:minmax(0,1fr) 290px!important;gap:16px!important;align-items:start!important}
+#capsuleStyleForm .product-editor-main,#capsuleForm .product-editor-main{min-width:0!important;display:flex!important;flex-direction:column!important;gap:0!important}
+#capsuleStyleForm .admin-builder-section,#capsuleForm .admin-builder-section{margin:0 0 14px!important;border:1px solid #2f261f!important;background:#100d0b!important;overflow:hidden!important}
+#capsuleStyleForm .builder-section-head,#capsuleForm .builder-section-head{min-height:66px!important;display:grid!important;grid-template-columns:38px minmax(0,1fr) 31px!important;gap:12px!important;align-items:center!important;padding:10px 14px!important;border-bottom:1px solid #2a211a!important;background:#13100d!important;cursor:default!important}
+#capsuleStyleForm .builder-section-head>span,#capsuleForm .builder-section-head>span{width:34px!important;height:34px!important;display:grid!important;place-items:center!important;border:1px solid #4a392b!important;border-radius:0!important;color:#b78d63!important;font-size:9px!important}
+#capsuleStyleForm .builder-section-head h2,#capsuleForm .builder-section-head h2{margin:0!important;font-size:14px!important;line-height:1.15!important}
+#capsuleStyleForm .builder-section-head p,#capsuleForm .builder-section-head p{margin:5px 0 0!important;max-width:760px!important;font-size:9px!important;line-height:1.4!important;color:#87786a!important}
+#capsuleStyleForm .constructor-section-toggle,#capsuleForm .constructor-section-toggle{position:static!important;width:31px!important;height:31px!important;border:1px solid #4b392b!important;background:#0d0b09!important;color:#d0a675!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:16px!important;cursor:pointer!important}
+#capsuleStyleForm .admin-builder-section.constructor-collapsed>*:not(.builder-section-head),#capsuleForm .admin-builder-section.constructor-collapsed>*:not(.builder-section-head){display:none!important}
+#capsuleStyleForm .builder-form-grid,#capsuleForm .builder-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px 16px!important;padding:16px!important;margin:0!important}
+#capsuleStyleForm .builder-form-grid .field.full,#capsuleForm .builder-form-grid .field.full{grid-column:1/-1!important}
+#capsuleStyleForm .field label,#capsuleForm .field label{color:#9b8c7e!important;font-size:8px!important;letter-spacing:.65px!important;text-transform:none!important;font-weight:400!important}
+#capsuleStyleForm .field label span,#capsuleForm .field label span{color:#6f6358!important;font-size:8px!important}
+#capsuleStyleForm .input,#capsuleForm .input,#capsuleStyleForm select.input,#capsuleForm select.input{width:100%!important;min-height:43px!important;box-sizing:border-box!important;border-color:#3b3027!important;background:#100d0b!important;color:#eee4d7!important}
+#capsuleStyleForm textarea.input,#capsuleForm textarea.input{min-height:100px!important}
+#capsuleStyleForm .builder-photo-field{padding:0!important}
+#capsuleStyleForm .photo-guide{padding:10px 12px!important;margin:0 0 12px!important}
+#capsuleStyleForm .capsule-upload-label{display:block!important;margin:0 0 7px!important;color:#9b8c7e!important;font-size:8px!important;letter-spacing:.65px!important}
+#capsuleStyleForm .capsule-file-input{padding:10px!important;min-height:43px!important}
+#capsuleStyleForm .capsule-image-preview{margin-top:12px!important;width:220px!important;aspect-ratio:4/3!important;background:#211a14!important;border:1px solid #3a2e24!important;display:grid!important;place-items:center!important;color:#75695f!important;font-size:8px!important;overflow:hidden!important}
+#capsuleStyleForm .capsule-hero-preview{width:min(560px,100%)!important;aspect-ratio:16/7!important}
+#capsuleStyleForm .capsule-check{margin:0 16px 16px!important;padding:12px!important;border:1px solid #382d24!important;background:#100d0b!important;display:flex!important;gap:10px!important;align-items:center!important;color:#c9bbad!important;font-size:9px!important}
+#capsuleStyleForm .product-editor-side,#capsuleForm .product-editor-side{position:sticky!important;top:86px!important;display:flex!important;flex-direction:column!important;gap:10px!important}
+#capsuleStyleForm .editor-side-card,#capsuleForm .editor-side-card{margin:0!important;padding:14px!important;border:1px solid #30261e!important;background:#100d0b!important}
+#capsuleStyleForm .editor-side-card p,#capsuleForm .editor-side-card p{margin:10px 0 0!important;font-size:9px!important;line-height:1.5!important}
+#capsuleForm .capsule-section-row{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;padding:16px 16px 12px!important;margin:0!important}
+#capsuleForm .capsule-looks-editor{margin:0 16px 16px!important;display:grid!important;gap:10px!important}
+#capsuleForm .capsule-product-picker{display:grid!important;grid-template-columns:220px minmax(0,1fr)!important;gap:14px!important;margin:0!important;padding:16px!important}
+#capsuleForm .capsule-product-picker aside{border-right:1px solid #30271f!important;padding-right:14px!important}
+#capsuleForm .capsule-product-results{max-height:none!important;overflow:visible!important}
+@media(max-width:950px){#capsuleStyleForm .product-editor-layout,#capsuleForm .product-editor-layout{grid-template-columns:1fr!important}#capsuleStyleForm .product-editor-side,#capsuleForm .product-editor-side{position:static!important}#capsuleForm .capsule-product-picker{grid-template-columns:1fr!important}#capsuleForm .capsule-product-picker aside{border-right:0!important;border-bottom:1px solid #30271f!important;padding-right:0!important;padding-bottom:12px!important}}
+
+/* ==========================================================
+   V277 — Style/Capsule editor geometry correction
+   Same document-flow behavior as the stable product editor.
+   No floating header, no page-wide horizontal scroll, no stray
+   scrollbar between sidebar and editor.
+   ========================================================== */
+
+/* The editor title bar is normal content, exactly like the corrected product editor. */
+#capsuleStyleForm .product-editor-top,
+#capsuleForm .product-editor-top{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  z-index:1!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0 0 16px!important;
+  padding:0 0 14px!important;
+  min-height:64px!important;
+  background:transparent!important;
+  backdrop-filter:none!important;
+  border-bottom:1px solid #33281f!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm .product-editor-layout,
+#capsuleForm .product-editor-layout{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  grid-template-columns:minmax(0,1fr) 270px!important;
+  gap:18px!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm .product-editor-main,
+#capsuleForm .product-editor-main,
+#capsuleStyleForm .admin-builder-section,
+#capsuleForm .admin-builder-section{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm .product-editor-side,
+#capsuleForm .product-editor-side{
+  width:270px!important;
+  max-width:270px!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm .builder-form-grid,
+#capsuleForm .builder-form-grid,
+#capsuleForm .capsule-product-picker{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm input,#capsuleStyleForm textarea,#capsuleStyleForm select,
+#capsuleForm input,#capsuleForm textarea,#capsuleForm select{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#capsuleStyleForm .capsule-image-preview,
+#capsuleStyleForm .capsule-hero-preview{
+  max-width:100%!important;
+}
+#capsuleForm .capsule-product-results{
+  min-width:0!important;
+  max-width:100%!important;
+}
+@media(max-width:950px){
+  #capsuleStyleForm .product-editor-layout,#capsuleForm .product-editor-layout{grid-template-columns:1fr!important}
+  #capsuleStyleForm .product-editor-side,#capsuleForm .product-editor-side{position:static!important;width:100%!important;max-width:100%!important}
+}
+
+/* V278 — capsule product picker: explicit filters + readable search */
+#capsuleForm .capsule-product-picker aside{background:#100d0b!important;border:1px solid #3a3027!important;padding:16px!important}
+#capsuleForm .capsule-filter-title{font-size:9px;letter-spacing:.16em;color:#c59a68;margin:4px 8px 10px;font-weight:700}
+#capsuleForm .capsule-product-filters{display:grid!important;gap:3px!important;margin-top:12px!important}
+#capsuleForm .capsule-product-filters button{display:block!important;width:100%!important;border:1px solid transparent!important;padding:9px 10px!important;color:#b8aca0!important}
+#capsuleForm .capsule-product-filters button.active{border-color:#6a4d32!important;background:#21170f!important;color:#ead8c2!important}
+#capsuleForm .capsule-product-filters button.sub{padding-left:24px!important;color:#93877b!important}
+#capsuleForm #capsuleProductSearch{height:44px!important;border-color:#5a4431!important;background:#0b0908!important;color:#eadfd2!important}
+#capsuleForm .capsule-product-result-image{width:58px;height:58px;background:#211a14;display:grid;place-items:center;overflow:hidden;color:#75695f;font-size:8px}
+#capsuleForm .capsule-product-result-image img{width:100%;height:100%;object-fit:cover}
+#capsuleForm .capsule-selected-empty{font-size:9px;color:#756d65}
+
+/* V281 capsule main image */
+.capsule-main-image-field{margin-top:4px}.capsule-image-note{display:flex;flex-direction:column;gap:5px;padding:14px 16px;margin-bottom:10px;border-left:2px solid #a77b43;background:rgba(167,123,67,.06)}.capsule-image-note b{font-size:11px;letter-spacing:.05em;color:#d3a75f}.capsule-image-note small{font-size:10px;color:#8f806f}.capsule-cover-preview{width:min(320px,100%);aspect-ratio:4/5;margin-top:12px;border:1px dashed rgba(167,123,67,.45);background:#1d1712;display:grid;place-items:center;text-align:center;color:#806f5e;overflow:hidden}.capsule-cover-preview img{width:100%;height:100%;object-fit:cover;display:block}.capsule-cover-preview small{font-size:9px}
+
+/* STEP 24 — products per capsule look */
+.capsule-look-edit.active{outline:2px solid rgba(143,105,72,.55);outline-offset:2px;background:rgba(143,105,72,.055)}
+.capsule-edit-look-products{margin-top:8px;width:max-content;max-width:100%}
+.capsule-look-edit .look-fields small{display:block;margin-top:7px;color:#8b735f;font-size:10px;line-height:1.45;letter-spacing:.04em}
+
+/* STEP 26 — capsules admin visual cleanup */
+#capsules .capsule-builder-head{display:grid!important;grid-template-columns:38px minmax(0,1fr) 34px!important;align-items:center!important;gap:14px!important;padding:13px 16px!important;min-height:74px!important}
+#capsules .capsule-builder-head>.about-builder-num{position:static!important;transform:none!important;width:36px!important;height:36px!important;min-width:36px!important;max-width:36px!important;border:1px solid #4b392b!important;border-radius:0!important;display:grid!important;place-items:center!important;line-height:1!important;padding:0!important;margin:0!important;background:#0d0b09!important;color:#c79a65!important;font-size:9px!important}
+#capsules .capsule-builder-head::after{position:static!important;transform:none!important;grid-column:3!important;grid-row:1!important;width:32px!important;height:32px!important;justify-self:end!important}
+#capsules .capsule-head-copy{grid-column:2!important;min-width:0!important}
+#capsules .capsule-head-copy h2{margin:0!important;font-size:16px!important;line-height:1.15!important}
+#capsules .capsule-head-copy p{margin:5px 0 0!important;font-size:10px!important;line-height:1.35!important;color:#776b60!important}
+#capsules .capsule-builder-body{padding:0 18px 18px!important}
+#capsules .capsule-editor-group{padding:16px 0!important;border-bottom:1px solid #2c241e!important}
+#capsules .capsule-editor-label{margin:0 0 12px!important;font-size:9px!important;letter-spacing:.14em!important;color:#b98a57!important}
+#capsules .capsule-editor-group .form-grid{gap:12px 14px!important}
+#capsules .capsule-editor-group .field label{margin-bottom:6px!important;font-size:10px!important;color:#a99a8d!important}
+#capsules .capsule-editor-group .input{min-height:42px!important}
+#capsules #capHeroDescription,#capsules #capMoodText{min-height:72px!important;height:72px!important}
+#capsules .capsule-photo-field .hint{font-size:9px!important;line-height:1.4!important;margin:0 0 8px!important;color:#847568!important}
+#capsules .capsule-photo-field .preview-row{margin-top:8px!important;min-height:0!important}
+#capsules .capsule-photo-field .preview-row img{width:130px!important;height:74px!important;object-fit:cover!important}
+#capsules .capsule-section-save{padding:16px 0 0!important;display:flex!important;justify-content:flex-end!important}
+#capsules .capsule-section-save .btn{min-width:130px!important}
+#capsules .capsule-mini-card-foot.capsule-card-actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important}
+#capsules .capsule-card-actions .btn{min-width:96px!important}
+#capsules .capsule-card-actions .btn.danger{border-color:#654036!important;color:#c99c8e!important;background:transparent!important}
+#capsules .capsule-card-actions .btn.danger:hover{background:#261512!important;border-color:#8b5143!important;color:#ead2ca!important}
+@media(max-width:700px){#capsules .capsule-builder-head{grid-template-columns:34px minmax(0,1fr) 32px!important;gap:10px!important;padding:11px!important}#capsules .capsule-builder-head>.about-builder-num{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important}#capsules .capsule-builder-body{padding:0 12px 12px!important}#capsules .capsule-card-actions{flex-wrap:wrap!important}.capsule-card-actions .btn{flex:1!important}}
+
+
+/* ==========================================================
+   STEP 31 — Style editor polish only.
+   IMPORTANT: scoped to #capsuleStyleForm; global admin shell untouched.
+   ========================================================== */
+#capsuleStyleForm .product-editor-top{
+  min-height:86px!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  gap:18px!important;
+  align-items:center!important;
+  margin:0 0 16px!important;
+  padding:0!important;
+  border-bottom:1px solid #33281f!important;
+}
+#capsuleStyleForm .product-back-btn{
+  min-height:36px!important;
+  padding:0 10px!important;
+  font-size:8px!important;
+  align-self:center!important;
+}
+#capsuleStyleForm .product-editor-heading{
+  align-self:center!important;
+}
+#capsuleStyleForm .product-editor-heading h1{
+  margin:5px 0 0!important;
+  font-size:28px!important;
+  line-height:1.05!important;
+}
+#capsuleStyleForm .product-editor-top-actions{
+  display:flex!important;
+  min-width:1px!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+}
+
+/* Round step numbers, matching the established product-editor language. */
+#capsuleStyleForm .builder-section-head>span{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+}
+
+/* Expansion control sits exactly on the vertical centre of the strip. */
+#capsuleStyleForm .builder-section-head{
+  position:relative!important;
+  min-height:66px!important;
+  grid-template-columns:38px minmax(0,1fr) 42px!important;
+  align-items:center!important;
+}
+#capsuleStyleForm .builder-section-head>.constructor-section-toggle{
+  position:static!important;
+  align-self:center!important;
+  justify-self:center!important;
+  margin:0!important;
+  transform:none!important;
+  top:auto!important;
+  right:auto!important;
+}
+
+/* HERO preview in Style page: compact thumbnail, not a large banner. */
+#capsuleStyleForm #styleHeroPreview.capsule-hero-preview{
+  width:300px!important;
+  max-width:100%!important;
+  aspect-ratio:16/7!important;
+  min-height:0!important;
+  margin-top:12px!important;
+}
+
+@media(max-width:700px){
+  #capsuleStyleForm .product-editor-top{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding-bottom:14px!important;
+  }
+  #capsuleStyleForm .product-editor-top-actions{display:none!important}
+  #capsuleStyleForm #styleHeroPreview.capsule-hero-preview{width:260px!important}
+}
+
+/* ==========================================================
+   STEP 32 — Capsule editor polish only.
+   Scoped to #capsules / #capsuleForm. Global admin shell untouched.
+   ========================================================== */
+/* Compact filter above Add capsule. */
+#capsules .capsule-toolbar-actions .input{
+  min-width:150px!important;
+  width:150px!important;
+  height:34px!important;
+  padding:0 10px!important;
+  font-size:10px!important;
+}
+#capsules .capsule-toolbar-actions .btn{
+  min-height:34px!important;
+}
+
+/* Capsule editor title bar matches Style/Product editor; no duplicate save at top. */
+#capsuleForm .product-editor-top{
+  min-height:86px!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  gap:18px!important;
+  align-items:center!important;
+  margin:0 0 16px!important;
+  padding:0!important;
+  border-bottom:1px solid #33281f!important;
+}
+#capsuleForm .product-back-btn{min-height:36px!important;padding:0 10px!important;font-size:8px!important;align-self:center!important}
+#capsuleForm .product-editor-heading{align-self:center!important}
+#capsuleForm .product-editor-heading h1{margin:5px 0 0!important;font-size:28px!important;line-height:1.05!important}
+#capsuleForm .product-editor-top-actions{display:flex!important;min-width:1px!important;align-items:center!important;justify-content:flex-end!important}
+
+/* Round section numbers + expansion button exactly centered vertically. */
+#capsuleForm .builder-section-head{position:relative!important;min-height:66px!important;grid-template-columns:38px minmax(0,1fr) 42px!important;align-items:center!important}
+#capsuleForm .builder-section-head>span{width:34px!important;height:34px!important;min-width:34px!important;border-radius:50%!important;display:grid!important;place-items:center!important}
+#capsuleForm .builder-section-head>.constructor-section-toggle{position:static!important;align-self:center!important;justify-self:center!important;margin:0!important;transform:none!important;top:auto!important;right:auto!important}
+
+/* Section 03: choose a look first, then assign its products. */
+#capsuleForm .capsule-look-product-select-row{display:grid!important;grid-template-columns:72px minmax(0,420px)!important;align-items:center!important;gap:12px!important;padding:16px 16px 0!important}
+#capsuleForm .capsule-look-product-select-row label{font-size:9px!important;letter-spacing:.14em!important;color:#c59a68!important}
+#capsuleForm #capsuleProductLookSelect{height:40px!important;background:#0b0908!important;border-color:#5a4431!important;color:#eadfd2!important}
+#capsuleForm .capsule-product-picker{padding-top:12px!important}
+
+@media(max-width:700px){
+ #capsuleForm .product-editor-top{grid-template-columns:1fr!important;gap:8px!important;padding-bottom:14px!important}
+ #capsuleForm .product-editor-top-actions{display:none!important}
+ #capsuleForm .capsule-look-product-select-row{grid-template-columns:1fr!important}
+ #capsules .capsule-toolbar-actions .input{width:100%!important;min-width:0!important}
+}
+
+
+/* STEP 33 — capsule editor micro-polish only */
+#capsuleForm #capsuleEditCoverPreview.capsule-cover-preview{
+  width:180px!important;
+  max-width:180px!important;
+  aspect-ratio:1/1!important;
+}
+#capsuleForm .capsule-look-actions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important}
+#capsuleForm .capsule-look-actions .capsule-edit-look-products{margin-top:0!important}
+#capsuleForm .capsule-look-actions .danger{margin:0!important;width:auto!important;align-self:auto!important}
+#capsuleForm .capsule-look-edit{grid-template-columns:100px minmax(0,1fr)!important}
+#capsuleForm .capsule-product-picker{grid-template-columns:220px minmax(0,1fr)!important}
+#capsuleForm .capsule-product-picker aside{display:block!important;min-width:0!important}
+#capsuleForm #capsuleProductFilters{display:grid!important}
+@media(max-width:950px){#capsuleForm .capsule-product-picker{grid-template-columns:1fr!important}}
+
+/* ==========================================================
+   STEP 34 — Capsules overview: round section numbers.
+   Scoped only to the three top-level Capsules accordion rows.
+   ========================================================== */
+#capsules > .capsule-builder-card > .capsule-builder-head > .about-builder-num{
+  width:36px!important;
+  height:36px!important;
+  min-width:36px!important;
+  max-width:36px!important;
+  border:1px solid #4b392b!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  line-height:1!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  color:#c79a65!important;
+  font-size:9px!important;
+}
+@media(max-width:700px){
+  #capsules > .capsule-builder-card > .capsule-builder-head > .about-builder-num{
+    width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;
+  }
+}
+
+/* ==========================================================
+   STEP 35 — Capsules overview: actually round 01 / 02 / 03.
+   Previous STEP 34 selector missed .capsule-admin-stack wrapper.
+   ========================================================== */
+#capsules .capsule-admin-stack > .capsule-builder-card > .capsule-builder-head > .about-builder-num{
+  width:36px!important;
+  height:36px!important;
+  min-width:36px!important;
+  max-width:36px!important;
+  border:1px solid #4b392b!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:1!important;
+  background:transparent!important;
+  color:#c79a65!important;
+  font-size:9px!important;
+}
+@media(max-width:700px){
+  #capsules .capsule-admin-stack > .capsule-builder-card > .capsule-builder-head > .about-builder-num{
+    width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;
+  }
+}
+
+/* STEP 39: preserve sidebar styling for real navigation links */
+a.nav-item{text-decoration:none;}
+
+/* STEP 40: select the requested page before the first visible render. */
+html[data-initial-admin-page] .page{display:none!important}
+html[data-initial-admin-page="dashboard"] #dashboard,
+html[data-initial-admin-page="homepage"] #homepage,
+html[data-initial-admin-page="products"] #products,
+html[data-initial-admin-page="productForm"] #productForm,
+html[data-initial-admin-page="categories"] #categories,
+html[data-initial-admin-page="orders"] #orders,
+html[data-initial-admin-page="customers"] #customers,
+html[data-initial-admin-page="capsules"] #capsules,
+html[data-initial-admin-page="capsuleStyleForm"] #capsuleStyleForm,
+html[data-initial-admin-page="capsuleForm"] #capsuleForm,
+html[data-initial-admin-page="news"] #news,
+html[data-initial-admin-page="newsForm"] #newsForm,
+html[data-initial-admin-page="aboutPage"] #aboutPage,
+html[data-initial-admin-page="deliveryPage"] #deliveryPage,
+html[data-initial-admin-page="contactsPage"] #contactsPage,
+html[data-initial-admin-page="media"] #media,
+html[data-initial-admin-page="settings"] #settings{display:block!important}
+
+/* STEP 42 — consistent inline outline sidebar icons only */
+.sidebar .nav-item .nav-icon svg{display:block;width:18px;height:18px;flex:none;stroke:currentColor;}
+.sidebar .nav-item .nav-icon{width:18px!important;min-width:18px!important;height:18px;display:inline-flex;align-items:center;justify-content:center;color:#a98a65!important;}
+.sidebar .nav-item:hover .nav-icon,.sidebar .nav-item.active .nav-icon{color:#d6b17e!important;}
+
+
+/* STEP76 — journal form refinements */
+#newsForm .content-editor-top{
+ position:sticky!important;top:56px!important;z-index:95!important;
+ margin:0 0 16px!important;padding:12px 18px!important;
+ min-height:72px!important;grid-template-columns:120px minmax(0,1fr) auto!important;
+ background:#100c0a!important;border:1px solid #35291f!important;
+ box-sizing:border-box!important;width:100%!important;
+}
+#newsForm .content-editor-top .product-editor-heading{min-width:0!important;padding-left:12px!important}
+#newsForm .content-editor-top .product-editor-heading h1{font-size:23px!important}
+#newsForm .content-editor-top .product-editor-top-actions{padding-right:4px!important}
+#newsForm .journal-editor-shell{margin-top:0!important}
+#newsForm .journal-editor-main>.panel-head{min-height:51px!important;padding:10px 16px!important}
+#newsForm .journal-editor-group-title{min-height:46px!important;padding:0 15px!important}
+#newsForm .journal-editor-group>.form-grid{padding-top:12px!important;margin-bottom:10px!important;gap:10px 14px!important}
+#newsForm .journal-editor-group .field{margin-bottom:4px!important}
+#newsForm .journal-editor-group .field label{margin-bottom:5px!important}
+#newsForm .journal-editor-group .input{min-height:38px!important}
+#newsForm .journal-category-manager{display:none!important}
+#newsForm #nCategory:invalid{color:#bba78f!important}
+#newsForm #nCategory option{color:#e7d9c6;background:#17120f}
+#newsForm .journal-photo-inline{margin:8px 18px 17px!important;padding:13px!important;border:1px solid #403023!important;background:#16110e!important}
+#newsForm .journal-photo-inline-title{font:14px Georgia,serif;color:#ead5b6;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid #3c2b20}
+#newsForm .journal-photo-inline-title span{font:10px Arial,sans-serif;color:#9e8971;margin-left:9px}
+#newsForm .journal-photo-inline>.form-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:13px!important;margin:0!important;padding:0!important}
+#newsForm .journal-photo-inline .photo-guide.compact{min-height:38px!important;padding:7px 9px!important;margin-bottom:5px!important}
+#newsForm .journal-photo-inline .photo-guide.compact span{font-size:9px!important}
+#newsForm .journal-photo-inline .preview-row img,#newsForm .journal-photo-inline .gallery-preview img{max-height:88px!important;width:auto!important;max-width:125px!important;object-fit:contain!important}
+#newsForm .journal-photo-inline .media-select-btn-v132{min-height:30px!important;font-size:9px!important}
+#newsForm .journal-photo-inline input[type=file]{min-height:35px!important}
+#newsForm .journal-photo-inline .field{min-width:0!important}
+#newsForm .journal-editor-group .vh-rte{margin-top:3px!important}
+@media(max-width:900px){#newsForm .content-editor-top{top:54px!important;grid-template-columns:1fr auto!important;gap:8px!important}#newsForm .content-editor-top .product-back-btn{grid-column:1/-1!important}#newsForm .content-editor-top .product-editor-heading{padding-left:0!important}}
+@media(max-width:650px){#newsForm .journal-photo-inline>.form-grid{grid-template-columns:1fr!important}}
+
+/* Hide stray duplicate media-picker controls appended outside image fields. */
+#newsForm > .media-select-btn-v132,#newsForm .journal-editor-main > .media-select-btn-v132,#newsForm .journal-editor-shell > .media-select-btn-v132{display:none!important}
+
+/* STEP 77 — fixed article heading (independent of the scrolling article). */
+#newsForm.active{padding-top:92px!important}
+#newsForm.active>.content-editor-top{
+ position:fixed!important;
+ top:68px!important;
+ left:calc(238px + 30px)!important;
+ right:30px!important;
+ width:auto!important;
+ max-width:none!important;
+ margin:0!important;
+ z-index:88!important;
+ box-shadow:0 8px 20px rgba(0,0,0,.38)!important;
+}
+@media(max-width:920px){
+ #newsForm.active>.content-editor-top{left:calc(238px + 18px)!important;right:18px!important}
+}
+@media(max-width:760px){
+ #newsForm.active>.content-editor-top{left:14px!important;right:14px!important;top:68px!important}
+ #newsForm.active{padding-top:110px!important}
+}
+
+.vh-seo-panel{margin:24px 0;border:1px solid #71543a;background:#16110e;color:#eadac6}.vh-seo-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #54402c;font:18px Georgia,serif}.vh-seo-toggle{border:1px solid #755839;background:#211912;color:#e6d1b7;padding:5px 12px;cursor:pointer}.vh-seo-body{padding:18px 20px}.vh-seo-body[hidden]{display:none}.vh-seo-note{font-size:12px;color:#b9a084}.vh-seo-fields{display:grid;grid-template-columns:1fr 1fr;gap:15px}.vh-seo-field{display:flex;flex-direction:column;gap:8px;font-size:12px;color:#d8c2a4}.vh-seo-field input,.vh-seo-field textarea{box-sizing:border-box;width:100%;background:#100d0b;border:1px solid #61472e;border-radius:3px;color:#f1e3d1;padding:11px;font-size:13px}.vh-seo-field textarea{min-height:80px}.vh-seo-field small{color:#9b856d}.vh-seo-preview{margin-top:20px;padding:16px;background:#211b16;border:1px solid #56402e}.vh-seo-preview small{color:#a98d6d}.vh-seo-url{color:#c6b9a6;font-size:12px;margin-top:12px}.vh-seo-title{color:#a9c5ff;font-size:17px;margin:6px 0}.vh-seo-description{color:#d9cbbb;font-size:12px}@media(max-width:800px){.vh-seo-fields{grid-template-columns:1fr}}

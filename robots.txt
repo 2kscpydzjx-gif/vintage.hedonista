@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /vintage.hedonista/
+Disallow: /vintage.hedonista/admin/
+Sitemap: https://2kscpydzjx-gif.github.io/vintage.hedonista/sitemap.xml

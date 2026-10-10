@@ -23,6 +23,14 @@ async function sendOrderEmailV211(orderId,type){
 }
 
 function money(v){return '₴'+Number(v||0).toLocaleString('uk-UA')}
+function esc(v){
+ return String(v??'')
+  .replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;')
+  .replace(/'/g,'&#039;');
+}
 function fmtDate(v){return v?new Date(v).toLocaleDateString('uk-UA'):'—'}
 function fmtDateTime(v){return v?new Date(v).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}
 function orderContact(o){
@@ -247,27 +255,34 @@ async function boot(){
  $('loading').classList.add('hidden');
  $('app').classList.remove('hidden');
  await loadProducts();
- await Promise.all([loadCategories(),loadOrders(),loadCustomers(),loadNews(),loadSettings(),loadHomepageSettings()]);
+ await loadCategories();
+ await Promise.all([loadOrders(),loadCustomers(),loadNews(),loadSettings(),loadHomepageSettings()]);
+ await loadCapsulesAdmin();
  await loadMediaLibraryV132();
  initMediaLibraryV132();
  initAccountHeaderAdmin();
 
  // Restore the same admin section after F5 / browser refresh.
- const savedPage=localStorage.getItem(VH_ADMIN_PAGE_KEY)||'dashboard';
+ const savedPage=new URLSearchParams(location.search).get('page')||sessionStorage.getItem(VH_ADMIN_PAGE_KEY)||'dashboard';
  if(savedPage==='productForm'){
    const editId=localStorage.getItem(VH_ADMIN_EDIT_PRODUCT_KEY);
    if(editId && products.some(p=>p.id===editId)) editProduct(editId);
-   else { resetProductForm(); goPage('productForm',{remember:false}) }
+   else { resetProductForm(); goPage('productForm',{remember:false}); await vhRestoreDraft('productForm') }
  }else if(savedPage==='newsForm'){
-   const editId=localStorage.getItem(VH_ADMIN_EDIT_NEWS_KEY);
+   const editId=sessionStorage.getItem('vh-news-form-mode')==='new'?null:localStorage.getItem(VH_ADMIN_EDIT_NEWS_KEY);
    if(editId && news.some(n=>n.id===editId)) editNews(editId);
    else { resetNewsForm?.(); goPage('newsForm',{remember:false}) }
+ }else if(savedPage==='capsuleStyleForm'){
+   openStyleEditor(); await vhRestoreDraft('capsuleStyleForm')
+ }else if(savedPage==='capsuleForm'){
+   openCapsuleEditor(); await vhRestoreDraft('capsuleForm')
  }else if($(savedPage)){
    goPage(savedPage,{remember:false})
  }else{
    goPage('dashboard',{remember:false})
  }
  VH_ADMIN_HISTORY_READY=true;
+ document.documentElement.removeAttribute('data-initial-admin-page');
 }
 const VH_ADMIN_PAGE_KEY='vh-admin-current-page-v135';
 const VH_ADMIN_EDIT_PRODUCT_KEY='vh-admin-edit-product-v135';
@@ -287,9 +302,10 @@ function goPage(id,{remember=true,history=true}={}){
  const page=$(id);
  if(page)page.classList.add('active');
  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
- const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',news:'Вінтажні хроніки',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
+ const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',capsules:'Капсули',capsuleStyleForm:'Стиль',capsuleForm:'Капсула',news:'Вінтажні хроніки',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
  $('pageTitle').textContent=names[id]||'Vintage Hedonista';
- if(remember)localStorage.setItem(VH_ADMIN_PAGE_KEY,id);
+ if(remember)sessionStorage.setItem(VH_ADMIN_PAGE_KEY,id);
+ if(history!==false){const url=new URL(location.href);url.searchParams.set('page',id);window.history.replaceState(window.history.state,'',url)}
 
  const state=adminHistoryState(id);
  if(!VH_ADMIN_HISTORY_READY || VH_ADMIN_HISTORY_RESTORING || history===false){
@@ -325,7 +341,7 @@ document.querySelectorAll('[data-order-quick]').forEach(btn=>btn.addEventListene
  goPage('orders');
  applyOrderFilters()
 }));
-document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.onclick=()=>goPage(n.dataset.page));$('menuBtn').onclick=()=>$('sidebar').classList.toggle('open');$('logout').onclick=async()=>{await sb.auth.signOut();location.href='index.html'};
+document.querySelectorAll('.nav-item[data-page]').forEach(n=>{n.setAttribute('href','admin.html?page='+encodeURIComponent(n.dataset.page));n.onclick=e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.button!==0)return;e.preventDefault();goPage(n.dataset.page)}});$('menuBtn').onclick=()=>$('sidebar').classList.toggle('open');$('logout').onclick=async()=>{await sb.auth.signOut();location.href='index.html'};
 
 /* ==========================================================
    V132 — MEDIA LIBRARY
@@ -513,6 +529,7 @@ window.chooseMediaV132=chooseMediaV132;
 
 function attachMediaButtonsV132(){
  document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input=>{
+   if(input.closest('#newsForm') && !input.closest('.journal-photo-inline'))return;
    if(input.dataset.mediaBound)return;
    input.dataset.mediaBound='1';
 
@@ -723,6 +740,7 @@ function resetCategoryForm(){
  editingCategoryId=null;
  $('categoryFormTitle').textContent='Додати категорію';
  $('catName').value='';
+ window.VHSEO?.fill('category');
  $('catSlug').value='';
  $('catActive').checked=true;
  $('catShowHome').checked=true;
@@ -739,6 +757,7 @@ function editCategory(id){
  editingCategoryId=id;
  $('categoryFormTitle').textContent='Редагувати категорію';
  $('catName').value=c.name||'';
+ window.VHSEO?.load(sb,'category',id);
  $('catSlug').value=c.slug||'';
  $('catActive').checked=!!c.is_active;
  $('catShowHome').checked=!!c.show_on_home;
@@ -879,9 +898,11 @@ $('saveCategoryBtn').onclick=async()=>{
 
    if(editingCategoryId){
      const {error}=await sb.from('categories').update(payload).eq('id',editingCategoryId);if(error)throw error;
+     await window.VHSEO?.save(sb,'category',editingCategoryId);
      toast('Категорію оновлено')
    }else{
-     const {error}=await sb.from('categories').insert(payload);if(error)throw error;
+     const {data,error}=await sb.from('categories').insert(payload).select('id').single();if(error)throw error;
+     await window.VHSEO?.save(sb,'category',data.id);
      toast('Категорію додано')
    }
 
@@ -946,9 +967,10 @@ function renderProductAdminGallery(){
  box.innerHTML=PRODUCT_GALLERY.length?PRODUCT_GALLERY.map((img,i)=>`
    <div class="admin-product-photo ${i===0?'is-main':''}" draggable="true" data-gallery-index="${i}">
      <div class="admin-product-photo-img">
-       <img src="${productGalleryUrl(img)}" alt="">
+       <img src="${productGalleryUrl(img)}" alt="${esc(img.alt_text||'')}">
        ${i===0?'<span class="admin-main-badge">ГОЛОВНЕ</span>':''}
      </div>
+     <label style="display:block;padding:6px 8px;font-size:12px">ALT фото<input class="input" style="width:100%;margin-top:4px" maxlength="250" data-gallery-alt="${i}" value="${esc(img.alt_text||'')}" placeholder="Опишіть, що зображено"></label>
      <div class="admin-product-photo-actions">
        ${i!==0?`<button type="button" class="btn tiny" onclick="makeProductImageMain(${i})">Головне</button>`:''}
        <button type="button" class="btn tiny" onclick="moveProductImage(${i},-1)" ${i===0?'disabled':''}>←</button>
@@ -957,6 +979,7 @@ function renderProductAdminGallery(){
      </div>
    </div>`).join(''):'<div class="empty product-gallery-empty">Фото ще не додані</div>';
 
+ box.querySelectorAll('[data-gallery-alt]').forEach(input=>input.addEventListener('input',()=>{const item=PRODUCT_GALLERY[Number(input.dataset.galleryAlt)];if(item)item.alt_text=input.value}));
  let dragIndex=null;
  box.querySelectorAll('.admin-product-photo').forEach(card=>{
    card.addEventListener('dragstart',()=>{dragIndex=Number(card.dataset.galleryIndex);card.classList.add('dragging')});
@@ -1194,6 +1217,7 @@ $('relatedProductSearchV197')?.addEventListener('input',renderRelatedProductsV19
 
 function resetProductForm(){
  editingProductId=null;
+ window.VHSEO?.fill('product');
  localStorage.removeItem(VH_ADMIN_EDIT_PRODUCT_KEY);
  PRODUCT_GALLERY=[];
  RELATED_PRODUCT_IDS_V197=[];
@@ -1251,6 +1275,7 @@ async function editProduct(id){
  if(!p){toast('Товар не знайдено');return}
 
  editingProductId=id;
+ window.VHSEO?.load(sb,'product',id);
  localStorage.setItem(VH_ADMIN_EDIT_PRODUCT_KEY,id);
  $('productFormTitle').textContent='Редагувати товар';
 
@@ -1293,7 +1318,8 @@ async function editProduct(id){
      id:x.id,
      image_url:x.image_url,
      sort_order:Number(x.sort_order||0),
-     existing:true
+     existing:true,
+     alt_text:x.alt_text||''
    }));
 
  if(!PRODUCT_GALLERY.length&&p.cover_image){
@@ -1322,7 +1348,8 @@ $('pImages')?.addEventListener('change',e=>{
      file,
      local_url:URL.createObjectURL(file),
      sort_order:PRODUCT_GALLERY.length,
-     existing:false
+     existing:false,
+     alt_text:''
    })
  });
  e.target.value='';
@@ -1357,9 +1384,9 @@ async function saveProductImages(productId){
    if(item.file){
      const prepared=await prepareImage(item.file,1200,1200,'#35291d',.93);
      const url=await uploadFile(prepared,`products/${productId}-${Date.now()}-${i}-${crypto.randomUUID()}.jpg`);
-     finalImages.push({image_url:url,sort_order:i})
+     finalImages.push({image_url:url,sort_order:i,alt_text:item.alt_text||''})
    }else if(item.image_url){
-     finalImages.push({image_url:item.image_url,sort_order:i})
+     finalImages.push({image_url:item.image_url,sort_order:i,alt_text:item.alt_text||''})
    }
  }
 
@@ -1370,7 +1397,8 @@ async function saveProductImages(productId){
    const rows=finalImages.map((x,i)=>({
      product_id:productId,
      image_url:x.image_url,
-     sort_order:i
+     sort_order:i,
+     alt_text:x.alt_text||''
    }));
    const {error:imagesError}=await sb.from('product_images').insert(rows);
    if(imagesError)throw imagesError
@@ -1447,10 +1475,12 @@ $('saveProductBtn').onclick=async()=>{
    if(coverError)throw coverError;
 
    await saveRelatedProductsV197(productId);
+   await window.VHSEO.save(sb,'product',productId);
 
    const wasEditing=Boolean(editingProductId);
    await loadProducts();
    await editProduct(productId);
+   vhClearDraft('productForm');
    toast(wasEditing?'Товар оновлено':'Товар додано');
  }catch(e){
    console.error(e);
@@ -1791,7 +1821,7 @@ function refreshJournalCategorySuggestions(selected){
  if(!select)return;
  const current=normalizeJournalCategory(selected||select.value);
  const values=allJournalCategories();
- select.innerHTML='<option value="">ВИБЕРІТЬ КАТЕГОРІЮ</option>'+values.map(v=>`<option value="${escapeJournalCategoryHtml(v)}">${escapeJournalCategoryHtml(v)}</option>`).join('');
+ select.innerHTML='<option value="">Оберіть категорію</option>'+values.map(v=>`<option value="${escapeJournalCategoryHtml(v)}">${escapeJournalCategoryHtml(v)}</option>`).join('');
  if(current && values.includes(current)) select.value=current;
  if(manager){
    manager.innerHTML=values.map(v=>`
@@ -1966,51 +1996,55 @@ function journalLegacyToBlocks(raw){
 }
 function journalBlockId(){return 'jb_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function normalizeJournalBlocks(blocks){return (blocks||[]).map(b=>({...b,id:b.id||journalBlockId()}))}
+// STEP74: one continuous editor; old VH_BLOCKS_V1 records are converted on open.
+function journalEscape(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function journalBlocksToHtml(blocks){return (blocks||[]).map(b=>{
+ if(b.type==='image')return b.url?`<figure><img src="${journalEscape(b.url)}" alt="${journalEscape(b.caption||'')}">${b.caption?`<figcaption>${journalEscape(b.caption)}</figcaption>`:''}</figure>`:'';
+ if(b.type==='heading')return `<h2>${journalEscape(b.text||'')}</h2>${b.after?`<p>${journalEscape(b.after).replace(/\n/g,'<br>')}</p>`:''}`;
+ return `<p>${journalEscape(b.text||'').replace(/\n/g,'<br>')}</p>`
+}).join('')}
+function journalSanitizeHtml(html){
+ const doc=new DOMParser().parseFromString('<div>'+String(html||'')+'</div>','text/html');const root=doc.body.firstElementChild;
+ const tags=new Set(['P','DIV','BR','B','STRONG','I','EM','H2','H3','UL','OL','LI','A','IMG','FIGURE','FIGCAPTION','BLOCKQUOTE']);
+ function visit(el){for(const n of [...el.childNodes]){
+  if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
+  if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG','FORM'].includes(n.tagName)){n.remove();continue}
+  visit(n);if(!tags.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
+  const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align');
+  for(const at of [...n.attributes])n.removeAttribute(at.name);
+  if(n.tagName==='FIGURE'){if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}
+  if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href)){n.setAttribute('href',href);n.setAttribute('rel','noopener noreferrer')}
+  if(n.tagName==='IMG'&&src&&(/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)||/^data:image\/(png|jpeg|webp);base64,/i.test(src))){n.setAttribute('src',src);n.setAttribute('alt',alt||'')}else if(n.tagName==='IMG')n.remove();
+ }}visit(root);return root.innerHTML;
+}
 function renderJournalBlocks(){
  const root=$('journalBlockEditor');if(!root)return;
- if(!JOURNAL_BLOCKS.length){root.innerHTML='<div class="journal-block-empty">Додай перший абзац, підзаголовок або фото.</div>';return}
- root.innerHTML=JOURNAL_BLOCKS.map((b,i)=>`<div class="journal-block" draggable="true" data-journal-index="${i}" data-type="${b.type}">
-   <div class="journal-block-handle" title="Перетягнути">⋮⋮</div>
-   <div class="journal-block-main">
-    <label>${b.type==='heading'?'Підзаголовок':b.type==='image'?'Фото':'Абзац'}</label>
-    ${b.type==='image'?`${b.url||b.preview?`<img class="journal-block-image-preview" src="${b.preview||b.url}" alt="">`:''}<input type="file" accept="image/*" data-journal-image="${i}"><input type="text" data-journal-caption="${i}" value="${String(b.caption||'').replace(/"/g,'&quot;')}" placeholder="Підпис до фото — необов’язково">`:`<textarea data-journal-text="${i}" placeholder="${b.type==='heading'?'Напиши підзаголовок':'Напиши абзац'}">${String(b.text||'').replace(/</g,'&lt;')}</textarea>${b.type==='heading'&&b.after?`<textarea data-journal-after="${i}" placeholder="Текст після підзаголовка">${String(b.after).replace(/</g,'&lt;')}</textarea>`:''}`}
-   </div>
-   <div class="journal-block-actions"><button type="button" data-journal-up="${i}" title="Вище">↑</button><button type="button" data-journal-down="${i}" title="Нижче">↓</button><button type="button" data-journal-remove="${i}" title="Видалити">×</button></div>
- </div>`).join('');
- bindJournalBlockEvents();
+ root.innerHTML='<textarea id="journalArticleHtml" rows="16" aria-label="Повний текст статті"></textarea>';
+ const el=$('journalArticleHtml');el.value=window.__journalDraftHtml||'';
+ window.VHRichEditor?.create(el,{images:true});
 }
-function syncJournalBlockInputs(){
- document.querySelectorAll('[data-journal-text]').forEach(el=>{const b=JOURNAL_BLOCKS[+el.dataset.journalText];if(b)b.text=el.value});
- document.querySelectorAll('[data-journal-after]').forEach(el=>{const b=JOURNAL_BLOCKS[+el.dataset.journalAfter];if(b)b.after=el.value});
- document.querySelectorAll('[data-journal-caption]').forEach(el=>{const b=JOURNAL_BLOCKS[+el.dataset.journalCaption];if(b)b.caption=el.value});
-}
-function bindJournalBlockEvents(){
- document.querySelectorAll('[data-journal-text],[data-journal-after],[data-journal-caption]').forEach(el=>el.addEventListener('input',syncJournalBlockInputs));
- document.querySelectorAll('[data-journal-image]').forEach(el=>el.onchange=()=>{const f=el.files?.[0];if(!f)return;const b=JOURNAL_BLOCKS[+el.dataset.journalImage];b.file=f;b.preview=URL.createObjectURL(f);renderJournalBlocks()});
- document.querySelectorAll('[data-journal-remove]').forEach(el=>el.onclick=()=>{syncJournalBlockInputs();JOURNAL_BLOCKS.splice(+el.dataset.journalRemove,1);renderJournalBlocks()});
- document.querySelectorAll('[data-journal-up]').forEach(el=>el.onclick=()=>{syncJournalBlockInputs();const i=+el.dataset.journalUp;if(i>0){[JOURNAL_BLOCKS[i-1],JOURNAL_BLOCKS[i]]=[JOURNAL_BLOCKS[i],JOURNAL_BLOCKS[i-1]];renderJournalBlocks()}});
- document.querySelectorAll('[data-journal-down]').forEach(el=>el.onclick=()=>{syncJournalBlockInputs();const i=+el.dataset.journalDown;if(i<JOURNAL_BLOCKS.length-1){[JOURNAL_BLOCKS[i+1],JOURNAL_BLOCKS[i]]=[JOURNAL_BLOCKS[i],JOURNAL_BLOCKS[i+1]];renderJournalBlocks()}});
- let from=null;document.querySelectorAll('.journal-block').forEach(el=>{el.ondragstart=()=>{syncJournalBlockInputs();from=+el.dataset.journalIndex;el.classList.add('is-dragging')};el.ondragend=()=>el.classList.remove('is-dragging');el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();const to=+el.dataset.journalIndex;if(from===null||from===to)return;const [m]=JOURNAL_BLOCKS.splice(from,1);JOURNAL_BLOCKS.splice(to,0,m);from=null;renderJournalBlocks()}});
-}
-document.querySelectorAll('[data-add-journal-block]').forEach(btn=>btn.onclick=()=>{syncJournalBlockInputs();JOURNAL_BLOCKS.push({id:journalBlockId(),type:btn.dataset.addJournalBlock,text:''});renderJournalBlocks()});
+function syncJournalBlockInputs(){const el=$('journalArticleHtml');if(el)window.__journalDraftHtml=el.value}
 async function serializeJournalBlocks(){
- syncJournalBlockInputs();const clean=[];
- for(const b of JOURNAL_BLOCKS){
-   if(b.type==='image'){
-     let url=b.url||'';
-     if(b.file){const f=await prepareImage(b.file,1600,1200,'#eadbc7',.92);url=await uploadFile(f,`news/article-${Date.now()}-${crypto.randomUUID()}.jpg`)}
-     if(url)clean.push({type:'image',url,caption:String(b.caption||'').trim()});
-   }else if(String(b.text||'').trim()) clean.push({type:b.type,text:String(b.text).trim(),...(b.after?{after:String(b.after).trim()}:{})});
+ syncJournalBlockInputs();let html=journalSanitizeHtml(window.__journalDraftHtml||'');
+ const doc=new DOMParser().parseFromString('<div>'+html+'</div>','text/html');
+ for(const img of doc.querySelectorAll('img[src^="data:image/"]')){
+  const data=img.getAttribute('src');const blob=await(await fetch(data)).blob();
+  const file=new File([blob],'article-inline.jpg',{type:blob.type||'image/jpeg'});
+  const prepared=await prepareImage(file,1600,1200,'#eadbc7',.92);
+  const url=await uploadFile(prepared,`news/article-${Date.now()}-${crypto.randomUUID()}.jpg`);
+  img.setAttribute('src',url);
  }
- return VH_JOURNAL_BLOCKS_PREFIX+JSON.stringify(clean);
+ return 'VH_HTML_V1:'+journalSanitizeHtml(doc.body.firstElementChild.innerHTML);
 }
-
 function resetNewsForm(){
  editingNewsId=null;
+ window.VHSEO?.fill('article');
+ localStorage.removeItem(VH_ADMIN_EDIT_NEWS_KEY);
+ sessionStorage.setItem('vh-news-form-mode','new');
 
  $('newsFormTitle').textContent='Нова стаття';
- $('nTitle').value='';$('nSlug').value='';$('nExcerpt').value='';$('nContent').value=''; JOURNAL_BLOCKS=[]; renderJournalBlocks();
- $('nCategory').value='СТИЛЬ';refreshJournalCategorySuggestions('СТИЛЬ');
+ $('nTitle').value='';$('nSlug').value='';$('nExcerpt').value='';$('nContent').value=''; JOURNAL_BLOCKS=[]; window.__journalDraftHtml=''; renderJournalBlocks();
+ $('nCategory').value='';refreshJournalCategorySuggestions('');
  $('nStatus').value='draft';
  $('nFeatured').checked=false;
  $('nNewSection').checked=false;
@@ -2039,12 +2073,14 @@ $('nGallery').onchange=()=>renderNewsGalleryPreview();
 function editNews(id){
  const n=news.find(x=>x.id===id);if(!n)return;
  editingNewsId=id;
+ window.VHSEO?.load(sb,'article',id);
+ sessionStorage.setItem('vh-news-form-mode','edit');
  localStorage.setItem(VH_ADMIN_EDIT_NEWS_KEY,id);
  $('newsFormTitle').textContent='Редагувати статтю';
  $('nTitle').value=n.title||'';
  $('nSlug').value=n.slug||'';
  $('nExcerpt').value=n.excerpt||'';
- $('nContent').value=n.content||''; JOURNAL_BLOCKS=normalizeJournalBlocks(journalLegacyToBlocks(n.content)); renderJournalBlocks();
+ $('nContent').value=n.content||''; JOURNAL_BLOCKS=normalizeJournalBlocks(journalLegacyToBlocks(n.content)); window.__journalDraftHtml=String(n.content||'').startsWith('VH_HTML_V1:')?String(n.content).slice('VH_HTML_V1:'.length):journalBlocksToHtml(JOURNAL_BLOCKS); renderJournalBlocks();
  refreshJournalCategorySuggestions(n.category||'СТИЛЬ');
  $('nStatus').value=n.status||'draft';
 
@@ -2100,7 +2136,7 @@ $('saveNewsBtn').onclick=async()=>{
      excerpt:$('nExcerpt').value.trim()||null,
      content:await serializeJournalBlocks(),
      status,
-     category:$('nCategory').value.trim().toUpperCase()||'СТИЛЬ',
+     category:$('nCategory').value.trim().toUpperCase(),
      is_featured:$('nFeatured').checked,
      is_new_section:$('nNewSection').checked,
      is_guide:$('nGuide').checked,
@@ -2114,6 +2150,7 @@ $('saveNewsBtn').onclick=async()=>{
    };
 
    if(!payload.title||!payload.slug)throw new Error('Вкажи заголовок і slug');
+   if(!payload.category)throw new Error('Оберіть категорію статті');
 
    // If this article is selected as MAIN, make it the only main article.
    // If it is NOT selected as main, do not touch the current main article.
@@ -2140,6 +2177,7 @@ $('saveNewsBtn').onclick=async()=>{
      savedRow=data;
    }
 
+   await window.VHSEO.save(sb,'article',savedRow.id);
    if(payload.is_guide && savedRow?.is_guide!==true){
      throw new Error('Позначка HEDONISTA GUIDE не збереглася в Supabase.');
    }
@@ -2151,6 +2189,7 @@ $('saveNewsBtn').onclick=async()=>{
    // If this was a new article, continue editing the newly created row.
    if(savedRow?.id){
      editingNewsId=savedRow.id;
+     sessionStorage.setItem('vh-news-form-mode','edit');
      try{localStorage.setItem(VH_ADMIN_EDIT_NEWS_KEY,String(savedRow.id))}catch(_){}
      if($('newsFormTitle'))$('newsFormTitle').textContent='Редагувати статтю';
    }
@@ -2272,6 +2311,12 @@ async function loadHomepageSettings(){
 
  put('hpNewTitle',h.homepage_new_title);
  put('hpNewLinkText',h.homepage_new_link_text);
+ put('hpCapsulesKicker',h.homepage_capsules_kicker||'VINTAGE HEDONISTA');
+ put('hpCapsulesTitle',h.homepage_capsules_title||'КАПСУЛИ.');
+ put('hpCapsulesText',h.homepage_capsules_text||'Образи, в яких вінтажні речі знаходять нове життя.');
+ put('hpCapsulesButtonText',h.homepage_capsules_button_text||'ПЕРЕГЛЯНУТИ КАПСУЛИ');
+ put('hpCapsulesButtonUrl',h.homepage_capsules_button_url||'capsule.html');
+ $('hpCapsulesPreview').innerHTML=h.homepage_capsules_image?`<img src="${h.homepage_capsules_image}" alt="">`:'';
  put('hpEditorialKicker',h.homepage_editorial_kicker);
  put('hpEditorialTitle',h.homepage_editorial_title);
  put('hpEditorialText',h.homepage_editorial_text);
@@ -2329,6 +2374,7 @@ for(let i=1;i<=4;i++){
  $('topImage'+i).onchange=e=>{const f=e.target.files[0];if(f)$('topPreview'+i).innerHTML=`<img src="${URL.createObjectURL(f)}" alt="">`};
 }
 
+$('hpCapsulesImage').onchange=e=>{const f=e.target.files[0];if(f)$('hpCapsulesPreview').innerHTML=`<img src="${URL.createObjectURL(f)}" alt="">`};
 $('hpEditorialImage').onchange=e=>{
  const f=e.target.files[0];
  if(f)$('hpEditorialPreview').innerHTML=`<img src="${URL.createObjectURL(f)}">`
@@ -2354,6 +2400,12 @@ $('saveHomepageTextBtn').onclick=async()=>{
  const btn=$('saveHomepageTextBtn');
  btn.disabled=true;btn.textContent='ЗБЕРЕЖЕННЯ...';
  try{
+   let capsulesImage=HOMEPAGE_SETTINGS.homepage_capsules_image||null;
+   const capsulesOriginal=$('hpCapsulesImage').files[0];
+   if(capsulesOriginal){
+     const f=await prepareImage(capsulesOriginal,1600,1200,'#493522',.93);
+     capsulesImage=await uploadFile(f,`homepage/capsules-${Date.now()}.jpg`);
+   }
    let editorialImage=HOMEPAGE_SETTINGS.homepage_editorial_image||null;
    const editorialOriginal=$('hpEditorialImage').files[0];
    if(editorialOriginal){
@@ -2404,6 +2456,12 @@ $('saveHomepageTextBtn').onclick=async()=>{
 
      homepage_new_title:$('hpNewTitle').value.trim()||null,
      homepage_new_link_text:$('hpNewLinkText').value.trim()||null,
+     homepage_capsules_kicker:$('hpCapsulesKicker').value.trim()||null,
+     homepage_capsules_title:$('hpCapsulesTitle').value.trim()||null,
+     homepage_capsules_text:$('hpCapsulesText').value.trim()||null,
+     homepage_capsules_button_text:$('hpCapsulesButtonText').value.trim()||null,
+     homepage_capsules_button_url:$('hpCapsulesButtonUrl').value.trim()||null,
+     homepage_capsules_image:capsulesImage,
      homepage_editorial_kicker:$('hpEditorialKicker').value.trim()||null,
      homepage_editorial_title:$('hpEditorialTitle').value.trim()||null,
      homepage_editorial_text:$('hpEditorialText').value.trim()||null,
@@ -2440,6 +2498,7 @@ hero_buttons_y:Number(HOMEPAGE_SETTINGS.hero_buttons_y??4)
    $('hpHeroTopImage').value='';
    $('hpHeroBottomImage').value='';
    $('hpHeroBackgroundImage').value='';
+   $('hpCapsulesImage').value='';
    $('hpEditorialImage').value='';
 
    toast('Головну сторінку збережено');
@@ -3680,3 +3739,211 @@ window.addEventListener('load',()=>{
     }
   }
 })();
+
+/* CAPSULES ADMIN V3 */
+let CAPSULE_PAGE_SETTINGS={},CAPSULE_STYLES=[],CAPSULES=[],CAPSULE_LOOKS=[],CAPSULE_PRODUCT_LINKS=[],CAPSULE_LOOK_PRODUCT_LINKS=[];
+let editingCapsuleStyle=null,editingCapsule=null,editingCapsuleLooks=[],activeCapsuleLookIndex=0;
+const capPut=(id,val='')=>{const el=$(id);if(el)el.value=val??''};
+function capSlug(v){return slugify(v)||`capsule-${Date.now()}`}
+async function uniqueCapsuleStyleSlug(title,excludeId=null){
+ const base=capSlug(title)||`style-${Date.now()}`;
+ let candidate=base,suffix=2;
+ while(true){
+  let q=sb.from('capsule_styles').select('id,slug').eq('slug',candidate).limit(1);
+  const r=await q;
+  if(r.error)throw r.error;
+  const hit=(r.data||[])[0];
+  if(!hit || (excludeId && String(hit.id)===String(excludeId)))return candidate;
+  candidate=`${base}-${suffix++}`;
+ }
+}
+function capImg(url,label='ФОТО'){return url?`<img src="${esc(url)}" alt="">`:`<span>${label}</span>`}
+async function loadCapsulesAdmin(){
+ const read=async(table,query)=>{
+   try{const r=await query;if(r.error)throw r.error;return r.data||[]}
+   catch(e){console.error('CAPSULE LOAD '+table,e);toast('Помилка завантаження '+table+': '+(e.message||e));return null}
+ };
+ const page=await read('capsule_page_settings',sb.from('capsule_page_settings').select('*').eq('id',1).maybeSingle());
+ const styles=await read('capsule_styles',sb.from('capsule_styles').select('*').order('created_at',{ascending:true}));
+ const caps=await read('capsules',sb.from('capsules').select('*').order('created_at',{ascending:true}));
+ const looks=await read('capsule_looks',sb.from('capsule_looks').select('*').order('sort_order',{ascending:true}));
+ const links=await read('capsule_products',sb.from('capsule_products').select('*').order('sort_order',{ascending:true}));
+ const lookLinks=await read('capsule_look_products',sb.from('capsule_look_products').select('*').order('sort_order',{ascending:true}));
+ if(page!==null)CAPSULE_PAGE_SETTINGS=page||{};
+ if(styles!==null)CAPSULE_STYLES=styles;
+ if(caps!==null)CAPSULES=caps;
+ if(looks!==null)CAPSULE_LOOKS=looks;
+ if(links!==null)CAPSULE_PRODUCT_LINKS=links;
+ if(lookLinks!==null)CAPSULE_LOOK_PRODUCT_LINKS=lookLinks;
+ const x=CAPSULE_PAGE_SETTINGS||{};
+ capPut('capHeroKicker',x.hero_kicker||'VINTAGE HEDONISTA');capPut('capHeroTitle',x.hero_title||'КАПСУЛИ');capPut('capHeroSubtitle',x.hero_subtitle||'Одна річ. Багато можливостей');capPut('capHeroDescription',x.hero_description||'');capPut('capHeroButton',x.hero_button_text||'ДИВИТИСЬ ПІДБІРКИ');capPut('capMoodTitle',x.mood_title||'ОБЕРИ СВІЙ НАСТРІЙ.');capPut('capMoodText',x.mood_text||'');
+ if($('capHeroPreview'))$('capHeroPreview').innerHTML=x.hero_image?`<img src="${esc(x.hero_image)}" alt="">`:'<span>Фото ще не додано</span>';
+ renderCapsuleStylesAdmin();renderCapsulesAdmin();fillCapsuleStyleSelects();
+}
+function fillCapsuleStyleSelects(){
+ const opts='<option value="">Оберіть стиль</option>'+CAPSULE_STYLES.map(x=>`<option value="${x.id}">${esc(x.title||'Без назви')}</option>`).join('');
+ if($('capsuleEditStyle'))$('capsuleEditStyle').innerHTML=opts;
+ if($('capsuleStyleFilter'))$('capsuleStyleFilter').innerHTML='<option value="">УСІ СТИЛІ</option>'+CAPSULE_STYLES.map(x=>`<option value="${x.id}">${esc(x.title||'Без назви')}</option>`).join('')
+}
+function renderCapsuleStylesAdmin(){const box=$('capsuleStylesList');if(!box)return;box.innerHTML=CAPSULE_STYLES.length?'':'<div class="capsule-admin-empty">Стилів ще немає. Натисніть «+ ДОДАТИ СТИЛЬ».</div>';CAPSULE_STYLES.forEach(x=>{const el=document.createElement('article');el.className='capsule-mini-card';el.innerHTML=`<div class="capsule-mini-card-media">${capImg(x.image_url,'ФОТО СТИЛЮ')}</div><div class="capsule-mini-card-body"><b>${esc(x.title||'ЗАГОЛОВОК')}</b><small>${esc(x.short_description||'Тут короткий опис')}</small></div><div class="capsule-mini-card-foot capsule-card-actions"><button class="btn edit">РЕДАГУВАТИ</button><button class="btn danger delete">ВИДАЛИТИ</button></div>`;el.querySelector('.edit').onclick=()=>openStyleEditor(x);el.querySelector('.delete').onclick=()=>deleteCapsuleStyle(x);box.appendChild(el)})}
+async function deleteCapsuleStyle(x){
+ if(!x?.id)return;
+ if(CAPSULES.some(c=>String(c.style_id)===String(x.id))){toast('Спочатку видаліть капсули цього стилю');return}
+ if(!confirm(`Видалити стиль «${x.title||'Без назви'}»?`))return;
+ const r=await sb.from('capsule_styles').delete().eq('id',x.id);if(r.error){toast('Не вдалося видалити: '+r.error.message);return}await loadCapsulesAdmin();toast('Стиль видалено')
+}
+async function deleteCapsule(x){
+ if(!x?.id||!confirm(`Видалити капсулу «${x.title||'Без назви'}»?`))return;
+ try{const looks=CAPSULE_LOOKS.filter(l=>String(l.capsule_id)===String(x.id)).map(l=>l.id);if(looks.length){let r=await sb.from('capsule_look_products').delete().in('look_id',looks);if(r.error)throw r.error}let r=await sb.from('capsule_products').delete().eq('capsule_id',x.id);if(r.error)throw r.error;r=await sb.from('capsule_looks').delete().eq('capsule_id',x.id);if(r.error)throw r.error;r=await sb.from('capsules').delete().eq('id',x.id);if(r.error)throw r.error;await loadCapsulesAdmin();toast('Капсулу видалено')}catch(e){toast('Не вдалося видалити: '+(e?.message||e))}
+}
+function resetCapsuleEditorSections(pageId){
+ const page=$(pageId); if(!page)return;
+ page.querySelectorAll('.admin-builder-section').forEach((section,i)=>{
+   if(section.dataset.constructorReady!=='1')constructorEnhanceSection(section,i);
+   constructorSetCollapsed(section,true);
+ });
+}
+function openStyleEditor(x=null){
+ editingCapsuleStyle=x;goPage('capsuleStyleForm');resetCapsuleEditorSections('capsuleStyleForm');
+ capPut('styleEditTitle',x?.title||'');capPut('styleEditDescription',x?.short_description||'');capPut('stylePageTitle',x?.page_title||'');capPut('stylePageDescription',x?.page_description||'');
+ if($('styleEditActive'))$('styleEditActive').checked=x?.is_active!==false;
+ if($('styleEditImage'))$('styleEditImage').value='';if($('styleHeroImage'))$('styleHeroImage').value='';
+ if($('styleEditImagePreview'))$('styleEditImagePreview').innerHTML=capImg(x?.image_url,'ФОТО КАРТКИ');
+ if($('styleHeroPreview'))$('styleHeroPreview').innerHTML=capImg(x?.hero_image,'ФОТО HERO');
+ if($('capsuleStyleModalTitle'))$('capsuleStyleModalTitle').textContent=x?'Редагувати стиль':'Новий стиль';
+}
+function closeStyleEditor(){goPage('capsules')}
+async function saveStyleEditor(){
+ const btn=$('saveStyleEditorBtn');if(!btn)return;btn.disabled=true;
+ try{
+  let image_url=editingCapsuleStyle?.image_url||null,hero_image=editingCapsuleStyle?.hero_image||null;
+  const f=$('styleEditImage')?.files?.[0],h=$('styleHeroImage')?.files?.[0];
+  if(f){const pf=await prepareImage(f,1200,900,'#493522',.90);image_url=await uploadFile(pf,`capsules/styles/card-${Date.now()}.jpg`);}
+  if(h){const ph=await prepareImage(h,1920,900,'#493522',.90);hero_image=await uploadFile(ph,`capsules/styles/hero-${Date.now()}.jpg`);}
+  const title=$('styleEditTitle').value.trim();if(!title)throw new Error('Вкажіть назву стилю');
+  const slug=editingCapsuleStyle?.slug||await uniqueCapsuleStyleSlug(title,editingCapsuleStyle?.id||null);
+  const payload={title,short_description:$('styleEditDescription').value.trim()||null,image_url,hero_image,page_title:$('stylePageTitle').value.trim()||null,page_description:$('stylePageDescription').value.trim()||null,is_active:$('styleEditActive').checked,slug,updated_at:new Date().toISOString()};
+  const r=editingCapsuleStyle
+    ?await sb.from('capsule_styles').update(payload).eq('id',editingCapsuleStyle.id).select('*').single()
+    :await sb.from('capsule_styles').insert(payload).select('*').single();
+  if(r.error)throw r.error;
+  const saved=r.data;
+  const idx=CAPSULE_STYLES.findIndex(x=>String(x.id)===String(saved.id));if(idx>=0)CAPSULE_STYLES[idx]=saved;else CAPSULE_STYLES.push(saved);
+  renderCapsuleStylesAdmin();fillCapsuleStyleSelects();editingCapsuleStyle=saved;
+  toast('Стиль збережено');vhClearDraft('capsuleStyleForm');
+  loadCapsulesAdmin().catch(console.error);
+ }catch(e){console.error('SAVE STYLE ERROR',e);toast('Не вдалося зберегти: '+(e.message||e))}finally{btn.disabled=false}
+}
+function renderCapsulesAdmin(){const box=$('capsulesList');if(!box)return;const filter=$('capsuleStyleFilter')?.value||'';const list=CAPSULES.filter(x=>!filter||String(x.style_id)===String(filter));box.innerHTML=list.length?'':'<div class="capsule-admin-empty">Капсул ще немає.</div>';list.forEach(x=>{const style=CAPSULE_STYLES.find(s=>String(s.id)===String(x.style_id)),look=CAPSULE_LOOKS.find(l=>l.capsule_id===x.id);const el=document.createElement('article');el.className='capsule-mini-card';el.innerHTML=`<div class="capsule-mini-card-media">${capImg(x.cover_image||look?.image_url,'ФОТО КАПСУЛИ')}</div><div class="capsule-mini-card-body"><b>${esc(x.title||'НАЗВА КАПСУЛИ')}</b><small>${esc(style?.title||'Стиль не вибрано')} · ${money(x.price||0)}</small></div><div class="capsule-mini-card-foot capsule-card-actions"><button class="btn edit">РЕДАГУВАТИ</button><button class="btn danger delete">ВИДАЛИТИ</button></div>`;el.querySelector('.edit').onclick=()=>openCapsuleEditor(x);el.querySelector('.delete').onclick=()=>deleteCapsule(x);box.appendChild(el)})}
+function openCapsuleEditor(x=null){
+ editingCapsule=x;
+ const savedLooks=x?CAPSULE_LOOKS.filter(l=>String(l.capsule_id)===String(x.id)).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)):[];
+ let main=savedLooks.find(l=>l.is_main===true);
+ const secondary=savedLooks.filter(l=>l!==main);
+ if(!main)main={id:null,capsule_id:x?.id||null,title:'ГОЛОВНИЙ ОБРАЗ',image_url:x?.cover_image||null,is_main:true,sort_order:0};
+ editingCapsuleLooks=[main,...secondary].map(v=>({...v,product_ids:[]}));
+ editingCapsuleLooks.forEach(look=>{
+   if(look.id)look.product_ids=CAPSULE_LOOK_PRODUCT_LINKS.filter(a=>String(a.look_id)===String(look.id)).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)).map(a=>a.product_id);
+ });
+ // Backward compatibility: old capsule-wide products become products of the main look.
+ if(x && !editingCapsuleLooks[0].product_ids.length){editingCapsuleLooks[0].product_ids=CAPSULE_PRODUCT_LINKS.filter(l=>String(l.capsule_id)===String(x.id)).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)).map(l=>l.product_id)}
+ activeCapsuleLookIndex=0;capsuleProductCategory='';capsuleProductSubcategory='';
+ goPage('capsuleForm');resetCapsuleEditorSections('capsuleForm');
+ capPut('capsuleEditStyle',x?.style_id||'');capPut('capsuleEditTitle',x?.title||'');capPut('capsuleEditDescription',x?.description||'');capPut('capsuleEditPrice',x?.price||'');
+ const coverInput=$('capsuleEditCoverImage');if(coverInput)coverInput.value='';const coverPreview=$('capsuleEditCoverPreview');if(coverPreview)coverPreview.innerHTML=x?.cover_image?`<img src="${esc(x.cover_image)}" alt="">`:'<span>ГОЛОВНЕ ФОТО КАПСУЛИ<br><small>КВАДРАТНЕ 1:1</small></span>';
+ if($('capsuleEditorTitle'))$('capsuleEditorTitle').textContent=x?'Редагувати капсулу':'Нова капсула';
+ renderCapsuleLooksEditor();renderCapsuleProductLookSelect();renderCapsuleProductFilters();renderCapsuleProducts();
+}
+function closeCapsuleEditor(){goPage('capsules')}
+function renderCapsuleLooksEditor(){
+ const box=$('capsuleLooksEditor');if(!box)return;box.innerHTML='';
+ editingCapsuleLooks.forEach((x,i)=>{
+  const main=i===0||x.is_main===true;const el=document.createElement('div');el.className=`capsule-look-edit${i===activeCapsuleLookIndex?' active':''}`;
+  el.innerHTML=`<div class="capsule-look-thumb">${capImg(main?(x.image_url||editingCapsule?.cover_image):x.image_url,main?'ГОЛОВНЕ ФОТО':'ФОТО ОБРАЗУ')}</div><div class="look-fields"><input class="input look-title" value="${esc(x.title||'')}" placeholder="Назва образу">${main?'<small>ОБРАЗ 01 · фото береться автоматично з головного фото капсули · 1200 × 1200 px (1:1)</small>':'<small>ФОТО ОБРАЗУ · рекомендовано 1200 × 1500 px (4:5)</small><input class="input look-image" type="file" accept="image/*">'}<div class="capsule-look-actions"><button class="btn capsule-edit-look-products" type="button">${i===activeCapsuleLookIndex?'✓ РЕДАГУЄМО ТОВАРИ ЦЬОГО ОБРАЗУ':'ВИБРАТИ ТОВАРИ ОБРАЗУ'}</button>${main?'':`<button class="btn danger" type="button">ВИДАЛИТИ</button>`}</div></div>`;
+  el.querySelector('.look-title').oninput=e=>x.title=e.target.value;
+  const fi=el.querySelector('.look-image');if(fi)fi.onchange=e=>{x.file=e.target.files?.[0]||null;if(x.file){const u=URL.createObjectURL(x.file);const thumb=el.querySelector('.capsule-look-thumb');thumb.innerHTML=`<img src="${u}" alt="">`;thumb.querySelector('img')?.addEventListener('load',()=>setTimeout(()=>URL.revokeObjectURL(u),1000),{once:true})}};
+  el.querySelector('.capsule-edit-look-products').onclick=()=>{activeCapsuleLookIndex=i;renderCapsuleLooksEditor();renderCapsuleProductLookSelect();renderCapsuleProducts()};
+  el.querySelector('.danger')?.addEventListener('click',()=>{editingCapsuleLooks.splice(i,1);activeCapsuleLookIndex=Math.min(activeCapsuleLookIndex,editingCapsuleLooks.length-1);renderCapsuleLooksEditor();renderCapsuleProductLookSelect();renderCapsuleProducts()});box.appendChild(el)
+ })
+}
+function addCapsuleLook(){editingCapsuleLooks.push({id:null,title:'',image_url:null,is_main:false,sort_order:editingCapsuleLooks.length*10,product_ids:[]});activeCapsuleLookIndex=editingCapsuleLooks.length-1;renderCapsuleLooksEditor();renderCapsuleProductLookSelect();renderCapsuleProducts()}
+let capsuleProductCategory='';let capsuleProductSubcategory='';
+function renderCapsuleProductFilters(){
+ const box=$('capsuleProductFilters');if(!box)return;const cats=[...categories].sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0)||String(a.name||'').localeCompare(String(b.name||''),'uk-UA'));
+ box.innerHTML=`<div class="capsule-filter-title">ФІЛЬТРИ</div><button type="button" class="${!capsuleProductCategory?'active':''}" data-cat="">УСІ ТОВАРИ</button>`+cats.map(c=>{const subs=subcategoriesForCategory(c.id);return `<button type="button" class="${String(capsuleProductCategory)===String(c.id)&&!capsuleProductSubcategory?'active':''}" data-cat="${c.id}">${esc(c.name)}</button>`+(String(capsuleProductCategory)===String(c.id)?subs.map(sub=>`<button type="button" class="sub ${String(capsuleProductSubcategory)===String(sub.id)?'active':''}" data-cat="${c.id}" data-sub="${sub.id}">— ${esc(sub.name)}</button>`).join(''):'')}).join('');
+ box.querySelectorAll('button').forEach(b=>b.onclick=()=>{const nextCat=b.dataset.cat||'',nextSub=b.dataset.sub||'';if(nextSub){capsuleProductCategory=nextCat;capsuleProductSubcategory=nextSub}else if(nextCat&&String(capsuleProductCategory)===String(nextCat)){capsuleProductCategory=nextCat;capsuleProductSubcategory=''}else{capsuleProductCategory=nextCat;capsuleProductSubcategory=''}renderCapsuleProductFilters();renderCapsuleProducts()})
+}
+function renderCapsuleProductLookSelect(){
+ const select=$('capsuleProductLookSelect');if(!select)return;
+ select.innerHTML=editingCapsuleLooks.map((look,i)=>`<option value="${i}">ОБРАЗ ${String(i+1).padStart(2,'0')}${look?.title?' · '+esc(look.title):''}</option>`).join('');
+ select.value=String(Math.max(0,Math.min(activeCapsuleLookIndex,editingCapsuleLooks.length-1)));
+}
+function capsuleProductHaystack(p){const cat=categories.find(c=>String(c.id)===String(p.category_id));const sub=subcategories.find(x=>String(x.id)===String(p.subcategory_id));return [p.name,p.brand,p.slug,p.size,p.color,p.material,p.season,cat?.name,sub?.name].filter(Boolean).join(' ').toLocaleLowerCase('uk-UA')}
+function renderCapsuleProducts(){
+ renderCapsuleProductFilters();
+ const r=$('capsuleProductResults'),sel=$('capsuleSelectedProducts');if(!r||!sel)return;const look=editingCapsuleLooks[activeCapsuleLookIndex];const ids=look?.product_ids||(look?look.product_ids=[]:[]);
+ const title=document.querySelector('#capsuleForm .admin-builder-section:nth-child(3) .builder-section-head h2');if(title)title.textContent='ТОВАРИ В ОБРАЗІ';
+ const hint=document.querySelector('#capsuleForm .admin-builder-section:nth-child(3) .builder-section-head p');if(hint)hint.textContent=`${look?.title||'Без назви'} · вибрані товари показуватимуться тільки для цього образу.`;
+ const q=($('capsuleProductSearch')?.value||'').trim().toLocaleLowerCase('uk-UA');let list=products.filter(p=>(!capsuleProductCategory||String(p.category_id)===String(capsuleProductCategory))&&(!capsuleProductSubcategory||String(p.subcategory_id)===String(capsuleProductSubcategory))&&(!q||capsuleProductHaystack(p).includes(q)));
+ r.innerHTML=list.length?list.slice(0,100).map(p=>`<div class="capsule-product-result"><div class="capsule-product-result-image">${p.cover_image?`<img src="${esc(p.cover_image)}" alt="">`:'<span>ФОТО</span>'}</div><div><b>${esc(p.name||'Без назви')}</b><small>${esc(p.brand||'')}${p.brand?' · ':''}${money(p.price)}${p.size?' · '+esc(p.size):''}</small></div><button type="button" data-id="${p.id}" aria-label="Додати товар">${ids.some(id=>String(id)===String(p.id))?'✓':'+'}</button></div>`).join(''):'<div class="capsule-admin-empty">За цим пошуком товарів не знайдено.</div>';
+ r.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{const id=b.dataset.id,i=ids.findIndex(x=>String(x)===String(id));if(i>=0)ids.splice(i,1);else ids.push(id);renderCapsuleProducts()});
+ sel.innerHTML=ids.length?ids.map(id=>{const p=products.find(x=>String(x.id)===String(id));return p?`<span class="capsule-selected-chip">${esc(p.name)} <button type="button" data-id="${p.id}">×</button></span>`:''}).join(''):'<span class="capsule-selected-empty">Ще нічого не вибрано для цього образу</span>';
+ sel.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{look.product_ids=ids.filter(id=>String(id)!==String(b.dataset.id));renderCapsuleProducts()});const total=ids.reduce((n,id)=>n+Number(products.find(p=>String(p.id)===String(id))?.price||0),0);if($('capsuleProductsTotal'))$('capsuleProductsTotal').textContent=money(total)
+}
+async function saveCapsuleEditor(){
+ const btn=$('saveCapsuleEditorBtn');if(!btn)return;btn.disabled=true;
+ try{
+  const style_id=$('capsuleEditStyle').value||null,title=$('capsuleEditTitle').value.trim();if(!style_id)throw new Error('Оберіть стиль капсули');if(!title)throw new Error('Вкажіть назву капсули');
+  let cover_image=editingCapsule?.cover_image||null;const coverFile=$('capsuleEditCoverImage')?.files?.[0];if(coverFile){const pc=await prepareImage(coverFile,1200,1200,'#493522',.90);cover_image=await uploadFile(pc,`capsules/covers/${editingCapsule?.id||'new'}-${Date.now()}.jpg`);}if(!cover_image)throw new Error('Додайте головне фото капсули');
+  const payload={style_id,title,description:$('capsuleEditDescription').value.trim()||null,cover_image,price:Number($('capsuleEditPrice').value)||0,is_active:true,updated_at:new Date().toISOString()};let id=editingCapsule?.id;
+  if(id){const {error}=await sb.from('capsules').update(payload).eq('id',id);if(error)throw error}else{const {data,error}=await sb.from('capsules').insert(payload).select('id').single();if(error)throw error;id=data?.id;if(!id)throw new Error('Supabase не повернув ID капсули')}
+  let del=await sb.from('capsule_look_products').delete().eq('capsule_id',id);if(del.error)throw del.error;del=await sb.from('capsule_looks').delete().eq('capsule_id',id);if(del.error)throw del.error;
+  for(let i=0;i<editingCapsuleLooks.length;i++){
+   const x=editingCapsuleLooks[i],is_main=i===0;let image_url=is_main?cover_image:(x.image_url||null);if(!is_main&&x.file){const pl=await prepareImage(x.file,1200,1500,'#493522',.90);image_url=await uploadFile(pl,`capsules/looks/${id}-${Date.now()}-${i}.jpg`);}
+   const ins=await sb.from('capsule_looks').insert({capsule_id:id,title:(x.title||'').trim()||(is_main?'ГОЛОВНИЙ ОБРАЗ':null),image_url,is_main,sort_order:i*10}).select('id').single();if(ins.error)throw ins.error;const lookId=ins.data.id;
+   if((x.product_ids||[]).length){const lr=await sb.from('capsule_look_products').insert(x.product_ids.map((product_id,j)=>({capsule_id:id,look_id:lookId,product_id,sort_order:j*10})));if(lr.error)throw lr.error}
+  }
+  // Keep old capsule_products synchronized with the main look for compatibility with older code/data exports.
+  del=await sb.from('capsule_products').delete().eq('capsule_id',id);if(del.error)throw del.error;const mainIds=editingCapsuleLooks[0]?.product_ids||[];if(mainIds.length){const cr=await sb.from('capsule_products').insert(mainIds.map((product_id,i)=>({capsule_id:id,product_id,sort_order:i*10})));if(cr.error)throw cr.error}
+  await loadCapsulesAdmin();editingCapsule=CAPSULES.find(c=>String(c.id)===String(id))||{...payload,id};toast('Капсулу збережено');vhClearDraft('capsuleForm')
+ }catch(e){console.error('SAVE CAPSULE ERROR',e);toast('Не вдалося зберегти: '+(e.message||e))}finally{btn.disabled=false}
+}
+async function saveCapsulePage(){const btn=$('saveCapsulePageBtn');btn.disabled=true;try{let hero_image=CAPSULE_PAGE_SETTINGS.hero_image||null;const file=$('capHeroImage')?.files?.[0];if(file){const ph=await prepareImage(file,1920,900,'#493522',.90);hero_image=await uploadFile(ph,`capsules/page/hero-${Date.now()}.jpg`);}const payload={id:1,hero_kicker:$('capHeroKicker').value.trim(),hero_title:$('capHeroTitle').value.trim(),hero_subtitle:$('capHeroSubtitle').value.trim(),hero_description:$('capHeroDescription').value.trim(),hero_button_text:$('capHeroButton').value.trim(),hero_image,mood_title:$('capMoodTitle').value.trim(),mood_text:$('capMoodText').value.trim(),updated_at:new Date().toISOString()};const {error}=await sb.from('capsule_page_settings').upsert(payload);if(error)throw error;toast('HERO збережено');await loadCapsulesAdmin()}catch(e){toast(e.message||'Помилка')}finally{btn.disabled=false}}
+function capsuleLocalPreview(inputId,previewId,label,hero=false){
+ const input=$(inputId),box=$(previewId);if(!input||!box)return;
+ input.addEventListener('change',()=>{const file=input.files?.[0];if(!file){box.innerHTML=`<span>${label}</span>`;return}const url=URL.createObjectURL(file);box.innerHTML=`<img src="${url}" alt="">`;box.querySelector('img')?.addEventListener('load',()=>setTimeout(()=>URL.revokeObjectURL(url),1000),{once:true})});
+}
+function initCapsuleImagePreviews(){
+ capsuleLocalPreview('capHeroImage','capHeroPreview','ФОТО HERO',true);
+ capsuleLocalPreview('styleEditImage','styleEditImagePreview','ФОТО КАРТКИ');
+ capsuleLocalPreview('styleHeroImage','styleHeroPreview','ФОТО HERO',true);
+ capsuleLocalPreview('capsuleEditCoverImage','capsuleEditCoverPreview','ГОЛОВНЕ ФОТО КАПСУЛИ',true);
+ const ci=$('capsuleEditCoverImage');if(ci)ci.addEventListener('change',()=>{const f=ci.files?.[0];if(f&&editingCapsuleLooks[0]){const u=URL.createObjectURL(f);editingCapsuleLooks[0].image_url=u;renderCapsuleLooksEditor();setTimeout(()=>URL.revokeObjectURL(u),5000)}});
+}
+document.addEventListener('DOMContentLoaded',()=>{initCapsuleImagePreviews();$('saveCapsulePageBtn')?.addEventListener('click',saveCapsulePage);$('addCapsuleStyleBtn')?.addEventListener('click',()=>openStyleEditor());$('saveStyleEditorBtn')?.addEventListener('click',saveStyleEditor);$('backToCapsuleStyles')?.addEventListener('click',closeStyleEditor);$('addCapsuleBtn')?.addEventListener('click',()=>openCapsuleEditor());$('saveCapsuleEditorBtn')?.addEventListener('click',saveCapsuleEditor);$('backToCapsules')?.addEventListener('click',closeCapsuleEditor);$('addCapsuleLookBtn')?.addEventListener('click',addCapsuleLook);$('capsuleProductSearch')?.addEventListener('input',renderCapsuleProducts);$('capsuleProductLookSelect')?.addEventListener('change',e=>{activeCapsuleLookIndex=Math.max(0,Number(e.target.value)||0);renderCapsuleLooksEditor();renderCapsuleProducts()});$('capsuleStyleFilter')?.addEventListener('change',renderCapsulesAdmin)});
+(function initCapsulesAdminAccordion(){const page=document.getElementById('capsules');if(!page)return;page.querySelectorAll('.capsule-builder-card').forEach(card=>{const head=card.querySelector('.capsule-builder-head');if(!head)return;const toggle=()=>{const c=card.classList.toggle('is-collapsed');head.setAttribute('aria-expanded',c?'false':'true')};head.addEventListener('click',toggle);head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}})})})();
+
+
+// V273: reliable direct actions for Capsules admin
+window.openStyleEditor=openStyleEditor;window.openCapsuleEditor=openCapsuleEditor;window.closeStyleEditor=closeStyleEditor;window.closeCapsuleEditor=closeCapsuleEditor;window.saveStyleEditor=saveStyleEditor;window.saveCapsuleEditor=saveCapsuleEditor;
+
+
+// STEP 39: independent tab navigation and local editor recovery.
+const VH_DRAFT_DB='vh-admin-editor-drafts-v1';
+function vhDraftDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(VH_DRAFT_DB,1);req.onupgradeneeded=()=>req.result.createObjectStore('drafts');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function vhDraftWrite(key,value){const db=await vhDraftDB();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(value,key);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
+async function vhDraftRead(key){const db=await vhDraftDB();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly');const req=tx.objectStore('drafts').get(key);req.onsuccess=()=>{db.close();resolve(req.result)};req.onerror=()=>{db.close();reject(req.error)}})}
+async function vhClearDraft(page){try{const db=await vhDraftDB();const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').delete(page);tx.oncomplete=()=>db.close()}catch(e){console.warn(e)}}
+let vhDraftTimer;
+async function vhSaveDraft(page){const root=document.getElementById(page);if(!root)return;const fields={};for(const el of root.querySelectorAll('input,select,textarea')){if(!el.id||el.type==='file'||el.type==='button')continue;fields[el.id]=el.type==='checkbox'?el.checked:el.value}
+ const files={};for(const el of root.querySelectorAll('input[type=file]'))if(el.id&&el.files?.length)files[el.id]=Array.from(el.files);
+ const extra=page==='capsuleForm'?{looks:editingCapsuleLooks.map(l=>({...l})),active:activeCapsuleLookIndex}:null;
+ await vhDraftWrite(page,{fields,files,extra,at:Date.now()})}
+async function vhRestoreDraft(page){try{const d=await vhDraftRead(page);if(!d)return;const root=document.getElementById(page);if(!root)return;
+ for(const [id,value] of Object.entries(d.fields||{})){const el=document.getElementById(id);if(!el||!root.contains(el))continue;if(el.type==='checkbox')el.checked=value;else el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}))}
+ for(const [id,files] of Object.entries(d.files||{})){const el=document.getElementById(id);if(!el||!root.contains(el)||!files.length)continue;try{const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));el.files=dt.files;el.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){console.warn('File restore',e)}}
+ if(page==='capsuleForm'&&d.extra?.looks){editingCapsuleLooks=d.extra.looks;activeCapsuleLookIndex=d.extra.active||0;renderCapsuleLooksEditor();renderCapsuleProductLookSelect();renderCapsuleProducts()}
+ }catch(e){console.warn('Draft recovery:',e)}}
+document.addEventListener('input',e=>{const page=e.target.closest?.('#productForm,#capsuleStyleForm,#capsuleForm');if(!page)return;clearTimeout(vhDraftTimer);vhDraftTimer=setTimeout(()=>vhSaveDraft(page.id).catch(console.warn),450)},true);
+document.addEventListener('change',e=>{const page=e.target.closest?.('#productForm,#capsuleStyleForm,#capsuleForm');if(!page)return;clearTimeout(vhDraftTimer);vhDraftTimer=setTimeout(()=>vhSaveDraft(page.id).catch(console.warn),200)},true);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){const page=document.querySelector('#productForm.active,#capsuleStyleForm.active,#capsuleForm.active');if(page)vhSaveDraft(page.id).catch(console.warn)}});

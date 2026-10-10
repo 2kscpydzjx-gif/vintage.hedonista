@@ -12,7 +12,7 @@ let SITE_SETTINGS={};
 function money(v){return Number(v||0).toLocaleString('uk-UA')+' грн'}
 function toast(msg){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
 function placeholder(label,size){return `<div class="placeholder"><div><b>${label}</b>${size}<br>Додайте фото в адмінці</div></div>`}
-function productCard(p){const href=`product.html?slug=${encodeURIComponent(p.slug)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
+function productCard(p){const href=`seo-product/${encodeURIComponent(p.slug)}/index.html`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}" alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart">♡</button></div></article>`}
 document.addEventListener('click',e=>{if(e.target.classList.contains('heart'))e.target.textContent=e.target.textContent==='♡'?'♥':'♡'});
 
 const VH_SETTINGS_CACHE_KEY='vh-site-settings-v257';
@@ -137,6 +137,12 @@ async function initHome(){
  $('newArrivals').innerHTML=newItems.length?newItems.map(productCard).join(''):'<div class="empty">Позначте товари як «Новинка» в адмінці</div>';
  initNewArrivalsCarousel();
 
+ $('homeCapsulesKicker').textContent=s.homepage_capsules_kicker||'VINTAGE HEDONISTA';
+ $('homeCapsulesTitle').textContent=s.homepage_capsules_title||'КАПСУЛИ.';
+ $('homeCapsulesText').textContent=s.homepage_capsules_text||'Образи, в яких вінтажні речі знаходять нове життя.';
+ $('homeCapsulesBtn').textContent=s.homepage_capsules_button_text||'ПЕРЕГЛЯНУТИ КАПСУЛИ';
+ $('homeCapsulesBtn').href=s.homepage_capsules_button_url||'capsule.html';
+ $('homeCapsulesMedia').innerHTML=s.homepage_capsules_image?`<img src="${s.homepage_capsules_image}" alt="Вінтажні капсули" loading="lazy" decoding="async">`:placeholder('Фото капсул','1600 × 1200 px');
  $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
 
  $('topTitle').textContent=s.homepage_top_title||'ЗАРАЗ У ТОПІ';$('topLink').textContent=(s.homepage_top_link_text||'ДИВИТИСЬ ВСІ ТОВАРИ')+' →';
@@ -265,7 +271,7 @@ function initCategoryCarousel(){
  requestAnimationFrame(update);
 }
 
-function newsCard(n){const href=`article.html?slug=${encodeURIComponent(n.slug)}`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
+function newsCard(n){const href=`seo-article/${encodeURIComponent(n.slug)}/index.html`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
 
 function initHomeJournalCarousel(){
  const track=$('homeNews'),prev=$('journalPrev'),next=$('journalNext');
@@ -382,6 +388,7 @@ async function initCatalog(){
    updateCatalogUrl()
  }
 
+ await applySelectedCategorySEO();
  buildCatalogFilters();
  bindCatalogControls();
  applyCatalog(true)
@@ -498,7 +505,7 @@ function bindCatalogControls(){
      return hay.includes(q)
    }).slice(0,6);
    suggestions.innerHTML=matches.length?matches.map(p=>`
-     <a class="search-suggestion-row" href="product.html?slug=${encodeURIComponent(p.slug)}">
+     <a class="search-suggestion-row" href="seo-product/${encodeURIComponent(p.slug)}/index.html">
        ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="search-suggestion-placeholder"></span>'}
        <span><b>${p.name}</b><small>${p.brand||p.categories?.name||''}</small></span>
        <strong>${money(p.price)}</strong>
@@ -674,6 +681,23 @@ function bindCatalogControls(){
  $('catalogFilterOverlay').onclick=closeFilters
 }
 
+let categorySeoRequest=0;
+async function applySelectedCategorySEO(){
+ const request=++categorySeoRequest;
+ const cat=catalogCategories.find(c=>c.slug===catalogState.category);
+ const title=cat?cat.name+' — Vintage Hedonista':'Каталог — Vintage Hedonista';
+ const description=cat?'Вінтажний одяг: '+cat.name+'. Добірні речі у Vintage Hedonista.':'Вінтажний одяг та унікальні речі у Vintage Hedonista.';
+ if(cat && window.VHSEORuntime){
+  // Dynamic category URL is catalog.html?category=slug; avoid overriding after rapid filter switches.
+  try {
+   const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type','category').eq('entity_id',String(cat.id)).maybeSingle();
+   if(error)console.warn('Category SEO',error);
+   if(request!==categorySeoRequest)return;
+   window.VHSEORuntime.set({title:data?.seo_title||title,description:data?.meta_description||description});
+  }catch(e){console.warn('Category SEO',e);if(request===categorySeoRequest)window.VHSEORuntime.set({title,description})}
+ }else if(window.VHSEORuntime){window.VHSEORuntime.set({title,description})}
+}
+
 function updateCatalogUrl(){
  const url=new URL(location.href);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
@@ -681,6 +705,7 @@ function updateCatalogUrl(){
  if(catalogState.subcategory)url.searchParams.set('subcategory',catalogState.subcategory);
  else url.searchParams.delete('subcategory');
  history.replaceState({},'',url)
+ void applySelectedCategorySEO()
 }
 
 function resetCatalogFilters(){
@@ -813,7 +838,7 @@ function renderCatalogResults(){
 }
 
 function catalogProductCard(p){
- const href=`product.html?slug=${encodeURIComponent(p.slug)}`;
+ const href=`seo-product/${encodeURIComponent(p.slug)}/index.html`;
  const sold=p.status==='sold';
  const reserved=p.status==='reserved';
  const gallery=(Array.isArray(p.product_images)?p.product_images:[])
@@ -880,10 +905,10 @@ function renderActiveFilters(){
 window.resetCatalogFilters=resetCatalogFilters;
 
 
-let currentProduct=null,currentImages=[],galleryIndex=0,lightboxIndex=0;
+let currentProduct=null,currentImages=[],currentImageAlts=[],galleryIndex=0,lightboxIndex=0;
 
 async function initProduct(){
- const slug=new URLSearchParams(location.search).get('slug');
+ const slug=new URLSearchParams(location.search).get('slug') || (()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})();
 
  if(!slug){
    $('productRoot').innerHTML='<div class="empty">Товар не знайдено</div>';
@@ -906,11 +931,12 @@ async function initProduct(){
  }
 
  currentProduct=data;
- currentImages=(data.product_images||[])
-   .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
-   .map(x=>x.image_url);
+ window.VHSEORuntime?.apply(publicSb,'product',data.id,{title:data.name+' — Vintage Hedonista',description:data.short_description||''});
+ const sortedProductImages=(data.product_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+ currentImages=sortedProductImages.map(x=>x.image_url);
+ currentImageAlts=sortedProductImages.map(x=>x.alt_text||data.name||'');
 
- if(!currentImages.length&&data.cover_image)currentImages=[data.cover_image];
+ if(!currentImages.length&&data.cover_image){currentImages=[data.cover_image];currentImageAlts=[data.name||'Фото товару']}
 
  renderProduct();
 
@@ -962,7 +988,7 @@ async function initProduct(){
 }
 
 function recommendedProductCard(p){
- const href=`product.html?slug=${encodeURIComponent(p.slug)}`;
+ const href=`seo-product/${encodeURIComponent(p.slug)}/index.html`;
  const gallery=(p.product_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
  const image=p.cover_image||gallery[0]?.image_url||'';
  return `<article class="recommended-card">
@@ -1049,7 +1075,7 @@ function renderProduct(){
  $('productPrice').textContent=money(p.price);
  $('productShortDescription').textContent=p.short_description||'';
  $('productShortDescription').classList.toggle('hidden',!p.short_description);
- $('productDesc').textContent=p.description||p.short_description||'Опис буде додано.';
+ window.VHSafeRich.render($('productDesc'),p.description||p.short_description||'Опис буде додано.');
  $('productSize').textContent=p.size||'Уточнюйте';
  $('productCondition').textContent=p.condition||'—';
  $('productColor').textContent=p.color||'—';
@@ -1085,11 +1111,12 @@ function renderGallery(){
  }
 
  main.src=currentImages[galleryIndex];
+ main.alt=currentImageAlts[galleryIndex]||currentProduct?.name||'Фото товару';
  count.textContent=`${galleryIndex+1} / ${currentImages.length}`;
 
  thumbs.innerHTML=currentImages.map((u,i)=>`
    <button class="thumb ${i===galleryIndex?'active':''}" onclick="setGallery(${i})" type="button" aria-label="Фото ${i+1}">
-     <img src="${u}" alt="">
+     <img src="${u}" alt="${(currentImageAlts[i]||currentProduct?.name||'Фото товару').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">
    </button>`).join('');
 
  requestAnimationFrame(()=>{
@@ -1427,7 +1454,7 @@ function journalDate(n){
   return new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase()
 }
 function journalCategoryName(n){return n.category||'ІСТОРІЇ РЕЧЕЙ'}
-function journalArticleHref(n){return `article.html?slug=${encodeURIComponent(n.slug)}`}
+function journalArticleHref(n){return `seo-article/${encodeURIComponent(n.slug)}/index.html`}
 function journalCover(n,label='Обкладинка статті',size='1200 × 1200 px'){
   return n.cover_image?`<img src="${n.cover_image}" alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(label,size)
 }
@@ -1685,6 +1712,20 @@ function articleSameText(a,b){
 }
 function renderEditorialArticleContent(content,title){
  const raw=String(content||'').trim();
+ if(raw.startsWith('VH_HTML_V1:')){
+  const doc=new DOMParser().parseFromString('<div>'+raw.slice('VH_HTML_V1:'.length)+'</div>','text/html');
+  const root=doc.body.firstElementChild;
+  const allowed=new Set(['P','DIV','BR','B','STRONG','I','EM','H2','H3','UL','OL','LI','A','IMG','FIGURE','FIGCAPTION','BLOCKQUOTE']);
+  function clean(el){for(const n of [...el.childNodes]){if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
+   if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG'].includes(n.tagName)){n.remove();continue}
+   clean(n);if(!allowed.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
+   const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align');for(const a of [...n.attributes])n.removeAttribute(a.name);
+   if(n.tagName==='FIGURE'){if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}
+  if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href))n.setAttribute('href',href);
+   if(n.tagName==='A'&&n.hasAttribute('href'))n.setAttribute('rel','noopener noreferrer');
+   if(n.tagName==='IMG'&&src&&/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)){n.setAttribute('src',src);n.setAttribute('alt',alt||'');n.setAttribute('loading','lazy')}else if(n.tagName==='IMG')n.remove();
+  }}clean(root);return root.innerHTML||'<p>Текст статті буде додано.</p>';
+ }
  if(raw.startsWith('VH_BLOCKS_V1:')){
    try{
      const blocks=JSON.parse(raw.slice('VH_BLOCKS_V1:'.length));
@@ -1710,7 +1751,7 @@ function renderEditorialArticleContent(content,title){
 }
 
 async function initArticle(){
- const slug=new URLSearchParams(location.search).get('slug');
+ const slug=new URLSearchParams(location.search).get('slug') || (()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})();
  if(!slug){$('articleRoot').innerHTML='<div class="empty">Статтю не знайдено</div>';return}
 
  const [,{data,error}]=await Promise.all([
@@ -1723,6 +1764,7 @@ async function initArticle(){
  }
 
  document.title=`${data.title} — Vintage Hedonista`;
+ window.VHSEORuntime?.apply(publicSb,'article',data.id,{title:data.title+' — Vintage Hedonista',description:data.excerpt||''});
 
  const gallery=Array.isArray(data.gallery_images)?data.gallery_images:[];
  const bodyHtml=renderEditorialArticleContent(data.content,data.title);
@@ -1971,7 +2013,7 @@ async function vhRunGlobalSearch(raw){
  }
  const matches=VH_SEARCH_CACHE.filter(p=>[p.name,p.brand,p.categories?.name,p.subcategories?.name].map(normalizeFilterValue).join(' ').includes(q)).slice(0,8);
  box.innerHTML=matches.length?matches.map(p=>`
-   <a class="vh-search-result" href="product.html?slug=${encodeURIComponent(p.slug)}">
+   <a class="vh-search-result" href="seo-product/${encodeURIComponent(p.slug)}/index.html">
      ${p.cover_image?`<img src="${p.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-result-placeholder"></span>'}
      <span><b>${p.name}</b><small>${p.brand||p.categories?.name||''}</small></span>
      <strong>${vhMoney(p.price)}</strong>
@@ -1986,10 +2028,10 @@ function vhRenderCart(){
  $('vhCheckoutLink').classList.toggle('disabled',!cart.length);
  box.innerHTML=cart.length?cart.map((item,i)=>`
    <div class="vh-cart-item">
-     <a href="product.html?slug=${encodeURIComponent(item.slug)}">${item.cover_image?`<img src="${item.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-cart-placeholder"></span>'}</a>
+     <a href="seo-product/${encodeURIComponent(item.slug)}/index.html">${item.cover_image?`<img src="${item.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-cart-placeholder"></span>'}</a>
      <div class="vh-cart-item-copy">
        <small>${item.brand||'VINTAGE HEDONISTA'}</small>
-       <a href="product.html?slug=${encodeURIComponent(item.slug)}"><b>${item.name}</b></a>
+       <a href="seo-product/${encodeURIComponent(item.slug)}/index.html"><b>${item.name}</b></a>
        <strong>${vhMoney(item.price)}</strong>
      </div>
      <button type="button" onclick="vhRemoveCartItem(${i})" aria-label="Видалити">×</button>
@@ -2800,7 +2842,7 @@ async function initAccountPage(){
   const renderOrders=(items)=>items.length?items.map(o=>{
     const product=o.products||{};
     const img=product.cover_image||'';
-    return `<a class="vh128-order-card" href="${product.slug?`product.html?slug=${encodeURIComponent(product.slug)}`:'#'}">
+    return `<a class="vh128-order-card" href="${product.slug?`seo-product/${encodeURIComponent(product.slug)}/index.html`:'#'}">
       <div class="vh128-order-thumb">${img?`<img src="${img}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span></span>'}</div>
       <div class="vh128-order-copy">
         <small>${vhAccountDate(o.created_at)} · #${vhEscape(String(o.id||'').slice(-6))}</small>
@@ -2813,7 +2855,7 @@ async function initAccountPage(){
 
   const favCards=favorites.length?favorites.map(f=>{
     const x=f.products||{};
-    return `<a class="vh129-fav-card" href="product.html?slug=${encodeURIComponent(x.slug||'')}">
+    return `<a class="vh129-fav-card" href="seo-product/${encodeURIComponent(x.slug||'')}/index.html">
       <div class="vh129-fav-thumb">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:`<span></span>`}</div>
       <div class="vh129-fav-copy">
         <small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small>
@@ -2944,8 +2986,8 @@ function vhAccountDashboard(user,data){
      </div>
      <button class="vh-primary-btn compact" type="button" onclick="vhSaveAccountProfile('contacts')">ЗБЕРЕГТИ КОНТАКТИ</button>
    </div>
-   <div class="vh-account-view" data-vh-account-view="orders"><div class="vh-account-section-head"><b>МОЇ ЗАМОВЛЕННЯ</b><span>Статус змінюється після обробки в адмінці.</span></div><div class="vh-account-orders">${orders.length?orders.map(o=>`<a class="vh-account-order" href="${o.products?.slug?`product.html?slug=${encodeURIComponent(o.products.slug)}`:'#'}">${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-order-placeholder"></span>'}<span class="vh-account-order-main"><small>${vhAccountDate(o.created_at)} · #${o.order_number||String(o.id).slice(0,6)}</small><b>${vhEscape(o.product_name||o.products?.name||'Товар')}</b><em>${vhMoney(o.amount)}</em></span><strong class="vh-account-status status-${o.status}">${vhAccountStatusName(o.status)}</strong></a>`).join(''):'<div class="vh-account-empty">У вас ще немає замовлень.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
-   <div class="vh-account-view" data-vh-account-view="favorites"><div class="vh-account-section-head"><b>МОЇ ВПОДОБАННЯ</b><span>Збережені речі вашого акаунта.</span></div><div class="vh-account-favorites">${favorites.length?favorites.map(f=>{const x=f.products||{};return `<a class="vh-account-favorite" href="product.html?slug=${encodeURIComponent(x.slug||'')}">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-favorite-placeholder"></span>'}<span><small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small><b>${vhEscape(x.name||'Товар')}</b><strong>${vhMoney(x.price)}</strong></span></a>`}).join(''):'<div class="vh-account-empty">Ви ще нічого не зберегли.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
+   <div class="vh-account-view" data-vh-account-view="orders"><div class="vh-account-section-head"><b>МОЇ ЗАМОВЛЕННЯ</b><span>Статус змінюється після обробки в адмінці.</span></div><div class="vh-account-orders">${orders.length?orders.map(o=>`<a class="vh-account-order" href="${o.products?.slug?`seo-product/${encodeURIComponent(o.products.slug)}/index.html`:'#'}">${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-order-placeholder"></span>'}<span class="vh-account-order-main"><small>${vhAccountDate(o.created_at)} · #${o.order_number||String(o.id).slice(0,6)}</small><b>${vhEscape(o.product_name||o.products?.name||'Товар')}</b><em>${vhMoney(o.amount)}</em></span><strong class="vh-account-status status-${o.status}">${vhAccountStatusName(o.status)}</strong></a>`).join(''):'<div class="vh-account-empty">У вас ще немає замовлень.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
+   <div class="vh-account-view" data-vh-account-view="favorites"><div class="vh-account-section-head"><b>МОЇ ВПОДОБАННЯ</b><span>Збережені речі вашого акаунта.</span></div><div class="vh-account-favorites">${favorites.length?favorites.map(f=>{const x=f.products||{};return `<a class="vh-account-favorite" href="seo-product/${encodeURIComponent(x.slug||'')}/index.html">${x.cover_image?`<img src="${x.cover_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-account-favorite-placeholder"></span>'}<span><small>${vhEscape(x.brand||'VINTAGE HEDONISTA')}</small><b>${vhEscape(x.name||'Товар')}</b><strong>${vhMoney(x.price)}</strong></span></a>`}).join(''):'<div class="vh-account-empty">Ви ще нічого не зберегли.<a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'}</div></div>
  </div>`
 }
 
@@ -3186,7 +3228,7 @@ async function vhSendOrderEmailV211(orderId,type='created'){
          handler has cancelled it, perform the same navigation explicitly. */
       setTimeout(function(){
         const current = location.href;
-        const target = new URL(href, current).href;
+        const target = new URL(href, document.baseURI).href;
         if(location.href === current && target !== current){
           location.assign(target);
         }
