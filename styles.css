@@ -17930,3 +17930,11 @@ body.home-page .homepage-capsules #homeCapsulesMedia>img{
 .cms132-stage img{display:block;width:100%;height:100%;position:absolute;inset:0;pointer-events:none}
 .cms132-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:6px 10px;background:#15100bcc;color:#fff;font-size:12px;white-space:nowrap;pointer-events:none}
 .cms132-empty{cursor:default}
+
+/* STEP 133: compact visual crop controls */
+.cms133-zoom{display:flex;align-items:center;gap:8px}
+.cms133-zoom button{min-width:34px;min-height:34px;cursor:pointer}
+.cms133-zoom input{flex:1;min-width:60px}
+.cms133-zoom output{min-width:42px;text-align:right}
+.cms133-advanced{padding:6px 0}
+.cms132-stage{max-height:none;min-height:180px}
