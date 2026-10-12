@@ -2,6 +2,9 @@
 const $=id=>document.getElementById(id);
 const cloud=window.supabase&&window.VH_CONFIG?window.supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}}):null;
 let cloudReady=false;
+const revisionTokens=new Map();
+function conflictError(){return Error('Інший адміністратор уже зберіг новішу чернетку. Ваші локальні зміни залишилися в браузері. Скопіюйте їх перед оновленням сторінки.');}
+
 async function requireAdmin(){
  if(!cloud)throw Error('Не вдалося завантажити Supabase');
  const {data:{session},error}=await cloud.auth.getSession();
@@ -13,8 +16,9 @@ async function requireAdmin(){
 async function loadCloudDraft(){
  if(!cloudReady)return;
  const key=pageId==='shared'?'home':pageId;
- const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','draft').maybeSingle();
+ const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(error)throw error;
+ revisionTokens.set(key,data?.updated_at||null);
  if(pageId==='shared'){
   if(data?.shared&&Object.keys(data.shared).length){localStorage.setItem(sharedStorageKey,JSON.stringify(data.shared));renderSharedEditor();updateLivePreview()}
  }else if(data&&Array.isArray(data.blocks)){
@@ -42,13 +46,23 @@ async function loadCloudDraft(){
 async function saveCloudDraft(){
  if(!cloudReady)throw Error('Немає з’єднання з адмінкою');
  const key=pageId==='shared'?'home':pageId;
- // Read the existing row first so saving shared settings does not overwrite homepage blocks.
- const {data:old,error:readError}=await cloud.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','draft').maybeSingle();
+ if(!revisionTokens.has(key))throw Error('Дочекайтеся завантаження чернетки з Supabase.');
+ const expected=revisionTokens.get(key);
+ const {data:old,error:readError}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(readError)throw readError;
+ if((old?.updated_at||null)!==expected)throw conflictError();
  const savedShared=pageId==='shared'?{...(old?.shared||{}),...sharedDraft()}:{...(old?.shared||{}),cmsPageDraft:{existing:readExisting(),order:mergedOrder()}};
  const payload={page_key:key,revision_status:'draft',blocks:pageId==='shared'?(old?.blocks||[]):blocks,shared:savedShared,updated_at:new Date().toISOString()};
- const {error}=await cloud.from('vh_page_revisions').upsert(payload,{onConflict:'page_key,revision_status'});
- if(error)throw error;
+ if(old){
+  const {data:updated,error}=await cloud.from('vh_page_revisions').update(payload).eq('page_key',key).eq('revision_status','draft').eq('updated_at',expected).select('updated_at');
+  if(error)throw error;
+  if(!updated?.length)throw conflictError();
+  revisionTokens.set(key,updated[0].updated_at);
+ }else{
+  const {data:created,error}=await cloud.from('vh_page_revisions').insert(payload).select('updated_at');
+  if(error){if(error.code==='23505')throw conflictError();throw error}
+  revisionTokens.set(key,created?.[0]?.updated_at||payload.updated_at);
+ }
  $('status').textContent='Чернетку збережено в Supabase · сайт не опубліковано';
 }
 async function publishCloudPage(){
@@ -142,7 +156,7 @@ if(!pages.some(p=>p.id===pageId))pageId='home';
 const storageKey=()=>pageId==='home'?'vh-cms-lab-step55-v1':'vh-cms-lab-step56-'+pageId;
 const getBlocks=()=>{try{const x=JSON.parse(localStorage.getItem(storageKey()));return Array.isArray(x)?x:(pageId==='home'?structuredClone(defaults):[])}catch{return pageId==='home'?structuredClone(defaults):[]}};
 let blocks=getBlocks(),selected=blocks[0]?.id||null;
-function renderPages(){const shared=pageId==='shared';document.body.classList.toggle('cms-shared-mode',shared);if(shared)renderSharedEditor();const wrap=$('pageNav');wrap.replaceChildren();pages.forEach(p=>{const btn=document.createElement('button');btn.className='nav'+(p.id===pageId?' active':'');btn.textContent=p.name;btn.onclick=()=>{pageId=p.id;sessionStorage.setItem('vh-cms-active-page',pageId);history.replaceState(null,'','?page='+encodeURIComponent(pageId));blocks=getBlocks();selected=blocks[0]?.id||null;render();void switchCloudPage()};wrap.append(btn)});const p=pages.find(x=>x.id===pageId);$('currentPageName').textContent=p.name;$('currentPageDescription').textContent=p.description;$('realEditorLink').href='admin.html?page='+encodeURIComponent(p.editor);$('publicPageLink').href='../'+p.url}
+function renderPages(){const shared=pageId==='shared';document.body.classList.toggle('cms-shared-mode',shared);if(shared)renderSharedEditor();const wrap=$('pageNav');wrap.replaceChildren();pages.forEach(p=>{const btn=document.createElement('button');btn.className='nav'+(p.id===pageId?' active':'');btn.textContent=p.name;btn.onclick=()=>{if(p.id===pageId)return;pageId=p.id;sessionStorage.setItem('vh-cms-active-page',pageId);history.replaceState(null,'','?page='+encodeURIComponent(pageId));blocks=getBlocks();selected=blocks[0]?.id||null;render();void switchCloudPage()};wrap.append(btn)});const p=pages.find(x=>x.id===pageId);$('currentPageName').textContent=p.name;$('currentPageDescription').textContent=p.description;$('realEditorLink').href='admin.html?page='+encodeURIComponent(p.editor);$('publicPageLink').href='../'+p.url}
 const clean=html=>{const root=document.createElement('div');root.innerHTML=html;const allowed=new Set(['P','BR','STRONG','B','EM','I','UL','OL','LI','H1','H2','H3','A']);const walk=node=>{for(const child of [...node.childNodes]){if(child.nodeType===8){child.remove();continue}if(child.nodeType!==1)continue;if(!allowed.has(child.tagName)){child.replaceWith(...child.childNodes);continue}for(const attr of [...child.attributes])child.removeAttribute(attr.name);if(child.tagName==='A'){const href=child.dataset?.unused||'';void href}walk(child)}}; // preserve safe links before stripping attributes
 const links=[...root.querySelectorAll('a')].map(a=>({a,href:a.getAttribute('href')||''}));walk(root);for(const {a,href} of links){if(!root.contains(a))continue;try{const url=new URL(href,location.href);if(['http:','https:'].includes(url.protocol))a.setAttribute('href',href)}catch{}}return root.innerHTML};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
