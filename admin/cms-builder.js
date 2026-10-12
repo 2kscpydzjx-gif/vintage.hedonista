@@ -739,7 +739,7 @@ function applyImageDrafts(){
   }
  }
 }
-function detectSections(doc){if(pageId==='shared'){sectionTargets=[];return}const sel=$('insertAfter'),old=sel.value;sel.replaceChildren(new Option('Після основного вмісту','__end'));sectionTargets=[];const main=doc.querySelector('main')||doc.body;let candidates=(pageId==='home'?[...doc.body.children].filter(e=>e.tagName==='SECTION'):pageId==='about'?[...main.children].filter(e=>e.tagName==='SECTION'):[...main.children]).filter(e=>e.tagName!=='SCRIPT'&&e.tagName!=='STYLE'&&e.tagName!=='HEADER'&&e.tagName!=='FOOTER'&&(pageId==='about'||e.getBoundingClientRect().height>50));if(candidates.length<2){
+function detectSections(doc){if(pageId==='shared'){sectionTargets=[];return}const sel=$('insertAfter'),old=sel.value;sel.replaceChildren(new Option('Після основного вмісту','__end'));sectionTargets=[];const main=doc.querySelector('main')||doc.body;let candidates=(pageId==='home'?[...doc.body.children].filter(e=>e.tagName==='SECTION'):pageId==='about'?[...main.children].filter(e=>e.tagName==='SECTION'):[...main.children]).filter(e=>e.tagName!=='SCRIPT'&&e.tagName!=='STYLE'&&e.tagName!=='HEADER'&&e.tagName!=='FOOTER'&&(pageId==='home'||pageId==='about'||e.getBoundingClientRect().height>50));if(candidates.length<2){
  const sections=[...main.querySelectorAll('section')].filter(e=>e.getBoundingClientRect().height>50);
  const topSections=sections.filter(el=>!sections.some(parent=>parent!==el&&parent.contains(el)));
  if(topSections.length>1)candidates=topSections;
