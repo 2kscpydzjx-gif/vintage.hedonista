@@ -356,7 +356,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
  for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);if(!isCapsules)photo.append(crop);
  if(isCapsules){
   const panel=document.createElement('div');panel.className='cms129-device-crop';
-  panel.innerHTML='<h4>КАДРУВАННЯ ЗА ПРИСТРОЯМИ</h4><p>«Заповнити» не показує порожніх країв: віддалення нижче 100% для цього режиму обмежено. Щоб побачити оригінал повністю, виберіть «Показати повністю». Ширина фото змінює тільки макет.</p>';
+  panel.innerHTML='<h4>КАДРУВАННЯ ЗА ПРИСТРОЯМИ</h4><p>Перетягніть фотографію мишкою в рамці. Масштаб можна змінити нижче. «Ширина фото» вище залишається незалежною.</p>';
   const tabs=document.createElement('div');tabs.className='cms129-tabs';const fields=document.createElement('div');panel.append(tabs,fields);
   let active='desktop';
   const defaults={fit:d.photoFit||'cover',x:Number(d.photoX??50),y:Number(d.photoY??50),zoom:100};
@@ -368,12 +368,51 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
    const current=state(active);
    const row=document.createElement('label');row.textContent='РЕЖИМ ПОКАЗУ';const fit=document.createElement('select');
    [['cover','Заповнити (обрізати)'],['contain','Показати повністю']].forEach(([v,t])=>fit.add(new Option(t,v)));
-   fit.value=current.fit;fit.onchange=()=>save({fit:fit.value});row.append(fit);fields.append(row);
+   fit.value=current.fit;fit.onchange=()=>{save({fit:fit.value});render()};row.append(fit);fields.append(row);
+   // STEP 132: visual drag crop, using the same persisted cropDevices fields.
+   const cropStage=document.createElement('div');cropStage.className='cms132-stage';
+   const cropImage=document.createElement('img');cropImage.alt='Перетягніть фото для кадрування';cropImage.draggable=false;
+   const cropHint=document.createElement('span');cropHint.className='cms132-hint';cropHint.textContent='Перетягніть фото мишкою';
+   cropStage.append(cropImage,cropHint);fields.append(cropStage);
+   const source=frame?.contentDocument?.querySelector('.homepage-capsules #homeCapsulesMedia img');
+   const sourceUrl=source?.currentSrc||source?.src||'';
+   if(sourceUrl)cropImage.src=sourceUrl;else{cropHint.textContent='Спочатку завантажте фото капсули';cropStage.classList.add('cms132-empty')}
+   cropStage.style.aspectRatio=active==='mobile'?'3 / 4':active==='tablet'?'4 / 3':'16 / 9';
+   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+   const paint=()=>{
+    const c=state(active);
+    cropImage.style.objectFit=c.fit==='contain'?'contain':'cover';
+    cropImage.style.objectPosition=c.x+'% '+c.y+'%';
+    cropImage.style.transform='scale('+(c.fit==='contain'?clamp(Number(c.zoom)/100,.5,2):clamp(Number(c.zoom)/100,1,2))+')';
+    cropImage.style.transformOrigin=c.x+'% '+c.y+'%';
+   };
+   paint();
+   let drag=null;
+   cropStage.addEventListener('pointerdown',ev=>{
+    if(!sourceUrl||ev.button!==0)return;
+    ev.preventDefault();cropStage.setPointerCapture(ev.pointerId);
+    const c=state(active);drag={x:ev.clientX,y:ev.clientY,startX:Number(c.x),startY:Number(c.y)};
+   });
+   cropStage.addEventListener('pointermove',ev=>{
+    if(!drag)return;
+    const rect=cropStage.getBoundingClientRect();
+    const imgW=cropImage.naturalWidth,imgH=cropImage.naturalHeight;
+    if(!imgW||!imgH)return;
+    const c=state(active),base=c.fit==='contain'?Math.min(rect.width/imgW,rect.height/imgH):Math.max(rect.width/imgW,rect.height/imgH);
+    const zoom=c.fit==='contain'?clamp(Number(c.zoom)/100,.5,2):clamp(Number(c.zoom)/100,1,2);
+    const excessX=Math.max(0,imgW*base*zoom-rect.width),excessY=Math.max(0,imgH*base*zoom-rect.height);
+    const x=excessX?clamp(drag.startX-(ev.clientX-drag.x)/excessX*100,0,100):50;
+    const y=excessY?clamp(drag.startY-(ev.clientY-drag.y)/excessY*100,0,100):50;
+    d.cropDevices={...(d.cropDevices||{}),[active]:{...state(active),x:Math.round(x),y:Math.round(y)}};
+    paint();
+   });
+   const finish=()=>{if(!drag)return;drag=null;commit();render()};
+   cropStage.addEventListener('pointerup',finish);cropStage.addEventListener('pointercancel',finish);
    for(const [key,title,min,max,step] of [['x','Горизонталь',0,100,1],['y','Вертикаль',0,100,1],['zoom','Масштаб',50,200,5]]){
     const line=document.createElement('label');line.className='cms96-slider';const titleEl=document.createElement('span');titleEl.textContent=title;
     const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step=step;slider.value=current[key];
     const output=document.createElement('output');output.textContent=slider.value+'%';
-    slider.oninput=()=>{output.textContent=slider.value+'%';save({[key]:Number(slider.value)})};
+    slider.oninput=()=>{output.textContent=slider.value+'%';save({[key]:Number(slider.value)});paint()};
     line.append(titleEl,slider,output);fields.append(line);
    }
    const reset=document.createElement('button');reset.type='button';reset.textContent='Скинути для цього екрана';
