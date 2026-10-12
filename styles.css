@@ -17890,3 +17890,34 @@ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>.edito
  body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>.editorial-copy,
  body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]>.editorial-copy{order:1!important;width:100%!important}
 }
+
+/* STEP 129: responsive crop of the one homepage Capsules image.
+   Same stylesheet is used in CMS iframe and the published site. */
+body.home-page .homepage-capsules #homeCapsulesMedia{overflow:hidden!important}
+body.home-page .homepage-capsules #homeCapsulesMedia>img{
+ object-fit:var(--vh-crop-desktop-fit,cover)!important;
+ object-position:var(--vh-crop-desktop-x,50%) var(--vh-crop-desktop-y,50%)!important;
+ transform:scale(var(--vh-crop-desktop-zoom,1))!important;
+ transform-origin:center center!important;
+}
+@media(min-width:761px) and (max-width:1024px){
+ body.home-page .homepage-capsules #homeCapsulesMedia>img{
+  object-fit:var(--vh-crop-tablet-fit,cover)!important;
+  object-position:var(--vh-crop-tablet-x,50%) var(--vh-crop-tablet-y,50%)!important;
+  transform:scale(var(--vh-crop-tablet-zoom,1))!important;
+ }
+}
+@media(max-width:760px){
+ body.home-page .homepage-capsules #homeCapsulesMedia>img{
+  object-fit:var(--vh-crop-mobile-fit,cover)!important;
+  object-position:var(--vh-crop-mobile-x,50%) var(--vh-crop-mobile-y,50%)!important;
+  transform:scale(var(--vh-crop-mobile-zoom,1))!important;
+ }
+}
+.cms129-device-crop{padding:12px 0;display:grid;gap:10px}
+.cms129-device-crop h4{margin:0;font-size:12px}
+.cms129-device-crop p{margin:0;font-size:12px;line-height:1.5;opacity:.8}
+.cms129-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.cms129-tabs button{cursor:pointer;border:1px solid #76614c;background:transparent;color:inherit;padding:8px 10px;font-size:12px}
+.cms129-tabs button.active{background:#ad906e;color:#15100b}
+.cms129-device-crop select{display:block;width:100%;margin:8px 0;padding:8px}
