@@ -40,7 +40,7 @@ async function detail(){
  if(error||!style){showError(error?.message||'Стиль не знайдено');return}
  document.title=`${style.title||'Капсули'} — Vintage Hedonista`;
  // STEP 49: test the full-bleed editorial HERO only for PREPPY.
- document.body.classList.toggle('vh-preppy-full-hero',String(style.slug||'').toLowerCase()==='preppy'||String(style.title||'').trim().toLowerCase()==='preppy');
+ document.body.classList.add('vh-preppy-full-hero');
  const hero=document.querySelector('.capsule-detail-placeholder'); imageBox(hero,style.hero_image,'HERO ФОТО','РЕКОМЕНДОВАНО 1600 × 1200 px');
  if(style.page_title||style.title) hero?.setAttribute('aria-label',style.page_title||style.title);
  const heroCopy=document.querySelector('#capsuleStyleHeroCopy'); if(heroCopy){heroCopy.innerHTML=`<h1>${esc(style.page_title||style.title||'')}</h1>${style.page_description?`<p>${esc(style.page_description)}</p>`:''}`;}
