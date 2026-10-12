@@ -721,7 +721,13 @@ function applyExistingAnimation(el,value){
  el.classList.remove('cms-animation-fade-up','cms-animation-fade-left','cms-animation-fade-right','cms-animation-zoom','cms-animation-fade','cms-animation-none');
  if(value&&value!=='system')el.classList.add('cms-animation-'+value);
 }
-function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design)applyBlockDesign(t.el,d.design);applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
+function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){
+ if(pageId==='home'&&t.el.matches('.homepage-capsules')){
+  const media=t.el.querySelector('#homeCapsulesMedia'),copy=t.el.querySelector('.editorial-copy');
+  // Keep the public site's default composition: copy left, one image right.
+  if(media&&copy){media.style.order='2';copy.style.order='1'}
+ }
+const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design)applyBlockDesign(t.el,d.design);applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 function applyImageDrafts(){
  const drafts=readExisting();
  for(const target of sectionTargets){
