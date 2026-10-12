@@ -666,19 +666,11 @@
     <div class="about-admin-top-actions"><button class="btn" type="button" onclick="window.open('../capsule.html','_blank')">ПЕРЕГЛЯНУТИ СТОРІНКУ ↗</button></div>
   </div>
   <div class="capsule-admin-stack capsule-admin-accordion">
-    <section class="capsule-builder-card is-collapsed" data-capsule-admin-section="hero">
-      <div class="capsule-builder-head" role="button" tabindex="0" aria-expanded="false"><span class="about-builder-num">01</span><div class="capsule-head-copy"><h2>HERO</h2><p>Головний екран сторінки «Капсули» та вступ під ним.</p></div></div>
-      <div class="capsule-builder-body">
-        <div class="capsule-editor-group"><div class="capsule-editor-label">ГОЛОВНИЙ ЕКРАН</div><div class="form-grid">
-          <div class="field"><label>Малий текст</label><input class="input" id="capHeroKicker"></div><div class="field"><label>Назва сторінки</label><input class="input" id="capHeroTitle"></div>
-          <div class="field full"><label>Слоган</label><input class="input" id="capHeroSubtitle"></div><div class="field full"><label>Опис</label><textarea class="input short-textarea" id="capHeroDescription"></textarea></div>
-          <div class="field"><label>Текст кнопки</label><input class="input" id="capHeroButton"></div><div class="field capsule-photo-field"><label>Фото HERO · рекомендовано 1920 × 900 px</label><div class="hint">Фіксований HERO: фото займає 56% ширини та всю висоту. Завантажене зображення автоматично масштабується через cover; краї можуть трохи обрізатися без зміни висоти шапки.</div><input class="input" id="capHeroImage" type="file" accept="image/*"><div id="capHeroPreview" class="preview-row"></div></div>
-        </div></div>
-        <div class="capsule-editor-group"><div class="capsule-editor-label">ПІД HERO</div><div class="form-grid"><div class="field"><label>Текст зліва</label><input class="input" id="capMoodTitle"></div><div class="field"><label>Текст справа</label><textarea class="input short-textarea" id="capMoodText"></textarea></div></div></div>
-        <div class="capsule-section-save"><button class="btn primary" id="saveCapsulePageBtn" type="button">ЗБЕРЕГТИ</button></div>
-      </div>
-    </section>
-
+    <div class="capsule-editor-notice" style="padding:20px 24px;margin-bottom:16px;border:1px solid rgba(100,78,55,.25);background:#f3ece3;color:#34271d">
+      <strong>HERO та вступ сторінки «Капсули» редагуються в CMS Builder.</strong>
+      <p style="margin:8px 0 12px">Тут залишилися стилі, образи й товари. Старі налаштування HERO збережені як резервні дані.</p>
+      <a href="cms-builder.html?page=capsules" class="btn" style="display:inline-flex;align-items:center;text-decoration:none">ВІДКРИТИ CMS BUILDER →</a>
+    </div>
     <section class="capsule-builder-card is-collapsed" data-capsule-admin-section="styles">
       <div class="capsule-builder-head" role="button" tabindex="0" aria-expanded="false"><span class="about-builder-num">02</span><div class="capsule-head-copy"><h2>СТИЛІ</h2><p>Напрямки капсул. Після збереження стиль з’являється окремою мініатюрою.</p></div></div>
       <div class="capsule-builder-body">
