@@ -169,6 +169,8 @@ $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
 
 
  $('brandStatementTitle').textContent=s.homepage_brand_title||'VINTAGE HEDONISTA';$('brandLine1').textContent=s.homepage_brand_line1||'Одяг з минулого.';$('brandLine2').textContent=s.homepage_brand_line2||'Стиль поза часом.';$('brandLocation').textContent=s.homepage_brand_location||'Odesa, Ukraine';
+ window.__VH_HOME_RENDER_DONE=true;
+ window.dispatchEvent(new Event('vh:home-rendered'));
 }
 
 
