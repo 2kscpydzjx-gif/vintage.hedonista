@@ -421,21 +421,28 @@ let liveTimer=null,livePage='',sectionTargets=[];
 const frame=$('siteFrame');
 const viewport=$('desktopViewport');const previewWindow=document.querySelector('.live-preview-frame');
 let cmsPreviewDeviceWidth=1440;
+let cmsPreviewDeviceHeight=900;
 function resizeDesktopPreview(){
  if(!viewport||!previewWindow)return;
  const available=Math.max(1,previewWindow.clientWidth-2);
  const width=cmsPreviewDeviceWidth;
+ const height=cmsPreviewDeviceHeight;
  const scale=Math.min(1,available/width);
  viewport.style.setProperty('width',width+'px','important');
- viewport.style.setProperty('height','950px','important');
+ viewport.style.setProperty('height',height+'px','important');
  viewport.style.transformOrigin='top left';
  viewport.style.transform='scale('+scale+')';
- previewWindow.style.height=Math.ceil(950*scale+2)+'px';
+ previewWindow.style.height=Math.ceil(height*scale+2)+'px';
+ previewWindow.style.overflow='auto';
  frame.style.setProperty('width',width+'px','important');
  frame.style.setProperty('max-width','none','important');
- frame.style.setProperty('height','950px','important');
-} 
-if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeDesktopPreview).observe(previewWindow);window.addEventListener('resize',resizeDesktopPreview);requestAnimationFrame(resizeDesktopPreview);
+ frame.style.setProperty('height',height+'px','important');
+ const status=document.getElementById('cms125ViewportInfo');
+ if(status)status.textContent=width+' × '+height+' px · '+Math.round(scale*100)+'% масштабу';
+}
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeDesktopPreview).observe(previewWindow);
+window.addEventListener('resize',resizeDesktopPreview);
+requestAnimationFrame(resizeDesktopPreview);
 function scheduleLivePreview(){clearTimeout(liveTimer);liveTimer=setTimeout(updateLivePreview,180)}
 function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));frame.src='../'+p.url;}
 // STEP 58: isolated drafts for text edits to existing rendered sections.
@@ -776,16 +783,18 @@ function cms96Viewport(){
  if(!frame||!viewport||!preview||document.querySelector('.cms96-device-bar'))return;
  const bar=document.createElement('div');bar.className='cms96-device-bar';
  const title=document.createElement('span');title.textContent='ПЕРЕГЛЯД НА ПРИСТРОЯХ';bar.append(title);
- [['Комп’ютер',1440],['Планшет',820],['Телефон',390]].forEach(([name,width],i)=>{
+ const devices=[['Комп’ютер',1440,900],['Ноутбук',1280,800],['Планшет',820,1180],['Телефон',390,844],['Великий телефон',430,932]];
+ devices.forEach(([name,width,height],i)=>{
   const button=document.createElement('button');button.type='button';button.textContent=name;
   button.className=i===0?'active':'';
   button.onclick=()=>{
-   cmsPreviewDeviceWidth=width;
+   cmsPreviewDeviceWidth=width;cmsPreviewDeviceHeight=height;
    resizeDesktopPreview();
    bar.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===button));
   };
   bar.append(button);
  });
+ const info=document.createElement('span');info.id='cms125ViewportInfo';info.style.cssText='font-size:11px;opacity:.75;white-space:nowrap';bar.append(info);
  preview.parentElement.insertBefore(bar,preview);
  resizeDesktopPreview();
 }
