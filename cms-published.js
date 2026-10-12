@@ -34,6 +34,14 @@ if(e.design&&typeof e.design==='object'){const design=e.design;
    capsuleBtn.style.setProperty('border-color',lightPanel?'#211a15':'#f2e5d5','important');
    capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
   }
+  const media=el.querySelector('#homeCapsulesMedia');
+  if(media)for(const key of ['desktop','tablet','mobile']){
+   const crop={fit:design.photoFit||'cover',x:design.photoX??50,y:design.photoY??50,zoom:100,...(design.cropDevices?.[key]||{})};
+   media.style.setProperty('--vh-crop-'+key+'-fit',crop.fit==='contain'?'contain':'cover');
+   media.style.setProperty('--vh-crop-'+key+'-x',Math.max(0,Math.min(100,Number(crop.x)||0))+'%');
+   media.style.setProperty('--vh-crop-'+key+'-y',Math.max(0,Math.min(100,Number(crop.y)||0))+'%');
+   media.style.setProperty('--vh-crop-'+key+'-zoom',Math.max(1,Math.min(2,(Number(crop.zoom)||100)/100)));
+  }
   const photo=el.querySelector('#homeCapsulesMedia img');
   if(photo){photo.style.objectFit=design.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+design.photoX)?+design.photoX:50}% ${Number.isFinite(+design.photoY)?+design.photoY:50}%`}
   const copy=el.querySelector(':scope > .editorial-copy');
