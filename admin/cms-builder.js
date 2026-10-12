@@ -230,7 +230,9 @@ function applyBlockDesign(el,d){if(!el||!d)return;
    media.style.setProperty('--vh-crop-'+key+'-fit',crop.fit==='contain'?'contain':'cover');
    media.style.setProperty('--vh-crop-'+key+'-x',Math.max(0,Math.min(100,Number(crop.x)||0))+'%');
    media.style.setProperty('--vh-crop-'+key+'-y',Math.max(0,Math.min(100,Number(crop.y)||0))+'%');
-   media.style.setProperty('--vh-crop-'+key+'-zoom',Math.max(1,Math.min(2,(Number(crop.zoom)||100)/100)));
+   media.style.setProperty('--vh-crop-'+key+'-zoom',Math.max(0.5,Math.min(2,(Number(crop.zoom)||100)/100)));
+   media.style.setProperty('--vh-crop-'+key+'-pan-x',((Math.max(0,Math.min(100,Number.isFinite(Number(crop.x))?Number(crop.x):50))-50)/2)+'%');
+   media.style.setProperty('--vh-crop-'+key+'-pan-y',((Math.max(0,Math.min(100,Number.isFinite(Number(crop.y))?Number(crop.y):50))-50)/2)+'%');
   }
   if(photo){photo.style.objectFit=d.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+d.photoX)?+d.photoX:50}% ${Number.isFinite(+d.photoY)?+d.photoY:50}%`}
   if(media&&copy){
@@ -353,7 +355,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
  for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);if(!isCapsules)photo.append(crop);
  if(isCapsules){
   const panel=document.createElement('div');panel.className='cms129-device-crop';
-  panel.innerHTML='<h4>КАДРУВАННЯ ЗА ПРИСТРОЯМИ</h4><p>Окремі налаштування одного фото для комп’ютера, планшета й телефона. Перемикайте розмір попереднього перегляду, щоб перевірити результат.</p>';
+  panel.innerHTML='<h4>КАДРУВАННЯ ЗА ПРИСТРОЯМИ</h4><p>Ширина фото вище керує макетом і не змінюється. Горизонталь і вертикаль рухають саме зображення; масштаб 50–200%. При масштабі менше 100% можуть бути видимі поля.</p>';
   const tabs=document.createElement('div');tabs.className='cms129-tabs';const fields=document.createElement('div');panel.append(tabs,fields);
   let active='desktop';
   const defaults={fit:d.photoFit||'cover',x:Number(d.photoX??50),y:Number(d.photoY??50),zoom:100};
@@ -366,7 +368,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
    const row=document.createElement('label');row.textContent='РЕЖИМ ПОКАЗУ';const fit=document.createElement('select');
    [['cover','Заповнити (обрізати)'],['contain','Показати повністю']].forEach(([v,t])=>fit.add(new Option(t,v)));
    fit.value=current.fit;fit.onchange=()=>save({fit:fit.value});row.append(fit);fields.append(row);
-   for(const [key,title,min,max,step] of [['x','Горизонталь',0,100,1],['y','Вертикаль',0,100,1],['zoom','Масштаб',100,200,5]]){
+   for(const [key,title,min,max,step] of [['x','Горизонталь',0,100,1],['y','Вертикаль',0,100,1],['zoom','Масштаб',50,200,5]]){
     const line=document.createElement('label');line.className='cms96-slider';const titleEl=document.createElement('span');titleEl.textContent=title;
     const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step=step;slider.value=current[key];
     const output=document.createElement('output');output.textContent=slider.value+'%';
