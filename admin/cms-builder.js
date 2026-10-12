@@ -225,6 +225,13 @@ function applyBlockDesign(el,d){if(!el||!d)return;
    capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
   }
   const media=el.querySelector('#homeCapsulesMedia'),photo=media?.querySelector('img');
+  if(media)for(const key of ['desktop','tablet','mobile']){
+   const crop={fit:d.photoFit||'cover',x:d.photoX??50,y:d.photoY??50,zoom:100,...(d.cropDevices?.[key]||{})};
+   media.style.setProperty('--vh-crop-'+key+'-fit',crop.fit==='contain'?'contain':'cover');
+   media.style.setProperty('--vh-crop-'+key+'-x',Math.max(0,Math.min(100,Number(crop.x)||0))+'%');
+   media.style.setProperty('--vh-crop-'+key+'-y',Math.max(0,Math.min(100,Number(crop.y)||0))+'%');
+   media.style.setProperty('--vh-crop-'+key+'-zoom',Math.max(1,Math.min(2,(Number(crop.zoom)||100)/100)));
+  }
   if(photo){photo.style.objectFit=d.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+d.photoX)?+d.photoX:50}% ${Number.isFinite(+d.photoY)?+d.photoY:50}%`}
   if(media&&copy){
    const layout=d.layout||'original';
@@ -343,7 +350,37 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
  if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
  const crop=document.createElement('details');crop.className='cms91-crop';crop.innerHTML='<summary>Кадрування фото</summary>';const cropBody=document.createElement('div');cropBody.className='cms91-crop-body';
  select(cropBody,'photoFit','ВІДОБРАЖЕННЯ',[['cover','Заповнити область'],['contain','Показати повністю']],d.photoFit||'cover');
- for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);photo.append(crop);
+ for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);if(!isCapsules)photo.append(crop);
+ if(isCapsules){
+  const panel=document.createElement('div');panel.className='cms129-device-crop';
+  panel.innerHTML='<h4>КАДРУВАННЯ ЗА ПРИСТРОЯМИ</h4><p>Окремі налаштування одного фото для комп’ютера, планшета й телефона. Перемикайте розмір попереднього перегляду, щоб перевірити результат.</p>';
+  const tabs=document.createElement('div');tabs.className='cms129-tabs';const fields=document.createElement('div');panel.append(tabs,fields);
+  let active='desktop';
+  const defaults={fit:d.photoFit||'cover',x:Number(d.photoX??50),y:Number(d.photoY??50),zoom:100};
+  const state=key=>({...defaults,...(d.cropDevices?.[key]||{})});
+  const save=patch=>{d.cropDevices={...(d.cropDevices||{}),[active]:{...state(active),...patch}};commit()};
+  const render=()=>{
+   tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.device===active));
+   fields.replaceChildren();
+   const current=state(active);
+   const row=document.createElement('label');row.textContent='РЕЖИМ ПОКАЗУ';const fit=document.createElement('select');
+   [['cover','Заповнити (обрізати)'],['contain','Показати повністю']].forEach(([v,t])=>fit.add(new Option(t,v)));
+   fit.value=current.fit;fit.onchange=()=>save({fit:fit.value});row.append(fit);fields.append(row);
+   for(const [key,title,min,max,step] of [['x','Горизонталь',0,100,1],['y','Вертикаль',0,100,1],['zoom','Масштаб',100,200,5]]){
+    const line=document.createElement('label');line.className='cms96-slider';const titleEl=document.createElement('span');titleEl.textContent=title;
+    const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step=step;slider.value=current[key];
+    const output=document.createElement('output');output.textContent=slider.value+'%';
+    slider.oninput=()=>{output.textContent=slider.value+'%';save({[key]:Number(slider.value)})};
+    line.append(titleEl,slider,output);fields.append(line);
+   }
+   const reset=document.createElement('button');reset.type='button';reset.textContent='Скинути для цього екрана';
+   reset.onclick=()=>{const next={...(d.cropDevices||{})};delete next[active];d.cropDevices=next;commit();render()};fields.append(reset);
+  };
+  [['desktop','Комп’ютер'],['tablet','Планшет'],['mobile','Телефон']].forEach(([key,title])=>{
+   const btn=document.createElement('button');btn.type='button';btn.dataset.device=key;btn.textContent=title;
+   btn.onclick=()=>{active=key;render()};tabs.append(btn);
+  });render();photo.append(panel);
+ }
  // STEP 96: independent photo crop controls, stored in block design.
  const slots=document.createElement('div');slots.className='cms96-slots';if(isCapsules)slots.hidden=true;
  const slotsTitle=document.createElement('h4');slotsTitle.textContent='КАДРУВАННЯ КОЖНОГО ФОТО';slots.append(slotsTitle);
