@@ -755,6 +755,17 @@ function applyCapsulePhoto(section,url){
  if(url==='__removed__')return;
  const img=frame.contentDocument.createElement('img');img.src=url;img.alt='Фото капсул';img.loading='eager';img.decoding='async';
  img.style.cssText='width:100%;height:100%;object-fit:cover;display:block';
+ img.onerror=()=>{
+  if(!img.isConnected)return;
+  media.dataset.cmsPhotoError='true';
+  const warning=frame.contentDocument.createElement('div');
+  warning.textContent='Не вдалося завантажити фото. Перевірте посилання або доступ до файлу.';
+  warning.style.cssText='padding:24px;color:#fff;background:#6e2929;font:14px/1.5 sans-serif';
+  img.replaceWith(warning);
+  const status=document.getElementById('status');
+  if(status)status.textContent='Помилка завантаження фото «Капсули» у перегляді';
+ };
+ img.onload=()=>{delete media.dataset.cmsPhotoError};
  media.append(img);
 }
 function applyExistingAnimation(el,value){
