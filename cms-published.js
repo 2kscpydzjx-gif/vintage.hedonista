@@ -27,6 +27,16 @@ if(e.design&&typeof e.design==='object'){const design=e.design;
    else if(design.layout==='stacked'){el.style.flexDirection='column';media.style.order='0';copy.style.order='1'}
   }
  }
+ if(page==='home'&&el.matches('.homepage-capsules')){
+  const photo=el.querySelector('#homeCapsulesMedia img');
+  if(photo){photo.style.objectFit=design.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+design.photoX)?+design.photoX:50}% ${Number.isFinite(+design.photoY)?+design.photoY:50}%`}
+  const copy=el.querySelector(':scope > .editorial-copy');
+  if(copy){
+   if(design.surface==='transparent')copy.style.setProperty('background','transparent','important');
+   else if(design.surface==='white')copy.style.setProperty('background','#fff','important');
+   else if(design.surface==='cream')copy.style.setProperty('background','#f3eadf','important');
+  }
+ }
  // Existing editorial blocks have their own opaque copy panel: style it directly.
  const copyPanel=el.querySelector(':scope > .editorial-copy, :scope > .homepage-capsules-copy');
  if(copyPanel&&(design.backgroundMode==='transparent'||design.backgroundMode==='dark')){
