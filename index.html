@@ -19,16 +19,33 @@ window.__VH_BOOT_SETTINGS_PROMISE=fetch('https://yffwjgwwkapdrpwyjwfp.supabase.c
 </script>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
-<title>Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=263"><style id="vh-home-layout-safety-122">
-/* Keep CMS-edited headline inside its own flow, never over the buttons. */
-.home-page .hero-grid{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)}
-.home-page .hero-copy{min-width:0;min-height:0;gap:clamp(12px,2vw,24px)}
-.home-page .hero-live-text{position:relative!important;inset:auto!important;transform:none!important;min-width:0;max-width:100%;height:auto!important}
-.home-page .hero #heroTitle{font-size:clamp(32px,4.2vw,68px)!important;line-height:1.06!important;overflow-wrap:anywhere;word-break:normal;max-width:100%;margin-bottom:clamp(10px,1.5vw,20px)}
-.home-page .hero #heroDescription{overflow-wrap:anywhere}
-.home-page .hero-live-buttons{position:relative!important;inset:auto!important;transform:none!important;flex-shrink:0;z-index:1;margin-top:0}
-.home-page .hero-copy{overflow-wrap:anywhere}
-@media(max-width:760px){.home-page .hero #heroTitle{font-size:clamp(30px,9vw,52px)!important}.home-page .hero-copy{padding-top:32px;padding-bottom:32px}}
+<title>Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=263"><style id="vh-home-layout-safety-123">
+/* STEP 123: one content-flow layout for the storefront HERO.
+   Overrides the historical absolute-placement rules without hiding content. */
+body.home-page .hero{height:auto!important;min-height:0!important;overflow:visible!important}
+body.home-page .hero-grid{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);height:auto!important;min-height:640px}
+body.home-page .hero-copy{box-sizing:border-box;position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:stretch!important;gap:0!important;height:auto!important;min-height:640px!important;min-width:0!important;padding:clamp(30px,4vw,64px) clamp(22px,3vw,52px) clamp(30px,4vw,64px) 0!important;overflow:visible!important}
+body.home-page .hero-copy>.hero-live-text{position:relative!important;display:block!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%!important;max-width:100%!important;height:auto!important;min-width:0!important;margin:0!important;pointer-events:auto!important}
+body.home-page .hero-live-text .eyebrow{margin:0 0 clamp(12px,2vw,24px)!important;overflow-wrap:break-word}
+body.home-page .hero-live-text #heroTitle{position:static!important;display:block!important;width:100%!important;max-width:100%!important;height:auto!important;margin:0 0 clamp(14px,2vw,24px)!important;font-size:clamp(30px,3.7vw,58px)!important;line-height:1.05!important;overflow-wrap:anywhere!important;word-break:normal!important;hyphens:auto}
+body.home-page .hero-live-text #heroDescription{position:static!important;max-width:100%!important;margin:0!important;overflow-wrap:break-word!important}
+body.home-page .hero-copy>.hero-live-buttons{position:relative!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-start!important;transform:none!important;animation:none!important;opacity:1!important;visibility:visible!important;width:100%!important;max-width:100%!important;height:auto!important;margin:clamp(20px,3vw,32px) 0 0!important;gap:12px!important;z-index:1!important}
+body.home-page .hero-live-buttons .btn{box-sizing:border-box;flex:0 1 auto!important;min-width:0!important;max-width:100%!important;white-space:normal!important;text-align:center}
+@media(min-width:761px) and (max-width:1100px){
+ body.home-page .hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ body.home-page .hero-copy{padding:35px 24px!important}
+ body.home-page .hero-live-text #heroTitle{font-size:clamp(29px,3.5vw,45px)!important}
+ body.home-page .hero-live-buttons .btn{padding:0 12px!important;font-size:9px!important}
+}
+@media(max-width:760px){
+ body.home-page .hero-grid{display:block!important;min-height:0!important}
+ body.home-page .hero-copy{min-height:0!important;height:auto!important;padding:38px 24px 34px!important}
+ body.home-page .hero-copy>.hero-live-text{max-width:100%!important}
+ body.home-page .hero-live-text #heroTitle{font-size:clamp(29px,8.5vw,45px)!important;line-height:1.04!important}
+ body.home-page .hero-copy>.hero-live-buttons{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;width:100%!important;margin:24px 0 0!important}
+ body.home-page .hero-live-buttons .btn{width:100%!important;min-width:0!important;max-width:100%!important}
+}
+@media(max-width:390px){body.home-page .hero-copy{padding:30px 18px!important}body.home-page .hero-live-text #heroTitle{font-size:clamp(28px,8.2vw,36px)!important}}
 </style></head><body class="home-page">
 <header><div class="wrap head">
 <a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
@@ -187,7 +204,7 @@ window.__VH_BOOT_SETTINGS_PROMISE=fetch('https://yffwjgwwkapdrpwyjwfp.supabase.c
   </div>
 </footer><div id="toast" class="toast"></div>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="config.js"></script><script defer src="site.js?v=120"></script>
+<script defer src="config.js"></script><script defer src="site.js?v=123"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   initHome();
@@ -206,4 +223,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <script src="homepage-capsules-motion.js" defer></script>
-<script defer src="cms-published.js?v=122"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+<script defer src="cms-published.js?v=123"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>

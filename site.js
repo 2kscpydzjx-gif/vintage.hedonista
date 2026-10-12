@@ -69,19 +69,14 @@ async function initHome(){
      aboutBtn.href=s.hero_about_button_url||'about.html';
    }
 
-   const x=Number(s.hero_text_x ?? 7);
-   const y=Number(s.hero_text_y ?? 18);
-   const savedBx=Number(s.hero_buttons_x ?? 46);
-   const bx=savedBx<25?46:savedBx;
-   const by=Number(s.hero_buttons_y ?? 4);
-
-   heroLiveText.style.setProperty('left',`${x}%`,'important');
-   heroLiveText.style.setProperty('top',`${y}%`,'important');
-
+   // V123: content-first HERO. Legacy percentage positions caused text/buttons to overlap.
+   // Keep their saved values in the database for rollback, but don't apply them to the storefront.
+   heroLiveText.style.removeProperty('left');
+   heroLiveText.style.removeProperty('top');
    const buttons=document.querySelector('.hero-live-buttons');
    if(buttons){
-     buttons.style.setProperty('left',`${bx}%`,'important');
-     buttons.style.setProperty('bottom',`${by + 6}%`,'important');
+     buttons.style.removeProperty('left');
+     buttons.style.removeProperty('bottom');
    }
  }
  if($('heroKicker'))$('heroKicker').textContent=s.hero_kicker||'ОДЯГ З МИНУЛОГО. СТИЛЬ ПОЗА ЧАСОМ.';
