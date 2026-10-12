@@ -226,9 +226,12 @@ function applyBlockDesign(el,d){if(!el||!d)return;
   }
   const media=el.querySelector('#homeCapsulesMedia'),photo=media?.querySelector('img');
   if(photo){photo.style.objectFit=d.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+d.photoX)?+d.photoX:50}% ${Number.isFinite(+d.photoY)?+d.photoY:50}%`}
-  if(media&&copy&&['photo-left','photo-right','stacked','original'].includes(d.layout)){
-   if(d.layout==='stacked'){el.style.flexDirection='column';media.style.order='0';copy.style.order='1'}
-   else{el.style.flexDirection='';media.style.order=d.layout==='photo-left'?'0':'2';copy.style.order='1'}
+  if(media&&copy){
+   const layout=d.layout||'original';
+   el.dataset.cmsCapsulesLayout=layout;
+   el.style.setProperty('--vh-capsules-photo-width',Math.max(25,Math.min(75,Number(d.photoWidth)||50))+'%');
+   el.style.removeProperty('flex-direction');
+   media.style.removeProperty('order');copy.style.removeProperty('order');
   }
  }
  if(d.photoPreset&&el.classList.contains('vh-lab-card')){const preset=d.photoPreset;el.style.gridTemplateColumns=preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='wide'?'60% 40%':'50% 50%';const ph=el.querySelector('.vh-lab-photo');if(ph){ph.style.aspectRatio=preset==='square'?'1 / 1':'auto';ph.style.height=preset==='square'?'auto':'100%';ph.style.minHeight='0';ph.style.maxWidth='100%';ph.style.margin=preset==='square'?'28px':'0';ph.style.alignSelf='center';ph.style.width='calc(100% - '+(preset==='square'?'56px':'0px')+')';ph.style.boxSizing='border-box';}}
@@ -314,7 +317,7 @@ async function uploadCmsImage(file,block,button,slot=0){
   $('status').textContent='Фото завантажено. Збережіть чернетку в Supabase.';
  }finally{button.disabled=false;button.textContent='Завантажити фото'}
 }
-function addDesignControls(host,id,initial,onChange){
+function addDesignControls(host,id,initial,onChange,isCapsules=false){
  const d={...initial};const details=document.createElement('div');details.className='cms-design cms91-design';
  const commit=()=>onChange({...d});
  const label=(txt)=>{const el=document.createElement('label');el.textContent=txt;return el};
@@ -335,13 +338,14 @@ function addDesignControls(host,id,initial,onChange){
  const photo=document.createElement('div');photo.className='cms91-panel';photo.dataset.tab='design';
  const title=document.createElement('div');title.className='cms91-caption';title.textContent='МАКЕТ БЛОКУ · виберіть готову композицію';photo.append(title);
  const grid=document.createElement('div');grid.className='cms91-layout-grid';
- const presets=[['left','Фото ліворуч','50 / 50'],['right','Фото праворуч','50 / 50'],['square','Квадрат із відступами','1 : 1'],['wide','Акцент на фото','60 / 40'],['framed','Фото з двох боків','Фото · текст · фото']];
- for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{d.photoPreset=value;d.layout=value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
+ const presets=isCapsules?[['right','Фото праворуч','Текст · фото'],['left','Фото ліворуч','Фото · текст'],['stacked','Фото зверху','Фото над текстом']]:[['left','Фото ліворуч','50 / 50'],['right','Фото праворуч','50 / 50'],['square','Квадрат із відступами','1 : 1'],['wide','Акцент на фото','60 / 40'],['framed','Фото з двох боків','Фото · текст · фото']];
+ for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
+ if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
  const crop=document.createElement('details');crop.className='cms91-crop';crop.innerHTML='<summary>Кадрування фото</summary>';const cropBody=document.createElement('div');cropBody.className='cms91-crop-body';
  select(cropBody,'photoFit','ВІДОБРАЖЕННЯ',[['cover','Заповнити область'],['contain','Показати повністю']],d.photoFit||'cover');
  for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);photo.append(crop);
  // STEP 96: independent photo crop controls, stored in block design.
- const slots=document.createElement('div');slots.className='cms96-slots';
+ const slots=document.createElement('div');slots.className='cms96-slots';if(isCapsules)slots.hidden=true;
  const slotsTitle=document.createElement('h4');slotsTitle.textContent='КАДРУВАННЯ КОЖНОГО ФОТО';slots.append(slotsTitle);
  const captions=['Основне фото','Друге фото / праворуч','Третє фото галереї'];
  captions.forEach((caption,i)=>{
@@ -684,7 +688,7 @@ function renderExistingEditor(){
   applyExistingAnimation(target.el,v);$('status').textContent='Анімацію змінено у чернетці';
  },animationOptions));
  // Design controls for each existing section (draft only)
- addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value)});
+ addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
  // The real homepage Capsules section uses #homeCapsulesMedia, populated asynchronously by site.js.
  if(target.el.matches('.homepage-capsules')||target.el.querySelector('#homeCapsulesMedia')){
   const media=target.el.querySelector('#homeCapsulesMedia');

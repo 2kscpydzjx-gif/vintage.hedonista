@@ -17851,3 +17851,42 @@ figure[data-vh-align="left"]{float:left!important;margin:0 22px 16px 0!important
 #productDesc a:hover,.article-v71-content a:hover{color:#5e3625}
 #productDesc p{margin:0 0 1em}#productDesc ul,#productDesc ol{padding-left:1.5em;margin:0 0 1em}
 #productDesc strong{font-weight:700}
+
+/* STEP 128 — single layout engine for the homepage Capsules block.
+   Applies equally in CMS iframe and published storefront. */
+@media(min-width:761px){
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"],
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]{
+  display:grid!important;
+  grid-template-columns:var(--vh-capsules-photo-width,50%) minmax(0,1fr)!important;
+  grid-template-rows:auto!important;
+  flex-direction:row!important;
+ }
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]{
+  grid-template-columns:minmax(0,1fr) var(--vh-capsules-photo-width,50%)!important;
+ }
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>#homeCapsulesMedia{grid-column:1!important;grid-row:1!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>.editorial-copy{grid-column:2!important;grid-row:1!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>#homeCapsulesMedia{grid-column:2!important;grid-row:1!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>.editorial-copy{grid-column:1!important;grid-row:1!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]{
+  display:flex!important;flex-direction:column!important;
+ }
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]>#homeCapsulesMedia{order:0!important;width:100%!important;min-height:360px!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]>.editorial-copy{order:1!important;width:100%!important}
+}
+body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>#homeCapsulesMedia,
+body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>#homeCapsulesMedia{min-width:0!important;width:100%!important}
+body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>.editorial-copy,
+body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>.editorial-copy{min-width:0!important;width:100%!important}
+@media(max-width:760px){
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"],
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"],
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]{display:flex!important;flex-direction:column!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>#homeCapsulesMedia,
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>#homeCapsulesMedia,
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]>#homeCapsulesMedia{order:0!important;width:100%!important}
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-left"]>.editorial-copy,
+ body.home-page .homepage-capsules[data-cms-capsules-layout="photo-right"]>.editorial-copy,
+ body.home-page .homepage-capsules[data-cms-capsules-layout="stacked"]>.editorial-copy{order:1!important;width:100%!important}
+}
