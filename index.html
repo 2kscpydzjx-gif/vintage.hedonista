@@ -1,5 +1,12 @@
 <!doctype html>
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style id="vh-cms-boot-guard">
+/* Keep initial HTML blocks from flashing before published CMS layout is applied.
+   The guard is limited to home <main>, never the header, navigation or footer. */
+html.vh-cms-booting body.home-page main > section{visibility:hidden!important}
+html.vh-cms-booting body.home-page main{min-height:65vh}
+</style>
+<script>document.documentElement.classList.add('vh-cms-booting');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -241,4 +248,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <script src="homepage-capsules-motion.js" defer></script>
-<script defer src="cms-published.js?v=131"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+<script defer src="cms-published.js?v=134"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
