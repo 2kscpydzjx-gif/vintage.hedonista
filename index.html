@@ -46,7 +46,25 @@ body.home-page .hero-live-buttons .btn{box-sizing:border-box;flex:0 1 auto!impor
  body.home-page .hero-live-buttons .btn{width:100%!important;min-width:0!important;max-width:100%!important}
 }
 @media(max-width:390px){body.home-page .hero-copy{padding:30px 18px!important}body.home-page .hero-live-text #heroTitle{font-size:clamp(28px,8.2vw,36px)!important}}
-</style></head><body class="home-page">
+/* STEP 124: compact hero, unified Latin/Cyrillic display typography. */
+body.home-page .hero-grid{min-height:540px!important}
+body.home-page .hero-copy{min-height:540px!important;padding-top:30px!important;padding-bottom:30px!important}
+body.home-page .hero-live-text #heroTitle{font-family:'Prata',Georgia,serif!important;font-size:clamp(28px,3vw,45px)!important;line-height:1.1!important;letter-spacing:-.035em!important;hyphens:none!important;overflow-wrap:break-word!important}
+body.home-page .hero-live-text #heroDescription{font-size:clamp(12px,1vw,14px)!important;line-height:1.5!important}
+body.home-page .hero-copy>.hero-live-buttons{margin-top:20px!important}
+@media(min-width:761px) and (max-width:1100px){
+ body.home-page .hero-grid{min-height:520px!important}
+ body.home-page .hero-copy{min-height:520px!important;padding:24px!important}
+ body.home-page .hero-live-text #heroTitle{font-size:clamp(26px,3vw,36px)!important}
+}
+@media(max-width:760px){
+ body.home-page .hero-grid{min-height:0!important}
+ body.home-page .hero-copy{min-height:0!important;padding:30px 24px!important}
+ body.home-page .hero-live-text #heroTitle{font-size:clamp(27px,7.5vw,39px)!important;line-height:1.12!important}
+ body.home-page .hero-copy>.hero-live-buttons{margin-top:20px!important}
+}
+@media(max-width:390px){body.home-page .hero-live-text #heroTitle{font-size:clamp(25px,7vw,32px)!important}}
+</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&display=swap"></head><body class="home-page">
 <header><div class="wrap head">
 <a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
 <nav class="nav">
