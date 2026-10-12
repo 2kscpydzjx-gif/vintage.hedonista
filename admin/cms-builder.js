@@ -228,7 +228,7 @@ function applyBlockDesign(el,d){if(!el||!d)return;
   if(photo){photo.style.objectFit=d.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+d.photoX)?+d.photoX:50}% ${Number.isFinite(+d.photoY)?+d.photoY:50}%`}
   if(media&&copy&&['photo-left','photo-right','stacked','original'].includes(d.layout)){
    if(d.layout==='stacked'){el.style.flexDirection='column';media.style.order='0';copy.style.order='1'}
-   else{el.style.flexDirection='';media.style.order=d.layout==='photo-right'?'2':'0';copy.style.order='1'}
+   else{el.style.flexDirection='';media.style.order=d.layout==='photo-left'?'0':'2';copy.style.order='1'}
   }
  }
  if(d.photoPreset&&el.classList.contains('vh-lab-card')){const preset=d.photoPreset;el.style.gridTemplateColumns=preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='wide'?'60% 40%':'50% 50%';const ph=el.querySelector('.vh-lab-photo');if(ph){ph.style.aspectRatio=preset==='square'?'1 / 1':'auto';ph.style.height=preset==='square'?'auto':'100%';ph.style.minHeight='0';ph.style.maxWidth='100%';ph.style.margin=preset==='square'?'28px':'0';ph.style.alignSelf='center';ph.style.width='calc(100% - '+(preset==='square'?'56px':'0px')+')';ph.style.boxSizing='border-box';}}
@@ -646,7 +646,7 @@ function renderExistingEditor(){
    try{add(imageURL(getComputedStyle(node,pseudo).backgroundImage),pseudo)}catch{}
   }
  }
- if(photos.length&&!cmsFieldsFor(target.el).length){
+ if(photos.length&&!cmsFieldsFor(target.el).length && !(pageId==='home'&&target.el.matches('.homepage-capsules'))){
   const title=document.createElement('h3');title.textContent='ФОТОГРАФІЇ БЛОКУ';title.className='photos-title';host.append(title);
   photos.forEach((photo,i)=>{
    const key='image'+i,wrap=document.createElement('div');wrap.className='photo-field';const thumbBox=document.createElement('div');thumbBox.className='cms-thumb-box';
@@ -694,10 +694,10 @@ function renderExistingEditor(){
   const input=document.createElement('input');input.placeholder='URL або шлях до фотографії';input.value=draft.capsuleImage?.startsWith('data:')?'':draft.capsuleImage||'';
   const file=document.createElement('input');file.type='file';file.accept='image/png,image/jpeg,image/webp';
   const update=v=>{
-   const all=readExisting();all[target.id]={...(all[target.id]||{}),capsuleImage:v};saveExisting(all);
+   const all=readExisting();const current={...(all[target.id]||{})};delete current.images;all[target.id]={...current,capsuleImage:v};saveExisting(all);
    applyCapsulePhoto(target.el,v);
    showCapsuleThumb(v==='__removed__'?'':v);input.value=v.startsWith('data:')?'':v==='__removed__'?'':v;
-   $('status').textContent='Фото капсул змінено лише в тестовому перегляді';
+   scheduleLivePreview();$('status').textContent='Фото капсул оновлено у попередньому перегляді · не опубліковано';
   };
   input.onchange=()=>{const v=input.value.trim();if(v&&/^(javascript:|data:)/i.test(v)){alert('Недопустима адреса');return}update(v)};
   file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-capsule');update(url);$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
@@ -721,10 +721,17 @@ function applyExistingAnimation(el,value){
  el.classList.remove('cms-animation-fade-up','cms-animation-fade-left','cms-animation-fade-right','cms-animation-zoom','cms-animation-fade','cms-animation-none');
  if(value&&value!=='system')el.classList.add('cms-animation-'+value);
 }
-function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design)applyBlockDesign(t.el,d.design);applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
+function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){
+ if(pageId==='home'&&t.el.matches('.homepage-capsules')){
+  const media=t.el.querySelector('#homeCapsulesMedia'),copy=t.el.querySelector('.editorial-copy');
+  // Keep the public site's default composition: copy left, one image right.
+  if(media&&copy){media.style.order='2';copy.style.order='1'}
+ }
+const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design)applyBlockDesign(t.el,d.design);applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 function applyImageDrafts(){
  const drafts=readExisting();
  for(const target of sectionTargets){
+  if(pageId==='home'&&target.el.matches('.homepage-capsules'))continue; // Capsule has one dedicated image control.
   const images=drafts[target.id]?.images;if(!images)continue;
   let index=0;const nodes=[target.el,...target.el.querySelectorAll('*')].slice(0,900);
   for(const node of nodes){
