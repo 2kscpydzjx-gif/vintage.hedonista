@@ -3,7 +3,14 @@ const $=id=>document.getElementById(id);
 const cloud=window.supabase&&window.VH_CONFIG?window.supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}}):null;
 let cloudReady=false;
 const revisionTokens=new Map();
-function conflictError(){return Error('Інший адміністратор уже зберіг новішу чернетку. Ваші локальні зміни залишилися в браузері. Скопіюйте їх перед оновленням сторінки.');}
+function backupLocalDraft(){
+ const snapshot={page:pageId,savedAt:new Date().toISOString(),blocks:pageId==='shared'?[]:blocks,existing:pageId==='shared'?{}:readExisting(),order:pageId==='shared'?[]:mergedOrder(),shared:pageId==='shared'?sharedDraft():null};
+ const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement('a');link.href=url;link.download='vintage-hedonista-'+pageId+'-backup-'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.json';
+ document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function conflictError(){backupLocalDraft();return Error('Інший адміністратор зберіг новішу чернетку. Ваші зміни не перезаписані; резервну копію JSON завантажено. Оновіть сторінку, щоб побачити актуальну версію.');}
 
 async function requireAdmin(){
  if(!cloud)throw Error('Не вдалося завантажити Supabase');
@@ -18,6 +25,7 @@ async function loadCloudDraft(){
  const key=pageId==='shared'?'home':pageId;
  const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(error)throw error;
+ if((pageId==='shared'?'home':pageId)!==key)return;
  revisionTokens.set(key,data?.updated_at||null);
  if(pageId==='shared'){
   if(data?.shared&&Object.keys(data.shared).length){localStorage.setItem(sharedStorageKey,JSON.stringify(data.shared));renderSharedEditor();updateLivePreview()}
@@ -50,6 +58,7 @@ async function saveCloudDraft(){
  const expected=revisionTokens.get(key);
  const {data:old,error:readError}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(readError)throw readError;
+ if((pageId==='shared'?'home':pageId)!==key)throw Error('Сторінка змінилася під час збереження. Повторіть операцію на потрібній сторінці.');
  if((old?.updated_at||null)!==expected)throw conflictError();
  const savedShared=pageId==='shared'?{...(old?.shared||{}),...sharedDraft()}:{...(old?.shared||{}),cmsPageDraft:{existing:readExisting(),order:mergedOrder()}};
  const payload={page_key:key,revision_status:'draft',blocks:pageId==='shared'?(old?.blocks||[]):blocks,shared:savedShared,updated_at:new Date().toISOString()};
