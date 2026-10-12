@@ -27,6 +27,8 @@ async function home(){
    grid.appendChild(a);
  });
  if(!(styles||[]).length)grid.innerHTML='<div class="capsule-front-empty">Поки немає опублікованих стилів.</div>';
+ window.__VH_CAPSULES_RENDER_DONE=true;
+ window.dispatchEvent(new Event('vh:capsules-rendered'));
 }
 async function detail(){
  const db=sb(); if(!db)return showError('Не вдалося підключитися до Supabase');
