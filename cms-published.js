@@ -28,6 +28,13 @@ if(e.design&&typeof e.design==='object'){const design=e.design;
   }
  }
  if(page==='home'&&el.matches('.homepage-capsules')){
+  const capsuleBtn=el.querySelector('#homeCapsulesBtn');
+  if(capsuleBtn){
+   const lightPanel=design.surface==='white'||design.surface==='cream'||design.textTone==='dark';
+   capsuleBtn.style.setProperty('background-color',lightPanel?'#211a15':'#f2e5d5','important');
+   capsuleBtn.style.setProperty('border-color',lightPanel?'#211a15':'#f2e5d5','important');
+   capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
+  }
   const photo=el.querySelector('#homeCapsulesMedia img');
   if(photo){photo.style.objectFit=design.photoFit==='contain'?'contain':'cover';photo.style.objectPosition=`${Number.isFinite(+design.photoX)?+design.photoX:50}% ${Number.isFinite(+design.photoY)?+design.photoY:50}%`}
   const copy=el.querySelector(':scope > .editorial-copy');
