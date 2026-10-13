@@ -302,7 +302,7 @@ function goPage(id,{remember=true,history=true}={}){
  const page=$(id);
  if(page)page.classList.add('active');
  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
- const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',capsules:'Капсули',capsuleStyleForm:'Стиль',capsuleForm:'Капсула',news:'Вінтажні хроніки',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
+ const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',capsules:'Капсули',capsuleStyleForm:'Стиль',capsuleForm:'Капсула',news:'HEDONISTA JOURNAL',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
  $('pageTitle').textContent=names[id]||'Vintage Hedonista';
  if(remember)sessionStorage.setItem(VH_ADMIN_PAGE_KEY,id);
  if(history!==false){const url=new URL(location.href);url.searchParams.set('page',id);window.history.replaceState(window.history.state,'',url)}
