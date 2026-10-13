@@ -231,8 +231,17 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  if(!enabled){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
- const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>mediaValue.startsWith(prefix))?mediaValue:'';
- layer.style.backgroundImage=url?'linear-gradient(90deg,rgba(12,8,6,.94),rgba(12,8,6,.70) 38%,rgba(12,8,6,.08)),url('+JSON.stringify(url)+')':'none';
+ const raw=typeof mediaValue==='string'?mediaValue.trim():'';
+ const url=raw&&raw!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>raw.startsWith(prefix))?raw:'';
+ const image=url?'url('+JSON.stringify(url)+')':'none';
+ // Keep the image on a real CSS background layer, independent of storefront image nodes.
+ layer.style.setProperty('background-image',url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none','important');
+ layer.dataset.cmsImage=url?'set':'empty';
+ if(url){
+  const test=new Image();
+  test.onerror=()=>{console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'};
+  test.src=new URL(url,doc.baseURI).href;
+ }
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
  cmsApplyExistingLayout(el,d,readExisting()?.[selectedExisting]?.templateImage);
