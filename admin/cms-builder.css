@@ -296,3 +296,59 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  main{grid-template-columns:200px minmax(0,1fr) 300px}
  main>header .actions button{padding:8px;font-size:10px}
 }
+
+/* STEP 154: screenshot-matched studio refinements */
+@media(min-width:1200px){
+ .sidebar{width:118px!important;background:#15100e;padding:12px 8px}
+ .sidebar .brand{font-size:15px;text-align:center;letter-spacing:0;padding:12px 2px 24px}
+ .sidebar .brand small{font-size:8px;letter-spacing:.8px}
+ .sidebar .nav{font-size:10px!important;padding:12px 7px!important}
+ .sidebar .nav-label{font-size:9px;margin:22px 4px 8px}
+ #pageNav{max-height:calc(100vh - 200px)}
+ main{grid-template-columns:245px minmax(0,1fr) 315px!important;grid-template-rows:62px minmax(0,1fr)!important}
+ main>header{grid-column:1/-1;grid-row:1;height:62px;min-height:62px;padding:7px 14px;display:flex;align-items:center;gap:12px}
+ main>header>div:first-of-type:not(.studio-mark){display:none}
+ .studio-mark{font:29px 'Bodoni Moda',Georgia,serif;color:#e6d6c3;line-height:1;padding:0 9px;border-right:1px solid #3d3027}
+ .studio-top-controls{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+ .studio-page-label{font-size:9px;color:#b49c83;display:flex;align-items:center;gap:8px}
+ #studioPage{background:#2b211b;color:#eee2d3;border:1px solid #3d3027;padding:9px 11px;border-radius:4px;max-width:210px;min-width:140px}
+ .studio-devices{display:flex;gap:3px;margin:auto}
+ .studio-device{border:0!important;background:transparent!important;color:#a99582!important;font-size:23px!important;padding:4px 11px!important}
+ .studio-device.active{color:#f1e3d3!important;background:#382b23!important;border-bottom:2px solid #c9a786!important}
+ .studio-icon-button{font-size:18px!important;border:0!important;padding:6px 10px!important}
+ main>header .actions{flex-wrap:nowrap}
+ #save{background:#241b16;color:#f0e3d3;border-color:#9a806a}
+ #publish{background:#c5a382!important;color:#1e150e!important}
+ main>.page-context{display:none}
+ main>.layout>div:first-child{grid-column:1;grid-row:2}
+ main>.layout>.editor{grid-column:3;grid-row:2}
+ main>.preview{grid-column:2;grid-row:2}
+ .preview>.section-title{padding:12px 16px;min-height:43px}
+ .live-preview-frame{height:calc(100vh - 166px)!important}
+ .editor{padding:0!important}
+ .studio-inspector-head{position:sticky;top:0;z-index:8;background:#1b1511;padding:17px 15px 0;border-bottom:1px solid #443329}
+ .studio-inspector-head h2{font:19px 'Bodoni Moda',Georgia,serif;border:0;padding:0 0 16px}
+ .studio-inspector-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+ .studio-inspector-tabs button{font-size:10px!important;padding:12px 3px!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#ad9987!important}
+ .studio-inspector-tabs button.active{border-bottom-color:#c7a583!important;color:#f6e7d5!important}
+ .editor .cms-editor-scroll{padding:12px 15px 24px}
+ .studio-tab-notice{margin:14px;font-size:11px;line-height:1.6}
+ .studio-seo-open{display:block!important;position:fixed;z-index:90;top:64px;right:320px;width:min(410px,90vw);max-height:75vh;overflow:auto;box-shadow:0 15px 50px #000b}
+ main>.status{left:50%;transform:translateX(-50%)}
+ .existing-blocks>.muted{font-size:9px;line-height:1.4;letter-spacing:.5px}
+ .existing-select.active,.existing-select:hover{background:#44342a;border-color:#c7a583}
+ .cms-sort-row .cms-grip{font-size:16px;min-width:27px;padding:0 5px}
+ .preview>.section-title h2{font-size:10px;letter-spacing:1.4px}
+}
+@media(min-width:1200px) and (max-width:1500px){
+ main{grid-template-columns:205px minmax(0,1fr) 285px!important}
+ #studioPage{min-width:120px;max-width:165px}
+ .studio-top-controls{gap:5px}
+ .studio-device{padding:4px 7px!important}
+ main>header .actions button{font-size:10px;padding:9px 8px}
+ .studio-seo-open{right:290px}
+}
+@media(max-width:1199px){
+ .studio-mark,.studio-top-controls,.studio-inspector-tabs{display:none}
+ .studio-inspector-head h2{margin:0 0 10px}
+}
