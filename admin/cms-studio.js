@@ -65,6 +65,25 @@ function syncTabs(){
   }
   panel.querySelectorAll('p.muted').forEach(el=>{if(/Тестові зміни|Оригінал у Supabase/.test(el.textContent||''))el.hidden=true});
  });
+ // Secondary native photo slots are optional. Keep their inputs and values
+ // intact, but collapse them so the main image and text controls are visible.
+ editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
+  const photos=[...panel.querySelectorAll('.photo-field')].filter(el=>!el.hidden);
+  if(photos.length<2)return;
+  let extras=panel.querySelector(':scope > details.studio-extra-photos');
+  if(!extras){
+   extras=document.createElement('details');extras.className='studio-extra-photos';
+   const summary=document.createElement('summary');summary.textContent='Додаткові фотографії ('+(photos.length-1)+')';
+   extras.append(summary);
+   photos[0].after(extras);
+  }
+  const secondary=photos.slice(1);
+  const summary=extras.querySelector('summary');
+  const count=secondary.length;
+  const label='Додаткові фотографії ('+count+')';
+  if(summary.textContent!==label)summary.textContent=label;
+  for(const photo of secondary)if(photo.parentElement!==extras)extras.append(photo);
+ });
  editor.querySelectorAll('.cms91-tabs').forEach(bar=>{
   if(bar.dataset.studioUnified!==activeTab){
    bar.dataset.studioUnified=activeTab;
