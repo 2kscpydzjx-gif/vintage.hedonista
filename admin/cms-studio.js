@@ -284,19 +284,18 @@ function decorateRows(){
   rows[0].querySelector('.existing-select')?.click();
   return;
  }
- const homePage=(pageSelect.selectedOptions[0]?.textContent||'').toLowerCase().includes('головн');
- const homeLabels=['Hero','Переваги','Капсули стилю','Нові надходження','Журнал','Про нас (прев’ю)','Instagram','Підписка','SEO текст'];
  rows.forEach((row,i)=>{
-  // Presentation-only names: preserve original section IDs and saved data.
   const select=row.querySelector('.existing-select');
-  if(homePage&&homeLabels[i]&&select){
+  const currentSection=sections[i];
+  if(select){
+   const heading=currentSection?.querySelector('h1,h2,h3');
+   const actual=(heading?.textContent||currentSection?.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
+   const fallback=select.dataset.studioOriginalLabel||select.textContent.trim().replace(/^\d+\.\s*/,'');
+   if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    let label=select.querySelector('.studio-reference-label');
    if(!label){label=document.createElement('span');label.className='studio-reference-label';select.append(label)}
-   label.textContent=homeLabels[i];
+   label.textContent=actual||fallback;
    select.classList.add('studio-reference-row');
-  }else if(select){
-   select.querySelector('.studio-reference-label')?.remove();
-   select.classList.remove('studio-reference-row');
   }
   if(!row.querySelector('.studio-thumb')){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
