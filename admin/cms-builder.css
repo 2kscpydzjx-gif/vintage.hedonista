@@ -856,3 +856,43 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
 .editor .cms-editor-scroll .studio-replace-image{display:block!important;width:100%!important;min-height:38px!important;padding:9px 12px!important;border:1px solid #46392f!important;border-radius:4px!important;background:#302924!important;color:#f2e8df!important;text-align:center!important;font:12px Montserrat,Arial,sans-serif!important;cursor:pointer!important}
 .editor .cms-editor-scroll .studio-replace-image:hover{background:#493b30!important;border-color:#b99a7a!important}
 .editor .cms-editor-scroll .studio-replace-image:focus-visible{outline:2px solid #d4b391!important;outline-offset:2px!important}
+
+
+/* STEP 175 — reference-matched side panels; all CMS inputs and handlers stay intact. */
+@media(min-width:1100px){
+ main>.layout{--studio-ink:#191512;--studio-line:#332b26;--studio-gold:#c8a989}
+ main>.layout>div:first-child{background:#171310!important}
+ .studio-side-tabs{height:70px!important;background:#1a1613!important;border-bottom:1px solid #39302a!important}
+ .studio-side-tabs button{font-size:12px!important;font-weight:400!important}
+ .studio-list-title{padding:19px 18px 12px!important;color:#81766c!important;font-size:10px!important;letter-spacing:.075em!important}
+ #existingBlocks{padding:0 8px!important}
+ #existingBlocks .existing-row{min-height:62px!important;margin:0!important;border-bottom:1px solid #302823!important;border-radius:0!important;background:transparent!important}
+ #existingBlocks .existing-row:has(.existing-select.active){background:#332a24!important;border:1px solid #b99b7d!important;border-radius:3px!important}
+ #existingBlocks .existing-select{font:12px/1.45 Arial,sans-serif!important;color:#e8e0d8!important;letter-spacing:0!important;text-transform:none!important;border:0!important;box-shadow:none!important;background:transparent!important}
+ #existingBlocks .existing-select.active{outline:0!important}
+ #existingBlocks .studio-reference-label{font:12px/1.45 Arial,sans-serif!important;color:#e9e2dc!important;letter-spacing:0!important;text-transform:none!important}
+ #existingBlocks .existing-row img,#existingBlocks .existing-row .studio-reference-thumb{width:62px!important;height:44px!important;object-fit:cover!important;border-radius:2px!important}
+ .editor{background:#171310!important;border-left:1px solid #342d28!important}
+ .editor .studio-inspector-head{position:relative!important;min-height:104px!important;padding:0!important;display:flex!important;flex-wrap:wrap!important;align-content:start!important;background:#171310!important;border-bottom:1px solid #352c27!important}
+ .editor .studio-selected-title{display:block!important;flex:1 1 auto!important;margin:0!important;padding:17px 17px 14px!important;font:16px/1.3 Arial,sans-serif!important;color:#f1e9e0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ .editor .studio-block-counter{margin:18px 16px 0 0!important;padding:4px 7px!important;background:#28221e!important;border-radius:4px!important;color:#b9ada2!important;font:10px Arial,sans-serif!important;white-space:nowrap!important}
+ .editor .studio-inspector-head>.cms-editor-title{display:none!important}
+ .editor .studio-inspector-tabs{display:flex!important;flex:0 0 100%!important;width:100%!important;height:48px!important;border-top:1px solid #342b26!important;background:#171310!important}
+ .editor .studio-inspector-tabs button{flex:1!important;height:48px!important;padding:0 5px!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#9d9188!important;font:12px Arial,sans-serif!important}
+ .editor .studio-inspector-tabs button.active{color:#f0e6da!important;border-bottom-color:#c7a98a!important;background:#26201c!important}
+ .editor .cms-editor-scroll{padding:0 18px 35px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:20px!important}
+ .editor .cms-editor-scroll .photo-field{display:grid!important;grid-template-columns:140px minmax(0,1fr)!important;gap:10px!important;align-items:start!important;margin:0 0 21px!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:140px!important;height:100px!important;min-width:0!important;max-width:100%!important;border-radius:3px!important;overflow:hidden!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{min-width:0!important;display:flex!important;flex-direction:column!important;gap:8px!important}
+ .editor .cms-editor-scroll .photo-field .studio-replace-image{min-height:39px!important;margin:0!important;background:#302925!important;border:1px solid #403630!important;border-radius:3px!important;text-align:center!important;font:12px Arial,sans-serif!important}
+ .editor .cms-editor-scroll .field>label{font:10px/1.5 Arial,sans-serif!important;color:#8f8177!important;letter-spacing:.07em!important;margin:0 0 9px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea,.editor .cms-editor-scroll .field select{font:13px/1.55 Arial,sans-serif!important;color:#f0e9e2!important;background:#1b1613!important;border:1px solid #39302b!important;border-radius:3px!important;padding:11px 12px!important;box-sizing:border-box!important}
+ .editor .cms-editor-scroll .field textarea{min-height:44px!important}
+ .editor .cms-editor-scroll .field{margin-bottom:20px!important}
+ .editor .cms-editor-scroll .studio-technical-url{display:none!important}
+}
+@media(min-width:1100px) and (max-width:1300px){
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:105px minmax(0,1fr)!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:105px!important;height:92px!important}
+}
