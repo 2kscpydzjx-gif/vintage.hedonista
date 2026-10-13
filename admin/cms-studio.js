@@ -78,7 +78,7 @@ function studioImageFromSection(section){
  const nodes=[section,...section.querySelectorAll('*')].slice(0,120);
  for(const node of nodes){
   const style=node.ownerDocument.defaultView.getComputedStyle(node);
-  const match=style.backgroundImage.match(/url\\(["']?(.*?)["']?\\)/);
+  const match=style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);
   if(match?.[1])return match[1];
  }
  return '';
@@ -93,7 +93,7 @@ function studioPreviewPhoto(editor,section){
  if(!field)return;
  const thumb=field.querySelector('.cms-thumb-box');
  if(!thumb)return;
- const hasPhoto=!!thumb.querySelector('img[src]')||/url\\(/.test(thumb.style.backgroundImage);
+ const hasPhoto=!!thumb.querySelector('img[src]')||/url\(/.test(thumb.style.backgroundImage);
  if(hasPhoto){
   thumb.querySelector('.studio-source-preview')?.remove();
   return;
