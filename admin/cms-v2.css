@@ -1,0 +1,61 @@
+/* V2 isolated visual skin: same CMS data, selectors and event handlers. */
+@media(min-width:1000px){
+html,body{height:100%;overflow:hidden!important;background:#171310!important;color:#eee9e3!important}
+body{font-family:Arial,Helvetica,sans-serif!important}
+body>aside.sidebar{display:none!important}
+body>main{height:100vh!important;min-height:0!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;display:grid!important;grid-template-columns:308px minmax(0,1fr) 340px!important;grid-template-rows:74px minmax(0,1fr)!important;gap:0!important;background:#171310!important;overflow:hidden!important}
+body>main>header{grid-column:1/-1!important;grid-row:1!important;height:74px!important;min-height:74px!important;max-height:74px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 20px!important;gap:16px!important;background:#171310!important;border-bottom:1px solid #342c27!important;color:#eee9e3!important;overflow:visible!important}
+body>main>header .studio-mark{font:38px Georgia,serif!important;color:#f4e8dc!important;letter-spacing:-5px!important}
+body>main>header .studio-brand-title{display:block!important;font:15px Arial,sans-serif!important;white-space:nowrap!important}
+body>main>header .studio-brand-title small{display:block!important;font:9px Arial,sans-serif!important;letter-spacing:.6px!important;color:#b6a59a!important}
+body>main>header>div:nth-child(3){display:none!important}
+body>main>header .studio-top-controls{display:flex!important;align-items:center!important;gap:12px!important;flex:1!important;justify-content:space-between!important}
+body>main>header .studio-page-label{display:flex!important;align-items:center!important;gap:0!important;font-size:0!important}
+body>main>header #studioPage{width:195px!important;height:40px!important;background:#26201c!important;border:0!important;color:white!important;border-radius:4px!important;font:13px Arial,sans-serif!important;padding:0 12px!important}
+body>main>header .studio-devices{display:flex!important;align-items:center!important;gap:9px!important}
+body>main>header .studio-device{width:45px!important;height:43px!important;background:transparent!important;color:#c8c0ba!important;border:1px solid transparent!important;border-radius:4px!important}
+body>main>header .studio-device.active{background:#342a23!important;border-color:#76604d!important;color:#fff!important}
+body>main>header .studio-device svg{width:23px!important;height:23px!important}
+body>main>header .studio-zoom{position:relative!important}
+body>main>header #studioZoom{background:transparent!important;color:#eee9e3!important;border:0!important}
+body>main>header .actions{display:flex!important;align-items:center!important;gap:9px!important;margin:0!important}
+body>main>header #save{background:transparent!important;border:1px solid #8a7768!important;color:#eee9e3!important;border-radius:4px!important;padding:12px 16px!important;font:13px Arial,sans-serif!important}
+body>main>header #publish{background:#d2b08f!important;color:#211915!important;border:0!important;border-radius:4px!important;padding:13px 17px!important;font:13px Arial,sans-serif!important}
+body>main>header #reset{display:none!important}
+body>main>.page-context,body>main>#pageSeoPanel,body>main>#status,body>main>#sharedEditor{display:none!important}
+body>main>.layout{display:contents!important}
+body>main>.layout>div:first-child{grid-column:1!important;grid-row:2!important;min-height:0!important;min-width:0!important;width:308px!important;display:flex!important;flex-direction:column!important;background:#171310!important;border-right:1px solid #342d27!important;overflow:hidden!important}
+body>main>.layout>div:first-child .studio-side-tabs{height:68px!important;min-height:68px!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;border-bottom:1px solid #312923!important}
+body>main>.layout>div:first-child .studio-side-tabs button{height:68px!important;background:transparent!important;border:0!important;color:#aba39d!important;font:13px Arial,sans-serif!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important}
+body>main>.layout>div:first-child .studio-side-tabs button.active{background:#241e19!important;border-bottom:2px solid #d4b18d!important;color:#fff!important}
+body>main>.layout>div:first-child .studio-side-tabs svg{width:22px!important;height:22px!important}
+body>main>.layout>div:first-child .studio-list-title{font:11px Arial,sans-serif!important;letter-spacing:1px!important;color:#998a7e!important;padding:19px 19px 12px!important}
+body>main>.layout>div:first-child #existingBlocks{flex:1!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 9px!important}
+body>main>.layout>div:first-child .existing-row{min-height:63px!important;height:63px!important;margin:0!important;border:0!important;border-bottom:1px solid #302923!important;border-radius:3px!important;background:transparent!important;overflow:visible!important;position:relative!important}
+body>main>.layout>div:first-child .existing-row:has(.existing-select.active){background:#352a22!important;outline:1px solid #c9a989!important;outline-offset:-1px!important}
+body>main>.layout>div:first-child .existing-select{width:100%!important;height:62px!important;min-height:62px!important;display:flex!important;align-items:center!important;gap:8px!important;background:transparent!important;border:0!important;padding:5px 4px!important;color:#eee9e3!important;font:13px Arial,sans-serif!important;text-align:left!important}
+body>main>.layout>div:first-child .studio-row-thumb{width:61px!important;height:44px!important;flex:0 0 61px!important;border-radius:3px!important;object-fit:cover!important}
+body>main>.layout>div:first-child .studio-row-number{font:11px Arial,sans-serif!important;color:#8e8075!important;flex:0 0 17px!important}
+body>main>.layout>div:first-child .studio-row-name{font:13px/18px Arial,sans-serif!important;min-width:0!important;flex:1!important;overflow:hidden!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important}
+body>main>.layout>div:first-child .cms-grip{display:none!important}
+body>main>.layout>div:first-child .studio-row-menu-trigger{background:transparent!important;color:#c2b3a5!important;border:0!important}
+body>main>.layout>div:first-child .add{margin-top:auto!important;padding:16px 19px 21px!important;background:#171310!important}
+body>main>.layout>div:first-child .add>label{display:none!important}
+body>main>.layout>div:first-child #add{width:100%!important;height:42px!important;background:#28221d!important;color:#eee9e3!important;border:0!important;border-radius:4px!important;font:14px Arial,sans-serif!important}
+body>main>.layout>.preview{grid-column:2!important;grid-row:2!important;min-height:0!important;min-width:0!important;overflow:auto!important;width:auto!important;max-width:none!important;background:#120f0d!important;padding:0!important;margin:0!important}
+body>main>.layout>.preview>.section-title,body>main>.layout>.preview>.live-preview-tools,body>main>.layout>.preview>p.muted{display:none!important}
+body>main>.layout>.preview .live-preview-frame{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#120f0d!important;min-height:100%!important}
+body>main>.layout>.preview #desktopViewport{margin:0 auto!important;border:0!important;box-shadow:none!important}
+body>main>.layout>.editor{grid-column:3!important;grid-row:2!important;width:340px!important;min-width:0!important;max-width:none!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;background:#171310!important;color:#eee9e3!important;border-left:1px solid #342c27!important}
+body>main>.layout>.editor .studio-inspector-head{height:107px!important;min-height:107px!important;max-height:107px!important;display:grid!important;grid-template-columns:1fr auto!important;grid-template-rows:56px 51px!important;padding:0!important;overflow:visible!important;background:#171310!important}
+body>main>.layout>.editor .studio-selected-title{grid-row:1!important;grid-column:1!important;align-self:center!important;padding-left:19px!important;font:17px Arial,sans-serif!important;color:#eee9e3!important}
+body>main>.layout>.editor .studio-block-counter{grid-row:1!important;grid-column:2!important;align-self:center!important;margin-right:19px!important;background:#29231f!important;color:#aaa09a!important;border-radius:4px!important;padding:6px 9px!important;font:11px Arial,sans-serif!important}
+body>main>.layout>.editor .studio-inspector-tabs{grid-row:2!important;grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;height:51px!important;width:100%!important;border-top:1px solid #342c27!important;border-bottom:1px solid #302923!important}
+body>main>.layout>.editor .studio-inspector-tabs button{font:12px Arial,sans-serif!important;color:#aaa19a!important;background:transparent!important;border:0!important;padding:0 3px!important}
+body>main>.layout>.editor .studio-inspector-tabs button.active{color:#fff!important;background:#27211d!important;border-bottom:2px solid #d5b28e!important}
+body>main>.layout>.editor .cms-editor-scroll{flex:1!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:20px 19px!important;background:#171310!important;color:#eee9e3!important}
+body>main>.layout>.editor input:not([type=checkbox]):not([type=range]):not([type=file]),body>main>.layout>.editor textarea,body>main>.layout>.editor select{background:#171310!important;border:1px solid #40352c!important;border-radius:4px!important;color:#f1e8df!important;padding:11px!important;max-width:100%!important}
+body>main>.layout>.editor label{color:#a99b90!important;font:11px Arial,sans-serif!important;letter-spacing:.5px!important}
+body>main>.layout>.editor button{border-radius:4px!important}
+}
+@media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:260px minmax(0,1fr) 300px!important}body>main>.layout>div:first-child{width:260px!important}body>main>.layout>.editor{width:300px!important}}
