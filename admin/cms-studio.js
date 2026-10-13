@@ -339,9 +339,7 @@ function decorateRows(){
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    // The original CMS button is the sole source of block identity.
    // Build exactly ONE thumbnail, ONE index, and ONE label per row.
-   const referenceHome=['Hero','Переваги','Капсули стилю','Нові надходження','Журнал','Про нас (прев’ю)','Instagram','Підписка','SEO текст'];
-   const homePage=(pageSelect.selectedOptions[0]?.textContent||'').toLowerCase().includes('головн');
-   const name=homePage&&rows.length===referenceHome.length?referenceHome[i]:(actual||fallback);
+   const name=actual||fallback;
    const oldThumb=select.querySelector('.studio-thumb');
    const thumb=oldThumb||document.createElement('span');
    thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');
