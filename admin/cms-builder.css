@@ -850,3 +850,9 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
 .editor .cms-editor-scroll .studio-extra-photos .photo-field{grid-template-columns:112px minmax(0,1fr)!important}
 .editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:112px!important;height:112px!important}
 @media(max-width:1250px){.editor .cms-editor-scroll .photo-field{grid-template-columns:96px minmax(0,1fr)!important}.editor .cms-editor-scroll .photo-field .cms-thumb-box,.editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:96px!important;min-width:96px!important;max-width:96px!important;height:96px!important}}
+
+/* STEP 174: consistent reference-style photo action, retaining original uploads. */
+.editor .cms-editor-scroll .studio-hidden-file-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.editor .cms-editor-scroll .studio-replace-image{display:block!important;width:100%!important;min-height:38px!important;padding:9px 12px!important;border:1px solid #46392f!important;border-radius:4px!important;background:#302924!important;color:#f2e8df!important;text-align:center!important;font:12px Montserrat,Arial,sans-serif!important;cursor:pointer!important}
+.editor .cms-editor-scroll .studio-replace-image:hover{background:#493b30!important;border-color:#b99a7a!important}
+.editor .cms-editor-scroll .studio-replace-image:focus-visible{outline:2px solid #d4b391!important;outline-offset:2px!important}
