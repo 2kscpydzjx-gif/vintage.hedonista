@@ -11,6 +11,22 @@ engine.style.cssText='position:fixed;left:-200vw;top:0;width:1400px;height:900px
 document.body.append(engine);
 let d=null,active=-1,rows=[],connected=false,syncing=false;
 const uiReady=()=>connected&&d?.getElementById('existingBlocks');
+function showConnectionError(message){const n=$('notice');if(n){n.textContent=message;n.style.display='block';clearTimeout(say.timer);}}
+function waitForCms(){
+ let attempts=0;
+ const timer=setInterval(()=>{
+  if(connected){clearInterval(timer);return;}
+  try{
+   const doc=engine.contentDocument;
+   const status=doc?.getElementById('status')?.textContent?.trim()||'';
+   if(/потрібно увійти|немає прав адміністратора|не вдалося завантажити supabase/i.test(status)){
+    clearInterval(timer);showConnectionError('CMS: '+status);return;
+   }
+  }catch(error){clearInterval(timer);showConnectionError('CMS недоступна: '+error.message);return;}
+  if(++attempts>=30){clearInterval(timer);showConnectionError('CMS не відповідає. Перевір авторизацію та відкрий редактор повторно.');}
+ },500);
+}
+waitForCms();
 const cmsStatus=()=>d?.getElementById('status')?.textContent?.trim()||'';
 function checkSession(){const status=cmsStatus();if(/увійти|авторизац|немає прав|supabase/i.test(status))say('Потрібна авторизація адміністратора: '+status);}
 
