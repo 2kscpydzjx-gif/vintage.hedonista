@@ -72,6 +72,20 @@ applyDevice();
 
 /* Studio 155: interactive block selection and visual structure. */
 const list=$('existingBlocks'),frameHost=document.querySelector('.live-preview-frame');
+const studioStructure=document.querySelector('main>.layout>div:first-child');
+const studioTabs=document.querySelector('.studio-side-tabs');
+if(studioStructure&&studioTabs)studioStructure.prepend(studioTabs);
+const inspectorHeading=inspector.querySelector('.studio-inspector-head h2');
+const inspectorBar=inspector.querySelector('.studio-inspector-head');
+const selectedLabel=document.createElement('div');selectedLabel.className='studio-selected-title';selectedLabel.textContent='Оберіть блок';
+if(inspectorBar)inspectorBar.prepend(selectedLabel);
+function refreshSelectedTitle(){
+ const current=list?.querySelector('.existing-select.active');
+ if(!current)return;
+ const raw=current.textContent.trim().replace(/^\\d+\\.\\s*/,'');
+ selectedLabel.textContent=raw.length>42?raw.slice(0,42)+'…':raw;
+}
+
 const drawer=document.createElement('div');drawer.className='studio-pages-list';list?.parentElement?.insertBefore(drawer,list);syncPageDrawer();
 let activeInput=null;
 document.addEventListener('focusin',e=>{if(e.target.matches('input,textarea,[contenteditable="true"]'))activeInput=e.target});
@@ -115,7 +129,7 @@ function decorateRows(){
   const url=image?.currentSrc||image?.src||((bgElement&&getComputedStyle(bgElement).backgroundImage.match(/url\(["']?(.*?)["']?\)/))||[])[1];
   if(url)thumb.style.backgroundImage='url('+JSON.stringify(url)+')';
   else thumb.style.backgroundImage='linear-gradient(140deg,#5e4a3a,#241a15)';
-  if(!row.dataset.studioClick){row.dataset.studioClick='1';row.querySelector('.existing-select')?.addEventListener('click',()=>requestAnimationFrame(()=>selectHighlight(i)))}
+  if(!row.dataset.studioClick){row.dataset.studioClick='1';row.querySelector('.existing-select')?.addEventListener('click',()=>requestAnimationFrame(()=>{selectHighlight(i);refreshSelectedTitle()}))}
  });
 }
 function selectHighlight(i){
@@ -140,6 +154,6 @@ function attachPreview(){
 frame.addEventListener('load',()=>{overlay=null;setTimeout(attachPreview,350);setTimeout(decorateRows,1500)});
 let pending=false;
 if(list)new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;decorateRows()})}).observe(list,{childList:true});
-setTimeout(attachPreview,900);
+setTimeout(attachPreview,900);setTimeout(refreshSelectedTitle,1200);
 
 })();
