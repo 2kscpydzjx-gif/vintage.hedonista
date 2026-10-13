@@ -59,7 +59,8 @@ function syncTabs(){
    let cursor=first;
    for(const item of [...media,...headings,...descriptions]){
     if(item===cursor)continue;
-    cursor.after(item);cursor=item;
+    if(cursor.nextElementSibling!==item)cursor.after(item);
+    cursor=item;
    }
   }
   panel.querySelectorAll('p.muted').forEach(el=>{if(/Тестові зміни|Оригінал у Supabase/.test(el.textContent||''))el.hidden=true});
