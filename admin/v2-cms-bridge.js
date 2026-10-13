@@ -87,7 +87,33 @@ function observeOperation(buttonId,action){
 }
 bind('save',()=>observeOperation('save','Збереження'));
 bind('publish',()=>{if(confirm('Опублікувати зміни на сайті?'))observeOperation('publish','Публікація')});
-bind('add',()=>{d?.getElementById('add')?.click();setTimeout(sync,130)});
+/* Compact block picker, anchored to the approved Add button; no redesign. */
+const blockTypes=[['editorial','Фото + текст'],['banner','Банер'],['text','Текстовий блок'],['gallery','Галерея']];
+const picker=document.createElement('div');
+picker.setAttribute('role','menu');
+picker.setAttribute('aria-label','Тип нового блоку');
+picker.style.cssText='display:none;position:fixed;z-index:10000;min-width:210px;background:#241d18;border:1px solid #695440;border-radius:9px;padding:6px;box-shadow:0 12px 32px #0009';
+for(const [type,label] of blockTypes){
+ const item=document.createElement('button');item.type='button';item.setAttribute('role','menuitem');item.textContent=label;
+ item.style.cssText='display:block;width:100%;padding:11px 12px;border:0;border-radius:5px;background:transparent;color:#eee9e3;text-align:left;cursor:pointer';
+ item.addEventListener('click',()=>{
+  picker.style.display='none';
+  const native=d?.getElementById('add');
+  if(!connected||!native){say('CMS ще не готова до додавання блоку');return;}
+  native.dataset.v2BlockType=type;native.click();setTimeout(sync,160);
+ });
+ picker.append(item);
+}
+document.body.append(picker);
+bind('add',()=>{
+ if(!connected)return say('CMS ще не підключена');
+ const button=$('add'),rect=button.getBoundingClientRect();
+ picker.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-220))+'px';
+ picker.style.top=Math.min(rect.bottom+6,window.innerHeight-210)+'px';
+ picker.style.display=picker.style.display==='none'?'block':'none';
+});
+document.addEventListener('pointerdown',e=>{if(!picker.contains(e.target)&&e.target!==$('add'))picker.style.display='none';});
+
 bind('changePhoto',()=>{let f=root()?.querySelector('input[type=file]');if(f)f.click();else say('У цьому блоці немає поля завантаження фото')});
 $('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const input=root()?.querySelector('input[type=file]');if(!input){say('У цьому блоці немає поля завантаження фото');e.target.value='';return;}try{const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));say('Фото передано в CMS; перевір прев’ю.');}catch(err){say('Не вдалося передати фото: '+err.message)}e.target.value='';});
 bind('editPhoto',()=>{const scope=root();const btn=[...(scope?.querySelectorAll('button')||[])].find(b=>/кадруван|позиці|редагувати фото/i.test(b.textContent||''));if(btn)btn.click();else say('Для цього блоку кадрування поки недоступне');});
