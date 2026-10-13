@@ -165,11 +165,22 @@ function decorateRows(){
 }
 function selectHighlight(i){
  let doc;try{doc=frame.contentDocument}catch{return}
+ if(!doc?.body)return;
  const section=previewSections(doc)[i];if(!section)return;
- doc.querySelectorAll('[data-vh-studio-selected]').forEach(el=>{el.style.removeProperty('outline');el.style.removeProperty('outline-offset');el.removeAttribute('data-vh-studio-selected')});
+ doc.querySelectorAll('[data-vh-studio-selected]').forEach(el=>{
+  el.style.removeProperty('outline');el.style.removeProperty('outline-offset');el.removeAttribute('data-vh-studio-selected')
+ });
+ doc.querySelectorAll('.vh-studio-selection-chip').forEach(el=>el.remove());
  section.dataset.vhStudioSelected='true';
  section.style.setProperty('outline','3px solid #478fff','important');
  section.style.setProperty('outline-offset','-3px','important');
+ const chip=doc.createElement('div');chip.className='vh-studio-selection-chip';
+ const name=list?.querySelectorAll('.existing-row')[i]?.querySelector('.existing-select')?.textContent?.replace(/^\\s*\\d+\\.\\s*/,'').trim()||'Блок';
+ chip.textContent=name.length>34?name.slice(0,34)+'…':name;
+ chip.style.cssText='position:absolute;z-index:2147483601;background:#2878e6;color:#fff;padding:5px 10px;font:12px Arial,sans-serif;pointer-events:none;border-radius:2px;';
+ const position=()=>{if(!chip.isConnected||!section.isConnected)return;const rect=section.getBoundingClientRect();chip.style.top=Math.max(0,rect.top+doc.defaultView.scrollY-24)+'px';chip.style.left=Math.max(0,rect.left+doc.defaultView.scrollX)+'px'};
+ doc.body.append(chip);position();
+ if(!doc.__vhStudioChipScroll){doc.__vhStudioChipScroll=true;doc.defaultView.addEventListener('scroll',()=>{const selected=doc.querySelector('[data-vh-studio-selected]');const badge=doc.querySelector('.vh-studio-selection-chip');if(selected&&badge){const rect=selected.getBoundingClientRect();badge.style.top=Math.max(0,rect.top+doc.defaultView.scrollY-24)+'px';badge.style.left=Math.max(0,rect.left+doc.defaultView.scrollX)+'px'}},{passive:true})}
 }
 
 function attachPreview(){
