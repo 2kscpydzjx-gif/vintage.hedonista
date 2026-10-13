@@ -205,18 +205,44 @@ function makeRichEditor(initial,onChange){
 }
 function cmsApplyExistingLayout(el,d){
  if(!el||!d)return;
- const preset=d.photoPreset;
- el.classList.toggle('vh-existing-gradient-hero',preset==='gradient-hero');
- el.classList.toggle('vh-existing-three-photos',preset==='three-photos');
- let style=el.ownerDocument.getElementById('vh-existing-presets-css');
- if(!style){style=el.ownerDocument.createElement('style');style.id='vh-existing-presets-css';style.textContent=`
- .vh-existing-gradient-hero.homepage-capsules{position:relative!important;display:flex!important;align-items:center!important;min-height:clamp(420px,52vw,700px)!important;isolation:isolate!important}
+ const enabled=d.photoPreset==='gradient-hero';
+ el.classList.toggle('vh-existing-gradient-hero',enabled);
+ el.classList.remove('vh-existing-three-photos');
+ const doc=el.ownerDocument;
+ let css=doc.getElementById('vh-existing-presets-css');
+ if(!css){css=doc.createElement('style');css.id='vh-existing-presets-css';doc.head.append(css)}
+ css.textContent=`
+ .vh-existing-gradient-hero{position:relative!important;isolation:isolate!important;min-height:clamp(380px,42vw,680px)!important;overflow:hidden!important}
+ .vh-existing-gradient-hero>.vh-cms-gradient-layer{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-size:cover!important;background-position:center!important}
+ .vh-existing-gradient-hero>:not(.vh-cms-gradient-layer){position:relative;z-index:1}
+ .vh-existing-gradient-hero .vh-cms-gradient-source{opacity:0!important}
+ .vh-existing-gradient-hero :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
+ .vh-existing-gradient-hero.homepage-capsules{display:flex!important;align-items:center!important}
  .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:0!important}
- .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,8,6,.92),rgba(10,8,6,.68) 40%,transparent 100%)}
- .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:1!important;width:min(620px,58%)!important;max-width:none!important;background:transparent!important;color:#f5eadc!important}
- .vh-existing-gradient-hero.homepage-capsules>.editorial-copy :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
- @media(max-width:760px){.vh-existing-gradient-hero.homepage-capsules>.editorial-copy{width:100%!important;min-height:430px!important}.vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{background:linear-gradient(0deg,rgba(10,8,6,.92),rgba(10,8,6,.55) 60%,transparent)}}
- `;el.ownerDocument.head.append(style)}
+ .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:2!important;width:min(620px,58%)!important;max-width:none!important;background:transparent!important;color:#f5eadc!important}
+ @media(max-width:760px){.vh-existing-gradient-hero.homepage-capsules>.editorial-copy{width:100%!important;min-height:430px!important}}
+ `;
+ let layer=Array.from(el.children).find(node=>node.classList.contains('vh-cms-gradient-layer'));
+ el.querySelectorAll('.vh-cms-gradient-source').forEach(node=>node.classList.remove('vh-cms-gradient-source'));
+ if(!enabled){layer?.remove();return}
+ // Pick the largest actual photograph, not a small logo/icon.
+ const candidates=[];
+ const readBg=node=>{const v=doc.defaultView.getComputedStyle(node).backgroundImage;const match=v&&v.match(/url\\(["']?([^"')]+)["']?\\)/);return match?.[1]||''};
+ for(const img of el.querySelectorAll('img')){
+  const box=img.getBoundingClientRect();
+  const url=img.currentSrc||img.src;
+  if(url&&box.width>=130&&box.height>=100)candidates.push({node:img,url,area:box.width*box.height});
+ }
+ for(const node of [el,...el.querySelectorAll('*')].slice(0,160)){
+  const box=node.getBoundingClientRect(),url=readBg(node);
+  if(url&&box.width>=130&&box.height>=100)candidates.push({node,url,area:box.width*box.height});
+ }
+ candidates.sort((a,b)=>b.area-a.area);
+ const chosen=candidates[0];
+ if(!chosen){layer?.remove();return}
+ if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
+ layer.style.backgroundImage='linear-gradient(90deg,rgba(10,8,6,.94) 0%,rgba(10,8,6,.72) 38%,rgba(10,8,6,.12) 100%),url('+JSON.stringify(chosen.url)+')';
+ if(chosen.node!==el)chosen.node.classList.add('vh-cms-gradient-source');
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
  cmsApplyExistingLayout(el,d);
@@ -372,6 +398,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{if(value==='gradient-hero'||value==='three-photos'){onBlockType?.(value==='gradient-hero'?'banner':'gallery');return;}d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
  if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
  if(!onBlockType){
+ if(!document.getElementById('vh-gradient-tile-css')){const st=document.createElement('style');st.id='vh-gradient-tile-css';st.textContent='.cms91-mini-gradient-hero{display:block!important;position:relative!important;overflow:hidden!important;background:linear-gradient(90deg,#1b120e 0%,#3d281d 36%,#916b50 76%,#b89577 100%)!important}.cms91-mini-gradient-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),transparent 80%)}.cms91-mini-gradient-hero i{position:absolute!important;left:12%!important;top:30%!important;width:32%!important;height:9%!important;background:#f2e5d5!important;z-index:1!important}.cms91-mini-gradient-hero b{position:absolute!important;left:12%!important;top:48%!important;width:23%!important;height:5%!important;background:#d5bd9d!important;z-index:1!important}';document.head.append(st)}
  const existingTiles=[['gradient-hero','Фото з градієнтом','1920 × 900 px']];
  for(const [value,name,hint] of existingTiles){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{d.photoPreset=value;update();commit()};grid.append(btn)}
  const photoHint=document.createElement('small');photoHint.className='cms91-photo-hint';photoHint.textContent='Градієнт: рекомендоване фото 1920 × 900 px. Макет із трьома фото доступний для нових блоків через тип «Галерея».';photo.append(photoHint);

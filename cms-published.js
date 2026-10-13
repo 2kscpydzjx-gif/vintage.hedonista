@@ -9,18 +9,44 @@ function fields(section){const f=[...section.querySelectorAll('[id]')].filter(el
 function sections(){const main=document.querySelector('main')||document.body;let c=(page==='home'?[...document.body.children].filter(e=>e.tagName==='SECTION'):page==='about'?[...main.children].filter(e=>e.tagName==='SECTION'):[...main.children]).filter(e=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(e.tagName)&&(page==='home'||page==='about'||e.getBoundingClientRect().height>50));if(c.length<2){const ss=[...main.querySelectorAll('section')].filter(e=>e.getBoundingClientRect().height>50);const top=ss.filter(e=>!ss.some(p=>p!==e&&p.contains(e)));if(top.length>1)c=top;else{const cs=[...main.querySelectorAll('article,section,[class*="section"],[class*="hero"],[class*="content"],[class*="editorial"]')].filter(e=>e.getBoundingClientRect().height>90);const top2=cs.filter(e=>!cs.some(p=>p!==e&&p.contains(e)));if(top2.length>1)c=top2}}return c.slice(0,35)}
 function cmsApplyExistingLayout(el,d){
  if(!el||!d)return;
- const preset=d.photoPreset;
- el.classList.toggle('vh-existing-gradient-hero',preset==='gradient-hero');
- el.classList.toggle('vh-existing-three-photos',preset==='three-photos');
- let style=el.ownerDocument.getElementById('vh-existing-presets-css');
- if(!style){style=el.ownerDocument.createElement('style');style.id='vh-existing-presets-css';style.textContent=`
- .vh-existing-gradient-hero.homepage-capsules{position:relative!important;display:flex!important;align-items:center!important;min-height:clamp(420px,52vw,700px)!important;isolation:isolate!important}
+ const enabled=d.photoPreset==='gradient-hero';
+ el.classList.toggle('vh-existing-gradient-hero',enabled);
+ el.classList.remove('vh-existing-three-photos');
+ const doc=el.ownerDocument;
+ let css=doc.getElementById('vh-existing-presets-css');
+ if(!css){css=doc.createElement('style');css.id='vh-existing-presets-css';doc.head.append(css)}
+ css.textContent=`
+ .vh-existing-gradient-hero{position:relative!important;isolation:isolate!important;min-height:clamp(380px,42vw,680px)!important;overflow:hidden!important}
+ .vh-existing-gradient-hero>.vh-cms-gradient-layer{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-size:cover!important;background-position:center!important}
+ .vh-existing-gradient-hero>:not(.vh-cms-gradient-layer){position:relative;z-index:1}
+ .vh-existing-gradient-hero .vh-cms-gradient-source{opacity:0!important}
+ .vh-existing-gradient-hero :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
+ .vh-existing-gradient-hero.homepage-capsules{display:flex!important;align-items:center!important}
  .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:0!important}
- .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,8,6,.92),rgba(10,8,6,.68) 40%,transparent 100%)}
- .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:1!important;width:min(620px,58%)!important;max-width:none!important;background:transparent!important;color:#f5eadc!important}
- .vh-existing-gradient-hero.homepage-capsules>.editorial-copy :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
- @media(max-width:760px){.vh-existing-gradient-hero.homepage-capsules>.editorial-copy{width:100%!important;min-height:430px!important}.vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{background:linear-gradient(0deg,rgba(10,8,6,.92),rgba(10,8,6,.55) 60%,transparent)}}
- `;el.ownerDocument.head.append(style)}
+ .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:2!important;width:min(620px,58%)!important;max-width:none!important;background:transparent!important;color:#f5eadc!important}
+ @media(max-width:760px){.vh-existing-gradient-hero.homepage-capsules>.editorial-copy{width:100%!important;min-height:430px!important}}
+ `;
+ let layer=Array.from(el.children).find(node=>node.classList.contains('vh-cms-gradient-layer'));
+ el.querySelectorAll('.vh-cms-gradient-source').forEach(node=>node.classList.remove('vh-cms-gradient-source'));
+ if(!enabled){layer?.remove();return}
+ // Pick the largest actual photograph, not a small logo/icon.
+ const candidates=[];
+ const readBg=node=>{const v=doc.defaultView.getComputedStyle(node).backgroundImage;const match=v&&v.match(/url\\(["']?([^"')]+)["']?\\)/);return match?.[1]||''};
+ for(const img of el.querySelectorAll('img')){
+  const box=img.getBoundingClientRect();
+  const url=img.currentSrc||img.src;
+  if(url&&box.width>=130&&box.height>=100)candidates.push({node:img,url,area:box.width*box.height});
+ }
+ for(const node of [el,...el.querySelectorAll('*')].slice(0,160)){
+  const box=node.getBoundingClientRect(),url=readBg(node);
+  if(url&&box.width>=130&&box.height>=100)candidates.push({node,url,area:box.width*box.height});
+ }
+ candidates.sort((a,b)=>b.area-a.area);
+ const chosen=candidates[0];
+ if(!chosen){layer?.remove();return}
+ if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
+ layer.style.backgroundImage='linear-gradient(90deg,rgba(10,8,6,.94) 0%,rgba(10,8,6,.72) 38%,rgba(10,8,6,.12) 100%),url('+JSON.stringify(chosen.url)+')';
+ if(chosen.node!==el)chosen.node.classList.add('vh-cms-gradient-source');
 }
 function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};original.forEach((el,i)=>{const e=edits['existing-'+i];if(!e)return;if(e.hidden)el.style.display='none';for(const f of fields(el)){const v=e.mapped?.[f.id];if(typeof v!=='string')continue;if(f.type==='text')f.el.innerHTML=safeHtml(v);else if(f.type==='link'&&/^(https?:|mailto:|tel:|\/|#)/i.test(v))f.el.setAttribute('href',v);else if(f.type==='image'){if(v==='__removed__'){f.el.style.backgroundImage='none';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}else if(/^(https?:|\/|\.\/|\.\.\/|data:image\/)/i.test(v)){f.el.style.backgroundImage='url('+JSON.stringify(v)+')';f.el.style.backgroundSize='cover';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}}}if(page==='home'&&el.matches('.homepage-capsules')){
  const media=el.querySelector('#homeCapsulesMedia');
