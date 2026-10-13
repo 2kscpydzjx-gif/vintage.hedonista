@@ -49,6 +49,17 @@ function polishMediaFields(editor){
   for(const note of field.querySelectorAll('small')){
    if(/чернетк|браузер/i.test(note.textContent||''))note.classList.add('studio-technical-note');
   }
+  // One clear media action for all legacy field types. Preserve original input handlers.
+  for(const file of field.querySelectorAll('input[type="file"]')){
+   if(file.dataset.studioMediaAction)continue;
+   file.dataset.studioMediaAction='1';
+   const action=document.createElement('button');
+   action.type='button';action.className='studio-replace-image';
+   action.textContent='Замінити фото';
+   action.addEventListener('click',()=>file.click());
+   file.parentElement?.insertBefore(action,file);
+   file.classList.add('studio-hidden-file-input');
+  }
   for(const file of field.querySelectorAll('input[type="file"]')){
    file.classList.add('studio-image-file');
    if(!file.dataset.studioAccessible){
