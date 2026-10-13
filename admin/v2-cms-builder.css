@@ -1,0 +1,963 @@
+:root{color-scheme:dark;--bg:#100d0b;--panel:#17120f;--line:#453226;--gold:#b99260;--text:#eee1d1;--muted:#a28c78}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:13px Montserrat,Arial,sans-serif;display:flex;min-height:100vh}button,input,select,textarea{font:inherit}button{cursor:pointer;background:#e9dfd1;color:#1b140e;border:1px solid #bca78e;padding:11px 15px}button:hover{filter:brightness(1.12)}button.secondary{background:transparent;color:var(--text);border-color:var(--line)}button:disabled{opacity:.35;cursor:default}.sidebar{width:238px;flex-shrink:0;border-right:1px solid var(--line);padding:28px 15px}.brand{font:20px Georgia,serif;display:block;text-decoration:none;color:var(--text);padding:15px 5px 34px}.brand span{display:block}.brand small{display:block;color:var(--gold);font:9px Arial;letter-spacing:2px;margin-top:10px}.nav{display:block;width:100%;text-align:left;color:var(--text);background:transparent;border:0;border-bottom:1px solid #30251e;padding:14px 9px;text-decoration:none}.nav.active{background:#292019;border-left:2px solid var(--gold)}.nav-label,.eyebrow{color:var(--gold);letter-spacing:2px;font-size:10px}.nav-label{margin:40px 9px 8px}.hint{font-size:11px;line-height:1.8;color:var(--muted);padding:12px}main{padding:34px;flex:1;min-width:0;max-width:1600px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;border-bottom:1px solid var(--line);padding-bottom:25px}h1{font:35px Georgia,serif;margin:12px 0}h2{font:17px Georgia,serif;margin:0}p{color:var(--muted)}.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.status{color:var(--gold);padding:14px 0}.layout{display:grid;grid-template-columns:minmax(280px,1fr) minmax(340px,1fr);gap:18px}.section-title{display:flex;justify-content:space-between;align-items:center;margin:15px 0;color:var(--muted)}.block{border:1px solid var(--line);padding:15px;margin-bottom:8px;background:var(--panel)}.block.active{border-color:var(--gold)}.blockhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.blockname{background:none;color:var(--text);border:0;text-align:left;flex:1}.blockbuttons{display:flex;gap:3px}.blockbuttons button{padding:5px 8px;background:transparent;color:var(--gold);border-color:var(--line)}.block small{color:var(--muted)}.add,.editor{border:1px solid var(--line);padding:20px;background:var(--panel)}.add{margin-top:16px}.add label{display:block;margin-bottom:12px;color:var(--gold)}.editor{align-self:start;position:sticky;top:15px}.editor h2{padding-bottom:16px;border-bottom:1px solid var(--line)}.field{margin-top:17px}.field label{display:block;color:var(--gold);font-size:11px;margin-bottom:8px}.field input,.field select,.field textarea,.add select{width:100%;background:#0c0908;border:1px solid var(--line);color:var(--text);padding:11px;outline:none}.field input:focus,.field textarea:focus,.rich:focus{border-color:var(--gold)}.field textarea{min-height:80px}.rich-toolbar{display:flex;flex-wrap:wrap;gap:3px;background:#0b0908;border:1px solid var(--line);border-bottom:0;padding:7px}.rich-toolbar button{padding:7px 10px;background:transparent;border:0;color:var(--text);font-weight:bold}.rich{min-height:115px;border:1px solid var(--line);padding:12px;line-height:1.7;outline:none;overflow-wrap:anywhere}.rich a,.preview a{color:#c99b62}.preview{margin-top:30px}.preview-card{display:grid;grid-template-columns:1fr 1fr;background:#090807;min-height:230px;margin-bottom:16px;overflow:hidden}.preview-card .photo{background:linear-gradient(135deg,#4a3022,#251710);background-size:cover;background-position:center;min-height:220px}.preview-card .copy{padding:45px;align-self:center}.preview-card h3{font:32px Georgia,serif;margin:10px 0}.preview-card p{line-height:1.7}.preview-card.banner{position:relative;display:block;min-height:270px;background:linear-gradient(90deg,#090807,#3a2619)}.preview-card.banner .photo{position:absolute;inset:0;opacity:.65}.preview-card.banner .photo:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#080605 0%,transparent 100%)}.preview-card.banner .copy{position:relative;width:60%}.preview-card.text{display:block;background:#eee4d6;color:#241a14;min-height:130px}.preview-card.text .copy{padding:30px}.preview-card.text p{color:#4c3729}.preview-card.gallery{display:flex;min-height:180px}.preview-card.gallery .photo{flex:1;border-right:4px solid #100d0b}.muted{color:var(--muted)}.tag{font-size:10px;letter-spacing:1.5px;color:var(--gold)}.preview-card .copy a{color:#d7ae7d}.preview-card.text .copy a{color:#7b4e22}@media(max-width:980px){.layout{grid-template-columns:1fr}.editor{position:static}.sidebar{width:180px}main{padding:20px}}@media(max-width:650px){body{display:block}.sidebar{width:auto;padding:10px}.brand{padding:8px}.nav-label,.hint{display:none}main{padding:16px}header{display:block}.preview-card{grid-template-columns:1fr}.preview-card.banner .copy{width:100%}.preview-card .copy{padding:22px}}
+@keyframes cmsFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}@keyframes cmsFadeLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}@keyframes cmsFadeRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}@keyframes cmsZoom{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}@keyframes cmsFade{from{opacity:0}to{opacity:1}}.preview-card[data-animation=fade-up]{animation:cmsFadeUp var(--duration) ease both}.preview-card[data-animation=fade-left]{animation:cmsFadeLeft var(--duration) ease both}.preview-card[data-animation=fade-right]{animation:cmsFadeRight var(--duration) ease both}.preview-card[data-animation=zoom]{animation:cmsZoom var(--duration) ease both}.preview-card[data-animation=fade]{animation:cmsFade var(--duration) ease both}@media(prefers-reduced-motion:reduce){.preview-card{animation:none!important}}
+
+/* STEP 56: page selector; scoped to the isolated CMS laboratory */
+#pageNav{max-height:calc(100vh - 260px);overflow:auto;scrollbar-width:thin}#pageNav .nav{font-size:12px;line-height:1.4}.page-context{display:flex;align-items:center;gap:18px;flex-wrap:wrap;border:1px solid var(--line);background:var(--panel);padding:16px 20px;margin-top:20px}.page-context>div{flex:1;min-width:200px}.page-context h2{margin:7px 0}.page-context p{margin:0;font-size:12px}.editor-link{display:inline-block;color:var(--gold);text-decoration:none;border:1px solid var(--line);padding:10px 13px;font-size:11px}.editor-link:hover{border-color:var(--gold)}@media(max-width:900px){#pageNav{max-height:none}.page-context{align-items:flex-start}}
+
+/* STEP 57: live existing page preview */
+.live-preview-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}.live-preview-tools label{font-size:11px;color:var(--gold)}.live-preview-tools select{background:#120e0b;border:1px solid var(--line);color:var(--text);padding:11px;max-width:100%;flex:1;min-width:200px}.live-preview-frame{border:1px solid var(--line);background:#f1e7da;min-height:680px}.live-preview-frame iframe{display:block;width:100%;height:850px;border:0;background:#f1e7da}
+
+/* STEP 58: existing-section editor */
+.existing-blocks{display:grid;gap:7px;margin:12px 0 24px}.existing-select{display:block;width:100%;text-align:left;background:#211914;color:#e5d4bf;border:1px solid #564431;border-radius:5px;padding:12px;cursor:pointer}.existing-select:hover,.existing-select.active{border-color:#d0a46d;background:#34261b}#existingEditor{padding-bottom:16px}#existingEditor[hidden],#editorFields[hidden]{display:none!important}#existingEditor .field{margin:14px 0}#existingEditor textarea{width:100%;box-sizing:border-box;min-height:70px}
+/* STEP 59: pixel-conscious dark/gold editor from supplied mockup */
+.vh-rte{background:#0e0b09;border:1px solid #58452d;border-radius:8px;padding:12px;margin-top:4px;color:#e6d8c6;font:14px Arial,sans-serif}
+.vh-rte-heading{display:flex;align-items:center;justify-content:space-between;color:#e3b976;font-size:13px;padding:2px 0 13px}.vh-rte-more{color:#b89a70;background:transparent;border:0;padding:0 2px;font-size:19px;letter-spacing:1px}
+.vh-rte-toolbar{display:flex;align-items:center;gap:3px;border-bottom:1px solid #493727;padding:0 0 15px;margin-bottom:20px;min-height:48px}.vh-rte-tool{background:transparent!important;border:0!important;color:#d7c5af!important;font:18px Georgia,serif!important;padding:6px 7px!important;min-width:26px}.vh-rte-tool:disabled{opacity:.3}.vh-rte-tabs{margin-left:auto;display:flex;gap:5px;align-items:center}.vh-rte-tabs button{border:1px solid transparent;border-radius:18px;background:transparent;color:#aaa;padding:3px 12px;font:12px Arial,sans-serif}.vh-rte-tabs button.active{border:2px solid #4d9bff;color:#eee;background:#27221d;padding:2px 11px}
+.vh-rte-content,.vh-rte-source{display:block;width:100%;min-height:100px;max-height:350px;overflow:auto;resize:vertical;border:1px solid #44403a;border-radius:8px;background:#0b0908;color:#f4e9d9;padding:12px;font:14px/1.55 Arial,sans-serif;outline:none;overflow-wrap:anywhere}.vh-rte-content:focus,.vh-rte-source:focus{border-color:#9d7851}.vh-rte-content[hidden],.vh-rte-source[hidden],.vh-rte-extra[hidden]{display:none!important}.vh-rte-content p{margin:0 0 8px;color:#f4e9d9}.vh-rte-content a{color:#d4ad7a}.vh-rte-extra{display:flex;gap:5px;flex-wrap:wrap;padding:0 0 10px}.vh-rte-extra button{background:#241b15;color:#ead7c0;border:1px solid #59432c;padding:7px 9px;font-size:11px}
+/* Desktop-width site viewport scaled into existing preview panel, without responsive mobile breakpoint */
+.live-preview-frame{position:relative;width:100%;height:650px;overflow:auto;background:#ede5db;min-height:0!important}
+#desktopViewport{width:1440px;height:950px;transform-origin:top left}
+.live-preview-frame iframe{display:block;width:1440px!important;height:950px!important;max-width:none!important;border:0;background:#f1e7da}
+
+/* STEP 60: image thumbnails and unified block controls */
+.existing-row{display:flex;align-items:stretch;gap:5px}
+.existing-row .existing-select{flex:1;min-width:0}
+.existing-row>button:not(.existing-select){background:#211914;color:#d9b37b;border:1px solid #564431;padding:5px 11px}
+.photo-field{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.photo-field>img{width:105px;height:105px;object-fit:cover;background:#30231b;border:1px solid var(--line)}
+.photo-controls{flex:1;min-width:0;display:grid;gap:7px}
+.photo-controls label{color:var(--gold);font-size:11px}
+.photo-controls input[type=url]{width:100%;min-width:0;padding:9px;background:#0c0908;color:var(--text);border:1px solid var(--line)}
+.photo-controls input[type=file]{width:100%;font-size:11px}
+.photo-controls small{color:var(--muted)}
+.photos-title{font-size:13px;margin:22px 0 8px}
+
+body,button,input,select,textarea,.vh-rte,.vh-rte-content,.vh-rte-source,.vh-rte-tabs button{font-family:Montserrat,Arial,sans-serif}
+
+h1,h2,.page-context h2,.preview-card h3{font-family:'Bodoni Moda','Bodoni MT',Didot,Georgia,serif}
+.vh-rte-tool{font-family:Georgia,serif}
+
+/* STEP61 sortable blocks and fixed HTML mode */
+.cms-sort-row{transition:transform .18s ease,background .18s ease;border-radius:5px}
+.cms-sort-row .cms-grip{cursor:grab;display:grid;place-items:center;padding:0 9px;border:1px solid #564431;color:#b9966c;user-select:none}
+.cms-sort-row.cms-dragging{opacity:.4}
+.cms-sort-row.cms-dragover{outline:2px solid #b9966c;background:#382a1e}
+.cms-sort-row button:disabled{opacity:.3;cursor:default}
+.vh-rte-source[hidden],.vh-rte-content[hidden]{display:none!important}
+
+.cms-grip{touch-action:none;cursor:grab!important;min-width:32px;font-size:20px}
+.cms-grip:active{cursor:grabbing!important}
+.cms-sort-row.cms-dragover{box-shadow:0 0 0 2px #c4a16e,inset 0 0 0 1px #c4a16e}
+.cms-design{border:1px solid #59432d;margin:20px 0;padding:14px;background:#140f0c}
+.cms-design summary{cursor:pointer;color:#d7b789;font-size:12px;font-weight:700;letter-spacing:1px}
+.cms-design label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;color:#d0b18a;font-size:12px}
+.cms-design input{max-width:115px;padding:6px;border:1px solid #5b4433;background:#211912;color:#eee}
+.cms-design button{margin-top:12px}
+.cms-capsule-thumb{display:block;max-width:200px;max-height:130px;object-fit:cover;margin:12px 0}
+
+.cms-design select{background:#211912;color:#f1e8df;border:1px solid #5b4433;padding:8px;max-width:220px}
+.cms-sort-row button[title*="Приховати"],.cms-sort-row button[title*="Видалити"]{color:#d7a98a}
+.vh-cms-injected-unit .vh-lab-card{border-radius:var(--cms-radius,0)}
+
+.layout{align-items:start}
+.layout .existing-blocks{margin-top:0}
+.layout .editor{margin-top:0}
+.cms-capsule-field{display:grid;gap:10px}
+.cms-capsule-thumb{width:135px;height:105px;object-fit:cover}
+.photo-controls .secondary,.cms-capsule-field .secondary{justify-self:start;width:max-content}
+
+/* STEP66 — consistent spacing, sticky editor and system animations */
+.layout{align-items:start!important}
+.layout>div:first-child{padding-top:0!important}
+.layout .existing-blocks{margin-top:0!important}
+.layout .editor{position:sticky;top:14px;align-self:start;margin-top:0!important;max-height:calc(100vh - 28px);overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}
+.layout .editor .cms-editor-title{position:sticky;top:0;z-index:8;background:#15100d;padding:14px 0 12px;margin:-1px 0 16px;border-bottom:1px solid #4d3827}
+.cms-sort-row{margin-bottom:12px!important}
+.cms-sort-row+.cms-sort-row{margin-top:0!important}
+.existing-blocks{gap:0!important}
+#existingBlocks{margin-bottom:18px}
+.vh-cms-injected-unit{display:block!important;clear:both;isolation:isolate;margin:26px 0!important}
+.vh-cms-injected-unit+.vh-cms-injected-unit{margin-top:26px!important}
+.vh-cms-injected-unit .vh-lab-card{margin:0!important;min-height:220px}
+.cms-white-copy .vh-lab-copy,.cms-white-copy .copy,.cms-white-copy .homepage-capsules-copy,.cms-white-copy .editorial-copy{background:#fff!important;color:#211a15!important;padding:26px!important}
+.cms-cream-copy .vh-lab-copy,.cms-cream-copy .copy,.cms-cream-copy .homepage-capsules-copy,.cms-cream-copy .editorial-copy{background:#f5ede2!important;color:#211a15!important;padding:26px!important}
+.cms-white-copy .vh-lab-copy *,.cms-white-copy .copy *,.cms-white-copy .homepage-capsules-copy *,.cms-white-copy .editorial-copy *,
+.cms-cream-copy .vh-lab-copy *,.cms-cream-copy .copy *,.cms-cream-copy .homepage-capsules-copy *,.cms-cream-copy .editorial-copy *{color:#211a15!important}
+.cms-transparent-copy .vh-lab-copy,.cms-transparent-copy .copy{background:transparent!important}
+.cms-animation-none,.cms-animation-none *{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}
+.cms-animation-fade-up{animation:cmsStep66FadeUp .7s both!important}
+.cms-animation-fade-left{animation:cmsStep66FadeLeft .7s both!important}
+.cms-animation-fade-right{animation:cmsStep66FadeRight .7s both!important}
+.cms-animation-fade{animation:cmsStep66Fade .7s both!important}
+.cms-animation-zoom{animation:cmsStep66Zoom .7s both!important}
+@keyframes cmsStep66FadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes cmsStep66FadeLeft{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+@keyframes cmsStep66FadeRight{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes cmsStep66Fade{from{opacity:0}to{opacity:1}}
+@keyframes cmsStep66Zoom{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:900px){.layout .editor{position:static;max-height:none;overflow:visible}.layout .editor .cms-editor-title{position:static}}
+@media(prefers-reduced-motion:reduce){.cms-animation-fade-up,.cms-animation-fade-left,.cms-animation-fade-right,.cms-animation-fade,.cms-animation-zoom{animation:none!important}}
+
+/* STEP 67: fixed editor header and independent editor-content scrolling */
+.layout{align-items:start!important}
+.layout>.editor{display:flex!important;flex-direction:column!important;position:sticky!important;top:12px!important;align-self:start!important;max-height:calc(100vh - 24px)!important;overflow:hidden!important;padding:0!important;min-height:0!important}
+.layout>.editor>.cms-editor-title{position:relative!important;flex:0 0 auto!important;top:auto!important;margin:0!important;padding:20px!important;background:#17120f!important;z-index:2!important;border-bottom:1px solid #453226!important}
+.cms-editor-scroll{overflow-y:auto!important;overflow-x:hidden!important;min-height:0!important;flex:1 1 auto!important;padding:0 20px 20px!important;scrollbar-width:thin;overscroll-behavior:contain}
+.layout>.editor .cms-editor-scroll #existingEditor{padding-top:4px}
+.layout>div:first-child{padding-top:0!important}
+#existingBlocks{margin-top:0!important}
+.cms-thumb-box{position:relative;flex:0 0 auto;width:105px;height:105px}
+.cms-thumb-box>img{width:100%;height:100%;object-fit:cover;background:#30231b;border:1px solid #453226}
+.cms-photo-x{position:absolute!important;right:4px!important;top:4px!important;width:24px!important;height:24px!important;display:grid!important;place-items:center!important;padding:0!important;line-height:1!important;font-size:19px!important;color:#f5e9db!important;background:#24170f!important;border:1px solid #9e7950!important;border-radius:3px!important;z-index:2!important}
+.cms-photo-x:hover{background:#683627!important}
+.cms-capsule-field .cms-thumb-box{width:135px;height:105px}
+.cms-capsule-field .cms-capsule-thumb{width:100%;height:100%;object-fit:cover}
+@media(max-width:900px){.layout>.editor{position:static!important;max-height:none!important}.cms-editor-scroll{overflow:visible!important;max-height:none!important}}
+
+/* STEP71 global header/footer settings */
+.cms-shared-editor{display:none;border:1px solid #4e3826;background:#17110e;padding:22px;margin:20px 0;max-width:780px}
+.cms-shared-mode .cms-shared-editor{display:block}
+.cms-shared-mode .layout,.cms-shared-mode .live-preview-tools{display:none!important}
+.cms-shared-editor h3{font-size:14px;letter-spacing:.06em;color:#d9b782;margin:16px 0}
+.cms-shared-editor .field{display:grid;gap:8px;margin:14px 0}
+.cms-shared-editor label{font-size:11px;color:#c29c6d}
+.cms-shared-editor input,.cms-shared-editor textarea,.cms-nav-edit input{box-sizing:border-box;width:100%;background:#0c0908;color:#f1e8de;border:1px solid #55402e;padding:12px;font:13px Montserrat,Arial,sans-serif}
+.cms-shared-editor textarea{min-height:90px}
+.cms-nav-edit{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+@media(max-width:600px){.cms-nav-edit{grid-template-columns:1fr}}
+
+/* STEP72: image previews never display browser broken-image icon */
+.cms-thumb-box{position:relative;overflow:hidden;background:#241b16;border:1px solid #5b4433;display:grid;place-items:center}
+.cms-thumb-box>img[hidden]{display:none!important}
+.cms-thumb-box>img:not([hidden]){display:block;width:100%;height:100%;object-fit:cover}
+.cms-thumb-empty-label{font:10px Montserrat,Arial,sans-serif;letter-spacing:.02em;text-align:center;color:#ab9885;padding:7px}
+.cms-thumb-box:not(.cms-thumb-empty) .cms-thumb-empty-label{display:none}
+.cms-mapped-field>label{font-weight:600;color:#d7b88e;line-height:1.4}
+.cms-mapped-field{border-bottom:1px solid #443528;padding-bottom:16px;margin-bottom:16px}
+
+/* STEP 86 — consistent, single-row page-builder actions */
+@media (min-width: 761px) {
+  main > header { align-items: stretch; flex-direction: column; gap: 17px; }
+  main > header > .actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 10px; width: 100%; }
+}
+main > header > .actions > button {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 1 auto; min-height: 42px; padding: 11px 18px;
+  border-radius: 3px; white-space: nowrap; font-size: 11px;
+  font-weight: 600; letter-spacing: .015em; line-height: 1.3;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+main > header > .actions #reset { background: transparent; color: #b8a08a; border: 1px solid #5b4433; }
+main > header > .actions #save { background: #e8d9c6; color: #21160f; border: 1px solid #e8d9c6; }
+main > header > .actions #publish { background: #382719; color: #edce9f; border: 1px solid #9e7547; }
+main > header > .actions #reset:hover { background: #261b15; color: #f2e0ce; }
+main > header > .actions #save:hover { background: #f4e8d8; border-color: #f4e8d8; }
+main > header > .actions #publish:hover { background: #4a3322; border-color: #c39761; }
+main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; outline-offset: 3px; }
+@media (max-width: 760px) {
+  main > header > .actions { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; margin-top: 18px; }
+  main > header > .actions > button { width: 100%; white-space: normal; }
+}
+
+/* STEP 88: image uploader and adjustable spacing */
+.cms-file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.cms-image-upload{position:relative}
+.cms-upload-button{background:#e8d9c5;color:#21150e;border:1px solid #bfa17b;padding:12px 18px;cursor:pointer;font:inherit}
+.cms-upload-button:hover{background:#f3e7d6}
+.cms-upload-button:disabled{opacity:.6;cursor:wait}
+.cms-image-thumb{width:100%;max-height:180px;object-fit:contain;margin:8px 0 16px;border:1px solid #6e5543}
+.cms-design input[type=number]{width:100%;box-sizing:border-box}
+.preview-card{min-height:var(--vh-cms-height,320px)}
+
+/* STEP 91: compact CMS editor */
+.cms91-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:12px 0 18px;padding:4px;background:#211914;border:1px solid #534033;border-radius:8px}.cms91-tabs button{min-width:0;padding:11px 3px;background:transparent;border:0;color:#b9a695;font:500 11px Montserrat,Arial,sans-serif;cursor:pointer}.cms91-tabs button.active{background:#e7d7c4;color:#211914;border-radius:5px}.cms91-tab-panel[hidden]{display:none!important}.cms91-tab-panel{min-width:0}.cms91-panel{display:grid;gap:14px}.cms91-field{display:grid;gap:8px}.cms91-field label,.cms91-caption{font:500 10px Montserrat,Arial,sans-serif;letter-spacing:1.2px;color:#b9a18b}.cms91-field select{width:100%;max-width:100%;padding:11px;background:#211914;color:#eee0cf;border:1px solid #594739}.cms91-layout-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cms91-preset{display:flex;flex-direction:column;gap:7px;text-align:left;background:#1d1713;border:1px solid #574638;padding:10px;color:#e6d9c9;cursor:pointer;border-radius:6px;min-width:0}.cms91-preset.active{border-color:#c9a475;box-shadow:0 0 0 1px #c9a475 inset}.cms91-preset strong{font:500 11px Montserrat,Arial,sans-serif}.cms91-preset small{color:#a18a76;font-size:10px}.cms91-mini{width:100%;height:64px;display:flex;gap:5px;padding:7px;background:#392b24;box-sizing:border-box}.cms91-mini i{display:block;background:#ad886a;width:50%;height:100%}.cms91-mini b{display:block;background:#dacbb9;width:50%;height:100%}.cms91-mini-right{flex-direction:row-reverse}.cms91-mini-square i{width:45%;height:88%;align-self:center;margin:0 5px;aspect-ratio:1}.cms91-mini-wide i{width:65%}.cms91-mini-wide b{width:35%}.cms91-crop{margin-top:10px;border-top:1px solid #584436;padding-top:12px}.cms91-crop summary{cursor:pointer;color:#c9a475;font-size:12px}.cms91-crop-body{display:grid;gap:14px;padding:16px 0}.cms91-crop-body input[type=range]{width:100%;accent-color:#c9a475}
+
+/* STEP 92: compact independent spacing and image controls */
+.cms92-margins{display:grid;gap:12px;padding:14px;border:1px solid #594739;border-radius:6px}
+.cms92-margin{display:grid;grid-template-columns:68px minmax(0,1fr) 48px;gap:9px;align-items:center;color:#d8c3ab;font:12px Montserrat,Arial,sans-serif}
+.cms92-margin input{width:100%;accent-color:#c9a475}
+.cms92-margin output{text-align:right;font-size:11px;color:#c9a475}
+.cms92-photo-wrap{position:relative;display:inline-block;max-width:100%}
+.cms92-photo-wrap img{max-width:100%}
+.cms92-remove-photo{position:absolute;top:8px;right:8px;z-index:2;border:1px solid #e9d7c0;border-radius:50%;background:#231914;color:white;width:34px;height:34px;font-size:24px;cursor:pointer}
+.cms91-mini-framed i{width:30%}.cms91-mini-framed b{width:40%;background:#e6d9c9}
+
+.cms91-mini-framed{gap:3px}.cms91-mini-framed:after{content:"";display:block;width:30%;background:#ad886a}
+
+/* STEP 93: one content panel, predictable image slots and layout cards */
+.cms93-media{display:grid;gap:16px}.cms93-media h4{font:600 12px Montserrat,Arial,sans-serif;letter-spacing:1.5px;color:#c5a47d;margin:10px 0 0}
+.cms93-media-slot{padding:13px;border:1px solid #5c4636;display:grid;gap:7px;min-width:0}.cms93-media-slot>strong{font:600 13px Montserrat,Arial,sans-serif;color:#f2e5d5}.cms93-media-slot>small{font:11px/1.5 Montserrat,Arial,sans-serif;color:#b59b80}
+.cms93-media-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;align-items:start}.cms93-media-thumb{width:112px;height:126px;display:flex;align-items:center;justify-content:center;text-align:center;background:#33241e;color:#9c8571;font-size:11px;overflow:hidden}.cms93-media-thumb img{width:100%;height:100%;object-fit:contain}.cms93-media-actions{display:grid;gap:7px;min-width:0}.cms93-media-actions button{min-height:34px}.cms93-media-actions input[type=url]{width:100%;min-width:0}.cms93-remove{background:transparent;color:#c7aa89;border:1px solid #594534;cursor:pointer}.cms93-remove:disabled{opacity:.4;cursor:default}
+.cms91-design [data-tab=design]{display:grid;gap:12px}.cms91-layout-grid{margin-top:8px}
+@media(max-width:700px){.cms93-media-row{grid-template-columns:1fr}.cms93-media-thumb{width:100%;height:150px}}
+
+/* STEP 94 — clean full-width tabs and separated design sections */
+.cms91-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;width:100%!important;padding:5px!important;box-sizing:border-box!important;margin:12px 0 22px!important}
+.cms91-tabs>button{width:100%!important;min-width:0!important;min-height:42px!important;padding:11px 6px!important;text-align:center!important;white-space:nowrap}
+.cms91-tab-panel[data-cms91-tab=design]{display:grid;gap:16px;min-width:0}
+.cms91-tab-panel[data-cms91-tab=design][hidden]{display:none!important}
+.cms91-tab-panel[data-cms91-tab=design]>.cms93-type-control{border:1px solid #5c4636;border-radius:7px;padding:16px;background:#1d1612;margin:0}
+.cms91-tab-panel[data-cms91-tab=design] .cms91-design{background:transparent;border:0;padding:0;margin:0;display:grid;gap:16px}
+.cms91-tab-panel[data-cms91-tab=design] .cms91-panel{gap:16px}
+.cms94-design-section{min-width:0;display:grid;gap:15px;padding:18px 16px;border:1px solid #5c4636;border-radius:7px;background:#1d1612;margin:0}
+.cms94-section-heading{font:600 11px Montserrat,Arial,sans-serif;letter-spacing:1.5px;color:#d5b28b;margin:0 0 2px;padding-bottom:11px;border-bottom:1px solid #49382b}
+.cms94-design-section .cms91-field{gap:8px;min-width:0}
+.cms94-design-section .cms91-field select{width:100%;max-width:none}
+.cms94-design-section .cms92-margins{padding:12px;border-color:#4b382b;background:#15100d}
+.cms94-design-section .cms91-layout-grid{margin-top:0}
+.cms94-design-section .cms91-crop{margin:0;border:0;padding:0}
+@media(max-width:550px){.cms94-design-section{padding:13px 11px}.cms91-tabs>button{font-size:10px!important}}
+
+.cms96-device-bar{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;padding:12px;background:#15100d;border:1px solid #4d3829;margin:12px 0}
+.cms96-device-bar span{font-size:10px;letter-spacing:.11em;color:#b99b79;margin-right:auto}
+.cms96-device-bar button{padding:9px 12px;border:1px solid #6d533c;background:#211812;color:#e7d7c4;cursor:pointer;font-size:12px}
+.cms96-device-bar button.active{background:#e7d7c4;color:#211812}
+.cms96-slots{display:grid;gap:9px;padding:14px;border:1px solid #604a37}
+.cms96-slots h4{margin:0 0 4px;color:#d5b58e;font-size:12px;letter-spacing:.08em}
+.cms96-slot{padding:9px;border:1px solid #49372a}
+.cms96-slot summary{cursor:pointer;color:#e8d9c5}
+.cms96-help{color:#a88d72;font-size:11px;line-height:1.5}
+.cms96-slider{display:grid;grid-template-columns:95px minmax(0,1fr) 38px;gap:8px;align-items:center;margin:10px 0;font-size:11px;color:#dfcbb4}
+.cms96-slider input{width:100%;accent-color:#c4a17c}
+.cms96-slider output{text-align:right}
+
+/* STEP 96.1: actual iframe viewport, overriding legacy forced 1440px */
+.live-preview-frame{overflow:auto!important}
+.live-preview-frame #desktopViewport{width:1440px;max-width:none;margin:0 auto;min-width:0}
+.live-preview-frame #siteFrame{width:100%!important;max-width:100%!important;min-width:0!important;height:950px!important;display:block}
+.cms96-device-bar{position:relative;z-index:2}
+
+/* STEP 96.2: viewport width is owned by resizeDesktopPreview, not fixed CSS */
+.live-preview-frame #desktopViewport{max-width:none!important;min-width:0!important}
+.live-preview-frame #siteFrame{max-width:none!important;min-width:0!important}
+
+/* STEP 98 — clearer unified editing for existing and new sections */
+.cms98-panel-heading{font-family:Montserrat,Arial,sans-serif;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#c8a580;padding:14px 0 12px;border-bottom:1px solid #5a4333;margin-bottom:18px}
+.cms91-tab-panel>.field,.cms91-tab-panel>.cms91-field{margin-bottom:18px}
+.cms91-tab-panel .cms91-design>.cms91-panel{margin-bottom:20px}
+.cms91-tab-panel .cms91-caption{padding-top:10px}
+
+/* STEP 153 — Vintage Hedonista Studio. Presentation-only; CMS persistence untouched. */
+@media(min-width:1200px){
+ body{height:100vh;min-height:0;overflow:hidden;background:#100d0b}
+ .sidebar{width:186px;height:100vh;overflow:auto;padding:14px 11px;background:#16110e;border-right:1px solid #352920}
+ .sidebar .brand{font:19px/1.1 'Bodoni Moda',Georgia,serif;padding:8px 7px 18px;letter-spacing:.06em}
+ .sidebar .brand small{font:9px Montserrat,Arial,sans-serif;letter-spacing:1.4px}
+ .sidebar .nav-label{margin:24px 7px 10px}
+ .sidebar .hint{display:none}
+ #pageNav{max-height:calc(100vh - 170px)}
+ main{display:grid;grid-template-columns:238px minmax(0,1fr) 342px;grid-template-rows:auto auto minmax(0,1fr);gap:0;padding:0;max-width:none;height:100vh;min-width:0;overflow:hidden}
+ main>header{grid-column:1/-1;grid-row:1;min-height:74px;padding:10px 18px;border-bottom:1px solid #352920;background:#19130f;gap:12px}
+ main>header h1{font:19px 'Bodoni Moda',Georgia,serif;margin:4px 0}
+ main>header p{display:none}
+ main>header .eyebrow{font-size:9px;letter-spacing:1.4px}
+ main>header .actions{justify-content:flex-end;gap:7px}
+ main>header .actions button{font-size:11px;padding:10px 12px;border-radius:4px;white-space:nowrap}
+ #publish{background:#c7a583;color:#1d130e;border-color:#c7a583}
+ #reset{opacity:.65}
+ .page-context{grid-column:1/-1;grid-row:2;min-height:48px;margin:0;padding:7px 17px;border:0;border-bottom:1px solid #352920;background:#211913;gap:10px}
+ .page-context>div{display:flex;align-items:center;gap:12px;min-width:0}
+ .page-context h2{font:15px 'Bodoni Moda',Georgia,serif;margin:0}
+ .page-context p,.page-context .eyebrow{display:none}
+ .page-context .editor-link{padding:6px 10px;font-size:10px;border-radius:4px}
+ main>.layout{display:contents}
+ main>.layout>div:first-child{grid-column:1;grid-row:3;overflow:auto;min-height:0;padding:15px 10px;background:#1a1410;border-right:1px solid #392b21;scrollbar-width:thin}
+ main>.layout>.editor{grid-column:3;grid-row:3;position:relative;top:auto;align-self:stretch;min-height:0;overflow:auto;margin:0;padding:18px 15px;background:#19130f;border:0;border-left:1px solid #392b21;scrollbar-width:thin}
+ .editor h2{font:19px 'Bodoni Moda',Georgia,serif}
+ .editor .cms-editor-scroll{max-height:none!important;overflow:visible!important}
+ main>.preview{grid-column:2;grid-row:3;min-height:0;min-width:0;overflow:auto;margin:0;padding:0;background:#29221c;scrollbar-width:thin}
+ .preview>.section-title{position:sticky;top:0;z-index:5;background:#19130f;border-bottom:1px solid #392b21;padding:11px 15px;margin:0}
+ .preview>.section-title h2{font:12px Montserrat,Arial,sans-serif;letter-spacing:1px}
+ .preview>.section-title span{font-size:10px}
+ .preview>.muted{display:none}
+ .live-preview-tools{padding:9px 13px;margin:0;gap:7px;background:#211a15}
+ .live-preview-tools label{font-size:9px}
+ .live-preview-tools select{min-width:110px;padding:7px;font-size:10px}
+ .live-preview-tools button{padding:8px;font-size:10px}
+ .live-preview-frame{border:0!important;height:calc(100vh - 218px)!important;min-height:380px!important;overflow:auto}
+ .existing-blocks{gap:5px;margin:6px 0 12px}
+ .existing-row{gap:3px}
+ .existing-select{font-size:11px;padding:11px 8px;border-radius:4px}
+ .existing-row>button:not(.existing-select){padding:4px 6px}
+ .block{padding:10px 7px;margin-bottom:5px;border-radius:4px}
+ .blockname{font-size:11px}
+ .add{padding:12px 8px;margin-top:12px;border-radius:4px}
+ .add label{font-size:10px}
+ .add button{width:100%;font-size:11px}
+ .field{margin-top:14px}
+ .field label{font-size:10px}
+ .field input,.field textarea,.field select{border-radius:4px}
+ main>.status{position:fixed;bottom:12px;left:calc(50% - 145px);z-index:30;max-width:330px;padding:9px 14px;border:1px solid #654e37;border-radius:5px;background:#21170fee;box-shadow:0 8px 28px #0007;font-size:10px;pointer-events:none}
+ main>#pageSeoPanel{display:none}
+ main>#sharedEditor{display:none}
+}
+@media(min-width:1200px) and (max-width:1450px){
+ .sidebar{width:155px}
+ main{grid-template-columns:200px minmax(0,1fr) 300px}
+ main>header .actions button{padding:8px;font-size:10px}
+}
+
+/* STEP 154: screenshot-matched studio refinements */
+@media(min-width:1200px){
+ .sidebar{width:118px!important;background:#15100e;padding:12px 8px}
+ .sidebar .brand{font-size:15px;text-align:center;letter-spacing:0;padding:12px 2px 24px}
+ .sidebar .brand small{font-size:8px;letter-spacing:.8px}
+ .sidebar .nav{font-size:10px!important;padding:12px 7px!important}
+ .sidebar .nav-label{font-size:9px;margin:22px 4px 8px}
+ #pageNav{max-height:calc(100vh - 200px)}
+ main{grid-template-columns:245px minmax(0,1fr) 315px!important;grid-template-rows:62px minmax(0,1fr)!important}
+ main>header{grid-column:1/-1;grid-row:1;height:62px;min-height:62px;padding:7px 14px;display:flex;align-items:center;gap:12px}
+ main>header>div:first-of-type:not(.studio-mark){display:none}
+ .studio-mark{font:29px 'Bodoni Moda',Georgia,serif;color:#e6d6c3;line-height:1;padding:0 9px;border-right:1px solid #3d3027}
+ .studio-top-controls{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+ .studio-page-label{font-size:9px;color:#b49c83;display:flex;align-items:center;gap:8px}
+ #studioPage{background:#2b211b;color:#eee2d3;border:1px solid #3d3027;padding:9px 11px;border-radius:4px;max-width:210px;min-width:140px}
+ .studio-devices{display:flex;gap:3px;margin:auto}
+ .studio-device{border:0!important;background:transparent!important;color:#a99582!important;font-size:23px!important;padding:4px 11px!important}
+ .studio-device.active{color:#f1e3d3!important;background:#382b23!important;border-bottom:2px solid #c9a786!important}
+ .studio-icon-button{font-size:18px!important;border:0!important;padding:6px 10px!important}
+ main>header .actions{flex-wrap:nowrap}
+ #save{background:#241b16;color:#f0e3d3;border-color:#9a806a}
+ #publish{background:#c5a382!important;color:#1e150e!important}
+ main>.page-context{display:none}
+ main>.layout>div:first-child{grid-column:1;grid-row:2}
+ main>.layout>.editor{grid-column:3;grid-row:2}
+ main>.preview{grid-column:2;grid-row:2}
+ .preview>.section-title{padding:12px 16px;min-height:43px}
+ .live-preview-frame{height:calc(100vh - 166px)!important}
+ .editor{padding:0!important}
+ .studio-inspector-head{position:sticky;top:0;z-index:8;background:#1b1511;padding:17px 15px 0;border-bottom:1px solid #443329}
+ .studio-inspector-head h2{font:19px 'Bodoni Moda',Georgia,serif;border:0;padding:0 0 16px}
+ .studio-inspector-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+ .studio-inspector-tabs button{font-size:10px!important;padding:12px 3px!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#ad9987!important}
+ .studio-inspector-tabs button.active{border-bottom-color:#c7a583!important;color:#f6e7d5!important}
+ .editor .cms-editor-scroll{padding:12px 15px 24px}
+ .studio-tab-notice{margin:14px;font-size:11px;line-height:1.6}
+ .studio-seo-open{display:block!important;position:fixed;z-index:90;top:64px;right:320px;width:min(410px,90vw);max-height:75vh;overflow:auto;box-shadow:0 15px 50px #000b}
+ main>.status{left:50%;transform:translateX(-50%)}
+ .existing-blocks>.muted{font-size:9px;line-height:1.4;letter-spacing:.5px}
+ .existing-select.active,.existing-select:hover{background:#44342a;border-color:#c7a583}
+ .cms-sort-row .cms-grip{font-size:16px;min-width:27px;padding:0 5px}
+ .preview>.section-title h2{font-size:10px;letter-spacing:1.4px}
+}
+@media(min-width:1200px) and (max-width:1500px){
+ main{grid-template-columns:205px minmax(0,1fr) 285px!important}
+ #studioPage{min-width:120px;max-width:165px}
+ .studio-top-controls{gap:5px}
+ .studio-device{padding:4px 7px!important}
+ main>header .actions button{font-size:10px;padding:9px 8px}
+ .studio-seo-open{right:290px}
+}
+@media(max-width:1199px){
+ .studio-mark,.studio-top-controls,.studio-inspector-tabs{display:none}
+ .studio-inspector-head h2{margin:0 0 10px}
+}
+
+/* STEP 155 — faithful Studio chrome, overriding accumulated legacy CMS styles. */
+@media(min-width:1200px){
+ body{display:flex!important;overflow:hidden!important;background:#12100e!important}
+ body>.sidebar{width:92px!important;min-width:92px!important;flex:0 0 92px!important;display:flex;flex-direction:column;padding:0!important;background:#191512!important;overflow:hidden!important}
+ .sidebar>.brand{font-size:13px!important;padding:15px 4px 10px!important;text-align:center!important}
+ .sidebar>.brand small{font-size:7px!important;letter-spacing:0!important}
+ .sidebar>.nav{font-size:9px!important;padding:10px 6px!important;order:4}
+ .sidebar>.nav-label{display:none!important}
+ .sidebar>#pageNav{order:5;overflow:auto!important;max-height:none!important;flex:1}
+ .sidebar>#pageNav .nav{font-size:10px!important;padding:12px 7px!important}
+ .studio-side-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;order:2;border-top:1px solid #39302a;border-bottom:1px solid #39302a;margin:5px 0}
+ .studio-side-tabs button{padding:8px 1px!important;background:#201915!important;color:#c7b9aa!important;border:0!important;border-bottom:2px solid transparent!important;font-size:19px!important;line-height:1.1}
+ .studio-side-tabs button small{display:block;font-size:7px;line-height:1.8}
+ .studio-side-tabs button.active{border-bottom-color:#c9a583!important;background:#30241c!important}
+ main{grid-template-columns:245px minmax(0,1fr) 310px!important;grid-template-rows:64px minmax(0,1fr)!important}
+ main>header{display:flex!important;align-items:center!important;justify-content:space-between!important;height:64px!important;min-height:64px!important;padding:0 14px!important;background:#191512!important}
+ main>header .studio-mark{display:flex!important;align-items:center;font:29px Georgia,serif!important;border-right:1px solid #43372f;padding-right:12px!important;flex:none}
+ main>header>div:nth-child(2){display:none!important}
+ main>header .studio-top-controls{display:flex!important;align-items:center!important;gap:12px!important;flex:1!important;min-width:0!important}
+ .studio-exit{font-size:20px;color:#e0cfbd;text-decoration:none;padding:6px 8px;border:1px solid #514235;border-radius:4px;flex:none}
+ .studio-page-label{display:flex!important;align-items:center;gap:8px;font-size:0!important}
+ #studioPage{font-size:12px!important;min-width:170px!important;max-width:220px!important;background:#2a221c!important;color:#f3e9de!important}
+ .studio-devices{display:flex!important;margin:0 auto!important;gap:5px!important}
+ .studio-device{font-size:25px!important;padding:4px 9px!important}
+ .studio-history{font-size:23px!important;background:transparent!important;color:#d5c6b7!important;border:0!important;padding:4px 7px!important}
+ #studioSeoToggle{font-size:19px!important}
+ main>header .actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:7px!important}
+ main>header .actions #reset{display:none!important}
+ main>header .actions #save{background:#241e19!important;color:#f3e9df!important;border:1px solid #a08b78!important;border-radius:4px!important;padding:11px 13px!important}
+ main>header .actions #publish{background:#c5a484!important;color:#1b140f!important;border:1px solid #c5a484!important;border-radius:4px!important;padding:11px 13px!important}
+ main>.layout>div:first-child{padding:15px 9px!important;background:#1b1714!important}
+ .studio-list-title{font-size:10px;color:#bba58e;letter-spacing:1px;margin:0 4px 14px}
+ .existing-blocks>.muted{display:none!important}
+ .existing-row{display:flex!important;align-items:center!important;gap:3px!important;margin-bottom:7px!important}
+ .existing-row .existing-select{display:flex!important;align-items:center!important;gap:9px!important;min-height:63px!important;padding:6px!important;background:#211b17!important;border:1px solid #3c322b!important;border-radius:4px!important;color:#eee0d2!important;font-size:10px!important;line-height:1.4!important;overflow:hidden;text-overflow:ellipsis}
+ .existing-row .existing-select.active{border-color:#c3a385!important;background:#392d25!important}
+ .studio-thumb{display:block;flex:0 0 53px;width:53px;height:48px;border-radius:3px;background-color:#3a3028;background-size:cover;background-position:center;border:1px solid #58483c}
+ .existing-row .cms-grip{font-size:14px!important;min-width:18px!important;padding:0 2px!important;border:0!important}
+ .existing-row>button:not(.existing-select){font-size:10px!important;padding:5px 3px!important;border:0!important;background:transparent!important}
+ .add{border:0!important;background:transparent!important;padding:0!important}
+ .add>label{display:none!important}
+ #add{background:#302721!important;color:#f0e4d7!important;border:0!important;padding:13px!important}
+ .preview>.section-title{background:#211a16!important}
+ .live-preview-tools{padding:7px 10px!important;background:#211a16!important}
+ .live-preview-tools label{display:none!important}
+ .live-preview-tools select{flex:1;min-width:0!important}
+ .live-preview-frame{height:calc(100vh - 150px)!important;background:#2d2823!important}
+ .editor{background:#1b1714!important}
+ .studio-inspector-head{background:#1b1714!important}
+ .studio-inspector-head h2{font-size:18px!important}
+ .studio-inspector-tabs button{font-size:10px!important}
+ .editor .cms-editor-scroll{padding:14px!important}
+}
+@media(min-width:1200px) and (max-width:1450px){
+ main{grid-template-columns:215px minmax(0,1fr) 275px!important}
+ .studio-thumb{flex-basis:39px;width:39px;height:42px}
+ #studioPage{min-width:135px!important;max-width:155px!important}
+ main>header .studio-top-controls{gap:5px!important}
+ .studio-history{padding:3px!important}
+ main>header .actions #save,main>header .actions #publish{padding:9px 8px!important;font-size:10px!important}
+}
+@media(max-width:1199px){
+ .studio-side-tabs{display:none}
+ .studio-list-title{font-size:11px;color:#bba58e;margin:12px 0}
+ .studio-thumb{display:inline-block;width:45px;height:40px;background-size:cover;background-position:center;margin-right:8px;vertical-align:middle}
+ .studio-exit,.studio-history{display:none}
+}
+
+@media(min-width:1200px){
+ .cms96-device-bar{display:none!important}
+ .live-preview-tools{padding:5px 10px!important;min-height:38px!important}
+ .preview>.section-title{min-height:38px!important;padding:9px 12px!important}
+ .live-preview-frame{height:calc(100vh - 140px)!important}
+ .studio-side-tabs button{cursor:pointer}
+}
+
+/* STEP 156: reference-first shell. Supersedes old experimental grid positioning. */
+@media(min-width:1200px){
+ body{display:flex!important;overflow:hidden!important;padding-top:72px!important;height:100vh!important}
+ body>.sidebar{width:96px!important;min-width:96px!important;flex:0 0 96px!important;height:calc(100vh - 72px)!important;position:relative!important;background:#191512!important;border-right:1px solid #332b26!important}
+ .sidebar>.brand,.sidebar>.nav,.sidebar>.nav-label,.sidebar>.hint{display:none!important}
+ .sidebar>.studio-side-tabs{display:flex!important;flex-direction:column!important;gap:0!important;order:0!important;margin:0!important;border:0!important;width:100%!important}
+ .studio-side-tabs button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;height:76px!important;background:transparent!important;color:#9e958e!important;border:0!important;border-bottom:1px solid #302821!important;border-radius:0!important;padding:10px 3px!important;font-size:25px!important}
+ .studio-side-tabs button span{font-size:25px!important;line-height:1.2!important}
+ .studio-side-tabs button small{font-size:11px!important;line-height:1.5!important;color:inherit!important}
+ .studio-side-tabs button.active{color:#f1e5d8!important;background:#29221d!important;box-shadow:inset 0 -2px #d0ac86!important}
+ .sidebar>#pageNav{display:none!important}
+ body.studio-pages-mode .sidebar>#pageNav{display:none!important}
+ body>main{height:calc(100vh - 72px)!important;min-height:0!important;flex:1!important;display:grid!important;grid-template-columns:210px minmax(0,1fr) 310px!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important;padding:0!important}
+ main>header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;height:72px!important;min-height:72px!important;max-height:72px!important;z-index:100!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:nowrap!important;gap:12px!important;padding:0 17px!important;margin:0!important;background:#191512!important;border-bottom:1px solid #3b3028!important;box-sizing:border-box!important}
+ main>header>.studio-mark{display:block!important;position:static!important;flex:0 0 auto!important;font:31px/1 Georgia,serif!important;color:#f3e8db!important;padding:0 10px 0 0!important;margin:0!important;transform:none!important;border-right:1px solid #44362d!important}
+ main>header>.studio-brand-title{display:flex!important;flex-direction:column!important;gap:3px!important;flex:0 0 205px!important;font:14px/1.2 Montserrat,Arial,sans-serif!important;color:#f4e8dd!important;white-space:nowrap!important}
+ .studio-brand-title small{font:8px Montserrat,Arial,sans-serif!important;color:#aa9685!important;letter-spacing:1px!important}
+ main>header>div:nth-child(3){display:none!important}
+ main>header>.studio-top-controls{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex:1 1 auto!important;min-width:0!important;height:100%!important}
+ .studio-exit{order:9!important;font-size:20px!important;padding:4px 9px!important}
+ .studio-page-label{flex:0 1 200px!important;min-width:120px!important}
+ #studioPage{width:100%!important;min-width:0!important;max-width:220px!important;padding:11px 12px!important;background:#2a231f!important;border:1px solid #342b25!important;border-radius:5px!important;font-size:12px!important}
+ .studio-devices{display:flex!important;gap:6px!important;margin:0 auto!important}
+ .studio-device{font-size:23px!important;min-width:40px!important;padding:6px!important}
+ .studio-history{font-size:24px!important}
+ main>header>.actions{flex:0 0 auto!important;display:flex!important;flex-wrap:nowrap!important;gap:8px!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:11px!important;padding:11px 12px!important;white-space:nowrap!important}
+ main>.layout{display:contents!important}
+ main>.layout>div:first-child{grid-column:1!important;grid-row:1!important;overflow:auto!important;padding:15px 8px!important;background:#1c1714!important;border-right:1px solid #3b3028!important}
+ main>.preview{grid-column:2!important;grid-row:1!important;margin:0!important;overflow:auto!important;min-width:0!important;background:#181411!important}
+ main>.layout>.editor{grid-column:3!important;grid-row:1!important;position:static!important;overflow:auto!important;min-width:0!important;border-left:1px solid #3b3028!important}
+ .studio-list-title,.studio-pages-heading{font-size:10px!important;letter-spacing:1px!important;color:#b4a294!important;padding:4px 5px 13px!important}
+ .existing-row{margin-bottom:0!important;border-bottom:1px solid #302821!important;min-height:67px!important}
+ .existing-row .existing-select{border:0!important;background:transparent!important;min-height:60px!important;font-size:11px!important;padding:6px 2px!important}
+ .existing-row .existing-select.active{background:#392c23!important;outline:1px solid #c3a384!important}
+ .existing-row .studio-thumb{flex:0 0 47px!important;width:47px!important;height:45px!important}
+ .existing-row>button:not(.existing-select){display:none!important}
+ .existing-row .cms-grip{min-width:14px!important}
+ .existing-blocks{margin:0 0 15px!important}
+ .preview>.section-title{display:none!important}
+ .live-preview-tools{display:none!important}
+ .cms96-device-bar{display:none!important}
+ .preview>.muted{display:none!important}
+ .live-preview-frame{height:calc(100vh - 72px)!important;min-height:0!important;border:0!important;overflow:auto!important}
+ .studio-inspector-head{padding:16px 12px 0!important}
+ .studio-inspector-head h2{font:16px Montserrat,Arial,sans-serif!important;padding-bottom:16px!important}
+ .studio-inspector-tabs button{font-size:11px!important}
+ main>.status{bottom:8px!important}
+ body.studio-pages-mode main>.layout>div:first-child #existingBlocks,body.studio-pages-mode main>.layout>div:first-child .add,body.studio-pages-mode main>.layout>div:first-child .studio-list-title{display:none!important}
+ body.studio-pages-mode .studio-pages-heading{display:block!important}
+ .studio-pages-list{display:none}
+ body.studio-pages-mode .studio-pages-list{display:block!important}
+ .studio-pages-list button{display:block;width:100%;padding:13px 10px!important;margin:0!important;text-align:left!important;background:transparent!important;color:#dfd1c2!important;border:0!important;border-bottom:1px solid #3a3028!important;font-size:11px!important}
+ .studio-pages-list button.active{background:#3a2c23!important;color:#fff!important}
+}
+@media(min-width:1200px) and (max-width:1500px){
+ body>main{grid-template-columns:205px minmax(0,1fr) 275px!important}
+ main>header>.studio-brand-title{flex-basis:170px!important}
+ main>header{gap:8px!important;padding:0 12px!important}
+ main>header>.studio-top-controls{gap:5px!important}
+ .studio-devices{gap:2px!important}
+ .studio-device{min-width:31px!important;padding:4px!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:10px!important;padding:10px 8px!important}
+}
+
+/* STEP 157 — approved reference: horizontal tabs, 310px navigator, no legacy sidebar. */
+@media(min-width:1200px){
+ body{padding-top:72px!important;display:block!important;position:relative!important;overflow:hidden!important}
+ body>.sidebar{display:none!important}
+ body>main{width:100%!important;height:calc(100vh - 72px)!important;display:grid!important;grid-template-columns:310px minmax(0,1fr) 335px!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important}
+ main>header{top:0!important;left:0!important;right:0!important;height:72px!important;display:flex!important;align-items:center!important;gap:12px!important;padding:0 24px!important}
+ main>header>.studio-mark{font:34px/1 Georgia,serif!important;padding:0 12px 0 0!important;margin:0!important;border-right:0!important}
+ main>header>.studio-brand-title{flex:0 0 215px!important;display:flex!important;font-size:14px!important}
+ main>header>.studio-top-controls{flex:1 1 auto!important;display:flex!important;min-width:0!important;justify-content:space-between!important;gap:8px!important}
+ .studio-exit{order:9!important;border:0!important;background:transparent!important;display:flex;align-items:center;justify-content:center}
+ .studio-exit svg{width:20px;height:20px}
+ .studio-device svg{display:block;width:22px;height:22px}
+ .studio-history svg{display:block;width:21px;height:21px}
+ .studio-side-tabs svg{display:block;width:22px;height:22px}
+ .studio-side-tabs button span{display:flex!important;align-items:center;justify-content:center}
+ .studio-devices{margin:0 auto!important}
+ .studio-device{min-width:44px!important;height:49px!important;border-radius:4px 4px 0 0!important}
+ main>header>.actions{gap:9px!important}
+ main>header>.actions #save{background:transparent!important;color:#f2e7dd!important;border:1px solid #8d7968!important}
+ main>header>.actions #publish{background:#c5a484!important;color:#221710!important}
+ main>.layout>div:first-child{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;padding:0!important;background:#1a1512!important;overflow:auto!important}
+ main>.layout>div:first-child>.studio-side-tabs{position:sticky!important;top:0!important;z-index:12!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;flex-direction:row!important;gap:0!important;margin:0!important;width:100%!important;height:70px!important;flex:0 0 70px!important;background:#1b1714!important;border-bottom:1px solid #40332b!important}
+ .studio-side-tabs button{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;height:70px!important;min-width:0!important;padding:9px 2px!important;border:0!important;border-bottom:2px solid transparent!important;border-right:1px solid #302822!important;background:#1b1714!important;color:#aaa09a!important}
+ .studio-side-tabs button small{font-size:11px!important;line-height:1.8!important}
+ .studio-side-tabs button.active{background:#2c241e!important;color:#f4e6d8!important;border-bottom-color:#d0ae8a!important;box-shadow:none!important}
+ .studio-list-title{padding:20px 18px 12px!important;margin:0!important;font-size:10px!important}
+ .studio-pages-heading{padding:20px 18px 12px!important}
+ .existing-blocks{padding:0 9px!important;margin:0!important;display:flex!important;flex-direction:column!important;gap:0!important}
+ .existing-row{display:flex!important;align-items:center!important;min-height:76px!important;margin:0!important;padding:0 4px!important;border-bottom:1px solid #352b25!important;gap:5px!important}
+ .existing-row .existing-select{min-height:66px!important;flex:1!important;display:flex!important;gap:12px!important;align-items:center!important;padding:7px 8px!important;border:1px solid transparent!important;border-radius:4px!important;background:transparent!important;color:#e8ded3!important;font-size:12px!important;line-height:1.45!important}
+ .existing-row .existing-select.active{background:#392e26!important;border-color:#bea085!important;outline:0!important}
+ .existing-row .studio-thumb{width:62px!important;height:52px!important;flex:0 0 62px!important;border-radius:3px!important}
+ .existing-row .cms-grip{width:15px!important;min-width:15px!important}
+ .existing-row>button:not(.existing-select){display:none!important}
+ .add{margin:12px 18px!important;padding:0!important}
+ #add{display:block!important;width:100%!important;padding:13px!important;background:#302721!important;color:#eee1d3!important;border:0!important;border-radius:4px!important}
+ main>.preview{grid-column:2!important;grid-row:1!important}
+ main>.layout>.editor{grid-column:3!important;grid-row:1!important}
+ .studio-inspector-head{padding:0!important;background:#1b1714!important}
+ .studio-selected-title{font-size:16px!important;color:#f2e7da!important;padding:17px 17px 5px!important;font-weight:500!important}
+ .studio-inspector-head h2{display:none!important}
+ .studio-inspector-tabs{margin-top:12px!important;border-top:1px solid #342b26!important}
+ .studio-inspector-tabs button{display:flex!important;justify-content:center!important;align-items:center!important;padding:15px 3px!important}
+ .editor .cms-editor-scroll{padding:16px!important}
+ .live-preview-frame{height:calc(100vh - 72px)!important}
+ .preview>.section-title,.live-preview-tools,.cms96-device-bar{display:none!important}
+}
+@media(min-width:1200px) and (max-width:1500px){
+ body>main{grid-template-columns:300px minmax(0,1fr) 280px!important}
+ main>header{padding:0 14px!important;gap:7px!important}
+ main>header>.studio-brand-title{flex-basis:170px!important}
+ #studioPage{min-width:0!important;max-width:150px!important}
+ .studio-devices{gap:1px!important}
+ .studio-device{min-width:34px!important;padding:5px!important}
+ .studio-history{padding:4px!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:10px!important;padding:10px 8px!important}
+ .existing-row .studio-thumb{width:52px!important;flex-basis:52px!important}
+}
+
+/* STEP 158: hard layout contract matching approved reference at 1366px. */
+@media(min-width:1100px){
+ html,body{height:100%!important;max-height:100%!important;overflow:hidden!important}
+ body{padding:72px 0 0!important;margin:0!important;box-sizing:border-box!important}
+ body>main{display:grid!important;grid-template-columns:310px minmax(0,1fr) 335px!important;grid-template-rows:minmax(0,1fr)!important;width:100%!important;height:calc(100vh - 72px)!important;min-height:0!important;padding:0!important;gap:0!important;overflow:hidden!important}
+ body>main>header{position:fixed!important;inset:0 0 auto 0!important;height:72px!important;min-height:72px!important;width:100%!important;display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:0 24px!important;box-sizing:border-box!important;z-index:999!important;background:#191512!important;border-bottom:1px solid #3e342d!important}
+ main>header>.studio-mark{display:block!important;position:static!important;font:34px Georgia,serif!important;transform:none!important;margin:0!important;padding:0!important;border:0!important;flex:0 0 auto!important}
+ main>header>.studio-brand-title{display:flex!important;flex:0 0 205px!important;position:static!important;visibility:visible!important;opacity:1!important;font:14px Arial,sans-serif!important;white-space:nowrap!important;color:#eee5db!important}
+ main>header>.studio-brand-title small{font:8px Arial,sans-serif!important;letter-spacing:1px!important;color:#a79787!important}
+ main>header>.studio-top-controls{display:flex!important;align-items:center!important;flex:1 1 auto!important;min-width:0!important;gap:12px!important;position:static!important;margin:0!important;padding:0!important;height:auto!important}
+ main>header>.studio-top-controls>.studio-page-label{order:0!important;flex:0 1 195px!important}
+ main>header>.studio-top-controls>.studio-devices{order:1!important;display:flex!important;align-items:center!important;margin:0 auto!important;gap:5px!important}
+ main>header>.studio-top-controls>.studio-zoom{order:2!important;flex:none!important}
+ main>header>.studio-top-controls>.studio-history{order:3!important;flex:none!important}
+ main>header>.studio-top-controls>#studioSeoToggle{order:4!important}
+ main>header>.actions{position:static!important;display:flex!important;flex:0 0 auto!important;gap:9px!important;margin:0!important;padding:0!important;align-items:center!important;flex-wrap:nowrap!important}
+ main>header>.studio-exit{order:10!important;display:flex!important;flex:none!important}
+ .studio-zoom{position:relative!important}
+ #studioZoom{background:transparent!important;border:0!important;color:#eee1d5!important;padding:9px!important;font-size:12px!important;white-space:nowrap!important}
+ #studioZoomMenu{position:absolute;top:100%;right:0;z-index:9999;background:#29221c;border:1px solid #66503e;min-width:145px;box-shadow:0 10px 25px #0008}
+ #studioZoomMenu[hidden]{display:none!important}
+ #studioZoomMenu button{display:block!important;width:100%;text-align:left;background:transparent;color:#eee1d5;border:0;padding:10px;font-size:11px}
+ body>main>.layout{display:contents!important}
+ body>main>.layout>div:first-child{grid-column:1!important;grid-row:1!important;position:relative!important;display:flex!important;flex-direction:column!important;overflow:auto!important;padding:0!important;min-width:0!important}
+ body>main>.preview{grid-column:2!important;grid-row:1!important;position:relative!important;overflow:auto!important;min-width:0!important;padding:0!important}
+ body>main>.layout>.editor{grid-column:3!important;grid-row:1!important;position:relative!important;overflow:auto!important;min-width:0!important;padding:0!important}
+ main>.layout>div:first-child>.studio-side-tabs{display:grid!important;grid-template-columns:repeat(3,1fr)!important;flex-direction:row!important;order:-10!important;position:sticky!important;top:0!important;z-index:50!important;flex:0 0 72px!important;height:72px!important;min-height:72px!important;margin:0!important;padding:0!important}
+ main>.layout>div:first-child>.studio-side-tabs button{height:72px!important;width:100%!important}
+ main>.layout>div:first-child>.studio-list-title{display:block!important;order:-9!important;margin:0!important;padding:18px 17px 12px!important}
+ main>.layout>div:first-child>.studio-pages-heading{order:-8!important}
+ main>.layout>div:first-child>.studio-pages-list{order:-7!important}
+ main>.layout>div:first-child>#existingBlocks{order:0!important}
+ main>.layout>div:first-child>#blocks{order:1!important}
+ main>.layout>div:first-child>.add{order:2!important}
+ .studio-inspector-head{position:sticky!important;top:0!important;z-index:20!important}
+ .studio-inspector-tabs{display:grid!important;grid-template-columns:repeat(3,1fr)!important}
+ .studio-inspector-tabs button.active{border:0!important;border-bottom:2px solid #c6a582!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+ .live-preview-frame{height:calc(100vh - 72px)!important;overflow:auto!important}
+}
+@media(min-width:1100px) and (max-width:1500px){
+ body>main{grid-template-columns:300px minmax(0,1fr) 280px!important}
+ body>main>header{padding:0 14px!important;gap:8px!important}
+ main>header>.studio-brand-title{flex-basis:170px!important}
+ main>header>.studio-top-controls{gap:5px!important}
+ main>header>.studio-top-controls>.studio-page-label{flex-basis:150px!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:11px!important;padding:10px 9px!important}
+}
+
+/* STEP 159: reference-accurate shell fixes at real 1366px viewport. */
+@media(min-width:1100px){
+ main>header>.studio-brand-title,
+ body>main>header>.studio-brand-title,
+ main>header>div.studio-brand-title:nth-child(2){
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ position:static!important;transform:none!important;float:none!important;
+ flex-direction:column!important;justify-content:center!important;
+ min-width:0!important;max-width:none!important;overflow:visible!important;
+ color:#eee7df!important;font-family:Arial,sans-serif!important;font-size:14px!important;
+ font-weight:600!important;line-height:1.2!important;
+ }
+ main>header>.studio-brand-title small{display:block!important;font-size:8px!important;font-weight:400!important;letter-spacing:.9px!important;margin-top:4px!important}
+ main>header>.studio-mark{font-size:31px!important;line-height:1!important}
+ main>header>.studio-top-controls>.studio-page-label{flex-shrink:1!important}
+ main>header>.studio-top-controls>.studio-devices{margin-left:auto!important;margin-right:auto!important}
+ main>header>.studio-top-controls>.studio-history{margin-left:1px!important}
+ main>header>.studio-exit{margin-left:2px!important}
+ main>.layout>div:first-child .studio-side-tabs{background:#201b18!important}
+ main>.layout>div:first-child .studio-side-tabs button{border-bottom:2px solid transparent!important}
+ main>.layout>div:first-child .studio-side-tabs button.active{border-bottom-color:#d1b08d!important;background:#312821!important}
+ .studio-list-title{letter-spacing:1px!important;color:#a59a8f!important}
+ .existing-row .existing-select{font-family:Arial,sans-serif!important;font-weight:400!important}
+ .existing-row .existing-select.active{border-color:#d1b08d!important}
+ .studio-inspector-head{border-bottom:1px solid #382d26!important}
+ .studio-selected-title{padding:17px 17px 14px!important;font:500 17px/1.25 Arial,sans-serif!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ .studio-inspector-tabs{margin:0!important}
+ .studio-inspector-tabs button{border-radius:0!important;border:0!important;border-bottom:2px solid transparent!important;padding:15px 2px!important}
+ .studio-inspector-tabs button.active{border-bottom:2px solid #d5b38e!important;color:#f2e7dc!important;background:#2a221d!important}
+ .editor .cms-editor-scroll{padding:18px 17px!important}
+ .live-preview-frame{background:#1a1613!important}
+ .studio-selection-chip{position:absolute!important;top:0;left:0;z-index:2147483601;background:#2778e5;color:white;padding:5px 9px;font:12px Arial,sans-serif;pointer-events:none}
+}
+@media(min-width:1100px) and (max-width:1450px){
+ main>header>.studio-brand-title{flex:0 0 165px!important}
+ main>header>.studio-top-controls{gap:5px!important}
+ main>header>.studio-top-controls>.studio-devices{gap:2px!important}
+ main>header>.actions #save,main>header>.actions #publish{white-space:nowrap!important}
+}
+
+/* STEP 160: mockup layout proportions and prevent toolbar clipping */
+@media(min-width:1100px){
+ body>main>header{display:grid!important;grid-template-columns:46px 206px minmax(0,1fr) auto 28px!important;column-gap:10px!important;padding:0 19px!important;justify-content:stretch!important;align-items:center!important;overflow:visible!important}
+ main>header>.studio-mark{grid-column:1!important;justify-self:start!important}
+ main>header>.studio-brand-title{grid-column:2!important;min-width:0!important;flex:auto!important}
+ main>header>.studio-top-controls{grid-column:3!important;min-width:0!important;display:flex!important;justify-content:space-between!important;gap:8px!important;flex:auto!important}
+ main>header>.actions{grid-column:4!important;min-width:0!important;flex:auto!important;gap:9px!important}
+ main>header>.studio-exit{grid-column:5!important;order:unset!important;margin:0!important;padding:4px!important}
+ main>header>.actions #reset{display:none!important}
+ main>header>.studio-top-controls>.studio-page-label{flex:0 1 195px!important;max-width:195px!important;min-width:100px!important}
+ main>header>.studio-top-controls>.studio-devices{margin:0 auto!important;gap:4px!important}
+ main>header>.studio-top-controls>.studio-zoom{margin:0!important}
+ main>header>.studio-top-controls>.studio-history{padding:5px!important}
+ main>header>.studio-top-controls>.studio-icon-button{padding:5px!important}
+ .studio-icon-button svg{width:19px!important;height:19px!important;display:block!important}
+ main>header>.actions #save,main>header>.actions #publish{padding:12px 14px!important;font-size:11px!important;line-height:1.3!important}
+ body>main{grid-template-columns:310px minmax(0,1fr) 335px!important}
+ .studio-selected-title{font-size:16px!important}
+ .existing-row .existing-select{font-size:12px!important}
+ .existing-row .studio-thumb{height:53px!important}
+ .studio-inspector-tabs button.active{border-bottom-color:#c7a88a!important}
+}
+@media(min-width:1100px) and (max-width:1450px){
+ body>main>header{grid-template-columns:44px 166px minmax(0,1fr) auto 24px!important;column-gap:7px!important;padding:0 12px!important}
+ body>main{grid-template-columns:300px minmax(0,1fr) 280px!important}
+ main>header>.studio-top-controls{gap:4px!important}
+ main>header>.studio-top-controls>.studio-page-label{flex:0 1 140px!important;max-width:140px!important}
+ main>header>.studio-top-controls>.studio-devices{gap:0!important}
+ main>header>.studio-top-controls>.studio-device{min-width:32px!important;height:43px!important;padding:4px!important}
+ main>header>.studio-top-controls>.studio-history{padding:3px!important}
+ main>header>.actions{gap:5px!important}
+ main>header>.actions #save,main>header>.actions #publish{padding:10px 9px!important;font-size:10px!important}
+}
+@media(min-width:1100px) and (max-width:1240px){
+ body>main>header{grid-template-columns:40px 125px minmax(0,1fr) auto 20px!important}
+ main>header>.studio-brand-title{font-size:12px!important}
+ main>header>.studio-top-controls>.studio-page-label{max-width:110px!important}
+ main>header>.studio-top-controls>.studio-icon-button{display:none!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:9px!important;padding:9px 6px!important}
+}
+
+@media(min-width:1100px){
+ .studio-inspector-head{position:sticky!important;top:0!important}
+ .studio-inspector-head .studio-selected-title{padding-right:95px!important}
+ .studio-block-counter{position:absolute;top:15px;right:12px;background:#29231f;border-radius:5px;padding:5px 7px;font:10px Arial,sans-serif;color:#c7b6a8;white-space:nowrap}
+ .studio-inspector-head .studio-selected-title{white-space:nowrap!important;text-overflow:ellipsis!important}
+}
+
+/* STEP 161: single, readable inspector matching the approved reference */
+@media(min-width:1100px){
+ .editor .studio-inspector-head{background:#1a1614!important}
+ .editor .studio-inspector-head .cms-editor-title{display:none!important}
+ .editor .studio-inspector-head .studio-selected-title{font-size:17px!important;font-weight:500!important;letter-spacing:0!important;text-transform:none!important}
+ .editor .studio-inspector-tabs{height:49px!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .editor .studio-inspector-tabs button{font:12px Arial,sans-serif!important;color:#b5a69a!important;padding:14px 3px!important}
+ .editor .studio-inspector-tabs button.active{color:#f4e7d7!important;background:#28221d!important;border-bottom:2px solid #d1b28f!important}
+ .editor .cms-editor-scroll{background:#1b1715!important;padding:15px 16px 28px!important}
+ .editor .cms-editor-scroll [role="tablist"]:not(.studio-inspector-tabs),
+ .editor .cms-editor-scroll .cms-editor-tabs,
+ .editor .cms-editor-scroll .cms-inspector-tabs,
+ .editor .cms-editor-scroll .studio-inspector-tabs{display:none!important}
+ .editor .cms-editor-scroll textarea,.editor .cms-editor-scroll input:not([type=checkbox]):not([type=range]),.editor .cms-editor-scroll select{max-width:100%!important;box-sizing:border-box!important}
+ .editor .studio-tab-notice{font-size:12px!important;line-height:1.5!important;color:#b3a194!important;margin:16px!important}
+ .studio-list-title{padding:16px 17px 13px!important}
+ .existing-row .existing-select.active{background:#362b23!important}
+ .existing-row .existing-select{line-height:1.45!important}
+ .studio-block-counter{font-size:10px!important}
+}
+
+/* STEP 163: reference-like image-first inspector */
+@media(min-width:1100px){
+ .editor .studio-media-heading{font:11px Arial,sans-serif!important;letter-spacing:1px!important;color:#96887e!important;margin:15px 0 11px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field:first-of-type{margin-top:0!important}
+ .editor .photo-field{display:grid!important;grid-template-columns:125px minmax(0,1fr)!important;gap:10px!important;padding:8px 0 18px!important;align-items:start!important}
+ .editor .photo-field .cms-thumb-box{width:125px!important;min-width:0!important;height:104px!important;border-radius:4px!important;overflow:hidden!important}
+ .editor .photo-field .cms-thumb-box img{width:100%!important;height:100%!important;object-fit:cover!important}
+ .editor .photo-field .photo-controls{min-width:0!important;display:flex!important;flex-direction:column!important;gap:7px!important}
+ .editor .photo-field input[type=file]{font-size:10px!important;max-width:100%!important}
+ .editor .photo-field input[type=url]{font-size:11px!important;padding:8px!important}
+ .editor .cms91-tab-panel .field>label{font-size:11px!important;color:#a89886!important;letter-spacing:.5px!important}
+ .editor .cms91-tab-panel textarea{border:1px solid #42352c!important;background:#171310!important;border-radius:4px!important;line-height:1.45!important}
+ .editor .cms98-panel-heading{margin:4px 0 12px!important;font-size:11px!important;letter-spacing:1px!important;color:#bda18a!important}
+ .editor .studio-inspector-head .studio-selected-title{max-width:calc(100% - 105px)!important;overflow:hidden!important}
+}
+
+/* STEP 164 — reference inspector proportions and actual editing fields */
+@media(min-width:1100px){
+ .editor .cms-editor-scroll{padding:0 18px 28px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:13px!important}
+ .editor .cms91-tab-panel .cms98-panel-heading{display:none!important}
+ .editor .cms91-tab-panel .studio-media-heading{margin:7px 0 12px!important}
+ .editor .cms91-tab-panel .photo-field{grid-template-columns: minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important;margin-bottom:17px!important}
+ .editor .cms91-tab-panel .photo-field .cms-thumb-box{width:100%!important;height:108px!important}
+ .editor .cms91-tab-panel .photo-field .photo-controls{justify-content:start!important}
+ .editor .cms91-tab-panel .field{margin-bottom:16px!important}
+ .editor .cms91-tab-panel .field>label{display:block!important;margin:0 0 9px!important;text-transform:uppercase!important;font:11px Arial,sans-serif!important;letter-spacing:.7px!important;color:#97877d!important}
+ .editor .cms91-tab-panel textarea,.editor .cms91-tab-panel input[type=text],.editor .cms91-tab-panel input[type=url]{width:100%!important;min-width:0!important;border:1px solid #3b312b!important;border-radius:4px!important;background:#171311!important;color:#eee4db!important;padding:11px 12px!important}
+ .editor .cms91-tab-panel textarea:focus,.editor .cms91-tab-panel input:focus{outline:1px solid #c5a889!important}
+ .editor .cms91-tab-panel .photo-controls small{font-size:10px!important;color:#9e9085!important}
+ .editor .cms91-tab-panel .photo-controls input[type=file]{max-width:100%!important}
+ .editor .studio-selected-title{font-size:16px!important}
+}
+
+/* STEP 165: compact hero media editor, secondary photo slots remain editable */
+@media(min-width:1100px){
+ .editor .studio-extra-photos{margin:4px 0 20px!important;border:1px solid #3b3029!important;border-radius:5px!important;background:#211b17!important}
+ .editor .studio-extra-photos>summary{cursor:pointer!important;list-style:none!important;padding:12px!important;color:#cbb69f!important;font:12px Arial,sans-serif!important}
+ .editor .studio-extra-photos>summary::-webkit-details-marker{display:none}
+ .editor .studio-extra-photos>summary::after{content:'⌄';float:right;font-size:16px;line-height:10px}
+ .editor .studio-extra-photos[open]>summary::after{content:'⌃'}
+ .editor .studio-extra-photos .photo-field{padding:12px!important;margin:0!important;border-top:1px solid #3b3029!important;grid-template-columns:105px minmax(0,1fr)!important}
+ .editor .studio-extra-photos .cms-thumb-box{width:105px!important;height:90px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field{margin-bottom:8px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.studio-extra-photos+.field{margin-top:18px!important}
+}
+
+/* STEP 169: uncluttered photo editor, matching the reference inspector.
+   Hide only presentation; never delete stored photo URLs or controls. */
+.editor .studio-technical-url,
+.editor .studio-technical-note{display:none!important}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .field,
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .photo-field{
+ min-width:0;box-sizing:border-box
+}
+.editor .cms-editor-scroll input:not([type="file"]),
+.editor .cms-editor-scroll textarea,
+.editor .cms-editor-scroll select{max-width:100%;box-sizing:border-box}
+.editor .cms-editor-scroll .cms-thumb-box{overflow:hidden;border-radius:4px}
+.editor .cms-editor-scroll .cms-thumb-box img{object-fit:cover}
+.editor .cms-editor-scroll input[type="file"].studio-image-file{
+ display:block;width:100%;max-width:100%;font-size:11px;color:#d9c5b1;
+ padding:9px 0;overflow:hidden
+}
+.editor .cms-editor-scroll input[type="file"].studio-image-file::file-selector-button{
+ background:#d9bca0;border:1px solid #d9bca0;color:#241a16;
+ padding:9px 12px;border-radius:3px;cursor:pointer;margin-right:10px
+}
+.editor .cms-editor-scroll input[type="file"].studio-image-file:hover::file-selector-button{
+ background:#f1d7bd
+}
+
+/* STEP 170: compact, consistent fixed-layout copy editing. */
+.editor .studio-simple-copy .vh-rte-tool[hidden]{display:none!important}
+.editor .studio-simple-copy .vh-rte-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:7px 8px}
+.editor .studio-simple-copy .vh-rte-heading{padding:9px 12px}
+.editor .studio-simple-copy .vh-rte-content{min-height:92px;line-height:1.6;padding:12px}
+.editor .studio-simple-copy{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"]{min-width:0}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .field label{display:block;margin-bottom:8px}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] textarea{resize:vertical}
+
+/* STEP 171: reference-inspired editor chrome; data and handlers remain intact. */
+@media(min-width:1100px){
+ .sidebar{background:#151210!important;border-right:1px solid #302923!important}
+ .studio-side-tabs{background:#191513!important}
+ .editor{background:#171310!important;border-left:1px solid #342b25!important}
+ .editor .studio-inspector-head{background:#171310!important;border-bottom:1px solid #332b25!important}
+ .editor .studio-inspector-tabs{background:#171310!important}
+ .editor .studio-inspector-tabs button{font-size:12px!important}
+ .editor .cms-editor-scroll{padding:0 20px 32px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:20px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.field{margin-bottom:21px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.field>label{font-size:10px!important;letter-spacing:1px!important;color:#96877c!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"] textarea{font-size:13px!important;line-height:1.55!important;padding:12px!important}
+ .editor .studio-simple-copy{border:0!important;background:transparent!important}
+ .editor .studio-simple-copy .vh-rte-heading,
+ .editor .studio-simple-copy .vh-rte-toolbar,
+ .editor .studio-simple-copy .vh-rte-more,
+ .editor .studio-simple-copy .vh-rte-source{display:none!important}
+ .editor .studio-simple-copy .vh-rte-content{min-height:125px!important;padding:12px!important;border:1px solid #40352d!important;border-radius:4px!important;background:#171310!important;color:#f1e7de!important;font:13px/1.6 Montserrat,Arial,sans-serif!important;outline:none!important}
+ .editor .studio-simple-copy .vh-rte-content:focus{border-color:#c8aa8a!important;box-shadow:0 0 0 1px #c8aa8a33!important}
+ .editor .studio-simple-copy .vh-rte-content p{margin:0 0 9px!important}
+ .editor .studio-simple-copy .vh-rte-content p:last-child{margin-bottom:0!important}
+ .editor .photo-field .cms-thumb-box{border:1px solid #45362b!important;border-radius:3px!important}
+ .editor .photo-field .photo-controls button{border-radius:3px!important}
+ .editor .cms-editor-scroll input[type="file"].studio-image-file::file-selector-button{background:#2c2622!important;border:1px solid #4a3d32!important;color:#eee3d8!important}
+ .editor .cms-editor-scroll input[type="file"].studio-image-file:hover::file-selector-button{background:#41362d!important}
+ .studio-list-title{font-size:10px!important;letter-spacing:1.2px!important;color:#95857a!important}
+ .existing-row .existing-select{border-radius:3px!important}
+ .existing-row .existing-select.active{outline:1px solid #c2a181!important;outline-offset:-1px}
+ .existing-row .studio-reference-row{font-size:0!important}
+ .existing-row .studio-reference-row .studio-reference-label{font:12px/1.4 Montserrat,Arial,sans-serif!important;color:#e8ddd3!important;display:inline!important;vertical-align:middle}
+ .existing-row .studio-reference-row .studio-thumb{font-size:12px!important}
+}
+
+/* STEP 173 — shared inspector controls across every existing block. */
+.editor .cms-editor-scroll .photo-field,
+.editor .cms-editor-scroll .field{box-sizing:border-box;min-width:0;width:100%}
+.editor .cms-editor-scroll .photo-field{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;gap:12px!important;align-items:start!important;padding:14px 0!important;margin:0 0 8px!important;border-bottom:1px solid #382e27!important;background:transparent!important}
+.editor .cms-editor-scroll .photo-field .cms-thumb-box{width:112px!important;min-width:112px!important;height:112px!important;max-width:112px!important;aspect-ratio:1!important;overflow:hidden!important;border-radius:4px!important;background:#29211c!important}
+.editor .cms-editor-scroll .photo-field .cms-thumb-box img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.editor .cms-editor-scroll .photo-field .photo-controls{display:flex!important;flex-direction:column!important;gap:8px!important;min-width:0!important;width:100%!important}
+.editor .cms-editor-scroll .photo-field .photo-controls input,
+.editor .cms-editor-scroll .photo-field .photo-controls button{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.editor .cms-editor-scroll .photo-field input[type=file]{width:100%!important;overflow:hidden!important}
+.editor .cms-editor-scroll .photo-field button,
+.editor .cms-editor-scroll .photo-field input[type=file]::file-selector-button{min-height:34px!important;cursor:pointer!important}
+.editor .cms-editor-scroll .photo-field button:hover,
+.editor .cms-editor-scroll .photo-field input[type=file]::file-selector-button:hover{filter:brightness(1.18)}
+.editor .cms-editor-scroll .field>label{font:10px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:1px!important;text-transform:uppercase!important;color:#a99a8d!important}
+.editor .cms-editor-scroll .field input,
+.editor .cms-editor-scroll .field textarea,
+.editor .cms-editor-scroll .field select{font:13px/1.5 Montserrat,Arial,sans-serif!important;border-radius:4px!important;max-width:100%!important}
+.editor .cms-editor-scroll .field input:focus-visible,
+.editor .cms-editor-scroll .field textarea:focus-visible,
+.editor .cms-editor-scroll .field select:focus-visible{outline:2px solid #c9ab8a!important;outline-offset:1px!important}
+.editor .cms-editor-scroll .studio-extra-photos .photo-field{grid-template-columns:112px minmax(0,1fr)!important}
+.editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:112px!important;height:112px!important}
+@media(max-width:1250px){.editor .cms-editor-scroll .photo-field{grid-template-columns:96px minmax(0,1fr)!important}.editor .cms-editor-scroll .photo-field .cms-thumb-box,.editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:96px!important;min-width:96px!important;max-width:96px!important;height:96px!important}}
+
+/* STEP 174: consistent reference-style photo action, retaining original uploads. */
+.editor .cms-editor-scroll .studio-hidden-file-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important}
+.editor .cms-editor-scroll .studio-replace-image{display:block!important;width:100%!important;min-height:38px!important;padding:9px 12px!important;border:1px solid #46392f!important;border-radius:4px!important;background:#302924!important;color:#f2e8df!important;text-align:center!important;font:12px Montserrat,Arial,sans-serif!important;cursor:pointer!important}
+.editor .cms-editor-scroll .studio-replace-image:hover{background:#493b30!important;border-color:#b99a7a!important}
+.editor .cms-editor-scroll .studio-replace-image:focus-visible{outline:2px solid #d4b391!important;outline-offset:2px!important}
+
+
+/* STEP 175 — reference-matched side panels; all CMS inputs and handlers stay intact. */
+@media(min-width:1100px){
+ main>.layout{--studio-ink:#191512;--studio-line:#332b26;--studio-gold:#c8a989}
+ main>.layout>div:first-child{background:#171310!important}
+ .studio-side-tabs{height:70px!important;background:#1a1613!important;border-bottom:1px solid #39302a!important}
+ .studio-side-tabs button{font-size:12px!important;font-weight:400!important}
+ .studio-list-title{padding:19px 18px 12px!important;color:#81766c!important;font-size:10px!important;letter-spacing:.075em!important}
+ #existingBlocks{padding:0 8px!important}
+ #existingBlocks .existing-row{min-height:62px!important;margin:0!important;border-bottom:1px solid #302823!important;border-radius:0!important;background:transparent!important}
+ #existingBlocks .existing-row:has(.existing-select.active){background:#332a24!important;border:1px solid #b99b7d!important;border-radius:3px!important}
+ #existingBlocks .existing-select{font:12px/1.45 Arial,sans-serif!important;color:#e8e0d8!important;letter-spacing:0!important;text-transform:none!important;border:0!important;box-shadow:none!important;background:transparent!important}
+ #existingBlocks .existing-select.active{outline:0!important}
+ #existingBlocks .studio-reference-label{font:12px/1.45 Arial,sans-serif!important;color:#e9e2dc!important;letter-spacing:0!important;text-transform:none!important}
+ #existingBlocks .existing-row img,#existingBlocks .existing-row .studio-reference-thumb{width:62px!important;height:44px!important;object-fit:cover!important;border-radius:2px!important}
+ .editor{background:#171310!important;border-left:1px solid #342d28!important}
+ .editor .studio-inspector-head{position:relative!important;min-height:104px!important;padding:0!important;display:flex!important;flex-wrap:wrap!important;align-content:start!important;background:#171310!important;border-bottom:1px solid #352c27!important}
+ .editor .studio-selected-title{display:block!important;flex:1 1 auto!important;margin:0!important;padding:17px 17px 14px!important;font:16px/1.3 Arial,sans-serif!important;color:#f1e9e0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ .editor .studio-block-counter{margin:18px 16px 0 0!important;padding:4px 7px!important;background:#28221e!important;border-radius:4px!important;color:#b9ada2!important;font:10px Arial,sans-serif!important;white-space:nowrap!important}
+ .editor .studio-inspector-head>.cms-editor-title{display:none!important}
+ .editor .studio-inspector-tabs{display:flex!important;flex:0 0 100%!important;width:100%!important;height:48px!important;border-top:1px solid #342b26!important;background:#171310!important}
+ .editor .studio-inspector-tabs button{flex:1!important;height:48px!important;padding:0 5px!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#9d9188!important;font:12px Arial,sans-serif!important}
+ .editor .studio-inspector-tabs button.active{color:#f0e6da!important;border-bottom-color:#c7a98a!important;background:#26201c!important}
+ .editor .cms-editor-scroll{padding:0 18px 35px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:20px!important}
+ .editor .cms-editor-scroll .photo-field{display:grid!important;grid-template-columns:140px minmax(0,1fr)!important;gap:10px!important;align-items:start!important;margin:0 0 21px!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:140px!important;height:100px!important;min-width:0!important;max-width:100%!important;border-radius:3px!important;overflow:hidden!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{min-width:0!important;display:flex!important;flex-direction:column!important;gap:8px!important}
+ .editor .cms-editor-scroll .photo-field .studio-replace-image{min-height:39px!important;margin:0!important;background:#302925!important;border:1px solid #403630!important;border-radius:3px!important;text-align:center!important;font:12px Arial,sans-serif!important}
+ .editor .cms-editor-scroll .field>label{font:10px/1.5 Arial,sans-serif!important;color:#8f8177!important;letter-spacing:.07em!important;margin:0 0 9px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea,.editor .cms-editor-scroll .field select{font:13px/1.55 Arial,sans-serif!important;color:#f0e9e2!important;background:#1b1613!important;border:1px solid #39302b!important;border-radius:3px!important;padding:11px 12px!important;box-sizing:border-box!important}
+ .editor .cms-editor-scroll .field textarea{min-height:44px!important}
+ .editor .cms-editor-scroll .field{margin-bottom:20px!important}
+ .editor .cms-editor-scroll .studio-technical-url{display:none!important}
+}
+@media(min-width:1100px) and (max-width:1300px){
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:105px minmax(0,1fr)!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:105px!important;height:92px!important}
+}
+
+/* STEP 178: single reference layout system. Overrides old accumulated patches. */
+@media(min-width:1000px){
+ body{--studio-panel:#181411;--studio-stroke:#332b26;--studio-muted:#988b81;--studio-accent:#c9aa8b}
+ .sidebar{width:308px!important;min-width:308px!important;max-width:308px!important;background:var(--studio-panel)!important}
+ .editor{width:340px!important;min-width:340px!important;max-width:340px!important;background:var(--studio-panel)!important}
+ .studio-side-tabs{height:69px!important}
+ .studio-side-tabs button{font:12px/1.2 Arial,sans-serif!important}
+ #existingBlocks{padding:0 8px!important}
+ #existingBlocks .existing-row{position:relative!important;display:flex!important;align-items:center!important;min-height:72px!important;height:72px!important;max-height:72px!important;margin:0!important;padding:0!important;gap:0!important;border-bottom:1px solid var(--studio-stroke)!important;overflow:hidden!important}
+ #existingBlocks .existing-row:has(.existing-select.active){border:1px solid var(--studio-accent)!important;border-radius:3px!important;background:#342a24!important}
+ #existingBlocks .existing-select.studio-reference-row{display:grid!important;grid-template-columns:56px 20px minmax(0,1fr)!important;align-items:center!important;column-gap:10px!important;min-width:0!important;flex:1 1 auto!important;height:70px!important;max-height:70px!important;margin:0!important;padding:7px 9px!important;background:transparent!important;border:0!important;box-shadow:none!important;font-size:12px!important;line-height:1.35!important;text-align:left!important}
+ #existingBlocks .studio-reference-row .studio-thumb{display:block!important;width:56px!important;height:50px!important;min-width:56px!important;border-radius:2px!important;background-position:center!important;background-size:cover!important}
+ #existingBlocks .studio-reference-row .studio-row-number{display:block!important;font:10px/1.3 Arial,sans-serif!important;color:#8e8074!important;align-self:center!important}
+ #existingBlocks .studio-reference-row .studio-row-name{display:-webkit-box!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow-wrap:break-word!important;color:#e9e0d7!important;font:12px/1.4 Arial,sans-serif!important}
+ #existingBlocks .existing-row>.cms-grip{position:absolute!important;left:0!important;top:27px!important;z-index:2!important;width:8px!important;font-size:10px!important}
+ #existingBlocks .existing-row>button:not(.existing-select){display:none!important}
+ .editor .studio-inspector-head{min-height:100px!important;max-height:100px!important}
+ .editor .studio-selected-title{font:14px/1.25 Arial,sans-serif!important;padding:16px 15px 12px!important}
+ .editor .studio-block-counter{font:10px Arial,sans-serif!important;margin:15px 13px 0 0!important}
+ .editor .studio-inspector-tabs,.editor .studio-inspector-tabs button{height:44px!important}
+ .editor .cms-editor-scroll{padding:0 18px 24px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:17px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:112px minmax(0,1fr)!important;gap:10px!important;margin:0 0 17px!important;padding:10px 0!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:112px!important;height:96px!important;min-width:112px!important;max-width:112px!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{gap:7px!important}
+ .editor .cms-editor-scroll .field{margin-bottom:17px!important}
+ .editor .cms-editor-scroll .field>label{font:10px/1.4 Arial,sans-serif!important;margin-bottom:7px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea{font:12px/1.5 Arial,sans-serif!important;padding:10px 11px!important}
+ .editor .cms-editor-scroll .studio-replace-image{font:12px Arial,sans-serif!important;min-height:36px!important}
+}
+@media(max-width:1350px) and (min-width:1000px){
+ .sidebar{width:294px!important;min-width:294px!important;max-width:294px!important}
+ .editor{width:304px!important;min-width:304px!important;max-width:304px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:100px minmax(0,1fr)!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:100px!important;min-width:100px!important;max-width:100px!important;height:90px!important}
+}
+
+
+/* STEP 183: restore full-width grid; previous body>main width broke preview. */
+@media(min-width:1000px){
+ body>main{width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important;grid-template-columns:300px minmax(0,1fr) 308px!important;overflow:hidden!important}
+ body>main>.layout{display:contents!important}
+ body>main>.layout>.preview{grid-column:2!important;min-width:0!important;width:auto!important;max-width:none!important}
+ body>main>.layout>.editor{grid-column:3!important;width:auto!important;min-width:0!important;max-width:none!important;overflow-x:hidden!important}
+ /* Inspector: two fixed rows as in the approved reference, not a 54px clipped header. */
+ .editor .studio-inspector-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:54px 50px!important;align-items:center!important;align-content:stretch!important;flex-wrap:nowrap!important;height:104px!important;min-height:104px!important;max-height:104px!important;padding:0!important;overflow:visible!important;background:#181411!important;border-bottom:1px solid #332b26!important}
+ .editor .studio-selected-title{grid-column:1!important;grid-row:1!important;align-self:center!important;margin:0!important;padding:0 0 0 20px!important;font:15px/1.3 Arial,sans-serif!important;color:#e9e0d7!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+ .editor .studio-block-counter{grid-column:2!important;grid-row:1!important;align-self:center!important;margin:0 16px 0 8px!important;padding:5px 8px!important;font:10px/1.2 Arial,sans-serif!important;color:#b9ada2!important;background:#28211c!important;border-radius:3px!important;white-space:nowrap!important}
+ .editor .studio-inspector-head>.cms-editor-title{display:none!important}
+ .editor .studio-inspector-tabs{grid-column:1 / -1!important;grid-row:2!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;align-self:stretch!important;flex:unset!important;width:100%!important;height:50px!important;min-height:50px!important;overflow:hidden!important;border-top:1px solid #332b26!important;background:#181411!important}
+ .editor .studio-inspector-tabs button{display:block!important;min-width:0!important;width:100%!important;height:50px!important;padding:0 5px!important;margin:0!important;font:12px/1.2 Arial,sans-serif!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#988b81!important}
+ .editor .studio-inspector-tabs button.active{background:#28211c!important;border-bottom:2px solid #c9aa8b!important;color:#e9e0d7!important}
+ .editor .cms-editor-scroll{min-width:0!important;overflow-x:hidden!important;padding:0 18px 28px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:18px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:140px minmax(0,1fr)!important;gap:10px!important;align-items:start!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:140px!important;min-width:140px!important;max-width:140px!important;height:100px!important;object-fit:cover!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{min-width:0!important;gap:8px!important}
+ .editor .cms-editor-scroll .field{min-width:0!important;margin-bottom:20px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+ .editor .cms-editor-scroll .studio-media-heading{font:10px/1.4 Arial,sans-serif!important;color:#988b81!important;margin:4px 0 12px!important}
+
+ .editor .cms-editor-scroll{overflow-x:hidden!important}
+}
+@media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:294px minmax(0,1fr) 304px!important}}
