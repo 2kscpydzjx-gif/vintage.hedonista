@@ -51,6 +51,19 @@ async function loadCloudDraft(){
  }
  $('status').textContent=data?'Чернетку завантажено з Supabase':'У Supabase немає чернетки для цієї сторінки';
 }
+function stableCmsJSON(value){return JSON.stringify(value,(key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v)}
+function assertCmsRevision(actual,expected,label){
+ if(!actual||stableCmsJSON(actual.blocks||[])!==stableCmsJSON(expected.blocks||[])||
+ stableCmsJSON(actual.shared?.cmsPageDraft||{})!==stableCmsJSON(expected.shared?.cmsPageDraft||{})){
+  backupLocalDraft();
+  throw Error(label+' не пройшла перевірку. Дані не підтверджені сервером; резервну копію JSON завантажено.');
+ }
+}
+async function verifyCmsRevision(key,status,expected){
+ const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status',status).single();
+ if(error)throw error;
+ assertCmsRevision(data,expected,status==='draft'?'Чернетка':'Публікація');
+}
 async function saveCloudDraft(){
  if(!cloudReady)throw Error('Немає з’єднання з адмінкою');
  const key=pageId==='shared'?'home':pageId;
@@ -72,6 +85,7 @@ async function saveCloudDraft(){
   if(error){if(error.code==='23505')throw conflictError();throw error}
   revisionTokens.set(key,created?.[0]?.updated_at||payload.updated_at);
  }
+ await verifyCmsRevision(key,'draft',payload);
  $('status').textContent='Чернетку збережено в Supabase · сайт не опубліковано';
 }
 async function publishCloudPage(){
@@ -85,7 +99,8 @@ async function publishCloudPage(){
  const published={page_key:key,revision_status:'published',blocks:draft.blocks||[],shared:draft.shared||{},updated_at:new Date().toISOString(),published_at:new Date().toISOString()};
  const {error}=await cloud.from('vh_page_revisions').upsert(published,{onConflict:'page_key,revision_status'});
  if(error)throw error;
- $('status').textContent='Опубліковано · оновіть сторінку сайту для перевірки';
+ await verifyCmsRevision(key,'published',published);
+ $('status').textContent='Публікацію підтверджено в Supabase · перевірте сторінку сайту';
 }
 async function loadPageSeo(){
  const panel=$('pageSeoPanel');if(panel)panel.hidden=pageId==='shared';
