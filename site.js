@@ -1667,7 +1667,8 @@ async function initJournal(){
     loadSettings(),
     publicSb.from('news').select('id,title,slug,excerpt,content,category,cover_image,gallery_images,is_featured,is_new_section,is_guide,show_in_journal,display_order,new_order,guide_order,published_at,created_at').eq('status','published').order('display_order',{ascending:true}).order('published_at',{ascending:false})
   ]);
-  applyJournalPageSettings(s||{});
+  // Journal page structure is owned by CMS Builder. Legacy settings must not overwrite it.
+  window.__VH_JOURNAL_RENDER_DONE=false;
   if(error){
     console.error(error);
     $('journalFeatured').innerHTML='<div class="empty">Не вдалося завантажити Journal</div>';
@@ -1695,6 +1696,8 @@ async function initJournal(){
   $('journalSort').onchange=e=>{JOURNAL_SORT=e.target.value;renderJournalV37()};
   $('journalLoadMore').onclick=()=>{JOURNAL_VISIBLE+=5;renderJournalV37()};
   renderJournalV37();
+  window.__VH_JOURNAL_RENDER_DONE=true;
+  window.dispatchEvent(new Event('vh:journal-rendered'));
 }
 
 function escapeArticleHtml(value){
