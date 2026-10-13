@@ -725,3 +725,21 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms98-panel-heading{margin:4px 0 12px!important;font-size:11px!important;letter-spacing:1px!important;color:#bda18a!important}
  .editor .studio-inspector-head .studio-selected-title{max-width:calc(100% - 105px)!important;overflow:hidden!important}
 }
+
+/* STEP 164 — reference inspector proportions and actual editing fields */
+@media(min-width:1100px){
+ .editor .cms-editor-scroll{padding:0 18px 28px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:13px!important}
+ .editor .cms91-tab-panel .cms98-panel-heading{display:none!important}
+ .editor .cms91-tab-panel .studio-media-heading{margin:7px 0 12px!important}
+ .editor .cms91-tab-panel .photo-field{grid-template-columns: minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important;margin-bottom:17px!important}
+ .editor .cms91-tab-panel .photo-field .cms-thumb-box{width:100%!important;height:108px!important}
+ .editor .cms91-tab-panel .photo-field .photo-controls{justify-content:start!important}
+ .editor .cms91-tab-panel .field{margin-bottom:16px!important}
+ .editor .cms91-tab-panel .field>label{display:block!important;margin:0 0 9px!important;text-transform:uppercase!important;font:11px Arial,sans-serif!important;letter-spacing:.7px!important;color:#97877d!important}
+ .editor .cms91-tab-panel textarea,.editor .cms91-tab-panel input[type=text],.editor .cms91-tab-panel input[type=url]{width:100%!important;min-width:0!important;border:1px solid #3b312b!important;border-radius:4px!important;background:#171311!important;color:#eee4db!important;padding:11px 12px!important}
+ .editor .cms91-tab-panel textarea:focus,.editor .cms91-tab-panel input:focus{outline:1px solid #c5a889!important}
+ .editor .cms91-tab-panel .photo-controls small{font-size:10px!important;color:#9e9085!important}
+ .editor .cms91-tab-panel .photo-controls input[type=file]{max-width:100%!important}
+ .editor .studio-selected-title{font-size:16px!important}
+}

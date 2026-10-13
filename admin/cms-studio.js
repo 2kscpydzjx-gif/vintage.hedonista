@@ -48,6 +48,23 @@ function syncTabs(){
  editor.querySelectorAll('#existingEditor>h3,#existingEditor>p.muted').forEach(el=>{
   if(/НАЯВНИЙ БЛОК|Тестові зміни/.test(el.textContent||''))el.hidden=true;
  });
+ // Keep the reference's content order: media, heading, description and buttons.
+ editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
+  const direct=[...panel.children];
+  const media=direct.filter(el=>el.matches('.photo-field,.cms-gradient-image-field,.cms-capsule-field'));
+  const headings=direct.filter(el=>el.matches('.field')&&/ЗАГОЛОВОК/.test(el.querySelector('label')?.textContent||''));
+  const descriptions=direct.filter(el=>el.matches('.field')&&/ОПИС/.test(el.querySelector('label')?.textContent||''));
+  const first=panel.querySelector('.cms98-panel-heading');
+  if(first){
+   let cursor=first;
+   for(const item of [...media,...headings,...descriptions]){
+    if(item===cursor)continue;
+    if(cursor.nextElementSibling!==item)cursor.after(item);
+    cursor=item;
+   }
+  }
+  panel.querySelectorAll('p.muted').forEach(el=>{if(/Тестові зміни|Оригінал у Supabase/.test(el.textContent||''))el.hidden=true});
+ });
  editor.querySelectorAll('.cms91-tabs').forEach(bar=>{
   if(bar.dataset.studioUnified!==activeTab){
    bar.dataset.studioUnified=activeTab;
