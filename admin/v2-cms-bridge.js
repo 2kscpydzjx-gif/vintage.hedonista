@@ -73,13 +73,14 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   const canvas=$('canvas');
   const mirror=document.createElement('iframe');
   mirror.title='Попередній перегляд сторінки';
-  mirror.style.cssText='display:block;width:1200px;height:1200px;border:0;transform-origin:top left';
+  mirror.style.cssText='display:block;position:absolute;left:0;top:0;width:1200px;height:1200px;border:0;transform-origin:top left';
   const resizeMirror=()=>{
-   const w=Math.max(300,canvas.clientWidth);
+   const w=canvas.getBoundingClientRect().width;
+   if(!w)return;
    const scale=Math.min(1,w/1200);
    mirror.style.transform='scale('+scale+')';
-   canvas.style.minHeight=Math.ceil(1200*scale)+'px';
-   mirror.style.marginBottom=-(1200*(1-scale))+'px';
+   canvas.style.height=Math.ceil(1200*scale)+'px';
+   canvas.style.minHeight='0';
   };
   new ResizeObserver(resizeMirror).observe(canvas);
   requestAnimationFrame(resizeMirror);
