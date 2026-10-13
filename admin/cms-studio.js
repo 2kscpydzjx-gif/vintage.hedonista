@@ -32,6 +32,32 @@ function syncPageDrawer(){
 pageSelect.addEventListener('change',()=>pageMap.get(pageSelect.value)?.click());
 new MutationObserver(syncPages).observe(pageNav,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 syncPages();
+function polishMediaFields(editor){
+ // The URL is an implementation detail, not a second photo editor.
+ // Keep its value and change handler intact for existing drafts.
+ for(const field of editor.querySelectorAll('#existingEditor .photo-field,#existingEditor .cms-gradient-image-field,#existingEditor .cms-mapped-field,#existingEditor .cms-capsule-field')){
+  const isImage=field.classList.contains('photo-field')||field.classList.contains('cms-gradient-image-field')||
+    field.classList.contains('cms-capsule-field')||!!field.querySelector('.cms-thumb-box');
+  if(!isImage)continue;
+  for(const input of field.querySelectorAll('input:not([type="file"])')){
+   if(input.type==='hidden')continue;
+   input.classList.add('studio-technical-url');
+   input.setAttribute('aria-label','Технічне посилання на фото');
+   const label=input.previousElementSibling;
+   if(label?.tagName==='LABEL' && /URL|посилання|шлях/i.test(label.textContent||''))label.classList.add('studio-technical-url');
+  }
+  for(const note of field.querySelectorAll('small')){
+   if(/чернетк|браузер/i.test(note.textContent||''))note.classList.add('studio-technical-note');
+  }
+  for(const file of field.querySelectorAll('input[type="file"]')){
+   file.classList.add('studio-image-file');
+   if(!file.dataset.studioAccessible){
+    file.dataset.studioAccessible='1';
+    file.setAttribute('aria-label','Замінити фотографію');
+   }
+  }
+ }
+}
 function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
  // The native page's Hero is not the obsolete gradient-banner template.
@@ -44,6 +70,7 @@ function syncTabs(){
  const nativeHero=selectedIndex===0 && selectedSection &&
    !selectedSection.classList.contains('vh-existing-gradient-hero');
  inspector.classList.toggle('studio-native-hero',!!nativeHero);
+ polishMediaFields(editor);
  // The CMS builds its own cms91-tabs. Delegate to its original tab handler so
  // hidden panels remain functional while presenting only one visible tab strip.
  editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{

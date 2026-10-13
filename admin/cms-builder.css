@@ -756,3 +756,28 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field{margin-bottom:8px!important}
  .editor .cms91-tab-panel[data-cms91-tab="content"]>.studio-extra-photos+.field{margin-top:18px!important}
 }
+
+/* STEP 169: uncluttered photo editor, matching the reference inspector.
+   Hide only presentation; never delete stored photo URLs or controls. */
+.editor .studio-technical-url,
+.editor .studio-technical-note{display:none!important}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .field,
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .photo-field{
+ min-width:0;box-sizing:border-box
+}
+.editor .cms-editor-scroll input:not([type="file"]),
+.editor .cms-editor-scroll textarea,
+.editor .cms-editor-scroll select{max-width:100%;box-sizing:border-box}
+.editor .cms-editor-scroll .cms-thumb-box{overflow:hidden;border-radius:4px}
+.editor .cms-editor-scroll .cms-thumb-box img{object-fit:cover}
+.editor .cms-editor-scroll input[type="file"].studio-image-file{
+ display:block;width:100%;max-width:100%;font-size:11px;color:#d9c5b1;
+ padding:9px 0;overflow:hidden
+}
+.editor .cms-editor-scroll input[type="file"].studio-image-file::file-selector-button{
+ background:#d9bca0;border:1px solid #d9bca0;color:#241a16;
+ padding:9px 12px;border-radius:3px;cursor:pointer;margin-right:10px
+}
+.editor .cms-editor-scroll input[type="file"].studio-image-file:hover::file-selector-button{
+ background:#f1d7bd
+}
