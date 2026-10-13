@@ -688,3 +688,24 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .studio-block-counter{position:absolute;top:15px;right:12px;background:#29231f;border-radius:5px;padding:5px 7px;font:10px Arial,sans-serif;color:#c7b6a8;white-space:nowrap}
  .studio-inspector-head .studio-selected-title{white-space:nowrap!important;text-overflow:ellipsis!important}
 }
+
+/* STEP 161: single, readable inspector matching the approved reference */
+@media(min-width:1100px){
+ .editor .studio-inspector-head{background:#1a1614!important}
+ .editor .studio-inspector-head .cms-editor-title{display:none!important}
+ .editor .studio-inspector-head .studio-selected-title{font-size:17px!important;font-weight:500!important;letter-spacing:0!important;text-transform:none!important}
+ .editor .studio-inspector-tabs{height:49px!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ .editor .studio-inspector-tabs button{font:12px Arial,sans-serif!important;color:#b5a69a!important;padding:14px 3px!important}
+ .editor .studio-inspector-tabs button.active{color:#f4e7d7!important;background:#28221d!important;border-bottom:2px solid #d1b28f!important}
+ .editor .cms-editor-scroll{background:#1b1715!important;padding:15px 16px 28px!important}
+ .editor .cms-editor-scroll [role="tablist"]:not(.studio-inspector-tabs),
+ .editor .cms-editor-scroll .cms-editor-tabs,
+ .editor .cms-editor-scroll .cms-inspector-tabs,
+ .editor .cms-editor-scroll .studio-inspector-tabs{display:none!important}
+ .editor .cms-editor-scroll textarea,.editor .cms-editor-scroll input:not([type=checkbox]):not([type=range]),.editor .cms-editor-scroll select{max-width:100%!important;box-sizing:border-box!important}
+ .editor .studio-tab-notice{font-size:12px!important;line-height:1.5!important;color:#b3a194!important;margin:16px!important}
+ .studio-list-title{padding:16px 17px 13px!important}
+ .existing-row .existing-select.active{background:#362b23!important}
+ .existing-row .existing-select{line-height:1.45!important}
+ .studio-block-counter{font-size:10px!important}
+}
