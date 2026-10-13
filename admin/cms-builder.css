@@ -791,3 +791,37 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
 .editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"]{min-width:0}
 .editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .field label{display:block;margin-bottom:8px}
 .editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] textarea{resize:vertical}
+
+/* STEP 171: reference-inspired editor chrome; data and handlers remain intact. */
+@media(min-width:1100px){
+ .sidebar{background:#151210!important;border-right:1px solid #302923!important}
+ .studio-side-tabs{background:#191513!important}
+ .editor{background:#171310!important;border-left:1px solid #342b25!important}
+ .editor .studio-inspector-head{background:#171310!important;border-bottom:1px solid #332b25!important}
+ .editor .studio-inspector-tabs{background:#171310!important}
+ .editor .studio-inspector-tabs button{font-size:12px!important}
+ .editor .cms-editor-scroll{padding:0 20px 32px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:20px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.field{margin-bottom:21px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.field>label{font-size:10px!important;letter-spacing:1px!important;color:#96877c!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"] textarea{font-size:13px!important;line-height:1.55!important;padding:12px!important}
+ .editor .studio-simple-copy{border:0!important;background:transparent!important}
+ .editor .studio-simple-copy .vh-rte-heading,
+ .editor .studio-simple-copy .vh-rte-toolbar,
+ .editor .studio-simple-copy .vh-rte-more,
+ .editor .studio-simple-copy .vh-rte-source{display:none!important}
+ .editor .studio-simple-copy .vh-rte-content{min-height:125px!important;padding:12px!important;border:1px solid #40352d!important;border-radius:4px!important;background:#171310!important;color:#f1e7de!important;font:13px/1.6 Montserrat,Arial,sans-serif!important;outline:none!important}
+ .editor .studio-simple-copy .vh-rte-content:focus{border-color:#c8aa8a!important;box-shadow:0 0 0 1px #c8aa8a33!important}
+ .editor .studio-simple-copy .vh-rte-content p{margin:0 0 9px!important}
+ .editor .studio-simple-copy .vh-rte-content p:last-child{margin-bottom:0!important}
+ .editor .photo-field .cms-thumb-box{border:1px solid #45362b!important;border-radius:3px!important}
+ .editor .photo-field .photo-controls button{border-radius:3px!important}
+ .editor .cms-editor-scroll input[type="file"].studio-image-file::file-selector-button{background:#2c2622!important;border:1px solid #4a3d32!important;color:#eee3d8!important}
+ .editor .cms-editor-scroll input[type="file"].studio-image-file:hover::file-selector-button{background:#41362d!important}
+ .studio-list-title{font-size:10px!important;letter-spacing:1.2px!important;color:#95857a!important}
+ .existing-row .existing-select{border-radius:3px!important}
+ .existing-row .existing-select.active{outline:1px solid #c2a181!important;outline-offset:-1px}
+ .existing-row .studio-reference-row{font-size:0!important}
+ .existing-row .studio-reference-row .studio-reference-label{font:12px/1.4 Montserrat,Arial,sans-serif!important;color:#e8ddd3!important;display:inline!important;vertical-align:middle}
+ .existing-row .studio-reference-row .studio-thumb{font-size:12px!important}
+}
