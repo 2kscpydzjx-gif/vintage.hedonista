@@ -203,7 +203,23 @@ function makeRichEditor(initial,onChange){
  editor.addEventListener('input',commit);editor.addEventListener('blur',()=>{editor.innerHTML=clean(editor.innerHTML)});source.addEventListener('change',commit);
  shell.append(heading,bar,extra,editor,source);return shell;
 }
+function cmsApplyExistingLayout(el,d){
+ if(!el||!d)return;
+ const preset=d.photoPreset;
+ el.classList.toggle('vh-existing-gradient-hero',preset==='gradient-hero');
+ el.classList.toggle('vh-existing-three-photos',preset==='three-photos');
+ let style=el.ownerDocument.getElementById('vh-existing-presets-css');
+ if(!style){style=el.ownerDocument.createElement('style');style.id='vh-existing-presets-css';style.textContent=`
+ .vh-existing-gradient-hero.homepage-capsules{position:relative!important;display:flex!important;align-items:center!important;min-height:clamp(420px,52vw,700px)!important;isolation:isolate!important}
+ .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:0!important}
+ .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,8,6,.92),rgba(10,8,6,.68) 40%,transparent 100%)}
+ .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:1!important;width:min(620px,58%)!important;max-width:none!important;background:transparent!important;color:#f5eadc!important}
+ .vh-existing-gradient-hero.homepage-capsules>.editorial-copy :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
+ @media(max-width:760px){.vh-existing-gradient-hero.homepage-capsules>.editorial-copy{width:100%!important;min-height:430px!important}.vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia::after{background:linear-gradient(0deg,rgba(10,8,6,.92),rgba(10,8,6,.55) 60%,transparent)}}
+ `;el.ownerDocument.head.append(style)}
+}
 function applyBlockDesign(el,d){if(!el||!d)return;
+ cmsApplyExistingLayout(el,d);
  if(d.backgroundMode){el.style.setProperty('background-color',d.backgroundMode==='transparent'?'transparent':'#0d0c09','important')}
  if(d.textTone){el.style.setProperty('color',({light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'})[d.textTone]||'#f2e5d5','important')}
  if(el.matches('.homepage-capsules')){
@@ -355,7 +371,12 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   }
   for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{if(value==='gradient-hero'||value==='three-photos'){onBlockType?.(value==='gradient-hero'?'banner':'gallery');return;}d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
  if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
- const crop=document.createElement('details');crop.className='cms91-crop';crop.innerHTML='<summary>Кадрування фото</summary>';const cropBody=document.createElement('div');cropBody.className='cms91-crop-body';
+ if(!onBlockType){
+ const existingTiles=[['gradient-hero','Фото з градієнтом','1920 × 900 px']];
+ for(const [value,name,hint] of existingTiles){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{d.photoPreset=value;update();commit()};grid.append(btn)}
+ const photoHint=document.createElement('small');photoHint.className='cms91-photo-hint';photoHint.textContent='Градієнт: рекомендоване фото 1920 × 900 px. Макет із трьома фото доступний для нових блоків через тип «Галерея».';photo.append(photoHint);
+}
+const crop=document.createElement('details');crop.className='cms91-crop';crop.innerHTML='<summary>Кадрування фото</summary>';const cropBody=document.createElement('div');cropBody.className='cms91-crop-body';
  select(cropBody,'photoFit','ВІДОБРАЖЕННЯ',[['cover','Заповнити область'],['contain','Показати повністю']],d.photoFit||'cover');
  for(const [key,text] of [['photoX','Горизонталь'],['photoY','Вертикаль']]){const row=document.createElement('div');row.className='cms91-field';row.append(label(text));const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='5';range.value=d[key]??50;range.oninput=()=>{d[key]=Number(range.value);commit()};row.append(range);cropBody.append(row)}crop.append(cropBody);if(!isCapsules)photo.append(crop);
  if(isCapsules){
