@@ -44,7 +44,7 @@ const editorScroll=inspector.querySelector('.cms-editor-scroll');
 if(editorScroll)new MutationObserver(()=>{if(activeTab!=='content')syncTabs()}).observe(editorScroll,{childList:true,subtree:true});
 function applyDevice(){
  const widths={desktop:1440,tablet:820,mobile:390},w=widths[device];
- viewport.style.width=w+'px';frame.style.width=w+'px';frame.style.minWidth=w+'px';frame.style.maxWidth='none';
+ viewport.style.setProperty('width',w+'px','important');frame.style.setProperty('width',w+'px','important');frame.style.setProperty('min-width',w+'px','important');frame.style.setProperty('max-width','none','important');
  document.querySelectorAll('[data-studio-device]').forEach(b=>b.classList.toggle('active',b.dataset.studioDevice===device));
  const label=$('studioZoomLabel');if(label)label.textContent=({desktop:'Комп’ютер',tablet:'Планшет',mobile:'Телефон'})[device]+' · живий перегляд';
 }
