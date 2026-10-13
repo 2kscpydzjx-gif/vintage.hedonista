@@ -339,7 +339,7 @@ function decorateRows(){
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    // The original CMS button is the sole source of block identity.
    // Build exactly ONE thumbnail, ONE index, and ONE label per row.
-   const name=fallback.replace(/^\s*\d+\s*[.·-]?\s*/,'').trim()||actual;
+   const name=actual||fallback.replace(/^\s*\d+\s*[.·-]?\s*/,'').trim();
    const oldThumb=select.querySelector('.studio-thumb');
    const thumb=oldThumb||document.createElement('span');
    thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');
@@ -349,8 +349,8 @@ function decorateRows(){
    let title=select.querySelector('.studio-row-name');
    if(!title){title=document.createElement('span');title.className='studio-row-name'}
    title.textContent=name;
-   if(select.childNodes.length!==3||select.children[0]!==thumb||select.children[1]!==number||select.children[2]!==title){
-    select.replaceChildren(thumb,number,title);
+   if(select.childNodes.length!==3||select.children[0]!==number||select.children[1]!==thumb||select.children[2]!==title){
+    select.replaceChildren(number,thumb,title);
    }
    select.title=name;
    select.classList.add('studio-reference-row');
@@ -359,8 +359,7 @@ function decorateRows(){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
   }
   const thumb=row.querySelector('.studio-thumb'),section=sections[i];if(!thumb||!section)return;
-  const image=section.querySelector('img[src],img[data-src]');const bgElement=[section,...section.querySelectorAll('*')].slice(0,45).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
-  const url=image?.currentSrc||image?.src||((bgElement&&getComputedStyle(bgElement).backgroundImage.match(/url\(["']?(.*?)["']?\)/))||[])[1];
+  const url=studioImageFromSection(section);
   if(url)thumb.style.backgroundImage='url('+JSON.stringify(url)+')';
   else thumb.style.backgroundImage='linear-gradient(140deg,#5e4a3a,#241a15)';
   if(!row.dataset.studioClick){row.dataset.studioClick='1';row.querySelector('.existing-select')?.addEventListener('click',()=>requestAnimationFrame(()=>{selectHighlight(i);refreshSelectedTitle()}))}
