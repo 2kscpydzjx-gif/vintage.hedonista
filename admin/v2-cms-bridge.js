@@ -60,13 +60,13 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
 function bindValue(id,re){$(id).addEventListener('change',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');setTimeout(sync,150)},true)}
-engine.addEventListener('load',()=>{try{
- d=engine.contentDocument;if(!d?.querySelector('#existingBlocks'))throw Error('Немає списку блоків');connected=true;
+engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
+ d=engine.contentDocument;if(!d?.querySelector('#existingBlocks')){if(++retries<40){setTimeout(initialize,250);return;}throw Error('Немає списку блоків');}connected=true;
  let nativeFrame=d.getElementById('siteFrame');if(nativeFrame){const canvas=$('canvas');canvas.replaceChildren(nativeFrame);nativeFrame.style.cssText='width:100%;height:100%;display:block;border:0';canvas.style.padding='0';}
  const pages=d.getElementById('studioPage');if(pages){$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;new MutationObserver(()=>{if(!connected)return;$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;}).observe(pages,{childList:true});}
  new MutationObserver(()=>requestAnimationFrame(sync)).observe(d.getElementById('existingBlocks'),{childList:true});
  sync();checkSession();if(uiReady())say('CMS завантажено. Перевір сторінки та блоки перед збереженням.');
- }catch(e){say('CMS не підключена: '+e.message);console.error('V2 CMS bridge',e)}});
+ }catch(e){showConnectionError('CMS не підключена: '+e.message);console.error('V2 CMS bridge',e)}};initialize();});
 // Report native CMS save state; never claim persistence from a button click alone.
 function observeOperation(buttonId,action){
  const button=d?.getElementById(buttonId),status=d?.getElementById('status');
