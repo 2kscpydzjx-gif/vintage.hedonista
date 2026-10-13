@@ -709,3 +709,19 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .existing-row .existing-select{line-height:1.45!important}
  .studio-block-counter{font-size:10px!important}
 }
+
+/* STEP 163: reference-like image-first inspector */
+@media(min-width:1100px){
+ .editor .studio-media-heading{font:11px Arial,sans-serif!important;letter-spacing:1px!important;color:#96887e!important;margin:15px 0 11px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field:first-of-type{margin-top:0!important}
+ .editor .photo-field{display:grid!important;grid-template-columns:125px minmax(0,1fr)!important;gap:10px!important;padding:8px 0 18px!important;align-items:start!important}
+ .editor .photo-field .cms-thumb-box{width:125px!important;min-width:0!important;height:104px!important;border-radius:4px!important;overflow:hidden!important}
+ .editor .photo-field .cms-thumb-box img{width:100%!important;height:100%!important;object-fit:cover!important}
+ .editor .photo-field .photo-controls{min-width:0!important;display:flex!important;flex-direction:column!important;gap:7px!important}
+ .editor .photo-field input[type=file]{font-size:10px!important;max-width:100%!important}
+ .editor .photo-field input[type=url]{font-size:11px!important;padding:8px!important}
+ .editor .cms91-tab-panel .field>label{font-size:11px!important;color:#a89886!important;letter-spacing:.5px!important}
+ .editor .cms91-tab-panel textarea{border:1px solid #42352c!important;background:#171310!important;border-radius:4px!important;line-height:1.45!important}
+ .editor .cms98-panel-heading{margin:4px 0 12px!important;font-size:11px!important;letter-spacing:1px!important;color:#bda18a!important}
+ .editor .studio-inspector-head .studio-selected-title{max-width:calc(100% - 105px)!important;overflow:hidden!important}
+}
