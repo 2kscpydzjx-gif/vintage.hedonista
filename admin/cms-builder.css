@@ -934,3 +934,25 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:100px!important;min-width:100px!important;max-width:100px!important;height:90px!important}
 }
 
+
+/* STEP 182: reference-sized fixed three-column studio; prevent horizontal inspector overflow. */
+@media(min-width:1000px){
+ body{overflow:hidden!important}
+ body>main{width:calc(100% - 308px)!important;min-width:0!important;max-width:none!important;overflow:hidden!important}
+ main>.layout{min-width:0!important;max-width:100%!important}
+ main>.layout>div:first-child{min-width:0!important;overflow:hidden!important}
+ .editor{min-width:0!important;overflow:hidden!important;box-sizing:border-box!important}
+ .editor *{box-sizing:border-box}
+ .editor .studio-inspector-head{height:52px!important;min-height:52px!important;max-height:52px!important;display:flex!important;flex-wrap:nowrap!important;align-items:center!important;overflow:hidden!important}
+ .editor .studio-selected-title{min-width:0!important;flex:1 1 0!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;padding:0 12px 0 16px!important;font:14px/1.25 Arial,sans-serif!important}
+ .editor .studio-block-counter{flex:0 0 auto!important;margin:0 12px 0 0!important;white-space:nowrap!important}
+ .editor .studio-inspector-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;min-width:0!important;overflow:hidden!important}
+ .editor .studio-inspector-tabs button{min-width:0!important;width:100%!important;padding:0 5px!important;font:12px/1.2 Arial,sans-serif!important}
+ .editor .cms-editor-scroll{min-width:0!important;max-width:100%!important;overflow-x:hidden!important;padding:0 16px 24px!important}
+ .editor .cms-editor-scroll input,.editor .cms-editor-scroll textarea,.editor .cms-editor-scroll select{max-width:100%!important;min-width:0!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:104px minmax(0,1fr)!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:104px!important;min-width:104px!important;max-width:104px!important;height:100px!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{min-width:0!important;max-width:100%!important}
+ #existingBlocks .studio-reference-row .studio-row-name{text-transform:none!important;font-weight:400!important}
+}
+@media(min-width:1000px) and (max-width:1350px){body>main{width:calc(100% - 294px)!important}}
