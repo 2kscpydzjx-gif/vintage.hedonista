@@ -781,3 +781,13 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
 .editor .cms-editor-scroll input[type="file"].studio-image-file:hover::file-selector-button{
  background:#f1d7bd
 }
+
+/* STEP 170: compact, consistent fixed-layout copy editing. */
+.editor .studio-simple-copy .vh-rte-tool[hidden]{display:none!important}
+.editor .studio-simple-copy .vh-rte-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:7px 8px}
+.editor .studio-simple-copy .vh-rte-heading{padding:9px 12px}
+.editor .studio-simple-copy .vh-rte-content{min-height:92px;line-height:1.6;padding:12px}
+.editor .studio-simple-copy{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"]{min-width:0}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] .field label{display:block;margin-bottom:8px}
+.editor .cms-editor-scroll .cms91-tab-panel[data-cms91-tab="content"] textarea{resize:vertical}
