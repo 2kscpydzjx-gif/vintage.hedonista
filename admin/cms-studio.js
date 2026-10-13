@@ -337,19 +337,24 @@ function decorateRows(){
    const actual=(heading?.textContent||currentSection?.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
    const fallback=select.dataset.studioOriginalLabel||select.textContent.trim().replace(/^\d+\.\s*/,'');
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
-   // Replace the native label in place. Never append a second label column.
-   select.querySelectorAll('.studio-reference-label').forEach(el=>el.remove());
+   // The original CMS button is the sole source of block identity.
+   // Build exactly ONE thumbnail, ONE index, and ONE label per row.
    const referenceHome=['Hero','Переваги','Капсули стилю','Нові надходження','Журнал','Про нас (прев’ю)','Instagram','Підписка','SEO текст'];
    const homePage=(pageSelect.selectedOptions[0]?.textContent||'').toLowerCase().includes('головн');
    const name=homePage&&rows.length===referenceHome.length?referenceHome[i]:(actual||fallback);
-   const textNodes=[...select.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE);
-   if(textNodes.length){
-    textNodes[0].textContent=name;
-    textNodes.slice(1).forEach(n=>n.remove());
-   }else{
-    const label=document.createElement('span');
-    label.className='studio-native-name';label.textContent=name;select.append(label);
+   const oldThumb=select.querySelector('.studio-thumb');
+   const thumb=oldThumb||document.createElement('span');
+   thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');
+   let number=select.querySelector('.studio-row-number');
+   if(!number){number=document.createElement('span');number.className='studio-row-number'}
+   number.textContent=String(i+1).padStart(2,'0');
+   let title=select.querySelector('.studio-row-name');
+   if(!title){title=document.createElement('span');title.className='studio-row-name'}
+   title.textContent=name;
+   if(select.childNodes.length!==3||select.children[0]!==thumb||select.children[1]!==number||select.children[2]!==title){
+    select.replaceChildren(thumb,number,title);
    }
+   select.title=name;
    select.classList.add('studio-reference-row');
   }
   if(!row.querySelector('.studio-thumb')){
