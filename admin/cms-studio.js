@@ -39,21 +39,29 @@ function syncTabs(){
   if(el.classList.contains('cms-design'))el.dataset.studioGroup='design';
   else if(!el.dataset.studioGroup && /анімац|animation/i.test(el.className+' '+(el.querySelector('summary,h3,h4')?.textContent||'')))el.dataset.studioGroup='animation';
  });
+ // Keep all legacy fields accessible, but do not render a second tab bar inside the inspector.
+ editor.querySelectorAll('[role="tablist"],.cms-editor-tabs,.cms-inspector-tabs,.studio-inspector-tabs').forEach(el=>{
+  if(!el.closest('.studio-inspector-head'))el.style.setProperty('display','none','important');
+ });
  const grouped=[...editor.querySelectorAll('[data-studio-group]')];
  grouped.forEach(el=>{el.hidden=activeTab!=='content'&&el.dataset.studioGroup!==activeTab});
- // Content shows all fields by default to preserve access to legacy controls.
  if(activeTab==='content')grouped.forEach(el=>el.hidden=false);
  const hasGroup=grouped.some(el=>el.dataset.studioGroup===activeTab);
- const old=inspector.querySelector('.studio-tab-notice');if(old)old.remove();
- if(activeTab!=='content'&&!hasGroup){const note=document.createElement('p');note.className='studio-tab-notice';note.textContent='Налаштування цього типу доступні в основній вкладці «Контент».';inspector.querySelector('.studio-inspector-head')?.after(note)}
+ inspector.querySelector('.studio-tab-notice')?.remove();
+ if(activeTab!=='content'&&!hasGroup){
+  const note=document.createElement('p');note.className='studio-tab-notice';
+  note.textContent='Для цього блоку немає окремих налаштувань у цій вкладці.';
+  inspector.querySelector('.studio-inspector-head')?.after(note);
+ }
 }
+
 document.querySelectorAll('[data-inspector-tab]').forEach(b=>b.addEventListener('click',()=>{
  activeTab=b.dataset.inspectorTab;
  document.querySelectorAll('[data-inspector-tab]').forEach(x=>x.classList.toggle('active',x===b));
  syncTabs();
 }));
 const editorScroll=inspector.querySelector('.cms-editor-scroll');
-if(editorScroll)new MutationObserver(()=>{if(activeTab!=='content')syncTabs()}).observe(editorScroll,{childList:true,subtree:true});
+if(editorScroll)new MutationObserver(()=>{syncTabs()}).observe(editorScroll,{childList:true,subtree:true});
 function applyDevice(){
  const widths={desktop:1440,tablet:820,mobile:390},w=widths[device];
  const deviceNames={desktop:'Комп’ютер',tablet:'Планшет',mobile:'Телефон'};
