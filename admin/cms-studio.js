@@ -110,11 +110,20 @@ const inspectorHeading=inspector.querySelector('.studio-inspector-head h2');
 const inspectorBar=inspector.querySelector('.studio-inspector-head');
 const selectedLabel=document.createElement('div');selectedLabel.className='studio-selected-title';selectedLabel.textContent='Оберіть блок';
 if(inspectorBar)inspectorBar.prepend(selectedLabel);
+const blockCounter=document.createElement('span');blockCounter.className='studio-block-counter';
+if(inspectorBar)inspectorBar.append(blockCounter);
+function updateBlockCounter(){
+ const rows=[...list.querySelectorAll('.existing-row')];
+ const index=rows.findIndex(row=>row.querySelector('.existing-select.active'));
+ blockCounter.textContent=index>=0?'Блок '+(index+1)+' з '+rows.length:'';
+}
+
 function refreshSelectedTitle(){
  const current=list?.querySelector('.existing-select.active');
  if(!current)return;
  const raw=current.textContent.trim().replace(/^\\d+\\.\\s*/,'');
  selectedLabel.textContent=raw.length>42?raw.slice(0,42)+'…':raw;
+ updateBlockCounter();
 }
 
 const drawer=document.createElement('div');drawer.className='studio-pages-list';list?.parentElement?.insertBefore(drawer,list);syncPageDrawer();
