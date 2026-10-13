@@ -600,3 +600,43 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  main>header>.studio-top-controls>.studio-page-label{flex-basis:150px!important}
  main>header>.actions #save,main>header>.actions #publish{font-size:11px!important;padding:10px 9px!important}
 }
+
+/* STEP 159: reference-accurate shell fixes at real 1366px viewport. */
+@media(min-width:1100px){
+ main>header>.studio-brand-title,
+ body>main>header>.studio-brand-title,
+ main>header>div.studio-brand-title:nth-child(2){
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ position:static!important;transform:none!important;float:none!important;
+ flex-direction:column!important;justify-content:center!important;
+ min-width:0!important;max-width:none!important;overflow:visible!important;
+ color:#eee7df!important;font-family:Arial,sans-serif!important;font-size:14px!important;
+ font-weight:600!important;line-height:1.2!important;
+ }
+ main>header>.studio-brand-title small{display:block!important;font-size:8px!important;font-weight:400!important;letter-spacing:.9px!important;margin-top:4px!important}
+ main>header>.studio-mark{font-size:31px!important;line-height:1!important}
+ main>header>.studio-top-controls>.studio-page-label{flex-shrink:1!important}
+ main>header>.studio-top-controls>.studio-devices{margin-left:auto!important;margin-right:auto!important}
+ main>header>.studio-top-controls>.studio-history{margin-left:1px!important}
+ main>header>.studio-exit{margin-left:2px!important}
+ main>.layout>div:first-child .studio-side-tabs{background:#201b18!important}
+ main>.layout>div:first-child .studio-side-tabs button{border-bottom:2px solid transparent!important}
+ main>.layout>div:first-child .studio-side-tabs button.active{border-bottom-color:#d1b08d!important;background:#312821!important}
+ .studio-list-title{letter-spacing:1px!important;color:#a59a8f!important}
+ .existing-row .existing-select{font-family:Arial,sans-serif!important;font-weight:400!important}
+ .existing-row .existing-select.active{border-color:#d1b08d!important}
+ .studio-inspector-head{border-bottom:1px solid #382d26!important}
+ .studio-selected-title{padding:17px 17px 14px!important;font:500 17px/1.25 Arial,sans-serif!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+ .studio-inspector-tabs{margin:0!important}
+ .studio-inspector-tabs button{border-radius:0!important;border:0!important;border-bottom:2px solid transparent!important;padding:15px 2px!important}
+ .studio-inspector-tabs button.active{border-bottom:2px solid #d5b38e!important;color:#f2e7dc!important;background:#2a221d!important}
+ .editor .cms-editor-scroll{padding:18px 17px!important}
+ .live-preview-frame{background:#1a1613!important}
+ .studio-selection-chip{position:absolute!important;top:0;left:0;z-index:2147483601;background:#2778e5;color:white;padding:5px 9px;font:12px Arial,sans-serif;pointer-events:none}
+}
+@media(min-width:1100px) and (max-width:1450px){
+ main>header>.studio-brand-title{flex:0 0 165px!important}
+ main>header>.studio-top-controls{gap:5px!important}
+ main>header>.studio-top-controls>.studio-devices{gap:2px!important}
+ main>header>.actions #save,main>header>.actions #publish{white-space:nowrap!important}
+}
