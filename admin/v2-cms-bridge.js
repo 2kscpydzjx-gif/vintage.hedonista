@@ -69,6 +69,23 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  let nativeFrame=d.getElementById('siteFrame');if(nativeFrame){const canvas=$('canvas');canvas.replaceChildren(nativeFrame);nativeFrame.style.cssText='width:100%;height:100%;display:block;border:0';canvas.style.padding='0';}
  const pages=d.getElementById('studioPage');if(pages){$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;new MutationObserver(()=>{if(!connected)return;$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;}).observe(pages,{childList:true});}
  new MutationObserver(()=>requestAnimationFrame(sync)).observe(d.getElementById('existingBlocks'),{childList:true});
+ // The native CMS replaces its inspector fields after selecting a block.
+ // Refresh V2 from the actual inspector, not only from changes to the block list.
+ let inspectorSyncPending=false;
+ const refreshInspector=()=>{
+  if(inspectorSyncPending)return;
+  inspectorSyncPending=true;
+  requestAnimationFrame(()=>{inspectorSyncPending=false;sync();});
+ };
+ for(const id of ['existingEditor','editorFields']){
+  const node=d.getElementById(id);
+  if(node)new MutationObserver(refreshInspector).observe(node,{childList:true,subtree:false,attributes:true,attributeFilter:['hidden']});
+ }
+ const nativeStatus=d.getElementById('status');
+ if(nativeStatus)new MutationObserver(()=>{
+  const message=nativeStatus.textContent.trim();
+  if(/помил|конфлікт|відмов|не вдало/i.test(message))showConnectionError('CMS: '+message);
+ }).observe(nativeStatus,{childList:true,subtree:true,characterData:true});
  sync();checkSession();if(uiReady())say('CMS завантажено. Перевір сторінки та блоки перед збереженням.');
  }catch(e){showConnectionError('CMS не підключена: '+e.message);console.error('V2 CMS bridge',e)}};initialize();});
 // Report native CMS save state; never claim persistence from a button click alone.
