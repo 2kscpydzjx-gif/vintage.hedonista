@@ -73,7 +73,16 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   const canvas=$('canvas');
   const mirror=document.createElement('iframe');
   mirror.title='Попередній перегляд сторінки';
-  mirror.style.cssText='display:block;width:100%;height:100%;min-height:900px;border:0';
+  mirror.style.cssText='display:block;width:1200px;height:1200px;border:0;transform-origin:top left';
+  const resizeMirror=()=>{
+   const w=Math.max(300,canvas.clientWidth);
+   const scale=Math.min(1,w/1200);
+   mirror.style.transform='scale('+scale+')';
+   canvas.style.minHeight=Math.ceil(1200*scale)+'px';
+   mirror.style.marginBottom=-(1200*(1-scale))+'px';
+  };
+  new ResizeObserver(resizeMirror).observe(canvas);
+  requestAnimationFrame(resizeMirror);
   mirror.setAttribute('loading','eager');
   const existingImage=canvas.querySelector(':scope > img');
   if(existingImage)existingImage.remove();
