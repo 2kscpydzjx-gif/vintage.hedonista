@@ -43,6 +43,14 @@ function syncTabs(){
    const panelTitle=panel.querySelector('.cms98-panel-heading');
    panelTitle?.after(heading);heading.after(photo);
   }
+  // The selected gradient layout owns its own background image field.
+  // Do not surface native image slots from an obsolete hero layout.
+  const gradient=panel.querySelector('.cms-gradient-image-field');
+  if(gradient){
+   panel.querySelectorAll('.photo-field').forEach(node=>node.hidden=true);
+   const heading=panel.querySelector('.studio-media-heading');
+   if(heading)heading.after(gradient);
+  }
   panel.querySelectorAll('h3.photos-title').forEach(h=>h.hidden=true);
  });
  editor.querySelectorAll('#existingEditor>h3,#existingEditor>p.muted').forEach(el=>{
@@ -68,7 +76,7 @@ function syncTabs(){
  // Secondary native photo slots are optional. Keep their inputs and values
  // intact, but collapse them so the main image and text controls are visible.
  editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
-  const photos=[...panel.querySelectorAll('.photo-field')].filter(el=>!el.hidden);
+  const photos=[...panel.querySelectorAll('.photo-field')].filter(el=>!el.hidden && !el.closest('.studio-extra-photos'));
   if(photos.length<2)return;
   let extras=panel.querySelector(':scope > details.studio-extra-photos');
   if(!extras){
