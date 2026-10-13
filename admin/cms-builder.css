@@ -493,3 +493,62 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .studio-device{min-width:31px!important;padding:4px!important}
  main>header>.actions #save,main>header>.actions #publish{font-size:10px!important;padding:10px 8px!important}
 }
+
+/* STEP 157 — approved reference: horizontal tabs, 310px navigator, no legacy sidebar. */
+@media(min-width:1200px){
+ body{padding-top:72px!important;display:block!important;position:relative!important;overflow:hidden!important}
+ body>.sidebar{display:none!important}
+ body>main{width:100%!important;height:calc(100vh - 72px)!important;display:grid!important;grid-template-columns:310px minmax(0,1fr) 335px!important;grid-template-rows:minmax(0,1fr)!important;overflow:hidden!important}
+ main>header{top:0!important;left:0!important;right:0!important;height:72px!important;display:flex!important;align-items:center!important;gap:12px!important;padding:0 24px!important}
+ main>header>.studio-mark{font:34px/1 Georgia,serif!important;padding:0 12px 0 0!important;margin:0!important;border-right:0!important}
+ main>header>.studio-brand-title{flex:0 0 215px!important;display:flex!important;font-size:14px!important}
+ main>header>.studio-top-controls{flex:1 1 auto!important;display:flex!important;min-width:0!important;justify-content:space-between!important;gap:8px!important}
+ .studio-exit{order:9!important;border:0!important;background:transparent!important;display:flex;align-items:center;justify-content:center}
+ .studio-exit svg{width:20px;height:20px}
+ .studio-device svg{display:block;width:22px;height:22px}
+ .studio-history svg{display:block;width:21px;height:21px}
+ .studio-side-tabs svg{display:block;width:22px;height:22px}
+ .studio-side-tabs button span{display:flex!important;align-items:center;justify-content:center}
+ .studio-devices{margin:0 auto!important}
+ .studio-device{min-width:44px!important;height:49px!important;border-radius:4px 4px 0 0!important}
+ main>header>.actions{gap:9px!important}
+ main>header>.actions #save{background:transparent!important;color:#f2e7dd!important;border:1px solid #8d7968!important}
+ main>header>.actions #publish{background:#c5a484!important;color:#221710!important}
+ main>.layout>div:first-child{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;padding:0!important;background:#1a1512!important;overflow:auto!important}
+ main>.layout>div:first-child>.studio-side-tabs{position:sticky!important;top:0!important;z-index:12!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;flex-direction:row!important;gap:0!important;margin:0!important;width:100%!important;height:70px!important;flex:0 0 70px!important;background:#1b1714!important;border-bottom:1px solid #40332b!important}
+ .studio-side-tabs button{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;height:70px!important;min-width:0!important;padding:9px 2px!important;border:0!important;border-bottom:2px solid transparent!important;border-right:1px solid #302822!important;background:#1b1714!important;color:#aaa09a!important}
+ .studio-side-tabs button small{font-size:11px!important;line-height:1.8!important}
+ .studio-side-tabs button.active{background:#2c241e!important;color:#f4e6d8!important;border-bottom-color:#d0ae8a!important;box-shadow:none!important}
+ .studio-list-title{padding:20px 18px 12px!important;margin:0!important;font-size:10px!important}
+ .studio-pages-heading{padding:20px 18px 12px!important}
+ .existing-blocks{padding:0 9px!important;margin:0!important;display:flex!important;flex-direction:column!important;gap:0!important}
+ .existing-row{display:flex!important;align-items:center!important;min-height:76px!important;margin:0!important;padding:0 4px!important;border-bottom:1px solid #352b25!important;gap:5px!important}
+ .existing-row .existing-select{min-height:66px!important;flex:1!important;display:flex!important;gap:12px!important;align-items:center!important;padding:7px 8px!important;border:1px solid transparent!important;border-radius:4px!important;background:transparent!important;color:#e8ded3!important;font-size:12px!important;line-height:1.45!important}
+ .existing-row .existing-select.active{background:#392e26!important;border-color:#bea085!important;outline:0!important}
+ .existing-row .studio-thumb{width:62px!important;height:52px!important;flex:0 0 62px!important;border-radius:3px!important}
+ .existing-row .cms-grip{width:15px!important;min-width:15px!important}
+ .existing-row>button:not(.existing-select){display:none!important}
+ .add{margin:12px 18px!important;padding:0!important}
+ #add{display:block!important;width:100%!important;padding:13px!important;background:#302721!important;color:#eee1d3!important;border:0!important;border-radius:4px!important}
+ main>.preview{grid-column:2!important;grid-row:1!important}
+ main>.layout>.editor{grid-column:3!important;grid-row:1!important}
+ .studio-inspector-head{padding:0!important;background:#1b1714!important}
+ .studio-selected-title{font-size:16px!important;color:#f2e7da!important;padding:17px 17px 5px!important;font-weight:500!important}
+ .studio-inspector-head h2{display:none!important}
+ .studio-inspector-tabs{margin-top:12px!important;border-top:1px solid #342b26!important}
+ .studio-inspector-tabs button{display:flex!important;justify-content:center!important;align-items:center!important;padding:15px 3px!important}
+ .editor .cms-editor-scroll{padding:16px!important}
+ .live-preview-frame{height:calc(100vh - 72px)!important}
+ .preview>.section-title,.live-preview-tools,.cms96-device-bar{display:none!important}
+}
+@media(min-width:1200px) and (max-width:1500px){
+ body>main{grid-template-columns:300px minmax(0,1fr) 280px!important}
+ main>header{padding:0 14px!important;gap:7px!important}
+ main>header>.studio-brand-title{flex-basis:170px!important}
+ #studioPage{min-width:0!important;max-width:150px!important}
+ .studio-devices{gap:1px!important}
+ .studio-device{min-width:34px!important;padding:5px!important}
+ .studio-history{padding:4px!important}
+ main>header>.actions #save,main>header>.actions #publish{font-size:10px!important;padding:10px 8px!important}
+ .existing-row .studio-thumb{width:52px!important;flex-basis:52px!important}
+}
