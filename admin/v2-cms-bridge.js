@@ -30,7 +30,7 @@ waitForCms();
 const cmsStatus=()=>d?.getElementById('status')?.textContent?.trim()||'';
 function checkSession(){const status=cmsStatus();if(/увійти|авторизац|немає прав|supabase/i.test(status))say('Потрібна авторизація адміністратора: '+status);}
 
-const say=(s)=>{const n=$('notice');n.textContent=s;n.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>n.style.display='none',3500)};
+const say=(s)=>{const n=$('notice');if(!n)return;n.textContent=s;n.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>n.style.display='none',3500)};
 const root=()=>d?.querySelector('#existingEditor:not([hidden])')||d?.querySelector('#editorFields');
 function labeled(re){const scope=root();if(!scope)return null;for(const label of scope.querySelectorAll('label')){if(!re.test(label.textContent||''))continue;let id=label.getAttribute('for');let input=(id&&d.getElementById(id))||label.querySelector('input,textarea');if(input)return input;let next=label.nextElementSibling;if(next?.matches('input,textarea'))return next;}return null;}
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
@@ -66,7 +66,28 @@ function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefau
 function bindValue(id,re){$(id).addEventListener('change',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');setTimeout(sync,150)},true)}
 engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  d=engine.contentDocument;if(!d?.querySelector('#existingBlocks')){if(++retries<40){setTimeout(initialize,250);return;}throw Error('Немає списку блоків');}connected=true;
- let nativeFrame=d.getElementById('siteFrame');if(nativeFrame){const canvas=$('canvas');canvas.replaceChildren(nativeFrame);nativeFrame.style.cssText='width:100%;height:100%;display:block;border:0';canvas.style.padding='0';}
+ let nativeFrame=d.getElementById('siteFrame');
+ if(nativeFrame){
+  // Never adopt the CMS iframe into another document: it breaks CMS references.
+  // Keep V2's selection overlay (#selectedLabel) intact.
+  const canvas=$('canvas');
+  const mirror=document.createElement('iframe');
+  mirror.title='Попередній перегляд сторінки';
+  mirror.style.cssText='display:block;width:100%;height:100%;min-height:900px;border:0';
+  mirror.setAttribute('loading','eager');
+  const existingImage=canvas.querySelector(':scope > img');
+  if(existingImage)existingImage.remove();
+  canvas.prepend(mirror);
+  canvas.style.padding='0';
+  const updateMirror=()=>{
+   const src=nativeFrame.getAttribute('src');
+   if(src&&mirror.getAttribute('src')!==src)mirror.setAttribute('src',src);
+  };
+  new MutationObserver(updateMirror).observe(nativeFrame,{attributes:true,attributeFilter:['src']});
+  updateMirror();
+  // Native page updates are rendered inside its own frame; V2 mirrors the URL.
+  // Preserve selection overlay so inspector updates cannot throw on null.
+ }
  const pages=d.getElementById('studioPage');if(pages){$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;new MutationObserver(()=>{if(!connected)return;$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;}).observe(pages,{childList:true});}
  new MutationObserver(()=>requestAnimationFrame(sync)).observe(d.getElementById('existingBlocks'),{childList:true});
  // The native CMS replaces its inspector fields after selecting a block.
