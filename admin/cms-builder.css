@@ -743,3 +743,16 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms91-tab-panel .photo-controls input[type=file]{max-width:100%!important}
  .editor .studio-selected-title{font-size:16px!important}
 }
+
+/* STEP 165: compact hero media editor, secondary photo slots remain editable */
+@media(min-width:1100px){
+ .editor .studio-extra-photos{margin:4px 0 20px!important;border:1px solid #3b3029!important;border-radius:5px!important;background:#211b17!important}
+ .editor .studio-extra-photos>summary{cursor:pointer!important;list-style:none!important;padding:12px!important;color:#cbb69f!important;font:12px Arial,sans-serif!important}
+ .editor .studio-extra-photos>summary::-webkit-details-marker{display:none}
+ .editor .studio-extra-photos>summary::after{content:'⌄';float:right;font-size:16px;line-height:10px}
+ .editor .studio-extra-photos[open]>summary::after{content:'⌃'}
+ .editor .studio-extra-photos .photo-field{padding:12px!important;margin:0!important;border-top:1px solid #3b3029!important;grid-template-columns:105px minmax(0,1fr)!important}
+ .editor .studio-extra-photos .cms-thumb-box{width:105px!important;height:90px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field{margin-bottom:8px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]>.studio-extra-photos+.field{margin-top:18px!important}
+}
