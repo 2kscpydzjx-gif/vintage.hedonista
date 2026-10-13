@@ -283,7 +283,7 @@ function updateBlockCounter(){
 function refreshSelectedTitle(){
  const current=list?.querySelector('.existing-select.active');
  if(!current)return;
- const raw=current.textContent.trim().replace(/^\\d+\\.\\s*/,'');
+ const raw=current.querySelector('.studio-row-name')?.textContent.trim()||current.dataset.studioOriginalLabel||current.textContent.trim();
  selectedLabel.textContent=raw.length>42?raw.slice(0,42)+'…':raw;
  updateBlockCounter();
 }
@@ -339,7 +339,7 @@ function decorateRows(){
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    // The original CMS button is the sole source of block identity.
    // Build exactly ONE thumbnail, ONE index, and ONE label per row.
-   const name=actual||fallback;
+   const name=fallback.replace(/^\s*\d+\s*[.·-]?\s*/,'').trim()||actual;
    const oldThumb=select.querySelector('.studio-thumb');
    const thumb=oldThumb||document.createElement('span');
    thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');
