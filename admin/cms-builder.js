@@ -221,6 +221,18 @@ function cmsApplyExistingLayout(el,d){
  .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:0!important;overflow:hidden!important}
  .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia>img{transform:none!important;object-fit:cover!important;object-position:center!important}
  .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:2!important;background:transparent!important}
+
+ /* STEP 143: the original homepage hero must become a SINGLE canvas, not its old 3-photo grid. */
+ .vh-existing-gradient-hero.hero{display:block!important;min-height:clamp(420px,50vw,700px)!important}
+ .vh-existing-gradient-hero.hero>.hero-grid{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:inherit!important;height:auto!important;max-width:none!important;width:100%!important;padding:0!important;margin:0!important;grid-template-columns:none!important;background:transparent!important}
+ .vh-existing-gradient-hero.hero .hero-copy{position:relative!important;z-index:3!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;width:min(660px,64%)!important;max-width:660px!important;min-height:inherit!important;height:auto!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+ .vh-existing-gradient-hero.hero .hero-media{display:none!important}
+ .vh-existing-gradient-hero.hero .hero-grid:before,.vh-existing-gradient-hero.hero .hero-grid:after,.vh-existing-gradient-hero.hero .hero-copy:before,.vh-existing-gradient-hero.hero .hero-copy:after{content:none!important;display:none!important}
+ .vh-existing-gradient-hero.editorial{display:flex!important;flex-direction:row!important;align-items:center!important;min-height:clamp(420px,50vw,700px)!important}
+ .vh-existing-gradient-hero.editorial>.editorial-media{display:none!important}
+ .vh-existing-gradient-hero.editorial>.editorial-copy{width:min(660px,65%)!important;max-width:660px!important;min-height:0!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+ .vh-existing-gradient-hero.editorial>.editorial-copy:before,.vh-existing-gradient-hero.editorial>.editorial-copy:after{content:none!important;display:none!important}
+ @media(max-width:760px){.vh-existing-gradient-hero.hero .hero-copy,.vh-existing-gradient-hero.editorial>.editorial-copy{width:100%!important;max-width:none!important;min-height:440px!important;padding:30px!important}}
  @media(max-width:760px){.vh-existing-gradient-hero{min-height:460px!important}.vh-existing-gradient-hero :is(.editorial-copy,.hero-copy,.section-copy,.text-panel,.copy-panel){width:100%!important;max-width:100%!important;min-height:360px!important;display:flex!important;flex-direction:column!important;justify-content:center!important}}
  `;
  let layer=Array.from(el.children).find(node=>node.classList.contains('vh-cms-gradient-layer'));
@@ -232,7 +244,9 @@ function cmsApplyExistingLayout(el,d){
  for(const img of el.querySelectorAll('img')){const b=img.getBoundingClientRect();if((img.currentSrc||img.src)&&b.width>=120&&b.height>=90)candidates.push({node:img,url:img.currentSrc||img.src,area:b.width*b.height})}
  for(const node of [el,...Array.from(el.querySelectorAll('*')).slice(0,120)]){const b=node.getBoundingClientRect(),url=getBg(node);if(url&&b.width>=120&&b.height>=90)candidates.push({node,url,area:b.width*b.height})}
  candidates.sort((a,b)=>b.area-a.area);
- const chosen=media?.querySelector('img')?{node:media.querySelector('img'),url:media.querySelector('img').currentSrc||media.querySelector('img').src}:candidates[0];
+ const heroMain=el.matches('.hero')?el.querySelector('#heroMain'):null;
+ const heroUrl=heroMain?getBg(heroMain):'';
+ const chosen=heroMain?(heroUrl?{node:heroMain,url:heroUrl}:null):(media?.querySelector('img')?{node:media.querySelector('img'),url:media.querySelector('img').currentSrc||media.querySelector('img').src}:candidates[0]);
  if(!chosen){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  layer.style.backgroundImage='linear-gradient(90deg,rgba(12,8,6,.94) 0%,rgba(12,8,6,.73) 38%,rgba(12,8,6,.08) 100%),url('+JSON.stringify(chosen.url)+')';
