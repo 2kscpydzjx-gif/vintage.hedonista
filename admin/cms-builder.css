@@ -681,3 +681,10 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  main>header>.studio-top-controls>.studio-icon-button{display:none!important}
  main>header>.actions #save,main>header>.actions #publish{font-size:9px!important;padding:9px 6px!important}
 }
+
+@media(min-width:1100px){
+ .studio-inspector-head{position:sticky!important;top:0!important}
+ .studio-inspector-head .studio-selected-title{padding-right:95px!important}
+ .studio-block-counter{position:absolute;top:15px;right:12px;background:#29231f;border-radius:5px;padding:5px 7px;font:10px Arial,sans-serif;color:#c7b6a8;white-space:nowrap}
+ .studio-inspector-head .studio-selected-title{white-space:nowrap!important;text-overflow:ellipsis!important}
+}
