@@ -825,3 +825,28 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .existing-row .studio-reference-row .studio-reference-label{font:12px/1.4 Montserrat,Arial,sans-serif!important;color:#e8ddd3!important;display:inline!important;vertical-align:middle}
  .existing-row .studio-reference-row .studio-thumb{font-size:12px!important}
 }
+
+/* STEP 173 — shared inspector controls across every existing block. */
+.editor .cms-editor-scroll .photo-field,
+.editor .cms-editor-scroll .field{box-sizing:border-box;min-width:0;width:100%}
+.editor .cms-editor-scroll .photo-field{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;gap:12px!important;align-items:start!important;padding:14px 0!important;margin:0 0 8px!important;border-bottom:1px solid #382e27!important;background:transparent!important}
+.editor .cms-editor-scroll .photo-field .cms-thumb-box{width:112px!important;min-width:112px!important;height:112px!important;max-width:112px!important;aspect-ratio:1!important;overflow:hidden!important;border-radius:4px!important;background:#29211c!important}
+.editor .cms-editor-scroll .photo-field .cms-thumb-box img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.editor .cms-editor-scroll .photo-field .photo-controls{display:flex!important;flex-direction:column!important;gap:8px!important;min-width:0!important;width:100%!important}
+.editor .cms-editor-scroll .photo-field .photo-controls input,
+.editor .cms-editor-scroll .photo-field .photo-controls button{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+.editor .cms-editor-scroll .photo-field input[type=file]{width:100%!important;overflow:hidden!important}
+.editor .cms-editor-scroll .photo-field button,
+.editor .cms-editor-scroll .photo-field input[type=file]::file-selector-button{min-height:34px!important;cursor:pointer!important}
+.editor .cms-editor-scroll .photo-field button:hover,
+.editor .cms-editor-scroll .photo-field input[type=file]::file-selector-button:hover{filter:brightness(1.18)}
+.editor .cms-editor-scroll .field>label{font:10px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:1px!important;text-transform:uppercase!important;color:#a99a8d!important}
+.editor .cms-editor-scroll .field input,
+.editor .cms-editor-scroll .field textarea,
+.editor .cms-editor-scroll .field select{font:13px/1.5 Montserrat,Arial,sans-serif!important;border-radius:4px!important;max-width:100%!important}
+.editor .cms-editor-scroll .field input:focus-visible,
+.editor .cms-editor-scroll .field textarea:focus-visible,
+.editor .cms-editor-scroll .field select:focus-visible{outline:2px solid #c9ab8a!important;outline-offset:1px!important}
+.editor .cms-editor-scroll .studio-extra-photos .photo-field{grid-template-columns:112px minmax(0,1fr)!important}
+.editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:112px!important;height:112px!important}
+@media(max-width:1250px){.editor .cms-editor-scroll .photo-field{grid-template-columns:96px minmax(0,1fr)!important}.editor .cms-editor-scroll .photo-field .cms-thumb-box,.editor .cms-editor-scroll .studio-extra-photos .cms-thumb-box{width:96px!important;min-width:96px!important;max-width:96px!important;height:96px!important}}
