@@ -11,6 +11,9 @@ engine.style.cssText='position:fixed;left:-200vw;top:0;width:1400px;height:900px
 document.body.append(engine);
 let d=null,active=-1,rows=[],connected=false,syncing=false;
 const uiReady=()=>connected&&d?.getElementById('existingBlocks');
+const cmsStatus=()=>d?.getElementById('status')?.textContent?.trim()||'';
+function checkSession(){const status=cmsStatus();if(/увійти|авторизац|немає прав|supabase/i.test(status))say('Потрібна авторизація адміністратора: '+status);}
+
 const say=(s)=>{const n=$('notice');n.textContent=s;n.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>n.style.display='none',3500)};
 const root=()=>d?.querySelector('#existingEditor:not([hidden])')||d?.querySelector('#editorFields');
 function labeled(re){const scope=root();if(!scope)return null;for(const label of scope.querySelectorAll('label')){if(!re.test(label.textContent||''))continue;let id=label.getAttribute('for');let input=(id&&d.getElementById(id))||label.querySelector('input,textarea');if(input)return input;let next=label.nextElementSibling;if(next?.matches('input,textarea'))return next;}return null;}
@@ -46,7 +49,7 @@ engine.addEventListener('load',()=>{try{
  let nativeFrame=d.getElementById('siteFrame');if(nativeFrame){const canvas=$('canvas');canvas.replaceChildren(nativeFrame);nativeFrame.style.cssText='width:100%;height:100%;display:block;border:0';canvas.style.padding='0';}
  const pages=d.getElementById('studioPage');if(pages){$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;new MutationObserver(()=>{if(!connected)return;$('page').replaceChildren(...[...pages.options].map(o=>new Option(o.textContent,o.value)));$('page').value=pages.value;}).observe(pages,{childList:true});}
  new MutationObserver(()=>requestAnimationFrame(sync)).observe(d.getElementById('existingBlocks'),{childList:true});
- sync();say('Реальні блоки CMS підключено');
+ sync();checkSession();if(uiReady())say('CMS завантажено. Перевір сторінки та блоки перед збереженням.');
  }catch(e){say('CMS не підключена: '+e.message);console.error('V2 CMS bridge',e)}});
 // Report native CMS save state; never claim persistence from a button click alone.
 function observeOperation(buttonId,action){
@@ -70,6 +73,7 @@ bind('save',()=>observeOperation('save','Збереження'));
 bind('publish',()=>{if(confirm('Опублікувати зміни на сайті?'))observeOperation('publish','Публікація')});
 bind('add',()=>{d?.getElementById('add')?.click();setTimeout(sync,130)});
 bind('changePhoto',()=>{let f=root()?.querySelector('input[type=file]');if(f)f.click();else say('У цьому блоці немає поля завантаження фото')});
+$('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const input=root()?.querySelector('input[type=file]');if(!input){say('У цьому блоці немає поля завантаження фото');e.target.value='';return;}try{const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));say('Фото передано в CMS; перевір прев’ю.');}catch(err){say('Не вдалося передати фото: '+err.message)}e.target.value='';});
 bind('editPhoto',()=>{const scope=root();const btn=[...(scope?.querySelectorAll('button')||[])].find(b=>/кадруван|позиці|редагувати фото/i.test(b.textContent||''));if(btn)btn.click();else say('Для цього блоку кадрування поки недоступне');});
 bind('undo',()=>d?.getElementById('studioUndo')?.click());bind('redo',()=>d?.getElementById('studioRedo')?.click());
 bindValue('title',/заголовок|назва/i);bindValue('description',/підзаголовок|опис/i);bindValue('cta',/кнопк/i);
