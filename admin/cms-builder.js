@@ -327,7 +327,7 @@ async function uploadCmsImage(file,block,button,slot=0){
   $('status').textContent='Фото завантажено. Збережіть чернетку в Supabase.';
  }finally{button.disabled=false;button.textContent='Завантажити фото'}
 }
-function addDesignControls(host,id,initial,onChange,isCapsules=false){
+function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=null,onBlockType=null){
  const d={...initial};const details=document.createElement('div');details.className='cms-design cms91-design';
  const commit=()=>onChange({...d});
  const label=(txt)=>{const el=document.createElement('label');el.textContent=txt;return el};
@@ -350,7 +350,10 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
  const title=document.createElement('div');title.className='cms91-caption';title.textContent='МАКЕТ БЛОКУ · виберіть готову композицію';photo.append(title);
  const grid=document.createElement('div');grid.className='cms91-layout-grid';
  const presets=isCapsules?[['right','Фото праворуч','Текст · фото'],['left','Фото ліворуч','Фото · текст'],['stacked','Фото зверху','Фото над текстом']]:[['left','Фото ліворуч','50 / 50'],['right','Фото праворуч','50 / 50'],['square','Квадрат із відступами','1 : 1'],['wide','Акцент на фото','60 / 40'],['framed','Фото з двох боків','Фото · текст · фото']];
- for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
+ if(onBlockType){
+   presets.push(['gradient-hero','Фото з градієнтом','1920 × 900 · на всю ширину'],['three-photos','Три фото','1600 × 1200 + 2 × 900 × 900']);
+  }
+  for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{if(value==='gradient-hero'||value==='three-photos'){onBlockType?.(value==='gradient-hero'?'banner':'gallery');return;}d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
  if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
  const crop=document.createElement('details');crop.className='cms91-crop';crop.innerHTML='<summary>Кадрування фото</summary>';const cropBody=document.createElement('div');cropBody.className='cms91-crop-body';
  select(cropBody,'photoFit','ВІДОБРАЖЕННЯ',[['cover','Заповнити область'],['contain','Показати повністю']],d.photoFit||'cover');
@@ -460,7 +463,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false){
   slots.append(group)
  });
  photo.append(slots);
- const update=()=>grid.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.preset===(d.photoPreset||'left')));update();
+ const update=()=>grid.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.preset===(blockType==='banner'?'gradient-hero':blockType==='gallery'?'three-photos':(d.photoPreset||'left'))));update();
 
  // STEP 94: visually group related controls without changing their save callbacks.
  const section=(title,nodes)=>{const panel=document.createElement('section');panel.className='cms94-design-section';const heading=document.createElement('h4');heading.className='cms94-section-heading';heading.textContent=title;panel.append(heading);for(const node of nodes)if(node)panel.append(node);return panel};
@@ -516,7 +519,7 @@ if(b.type!=='text'){
  holder.append(media);
 }
 const typeBox=document.createElement('div');typeBox.className='cms93-type-control cms91-field';const typeLabel=document.createElement('label');typeLabel.textContent='ТИП МАКЕТУ';const typeSelect=document.createElement('select');for(const [value,name] of [['editorial','Фото та текст'],['banner','Hero на всю ширину · градієнт зліва'],['text','Тільки текст'],['gallery','Три фото · 1 велике + 2 менші']])typeSelect.add(new Option(name,value));typeSelect.value=b.type;typeSelect.onchange=()=>{b.type=typeSelect.value;persist();renderEditor();renderPreview()};typeBox.append(typeLabel,typeSelect);holder.append(typeBox);
-addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cms91Tabs(holder,b)}
+addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()},false,b.type,type=>{b.type=type;persist();renderEditor();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cms91Tabs(holder,b)}
 
 function renderPreview(){scheduleLivePreview();if(pageId==='shared')return;const wrap=$('preview');wrap.replaceChildren();for(const b of blocks.filter(x=>x.visible)){const card=document.createElement('article');card.className='preview-card '+b.type;card.dataset.animation=actualAnimation(b.animation);applyBlockDesign(card,b.design);applyCmsSpacing(card,b.design);card.style.setProperty('--duration',(b.duration||650)+'ms');if(b.type==='gallery'){for(let i=0;i<3;i++){const photo=document.createElement('div');photo.className='photo';const url=i===0?b.image:b.images?.[i];if(url&&/^(https?:\/\/|\/|\.\/?|\.\.\/)/.test(url))photo.style.backgroundImage='url('+JSON.stringify(url)+')';card.append(photo)}}else if(b.type!=='text'){const photo=document.createElement('div');photo.className='photo';if(b.image&&/^(https?:\/\/|\/|\.\/?|\.\.\/)/.test(b.image))photo.style.backgroundImage='url('+JSON.stringify(b.image)+')';card.append(photo)}const copy=document.createElement('div');copy.className='copy';const label=document.createElement('span');label.className='tag';label.textContent='VINTAGE HEDONISTA';const title=document.createElement('h3');title.textContent=b.title;const desc=document.createElement('div');desc.innerHTML=clean(b.body);copy.append(label,title,desc);card.append(copy);if(b.design?.backgroundMode==='transparent'||b.design?.surface==='transparent'){card.style.setProperty('background','#f2e9de','important');copy.style.setProperty('background','none','important');card.style.setProperty('color','#211a15','important');copy.style.setProperty('color','#211a15','important')}wrap.append(card)} }
 let liveTimer=null,livePage='',sectionTargets=[];
