@@ -896,3 +896,40 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms-editor-scroll .photo-field{grid-template-columns:105px minmax(0,1fr)!important}
  .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:105px!important;height:92px!important}
 }
+
+/* STEP 178: single reference layout system. Overrides old accumulated patches. */
+@media(min-width:1000px){
+ body{--studio-panel:#181411;--studio-stroke:#332b26;--studio-muted:#988b81;--studio-accent:#c9aa8b}
+ .sidebar{width:308px!important;min-width:308px!important;max-width:308px!important;background:var(--studio-panel)!important}
+ .editor{width:340px!important;min-width:340px!important;max-width:340px!important;background:var(--studio-panel)!important}
+ .studio-side-tabs{height:69px!important}
+ .studio-side-tabs button{font:12px/1.2 Arial,sans-serif!important}
+ #existingBlocks{padding:0 8px!important}
+ #existingBlocks .existing-row{position:relative!important;display:flex!important;align-items:center!important;min-height:72px!important;height:72px!important;max-height:72px!important;margin:0!important;padding:0!important;gap:0!important;border-bottom:1px solid var(--studio-stroke)!important;overflow:hidden!important}
+ #existingBlocks .existing-row:has(.existing-select.active){border:1px solid var(--studio-accent)!important;border-radius:3px!important;background:#342a24!important}
+ #existingBlocks .existing-select.studio-reference-row{display:grid!important;grid-template-columns:56px 20px minmax(0,1fr)!important;align-items:center!important;column-gap:10px!important;min-width:0!important;flex:1 1 auto!important;height:70px!important;max-height:70px!important;margin:0!important;padding:7px 9px!important;background:transparent!important;border:0!important;box-shadow:none!important;font-size:12px!important;line-height:1.35!important;text-align:left!important}
+ #existingBlocks .studio-reference-row .studio-thumb{display:block!important;width:56px!important;height:50px!important;min-width:56px!important;border-radius:2px!important;background-position:center!important;background-size:cover!important}
+ #existingBlocks .studio-reference-row .studio-row-number{display:block!important;font:10px/1.3 Arial,sans-serif!important;color:#8e8074!important;align-self:center!important}
+ #existingBlocks .studio-reference-row .studio-row-name{display:-webkit-box!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow-wrap:break-word!important;color:#e9e0d7!important;font:12px/1.4 Arial,sans-serif!important}
+ #existingBlocks .existing-row>.cms-grip{position:absolute!important;left:0!important;top:27px!important;z-index:2!important;width:8px!important;font-size:10px!important}
+ #existingBlocks .existing-row>button:not(.existing-select){display:none!important}
+ .editor .studio-inspector-head{min-height:100px!important;max-height:100px!important}
+ .editor .studio-selected-title{font:14px/1.25 Arial,sans-serif!important;padding:16px 15px 12px!important}
+ .editor .studio-block-counter{font:10px Arial,sans-serif!important;margin:15px 13px 0 0!important}
+ .editor .studio-inspector-tabs,.editor .studio-inspector-tabs button{height:44px!important}
+ .editor .cms-editor-scroll{padding:0 18px 24px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:17px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:112px minmax(0,1fr)!important;gap:10px!important;margin:0 0 17px!important;padding:10px 0!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:112px!important;height:96px!important;min-width:112px!important;max-width:112px!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{gap:7px!important}
+ .editor .cms-editor-scroll .field{margin-bottom:17px!important}
+ .editor .cms-editor-scroll .field>label{font:10px/1.4 Arial,sans-serif!important;margin-bottom:7px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea{font:12px/1.5 Arial,sans-serif!important;padding:10px 11px!important}
+ .editor .cms-editor-scroll .studio-replace-image{font:12px Arial,sans-serif!important;min-height:36px!important}
+}
+@media(max-width:1350px) and (min-width:1000px){
+ .sidebar{width:294px!important;min-width:294px!important;max-width:294px!important}
+ .editor{width:304px!important;min-width:304px!important;max-width:304px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:100px minmax(0,1fr)!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:100px!important;min-width:100px!important;max-width:100px!important;height:90px!important}
+}
