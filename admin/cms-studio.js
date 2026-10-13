@@ -34,25 +34,18 @@ new MutationObserver(syncPages).observe(pageNav,{childList:true,subtree:true,att
 syncPages();
 function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
- const panels=[...editor.querySelectorAll('.cms-design,[class*=animation],.cms-animation')].filter(el=>el.closest('.cms-editor-scroll')===editor);
- panels.forEach(el=>{
-  if(el.classList.contains('cms-design'))el.dataset.studioGroup='design';
-  else if(!el.dataset.studioGroup && /анімац|animation/i.test(el.className+' '+(el.querySelector('summary,h3,h4')?.textContent||'')))el.dataset.studioGroup='animation';
+ // The CMS builds its own cms91-tabs. Delegate to its original tab handler so
+ // hidden panels remain functional while presenting only one visible tab strip.
+ editor.querySelectorAll('.cms91-tabs').forEach(bar=>{
+  if(bar.dataset.studioUnified!==activeTab){
+   bar.dataset.studioUnified=activeTab;
+   const internal=[...bar.querySelectorAll('button[data-tab]')].find(b=>b.dataset.tab===activeTab);
+   if(internal)internal.click();
+  }
+  bar.hidden=true;
+  bar.style.setProperty('display','none','important');
  });
- // Keep all legacy fields accessible, but do not render a second tab bar inside the inspector.
- editor.querySelectorAll('[role="tablist"],.cms-editor-tabs,.cms-inspector-tabs,.studio-inspector-tabs').forEach(el=>{
-  if(!el.closest('.studio-inspector-head'))el.style.setProperty('display','none','important');
- });
- const grouped=[...editor.querySelectorAll('[data-studio-group]')];
- grouped.forEach(el=>{el.hidden=activeTab!=='content'&&el.dataset.studioGroup!==activeTab});
- if(activeTab==='content')grouped.forEach(el=>el.hidden=false);
- const hasGroup=grouped.some(el=>el.dataset.studioGroup===activeTab);
  inspector.querySelector('.studio-tab-notice')?.remove();
- if(activeTab!=='content'&&!hasGroup){
-  const note=document.createElement('p');note.className='studio-tab-notice';
-  note.textContent='Для цього блоку немає окремих налаштувань у цій вкладці.';
-  inspector.querySelector('.studio-inspector-head')?.after(note);
- }
 }
 
 document.querySelectorAll('[data-inspector-tab]').forEach(b=>b.addEventListener('click',()=>{
