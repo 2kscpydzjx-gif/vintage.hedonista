@@ -941,10 +941,23 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  body>main>.layout{display:contents!important}
  body>main>.layout>.preview{grid-column:2!important;min-width:0!important;width:auto!important;max-width:none!important}
  body>main>.layout>.editor{grid-column:3!important;width:auto!important;min-width:0!important;max-width:none!important;overflow-x:hidden!important}
- .editor .studio-inspector-head{height:54px!important;min-height:54px!important;max-height:54px!important;overflow:hidden!important}
- .editor .studio-selected-title{font:14px/1.3 Arial,sans-serif!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
- .editor .studio-inspector-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;overflow:hidden!important}
- .editor .studio-inspector-tabs button{min-width:0!important;padding:0 5px!important;font-size:12px!important}
+ /* Inspector: two fixed rows as in the approved reference, not a 54px clipped header. */
+ .editor .studio-inspector-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:54px 50px!important;align-items:center!important;align-content:stretch!important;flex-wrap:nowrap!important;height:104px!important;min-height:104px!important;max-height:104px!important;padding:0!important;overflow:visible!important;background:#181411!important;border-bottom:1px solid #332b26!important}
+ .editor .studio-selected-title{grid-column:1!important;grid-row:1!important;align-self:center!important;margin:0!important;padding:0 0 0 20px!important;font:15px/1.3 Arial,sans-serif!important;color:#e9e0d7!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+ .editor .studio-block-counter{grid-column:2!important;grid-row:1!important;align-self:center!important;margin:0 16px 0 8px!important;padding:5px 8px!important;font:10px/1.2 Arial,sans-serif!important;color:#b9ada2!important;background:#28211c!important;border-radius:3px!important;white-space:nowrap!important}
+ .editor .studio-inspector-head>.cms-editor-title{display:none!important}
+ .editor .studio-inspector-tabs{grid-column:1 / -1!important;grid-row:2!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;align-self:stretch!important;flex:unset!important;width:100%!important;height:50px!important;min-height:50px!important;overflow:hidden!important;border-top:1px solid #332b26!important;background:#181411!important}
+ .editor .studio-inspector-tabs button{display:block!important;min-width:0!important;width:100%!important;height:50px!important;padding:0 5px!important;margin:0!important;font:12px/1.2 Arial,sans-serif!important;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;color:#988b81!important}
+ .editor .studio-inspector-tabs button.active{background:#28211c!important;border-bottom:2px solid #c9aa8b!important;color:#e9e0d7!important}
+ .editor .cms-editor-scroll{min-width:0!important;overflow-x:hidden!important;padding:0 18px 28px!important}
+ .editor .cms91-tab-panel[data-cms91-tab="content"]{padding-top:18px!important}
+ .editor .cms-editor-scroll .photo-field{grid-template-columns:140px minmax(0,1fr)!important;gap:10px!important;align-items:start!important}
+ .editor .cms-editor-scroll .photo-field .cms-thumb-box{width:140px!important;min-width:140px!important;max-width:140px!important;height:100px!important;object-fit:cover!important}
+ .editor .cms-editor-scroll .photo-field .photo-controls{min-width:0!important;gap:8px!important}
+ .editor .cms-editor-scroll .field{min-width:0!important;margin-bottom:20px!important}
+ .editor .cms-editor-scroll .field input,.editor .cms-editor-scroll .field textarea{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+ .editor .cms-editor-scroll .studio-media-heading{font:10px/1.4 Arial,sans-serif!important;color:#988b81!important;margin:4px 0 12px!important}
+
  .editor .cms-editor-scroll{overflow-x:hidden!important}
 }
 @media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:294px minmax(0,1fr) 304px!important}}
