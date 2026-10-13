@@ -335,11 +335,11 @@ function decorateRows(){
   if(select){
    const heading=currentSection?.querySelector('h1,h2,h3');
    const actual=(heading?.textContent||currentSection?.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
-   const fallback=select.dataset.studioOriginalLabel||select.textContent.trim().replace(/^\d+\.\s*/,'');
+   const fallback=select.dataset.studioOriginalLabel||select.textContent.trim().replace(/^\s*\d+\s*[.·-]?\s*/,'');
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    // The original CMS button is the sole source of block identity.
    // Build exactly ONE thumbnail, ONE index, and ONE label per row.
-   const name=fallback.replace(/^\s*\d+\s*[.·-]?\s*/,'').trim()||actual;
+   const name=(fallback.replace(/^\s*\d+\s*[.·-]?\s*/,'').replace(/\s*·\s*НОВИЙ\s*$/,'').trim()||actual||'Блок');
    const oldThumb=select.querySelector('.studio-thumb');
    const thumb=oldThumb||document.createElement('span');
    thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');
@@ -349,8 +349,8 @@ function decorateRows(){
    let title=select.querySelector('.studio-row-name');
    if(!title){title=document.createElement('span');title.className='studio-row-name'}
    title.textContent=name;
-   if(select.childNodes.length!==3||select.children[0]!==thumb||select.children[1]!==number||select.children[2]!==title){
-    select.replaceChildren(thumb,number,title);
+   if(select.childNodes.length!==3||select.children[0]!==number||select.children[1]!==thumb||select.children[2]!==title){
+    select.replaceChildren(number,thumb,title);
    }
    select.title=name;
    select.classList.add('studio-reference-row');
@@ -358,6 +358,21 @@ function decorateRows(){
   if(!row.querySelector('.studio-thumb')){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
   }
+  // Keep native CMS actions and handlers, but expose them through one compact menu.
+  let menu=row.querySelector('.studio-row-menu');
+  if(!menu){
+   menu=document.createElement('div');menu.className='studio-row-menu';
+   const trigger=document.createElement('button');trigger.type='button';trigger.className='studio-row-menu-trigger';trigger.textContent='•••';trigger.title='Дії з блоком';trigger.setAttribute('aria-label','Дії з блоком');
+   const popup=document.createElement('div');popup.className='studio-row-menu-popup';popup.hidden=true;
+   trigger.onclick=e=>{e.stopPropagation();document.querySelectorAll('.studio-row-menu-popup').forEach(p=>{if(p!==popup)p.hidden=true});popup.hidden=!popup.hidden};
+   menu.append(trigger,popup);row.append(menu);
+  }
+  const popup=menu.querySelector('.studio-row-menu-popup');
+  [...row.children].filter(el=>el.tagName==='BUTTON'&&el!==select).forEach(btn=>{
+   if(btn.parentElement!==popup)popup.append(btn);
+   if(btn.title)btn.setAttribute('aria-label',btn.title);
+  });
+  popup.querySelectorAll('button').forEach(btn=>{if(!btn.dataset.studioMenuBound){btn.dataset.studioMenuBound='1';btn.addEventListener('click',()=>{popup.hidden=true})}});
   const thumb=row.querySelector('.studio-thumb'),section=sections[i];if(!thumb||!section)return;
   const image=section.querySelector('img[src],img[data-src]');const bgElement=[section,...section.querySelectorAll('*')].slice(0,45).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
   const url=image?.currentSrc||image?.src||((bgElement&&getComputedStyle(bgElement).backgroundImage.match(/url\(["']?(.*?)["']?\)/))||[])[1];

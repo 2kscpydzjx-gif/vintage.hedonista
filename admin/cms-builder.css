@@ -935,9 +935,30 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
 }
 
 
+
+/* Sidebar reference component: one consistent layout, independent of CMS block type. */
+@media (min-width:1000px){
+ .sidebar{width:308px!important;min-width:308px!important;max-width:308px!important;overflow:hidden!important}
+ body>main{grid-template-columns:308px minmax(0,1fr) 308px!important}
+ #existingBlocks{overflow-x:hidden!important;min-width:0!important}
+ #existingBlocks .existing-row{display:flex!important;position:relative!important;align-items:center!important;width:100%!important;min-width:0!important;max-width:100%!important;height:64px!important;min-height:64px!important;padding:0 7px!important;margin:0!important;border-bottom:1px solid #332b26!important;box-sizing:border-box!important}
+ #existingBlocks .existing-row:has(.existing-select.active){background:#342a24!important;border:1px solid #c9aa8b!important;border-radius:3px!important}
+ #existingBlocks .existing-row>.cms-grip{display:none!important}
+ #existingBlocks .existing-row>.existing-select.studio-reference-row{display:grid!important;grid-template-columns:15px 56px minmax(0,1fr)!important;gap:7px!important;align-items:center!important;flex:1 1 auto!important;width:0!important;min-width:0!important;max-width:none!important;height:62px!important;min-height:0!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;text-align:left!important;overflow:hidden!important}
+ #existingBlocks .studio-row-number{grid-column:1!important;grid-row:1!important;display:block!important;font:10px/1.2 Arial,sans-serif!important;color:#988b81!important;min-width:0!important}
+ #existingBlocks .studio-thumb{grid-column:2!important;grid-row:1!important;display:block!important;width:56px!important;height:50px!important;min-width:56px!important;max-width:56px!important;border:1px solid #514237!important;border-radius:3px!important;background-position:center!important;background-size:cover!important}
+ #existingBlocks .studio-row-name{grid-column:3!important;grid-row:1!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;min-width:0!important;max-width:100%!important;overflow-wrap:normal!important;word-break:normal!important;font:12px/1.35 Arial,sans-serif!important;color:#e9e0d7!important;white-space:normal!important}
+ #existingBlocks .studio-row-menu{position:relative!important;display:block!important;flex:0 0 23px!important;width:23px!important;min-width:23px!important;margin-left:3px!important}
+ #existingBlocks .studio-row-menu-trigger{display:block!important;width:23px!important;height:30px!important;min-width:0!important;padding:0!important;margin:0!important;background:transparent!important;color:#c8b9ab!important;border:0!important;font:15px Arial,sans-serif!important}
+ #existingBlocks .studio-row-menu-popup{position:absolute!important;z-index:200!important;right:0!important;top:32px!important;width:160px!important;padding:5px!important;background:#251d18!important;border:1px solid #5c493b!important;box-shadow:0 8px 24px #0009!important}
+ #existingBlocks .studio-row-menu-popup[hidden]{display:none!important}
+ #existingBlocks .studio-row-menu-popup button{display:block!important;width:100%!important;height:32px!important;min-width:0!important;padding:5px 8px!important;margin:0!important;text-align:left!important;background:transparent!important;border:0!important;color:#e9e0d7!important;font:12px Arial,sans-serif!important}
+ #existingBlocks .studio-row-menu-popup button:hover{background:#403127!important}
+}
+
 /* STEP 183: restore full-width grid; previous body>main width broke preview. */
 @media(min-width:1000px){
- body>main{width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important;grid-template-columns:300px minmax(0,1fr) 308px!important;overflow:hidden!important}
+ body>main{width:auto!important;min-width:0!important;max-width:none!important;flex:1 1 auto!important;grid-template-columns:308px minmax(0,1fr) 308px!important;overflow:hidden!important}
  body>main>.layout{display:contents!important}
  body>main>.layout>.preview{grid-column:2!important;min-width:0!important;width:auto!important;max-width:none!important}
  body>main>.layout>.editor{grid-column:3!important;width:auto!important;min-width:0!important;max-width:none!important;overflow-x:hidden!important}
@@ -947,4 +968,4 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .studio-inspector-tabs button{min-width:0!important;padding:0 5px!important;font-size:12px!important}
  .editor .cms-editor-scroll{overflow-x:hidden!important}
 }
-@media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:294px minmax(0,1fr) 304px!important}}
+@media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:308px minmax(0,1fr) 304px!important}}
