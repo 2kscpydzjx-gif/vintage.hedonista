@@ -814,14 +814,14 @@ function renderExistingEditor(){
    try{add(imageURL(getComputedStyle(node,pseudo).backgroundImage),pseudo)}catch{}
   }
  }
- if(photos.length&&!cmsFieldsFor(target.el).length && !(pageId==='home'&&target.el.matches('.homepage-capsules'))){
+ if(photos.length&&draft.design?.photoPreset!=='gradient-hero'&&!cmsFieldsFor(target.el).length && !(pageId==='home'&&target.el.matches('.homepage-capsules'))){
   const title=document.createElement('h3');title.textContent='ФОТОГРАФІЇ БЛОКУ';title.className='photos-title';host.append(title);
   photos.forEach((photo,i)=>{
    const key='image'+i,wrap=document.createElement('div');wrap.className='photo-field';const thumbBox=document.createElement('div');thumbBox.className='cms-thumb-box';
-   const effective=draft.images?.[key]||photo.url;const {box:thumbnail,img,show:showThumb}=cmsThumb(effective,frame.contentDocument.baseURI,'Мініатюра '+(i+1));
+   const effective=draft.images?.[key]==='__removed__'?'':(draft.images?.[key]||photo.url);const {box:thumbnail,img,show:showThumb}=cmsThumb(effective,frame.contentDocument.baseURI,'Мініатюра '+(i+1));
    const right=document.createElement('div');right.className='photo-controls';
    const label=document.createElement('label');label.textContent='Фото '+(i+1)+' · замінити URL';
-   const input=document.createElement('input');input.type='url';input.value=draft.images?.[key]||'';
+   const input=document.createElement('input');input.type='url';input.value=draft.images?.[key]==='__removed__'?'':(draft.images?.[key]||'');
    input.placeholder='https://... або шлях до фото';
    const update=url=>{
     const latest=readExisting(),d={...(latest[target.id]||{})};
@@ -836,7 +836,7 @@ function renderExistingEditor(){
    input.onchange=()=>{const url=input.value.trim();if(url&&/^(javascript:|data:)/i.test(url)){alert('Неприпустимий формат адреси');return}update(url)};
    const file=document.createElement('input');file.type='file';file.accept='image/png,image/jpeg,image/webp,image/gif';
    file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-'+key);update(url);input.value=url;$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
-   const note=document.createElement('small');note.textContent='Тестова заміна · лише у цьому браузері';
+   const note=document.createElement('small');note.textContent='Зміни збережуться після натискання «Зберегти чернетку»';
    const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>{
  const all=readExisting();all[target.id]={...(all[target.id]||{}),images:{...(all[target.id]?.images||{}),[key]:'__removed__'}};saveExisting(all);
  if(photo.kind==='img')photo.node.style.visibility='hidden';
