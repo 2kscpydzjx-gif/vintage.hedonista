@@ -48,9 +48,12 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  }
 }
 function resolvePublishedBannerImage(e,el){
+ // The published legacy CMS stores the banner image at images.image0.
+ // A dedicated templateImage overrides it, including intentional removal.
  if(typeof e.templateImage==='string')return e.templateImage;
- // Backwards compatibility: previous CMS revisions saved images in native mapped fields.
  if(e.design?.photoPreset!=='gradient-hero')return '';
+ const first=e.images?.image0;
+ if(typeof first==='string')return first;
  const mapped=e.mapped||{};
  const hero=el.querySelector('#heroMain,#homeCapsulesMedia,.editorial-media,.hero-main');
  const field=fields(el).find(f=>f.type==='image'&&(f.el===hero||hero?.contains(f.el)));
