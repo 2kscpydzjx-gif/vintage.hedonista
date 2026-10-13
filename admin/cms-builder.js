@@ -203,57 +203,39 @@ function makeRichEditor(initial,onChange){
  editor.addEventListener('input',commit);editor.addEventListener('blur',()=>{editor.innerHTML=clean(editor.innerHTML)});source.addEventListener('change',commit);
  shell.append(heading,bar,extra,editor,source);return shell;
 }
-function cmsApplyExistingLayout(el,d){
+function cmsApplyExistingLayout(el,d,mediaValue){
  if(!el||!d)return;
- const enabled=d.photoPreset==='gradient-hero';
+ const preset=d.photoPreset||'left',enabled=preset==='gradient-hero';
  el.classList.toggle('vh-existing-gradient-hero',enabled);
- el.classList.remove('vh-existing-three-photos');
+ el.classList.toggle('vh-existing-two-photo',preset==='framed');
  const doc=el.ownerDocument;
  let css=doc.getElementById('vh-existing-presets-css');
  if(!css){css=doc.createElement('style');css.id='vh-existing-presets-css';doc.head.append(css)}
  css.textContent=`
- .vh-existing-gradient-hero{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;isolation:isolate!important;min-height:clamp(420px,50vw,700px)!important;overflow:hidden!important;background:#211812!important}
+ .vh-existing-gradient-hero{position:relative!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;isolation:isolate!important;min-height:clamp(420px,50vw,700px)!important;overflow:hidden!important;background:#211812!important;background-image:none!important}
  .vh-existing-gradient-hero>.vh-cms-gradient-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:none!important;background-size:cover!important;background-position:center!important}
- .vh-existing-gradient-hero>:not(.vh-cms-gradient-layer){position:relative!important;z-index:1!important}
- .vh-existing-gradient-hero .vh-cms-gradient-source{visibility:hidden!important}
- .vh-existing-gradient-hero :is(.editorial-copy,.hero-copy,.section-copy,.text-panel,.copy-panel){position:relative!important;z-index:2!important;width:min(620px,60%)!important;max-width:620px!important;flex:none!important;margin:0!important;padding:clamp(24px,5vw,75px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+ .vh-existing-gradient-hero>:not(.vh-cms-gradient-layer){z-index:1}
  .vh-existing-gradient-hero :is(h1,h2,h3,p,.eyebrow){color:#f5eadc!important}
- .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:0!important;overflow:hidden!important}
- .vh-existing-gradient-hero.homepage-capsules #homeCapsulesMedia>img{transform:none!important;object-fit:cover!important;object-position:center!important}
- .vh-existing-gradient-hero.homepage-capsules>.editorial-copy{position:relative!important;z-index:2!important;background:transparent!important}
-
- /* STEP 143: the original homepage hero must become a SINGLE canvas, not its old 3-photo grid. */
- .vh-existing-gradient-hero.hero{display:block!important;min-height:clamp(420px,50vw,700px)!important}
- .vh-existing-gradient-hero.hero>.hero-grid{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:inherit!important;height:auto!important;max-width:none!important;width:100%!important;padding:0!important;margin:0!important;grid-template-columns:none!important;background:transparent!important}
- .vh-existing-gradient-hero.hero .hero-copy{position:relative!important;z-index:3!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;width:min(660px,64%)!important;max-width:660px!important;min-height:inherit!important;height:auto!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+ .vh-existing-gradient-hero.hero{height:auto!important;min-height:clamp(420px,50vw,700px)!important;overflow:hidden!important}
+ .vh-existing-gradient-hero.hero>.hero-grid{display:flex!important;flex-direction:column!important;justify-content:center!important;position:relative!important;width:100%!important;max-width:none!important;min-height:inherit!important;height:auto!important;padding:0!important;margin:0!important;grid-template-columns:none!important;background:transparent!important}
+ .vh-existing-gradient-hero.hero .hero-copy{position:relative!important;z-index:3!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;width:min(660px,65%)!important;max-width:660px!important;min-height:inherit!important;height:auto!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
  .vh-existing-gradient-hero.hero .hero-media{display:none!important}
  .vh-existing-gradient-hero.hero .hero-grid:before,.vh-existing-gradient-hero.hero .hero-grid:after,.vh-existing-gradient-hero.hero .hero-copy:before,.vh-existing-gradient-hero.hero .hero-copy:after{content:none!important;display:none!important}
- .vh-existing-gradient-hero.editorial{display:flex!important;flex-direction:row!important;align-items:center!important;min-height:clamp(420px,50vw,700px)!important}
+ .vh-existing-gradient-hero.editorial{display:flex!important;flex-direction:row!important;align-items:center!important}
  .vh-existing-gradient-hero.editorial>.editorial-media{display:none!important}
- .vh-existing-gradient-hero.editorial>.editorial-copy{width:min(660px,65%)!important;max-width:660px!important;min-height:0!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
- .vh-existing-gradient-hero.editorial>.editorial-copy:before,.vh-existing-gradient-hero.editorial>.editorial-copy:after{content:none!important;display:none!important}
+ .vh-existing-gradient-hero.editorial>.editorial-copy{position:relative!important;z-index:3!important;width:min(660px,65%)!important;max-width:660px!important;min-height:0!important;margin:0!important;padding:clamp(30px,5vw,80px)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+ .vh-existing-gradient-hero :is(.hero-copy,.editorial-copy,.section-copy,.text-panel,.copy-panel){background:transparent!important;background-image:none!important;box-shadow:none!important}
  @media(max-width:760px){.vh-existing-gradient-hero.hero .hero-copy,.vh-existing-gradient-hero.editorial>.editorial-copy{width:100%!important;max-width:none!important;min-height:440px!important;padding:30px!important}}
- @media(max-width:760px){.vh-existing-gradient-hero{min-height:460px!important}.vh-existing-gradient-hero :is(.editorial-copy,.hero-copy,.section-copy,.text-panel,.copy-panel){width:100%!important;max-width:100%!important;min-height:360px!important;display:flex!important;flex-direction:column!important;justify-content:center!important}}
  `;
- let layer=Array.from(el.children).find(node=>node.classList.contains('vh-cms-gradient-layer'));
- el.querySelectorAll('.vh-cms-gradient-source').forEach(node=>node.classList.remove('vh-cms-gradient-source'));
+ let layer=Array.from(el.children).find(n=>n.classList.contains('vh-cms-gradient-layer'));
  if(!enabled){layer?.remove();return}
- const media=el.querySelector('#homeCapsulesMedia');
- const candidates=[];
- const getBg=node=>{const v=doc.defaultView.getComputedStyle(node).backgroundImage;const m=v&&v.match(/url\\(["']?([^"')]+)["']?\\)/);return m?.[1]||''};
- for(const img of el.querySelectorAll('img')){const b=img.getBoundingClientRect();if((img.currentSrc||img.src)&&b.width>=120&&b.height>=90)candidates.push({node:img,url:img.currentSrc||img.src,area:b.width*b.height})}
- for(const node of [el,...Array.from(el.querySelectorAll('*')).slice(0,120)]){const b=node.getBoundingClientRect(),url=getBg(node);if(url&&b.width>=120&&b.height>=90)candidates.push({node,url,area:b.width*b.height})}
- candidates.sort((a,b)=>b.area-a.area);
- const heroMain=el.matches('.hero')?el.querySelector('#heroMain'):null;
- const heroUrl=heroMain?getBg(heroMain):'';
- const chosen=heroMain?(heroUrl?{node:heroMain,url:heroUrl}:null):(media?.querySelector('img')?{node:media.querySelector('img'),url:media.querySelector('img').currentSrc||media.querySelector('img').src}:candidates[0]);
- if(!chosen){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
- layer.style.backgroundImage='linear-gradient(90deg,rgba(12,8,6,.94) 0%,rgba(12,8,6,.73) 38%,rgba(12,8,6,.08) 100%),url('+JSON.stringify(chosen.url)+')';
- if(chosen.node!==el)chosen.node.classList.add('vh-cms-gradient-source');
+ // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
+ const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>mediaValue.startsWith(prefix))?mediaValue:'';
+ layer.style.backgroundImage=url?'linear-gradient(90deg,rgba(12,8,6,.94),rgba(12,8,6,.70) 38%,rgba(12,8,6,.08)),url('+JSON.stringify(url)+')':'none';
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
- cmsApplyExistingLayout(el,d);
+ cmsApplyExistingLayout(el,d,readExisting()?.[selectedExisting]?.templateImage);
  if(d.backgroundMode){el.style.setProperty('background-color',d.backgroundMode==='transparent'?'transparent':'#0d0c09','important')}
  if(d.textTone){el.style.setProperty('color',({light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'})[d.textTone]||'#f2e5d5','important')}
  if(el.matches('.homepage-capsules')){
@@ -845,9 +827,25 @@ function renderExistingEditor(){
   applyExistingAnimation(target.el,v);$('status').textContent='Анімацію змінено у чернетці';
  },animationOptions));
  // Design controls for each existing section (draft only)
- addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
+ addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);cmsApplyExistingLayout(target.el,value,all[target.id].templateImage);renderExistingEditor();scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
+ // Template-specific photo controls: one photo for gradient, native fields for legacy layouts.
+ const gradientSelected=(draft.design?.photoPreset==='gradient-hero');
+ if(gradientSelected){
+  host.querySelectorAll('.photo-field,.cms-mapped-field').forEach(node=>{
+   if(node.classList.contains('photo-field')||node.querySelector('input[type=file]'))node.hidden=true;
+  });
+  const title=document.createElement('h3');title.textContent='ФОТО ДЛЯ ГРАДІЄНТНОГО БАНЕРА · 1920 × 900 px';host.append(title);
+  const wrap=document.createElement('div');wrap.className='field cms-gradient-image-field';
+  const current=draft.templateImage&&draft.templateImage!=='__removed__'?draft.templateImage:'';
+  const thumb=cmsThumb(current,frame.contentDocument.baseURI,'Фонове фото градієнта');wrap.append(thumb.box);
+  const input=document.createElement('input');input.placeholder='Посилання на фото · 1920 × 900';input.value=current;wrap.append(input);
+  const setImage=value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),templateImage:value};saveExisting(all);cmsApplyExistingLayout(target.el,all[target.id].design||{},value);thumb.show(value==='__removed__'?'':value);$('status').textContent='Фонове фото градієнта збережене в чернетці'};
+  input.onchange=()=>{const v=input.value.trim();if(v&&!['https://','http://','/','./','../'].some(prefix=>v.startsWith(prefix))){alert('Некоректне посилання');return}setImage(v||'__removed__')};
+  const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp';file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-gradient');setImage(url);input.value=url}catch(e){alert('Не вдалося завантажити фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};wrap.append(file);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='Видалити фонове фото';remove.onclick=()=>{setImage('__removed__');input.value=''};wrap.append(remove);host.append(wrap);
+ }
  // The real homepage Capsules section uses #homeCapsulesMedia, populated asynchronously by site.js.
- if(target.el.matches('.homepage-capsules')||target.el.querySelector('#homeCapsulesMedia')){
+ if(!gradientSelected&&(target.el.matches('.homepage-capsules')||target.el.querySelector('#homeCapsulesMedia'))){
   const media=target.el.querySelector('#homeCapsulesMedia');
   const wrap=document.createElement('div');wrap.className='field cms-capsule-field';
   const label=document.createElement('label');label.textContent='ГОЛОВНЕ ФОТО БЛОКУ КАПСУЛИ';
@@ -899,7 +897,7 @@ function applyExistingDrafts(){const data=readExisting();for(const t of sectionT
   // Keep the public site's default composition: copy left, one image right.
   if(media&&copy){media.style.order='2';copy.style.order='1'}
  }
-const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design)applyBlockDesign(t.el,d.design);applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
+const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 function applyImageDrafts(){
  const drafts=readExisting();
  for(const target of sectionTargets){
