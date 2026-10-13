@@ -52,7 +52,10 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  const selected=rows[active];$('paneltitle').textContent=selected?titleOf(selected):'Оберіть блок';$('count').textContent=rows.length?'Блок '+(active+1)+' з '+rows.length:'';
  const inputTitle=labeled(/заголовок|назва/i),inputDesc=labeled(/підзаголовок|опис/i),inputCta=labeled(/кнопк/i);
  if(document.activeElement!==$('title'))$('title').value=inputTitle?.value||'';
- if(document.activeElement!==$('description'))$('description').value=inputDesc?.value||'';
+ if(document.activeElement!==$('description')){
+  const rich=root()?.querySelector('.vh-rte-content');
+  $('description').value=rich?rich.innerText:(inputDesc?.value||'');
+ }
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
  const photo=root()?.querySelector('.photo-field img,.cms-thumb-box img,img');
  $('photo').src=photo?.src||thumbnail(selected||rows[0]||document.createElement('div'))||'thumb-1.jpg';
@@ -118,7 +121,25 @@ bind('changePhoto',()=>{let f=root()?.querySelector('input[type=file]');if(f)f.c
 $('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const input=root()?.querySelector('input[type=file]');if(!input){say('У цьому блоці немає поля завантаження фото');e.target.value='';return;}try{const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));say('Фото передано в CMS; перевір прев’ю.');}catch(err){say('Не вдалося передати фото: '+err.message)}e.target.value='';});
 bind('editPhoto',()=>{const scope=root();const btn=[...(scope?.querySelectorAll('button')||[])].find(b=>/кадруван|позиці|редагувати фото/i.test(b.textContent||''));if(btn)btn.click();else say('Для цього блоку кадрування поки недоступне');});
 bind('undo',()=>d?.getElementById('studioUndo')?.click());bind('redo',()=>d?.getElementById('studioRedo')?.click());
-bindValue('title',/заголовок|назва/i);bindValue('description',/підзаголовок|опис/i);bindValue('cta',/кнопк/i);
+bindValue('title',/заголовок|назва/i);
+$('description').addEventListener('change',e=>{
+ e.stopImmediatePropagation();
+ if(!connected)return say('CMS ще не підключена');
+ const rich=root()?.querySelector('.vh-rte-content');
+ if(!rich){if(!setNative(labeled(/підзаголовок|опис/i),e.target.value))say('Поле опису недоступне для цього блоку');return;}
+ const current=rich.innerHTML;
+ // Plain-text editing must not silently destroy links, headings, or other rich formatting.
+ if(/<(?:h[1-6]|a|ul|ol|li|strong|b|em|i|table|blockquote)\\b/i.test(current)){
+  say('Текст має форматування. Редагування без втрати HTML поки недоступне.');
+  e.target.value=rich.innerText;return;
+ }
+ rich.replaceChildren(...e.target.value.split(/\\n+/).filter(Boolean).map(line=>{
+  const p=d.createElement('p');p.textContent=line;return p;
+ }));
+ rich.dispatchEvent(new Event('input',{bubbles:true}));
+ setTimeout(sync,150);
+},true);
+bindValue('cta',/кнопк/i);
 /* Photo position: connect the approved V2 design slider to the real CMS crop control. */
 const positionSlider=document.querySelector('#design input[type="range"]');
 if(positionSlider){
