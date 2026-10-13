@@ -93,6 +93,19 @@ $('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!fi
 bind('editPhoto',()=>{const scope=root();const btn=[...(scope?.querySelectorAll('button')||[])].find(b=>/кадруван|позиці|редагувати фото/i.test(b.textContent||''));if(btn)btn.click();else say('Для цього блоку кадрування поки недоступне');});
 bind('undo',()=>d?.getElementById('studioUndo')?.click());bind('redo',()=>d?.getElementById('studioRedo')?.click());
 bindValue('title',/заголовок|назва/i);bindValue('description',/підзаголовок|опис/i);bindValue('cta',/кнопк/i);
+/* Photo position: connect the approved V2 design slider to the real CMS crop control. */
+const positionSlider=document.querySelector('#design input[type="range"]');
+if(positionSlider){
+ positionSlider.addEventListener('input',()=>{
+  if(!connected)return;
+  const crop=root()?.querySelector('.cms91-crop');
+  const horizontal=crop?.querySelector('input[type="range"]');
+  if(!horizontal){say('Цей тип блоку не підтримує позиціювання фото');return;}
+  horizontal.value=positionSlider.value;
+  horizontal.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+}
+
 $('page').addEventListener('change',e=>{e.stopImmediatePropagation();let p=d?.getElementById('studioPage');if(p){p.value=e.target.value;p.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(sync,850)}},true);
 document.querySelectorAll('[data-device]').forEach(btn=>btn.addEventListener('click',()=>{d?.querySelector('[data-studio-device="'+btn.dataset.device+'"]')?.click()},true));
 document.querySelectorAll('[data-rtab]').forEach(btn=>btn.addEventListener('click',()=>{d?.querySelector('[data-inspector-tab="'+btn.dataset.rtab+'"]')?.click()},true));
