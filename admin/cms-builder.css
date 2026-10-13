@@ -420,3 +420,11 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .studio-thumb{display:inline-block;width:45px;height:40px;background-size:cover;background-position:center;margin-right:8px;vertical-align:middle}
  .studio-exit,.studio-history{display:none}
 }
+
+@media(min-width:1200px){
+ .cms96-device-bar{display:none!important}
+ .live-preview-tools{padding:5px 10px!important;min-height:38px!important}
+ .preview>.section-title{min-height:38px!important;padding:9px 12px!important}
+ .live-preview-frame{height:calc(100vh - 140px)!important}
+ .studio-side-tabs button{cursor:pointer}
+}
