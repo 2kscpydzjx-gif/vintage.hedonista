@@ -14,8 +14,20 @@ function syncPages(){
   pageSelect.replaceChildren();pageMap.clear();
   navButtons.forEach((b,i)=>{const opt=document.createElement('option');opt.value=String(i);opt.textContent=b.textContent.trim();pageSelect.append(opt);pageMap.set(String(i),b)});
   pageSelect.dataset.signature=signature;
+  syncPageDrawer();
  }
  if(selected>=0&&pageSelect.value!==String(selected))pageSelect.value=String(selected);
+ const drawerButtons=document.querySelectorAll('.studio-pages-list button');drawerButtons.forEach((b,i)=>b.classList.toggle('active',i===selected));
+}
+function syncPageDrawer(){
+ const host=document.querySelector('.studio-pages-list');if(!host)return;
+ host.replaceChildren();
+ [...pageNav.querySelectorAll('button.nav')].forEach((button,i)=>{
+  const entry=document.createElement('button');entry.type='button';entry.textContent=button.textContent;
+  entry.classList.toggle('active',button.classList.contains('active'));
+  entry.onclick=()=>{button.click();document.body.classList.remove('studio-pages-mode');document.querySelector('[data-side-tab="blocks"]')?.click()};
+  host.append(entry);
+ });
 }
 pageSelect.addEventListener('change',()=>pageMap.get(pageSelect.value)?.click());
 new MutationObserver(syncPages).observe(pageNav,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
@@ -60,6 +72,7 @@ applyDevice();
 
 /* Studio 155: interactive block selection and visual structure. */
 const list=$('existingBlocks'),frameHost=document.querySelector('.live-preview-frame');
+const drawer=document.createElement('div');drawer.className='studio-pages-list';list?.parentElement?.insertBefore(drawer,list);syncPageDrawer();
 let activeInput=null;
 document.addEventListener('focusin',e=>{if(e.target.matches('input,textarea,[contenteditable="true"]'))activeInput=e.target});
 for(const [id,command] of [['studioUndo','undo'],['studioRedo','redo']]){
@@ -69,7 +82,7 @@ for(const [id,command] of [['studioUndo','undo'],['studioRedo','redo']]){
 const tabs=document.querySelectorAll('[data-side-tab]');
 tabs.forEach(button=>button.addEventListener('click',()=>{
  tabs.forEach(t=>t.classList.toggle('active',t===button));
- if(button.dataset.sideTab==='pages')pageSelect.focus();
+ document.body.classList.toggle('studio-pages-mode',button.dataset.sideTab==='pages');
  if(button.dataset.sideTab==='styles')document.querySelector('[data-inspector-tab="design"]')?.click();
  if(button.dataset.sideTab==='blocks')list?.scrollIntoView({block:'nearest'});
 }));
