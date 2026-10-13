@@ -69,6 +69,39 @@ function polishMediaFields(editor){
   }
  }
 }
+/* Resolve the actual selected page section, including CSS-background heroes.
+   This is presentation only: the native CMS input remains the source of truth. */
+function studioImageFromSection(section){
+ if(!section)return '';
+ const image=section.querySelector('img[src],img[data-src]');
+ if(image){const src=image.currentSrc||image.src||image.getAttribute('data-src');if(src)return src}
+ const nodes=[section,...section.querySelectorAll('*')].slice(0,120);
+ for(const node of nodes){
+  const style=node.ownerDocument.defaultView.getComputedStyle(node);
+  const match=style.backgroundImage.match(/url\\(["']?(.*?)["']?\\)/);
+  if(match?.[1])return match[1];
+ }
+ return '';
+}
+function studioPreviewPhoto(editor,section){
+ if(!section)return;
+ const source=studioImageFromSection(section);
+ if(!source)return;
+ const panel=editor.querySelector('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]');
+ if(!panel)return;
+ const field=[...panel.querySelectorAll('.photo-field,.cms-gradient-image-field,.cms-capsule-field')].find(el=>!el.hidden);
+ if(!field)return;
+ const thumb=field.querySelector('.cms-thumb-box');
+ if(!thumb)return;
+ const hasPhoto=!!thumb.querySelector('img[src]')||/url\\(/.test(thumb.style.backgroundImage);
+ if(hasPhoto){
+  thumb.querySelector('.studio-source-preview')?.remove();
+  return;
+ }
+ let preview=thumb.querySelector('.studio-source-preview');
+ if(!preview){preview=document.createElement('img');preview.className='studio-source-preview';preview.alt='Поточне фото блоку';thumb.prepend(preview)}
+ if(preview.getAttribute('src')!==source)preview.src=source;
+}
 function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
  // The native page's Hero is not the obsolete gradient-banner template.
@@ -82,6 +115,7 @@ function syncTabs(){
    !selectedSection.classList.contains('vh-existing-gradient-hero');
  inspector.classList.toggle('studio-native-hero',!!nativeHero);
  polishMediaFields(editor);
+ studioPreviewPhoto(editor,selectedSection);
  // Fixed-layout page blocks already have semantic heading elements.
  // The article editor remains untouched and retains its heading tools.
  const structuredPage=!['article','product'].includes(new URLSearchParams(location.search).get('page')||'home');
@@ -305,7 +339,9 @@ function decorateRows(){
    if(!select.dataset.studioOriginalLabel)select.dataset.studioOriginalLabel=fallback;
    let label=select.querySelector('.studio-reference-label');
    if(!label){label=document.createElement('span');label.className='studio-reference-label';select.append(label)}
-   label.textContent=actual||fallback;
+   const referenceHome=['Hero','Переваги','Капсули стилю','Нові надходження','Журнал','Про нас (прев’ю)','Instagram','Підписка','SEO текст'];
+   const homePage=(pageSelect.selectedOptions[0]?.textContent||'').toLowerCase().includes('головн');
+   label.textContent=homePage&&rows.length===referenceHome.length?referenceHome[i]:(actual||fallback);
    select.classList.add('studio-reference-row');
   }
   if(!row.querySelector('.studio-thumb')){
