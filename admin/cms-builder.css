@@ -961,3 +961,15 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .editor .cms-editor-scroll{overflow-x:hidden!important}
 }
 @media(min-width:1000px) and (max-width:1350px){body>main{grid-template-columns:294px minmax(0,1fr) 304px!important}}
+
+/* Approved V2 visual polish applied to the REAL CMS (not the iframe prototype). */
+@media(min-width:1000px){
+ body>main>header{background:#171310!important;border-bottom:1px solid #332b25!important}
+ body>main>.page-context{display:none!important}
+ body>main>.layout>.preview{background:#120f0d!important;min-width:0!important}
+ body>main>.layout>.editor{background:#181411!important;border-left:1px solid #332b25!important}
+ .sidebar{background:#171310!important;border-right:1px solid #332b25!important}
+ .studio-list-title{font-size:10px!important;letter-spacing:1px!important;color:#a49b91!important}
+ .editor .cms-editor-scroll{scrollbar-width:thin!important}
+ .live-preview-frame{min-width:0!important;max-width:100%!important;overflow:auto!important}
+}
