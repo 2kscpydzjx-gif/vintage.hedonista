@@ -72,6 +72,37 @@ applyDevice();
 
 /* Studio 155: interactive block selection and visual structure. */
 const list=$('existingBlocks'),frameHost=document.querySelector('.live-preview-frame');
+
+const topbar=document.querySelector('main>header'),topControls=topbar?.querySelector('.studio-top-controls'),topActions=topbar?.querySelector('.actions');
+const exit=topControls?.querySelector('.studio-exit');
+if(topbar&&topControls&&topActions){
+ const devices=topControls.querySelector('.studio-devices');
+ const zoom=topControls.querySelector('.studio-zoom');
+ const undo=topControls.querySelector('#studioUndo');
+ const redo=topControls.querySelector('#studioRedo');
+ const seo=topControls.querySelector('#studioSeoToggle');
+ const page=topControls.querySelector('.studio-page-label');
+ topControls.replaceChildren();
+ if(page)topControls.append(page);
+ if(devices)topControls.append(devices);
+ if(zoom)topControls.append(zoom);
+ if(undo)topControls.append(undo);
+ if(redo)topControls.append(redo);
+ if(seo)topControls.append(seo);
+ if(exit)topbar.append(exit);
+}
+const zoomButton=$('studioZoom'),zoomMenu=$('studioZoomMenu');
+if(zoomButton&&zoomMenu){
+ zoomButton.addEventListener('click',()=>{zoomMenu.hidden=!zoomMenu.hidden});
+ zoomMenu.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{
+  const value=b.dataset.zoom;zoomMenu.hidden=true;
+  const desired=value==='fit'?Math.min(1,frameHost.clientWidth/({desktop:1440,tablet:820,mobile:390}[device]||1440)):Number(value)/100;
+  const scale=Math.max(.25,Math.min(1,desired));
+  viewport.style.setProperty('transform','scale('+scale+')','important');
+  viewport.style.setProperty('transform-origin','top left','important');
+  zoomButton.textContent=Math.round(scale*100)+'%⌄';
+ }));
+}
 const studioStructure=document.querySelector('main>.layout>div:first-child');
 const studioTabs=document.querySelector('.studio-side-tabs');
 if(studioStructure&&studioTabs)studioStructure.prepend(studioTabs);
