@@ -35,7 +35,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  if(!enabled){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
- const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&/^(https?:|\\/|\\.\\/|\\.\\.\\/)/i.test(mediaValue)?mediaValue:'';
+ const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>mediaValue.startsWith(prefix))?mediaValue:'';
  layer.style.backgroundImage=url?'linear-gradient(90deg,rgba(12,8,6,.94),rgba(12,8,6,.70) 38%,rgba(12,8,6,.08)),url('+JSON.stringify(url)+')':'none';
 }
 function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};original.forEach((el,i)=>{const e=edits['existing-'+i];if(!e)return;if(e.hidden)el.style.display='none';for(const f of fields(el)){const v=e.mapped?.[f.id];if(typeof v!=='string')continue;if(f.type==='text')f.el.innerHTML=safeHtml(v);else if(f.type==='link'&&/^(https?:|mailto:|tel:|\/|#)/i.test(v))f.el.setAttribute('href',v);else if(f.type==='image'){if(v==='__removed__'){f.el.style.backgroundImage='none';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}else if(/^(https?:|\/|\.\/|\.\.\/|data:image\/)/i.test(v)){f.el.style.backgroundImage='url('+JSON.stringify(v)+')';f.el.style.backgroundSize='cover';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}}}if(page==='home'&&el.matches('.homepage-capsules')){
