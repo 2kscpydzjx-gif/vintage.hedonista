@@ -77,6 +77,7 @@ function syncTabs(){
  if(structuredPage){
   editor.querySelectorAll('#existingEditor .vh-rte').forEach(rte=>{
    rte.classList.add('studio-simple-copy');
+   rte.querySelector('.vh-rte-content')?.setAttribute('aria-label','Опис блоку');
    rte.querySelectorAll('.vh-rte-tool').forEach(btn=>{
     if(/Заголовок H[1-6]|Підзаголовок H[1-6]/i.test(btn.getAttribute('aria-label')||btn.title||''))btn.hidden=true;
    });
@@ -283,7 +284,20 @@ function decorateRows(){
   rows[0].querySelector('.existing-select')?.click();
   return;
  }
+ const homePage=(pageSelect.selectedOptions[0]?.textContent||'').toLowerCase().includes('головн');
+ const homeLabels=['Hero','Переваги','Капсули стилю','Нові надходження','Журнал','Про нас (прев’ю)','Instagram','Підписка','SEO текст'];
  rows.forEach((row,i)=>{
+  // Presentation-only names: preserve original section IDs and saved data.
+  const select=row.querySelector('.existing-select');
+  if(homePage&&homeLabels[i]&&select){
+   let label=select.querySelector('.studio-reference-label');
+   if(!label){label=document.createElement('span');label.className='studio-reference-label';select.append(label)}
+   label.textContent=homeLabels[i];
+   select.classList.add('studio-reference-row');
+  }else if(select){
+   select.querySelector('.studio-reference-label')?.remove();
+   select.classList.remove('studio-reference-row');
+  }
   if(!row.querySelector('.studio-thumb')){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
   }
