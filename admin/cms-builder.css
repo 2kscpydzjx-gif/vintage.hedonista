@@ -352,3 +352,71 @@ main > header > .actions > button:focus-visible { outline: 2px solid #cda16a; ou
  .studio-mark,.studio-top-controls,.studio-inspector-tabs{display:none}
  .studio-inspector-head h2{margin:0 0 10px}
 }
+
+/* STEP 155 — faithful Studio chrome, overriding accumulated legacy CMS styles. */
+@media(min-width:1200px){
+ body{display:flex!important;overflow:hidden!important;background:#12100e!important}
+ body>.sidebar{width:92px!important;min-width:92px!important;flex:0 0 92px!important;display:flex;flex-direction:column;padding:0!important;background:#191512!important;overflow:hidden!important}
+ .sidebar>.brand{font-size:13px!important;padding:15px 4px 10px!important;text-align:center!important}
+ .sidebar>.brand small{font-size:7px!important;letter-spacing:0!important}
+ .sidebar>.nav{font-size:9px!important;padding:10px 6px!important;order:4}
+ .sidebar>.nav-label{display:none!important}
+ .sidebar>#pageNav{order:5;overflow:auto!important;max-height:none!important;flex:1}
+ .sidebar>#pageNav .nav{font-size:10px!important;padding:12px 7px!important}
+ .studio-side-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;order:2;border-top:1px solid #39302a;border-bottom:1px solid #39302a;margin:5px 0}
+ .studio-side-tabs button{padding:8px 1px!important;background:#201915!important;color:#c7b9aa!important;border:0!important;border-bottom:2px solid transparent!important;font-size:19px!important;line-height:1.1}
+ .studio-side-tabs button small{display:block;font-size:7px;line-height:1.8}
+ .studio-side-tabs button.active{border-bottom-color:#c9a583!important;background:#30241c!important}
+ main{grid-template-columns:245px minmax(0,1fr) 310px!important;grid-template-rows:64px minmax(0,1fr)!important}
+ main>header{display:flex!important;align-items:center!important;justify-content:space-between!important;height:64px!important;min-height:64px!important;padding:0 14px!important;background:#191512!important}
+ main>header .studio-mark{display:flex!important;align-items:center;font:29px Georgia,serif!important;border-right:1px solid #43372f;padding-right:12px!important;flex:none}
+ main>header>div:nth-child(2){display:none!important}
+ main>header .studio-top-controls{display:flex!important;align-items:center!important;gap:12px!important;flex:1!important;min-width:0!important}
+ .studio-exit{font-size:20px;color:#e0cfbd;text-decoration:none;padding:6px 8px;border:1px solid #514235;border-radius:4px;flex:none}
+ .studio-page-label{display:flex!important;align-items:center;gap:8px;font-size:0!important}
+ #studioPage{font-size:12px!important;min-width:170px!important;max-width:220px!important;background:#2a221c!important;color:#f3e9de!important}
+ .studio-devices{display:flex!important;margin:0 auto!important;gap:5px!important}
+ .studio-device{font-size:25px!important;padding:4px 9px!important}
+ .studio-history{font-size:23px!important;background:transparent!important;color:#d5c6b7!important;border:0!important;padding:4px 7px!important}
+ #studioSeoToggle{font-size:19px!important}
+ main>header .actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:7px!important}
+ main>header .actions #reset{display:none!important}
+ main>header .actions #save{background:#241e19!important;color:#f3e9df!important;border:1px solid #a08b78!important;border-radius:4px!important;padding:11px 13px!important}
+ main>header .actions #publish{background:#c5a484!important;color:#1b140f!important;border:1px solid #c5a484!important;border-radius:4px!important;padding:11px 13px!important}
+ main>.layout>div:first-child{padding:15px 9px!important;background:#1b1714!important}
+ .studio-list-title{font-size:10px;color:#bba58e;letter-spacing:1px;margin:0 4px 14px}
+ .existing-blocks>.muted{display:none!important}
+ .existing-row{display:flex!important;align-items:center!important;gap:3px!important;margin-bottom:7px!important}
+ .existing-row .existing-select{display:flex!important;align-items:center!important;gap:9px!important;min-height:63px!important;padding:6px!important;background:#211b17!important;border:1px solid #3c322b!important;border-radius:4px!important;color:#eee0d2!important;font-size:10px!important;line-height:1.4!important;overflow:hidden;text-overflow:ellipsis}
+ .existing-row .existing-select.active{border-color:#c3a385!important;background:#392d25!important}
+ .studio-thumb{display:block;flex:0 0 53px;width:53px;height:48px;border-radius:3px;background-color:#3a3028;background-size:cover;background-position:center;border:1px solid #58483c}
+ .existing-row .cms-grip{font-size:14px!important;min-width:18px!important;padding:0 2px!important;border:0!important}
+ .existing-row>button:not(.existing-select){font-size:10px!important;padding:5px 3px!important;border:0!important;background:transparent!important}
+ .add{border:0!important;background:transparent!important;padding:0!important}
+ .add>label{display:none!important}
+ #add{background:#302721!important;color:#f0e4d7!important;border:0!important;padding:13px!important}
+ .preview>.section-title{background:#211a16!important}
+ .live-preview-tools{padding:7px 10px!important;background:#211a16!important}
+ .live-preview-tools label{display:none!important}
+ .live-preview-tools select{flex:1;min-width:0!important}
+ .live-preview-frame{height:calc(100vh - 150px)!important;background:#2d2823!important}
+ .editor{background:#1b1714!important}
+ .studio-inspector-head{background:#1b1714!important}
+ .studio-inspector-head h2{font-size:18px!important}
+ .studio-inspector-tabs button{font-size:10px!important}
+ .editor .cms-editor-scroll{padding:14px!important}
+}
+@media(min-width:1200px) and (max-width:1450px){
+ main{grid-template-columns:215px minmax(0,1fr) 275px!important}
+ .studio-thumb{flex-basis:39px;width:39px;height:42px}
+ #studioPage{min-width:135px!important;max-width:155px!important}
+ main>header .studio-top-controls{gap:5px!important}
+ .studio-history{padding:3px!important}
+ main>header .actions #save,main>header .actions #publish{padding:9px 8px!important;font-size:10px!important}
+}
+@media(max-width:1199px){
+ .studio-side-tabs{display:none}
+ .studio-list-title{font-size:11px;color:#bba58e;margin:12px 0}
+ .studio-thumb{display:inline-block;width:45px;height:40px;background-size:cover;background-position:center;margin-right:8px;vertical-align:middle}
+ .studio-exit,.studio-history{display:none}
+}
