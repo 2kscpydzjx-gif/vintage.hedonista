@@ -71,6 +71,18 @@ function syncTabs(){
    !selectedSection.classList.contains('vh-existing-gradient-hero');
  inspector.classList.toggle('studio-native-hero',!!nativeHero);
  polishMediaFields(editor);
+ // Fixed-layout page blocks already have semantic heading elements.
+ // The article editor remains untouched and retains its heading tools.
+ const structuredPage=!['article','product'].includes(new URLSearchParams(location.search).get('page')||'home');
+ if(structuredPage){
+  editor.querySelectorAll('#existingEditor .vh-rte').forEach(rte=>{
+   rte.classList.add('studio-simple-copy');
+   rte.querySelectorAll('.vh-rte-tool').forEach(btn=>{
+    if(/Заголовок H[1-6]|Підзаголовок H[1-6]/i.test(btn.getAttribute('aria-label')||btn.title||''))btn.hidden=true;
+   });
+  });
+ }
+
  // The CMS builds its own cms91-tabs. Delegate to its original tab handler so
  // hidden panels remain functional while presenting only one visible tab strip.
  editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
