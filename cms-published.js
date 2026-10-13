@@ -35,8 +35,28 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  if(!enabled){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
- const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>mediaValue.startsWith(prefix))?mediaValue:'';
- layer.style.backgroundImage=url?'linear-gradient(90deg,rgba(12,8,6,.94),rgba(12,8,6,.70) 38%,rgba(12,8,6,.08)),url('+JSON.stringify(url)+')':'none';
+ const raw=typeof mediaValue==='string'?mediaValue.trim():'';
+ const url=raw&&raw!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>raw.startsWith(prefix))?raw:'';
+ const image=url?'url('+JSON.stringify(url)+')':'none';
+ // Keep the image on a real CSS background layer, independent of storefront image nodes.
+ layer.style.setProperty('background-image',url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none','important');
+ layer.dataset.cmsImage=url?'set':'empty';
+ if(url){
+  const test=new Image();
+  test.onerror=()=>{console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'};
+  test.src=new URL(url,doc.baseURI).href;
+ }
+}
+function resolvePublishedBannerImage(e,el){
+ if(typeof e.templateImage==='string')return e.templateImage;
+ // Backwards compatibility: previous CMS revisions saved images in native mapped fields.
+ if(e.design?.photoPreset!=='gradient-hero')return '';
+ const mapped=e.mapped||{};
+ const hero=el.querySelector('#heroMain,#homeCapsulesMedia,.editorial-media,.hero-main');
+ const field=fields(el).find(f=>f.type==='image'&&(f.el===hero||hero?.contains(f.el)));
+ const candidates=[field?.id,...Object.keys(mapped).filter(k=>/hero.?main|capsules.?media|editorial.?media/i.test(k))];
+ for(const key of candidates){const value=mapped[key];if(typeof value==='string'&&value&&value!=='__removed__')return value}
+ return '';
 }
 function applyPublishedHeroMotion(el,e){
  if(!el||e?.design?.photoPreset!=='gradient-hero')return;
@@ -60,7 +80,7 @@ function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existi
   }
  }
 }
-if(e.design&&typeof e.design==='object'){const design=e.design;cmsApplyExistingLayout(el,design,e.templateImage);applyPublishedHeroMotion(el,e);
+if(e.design&&typeof e.design==='object'){const design=e.design;cmsApplyExistingLayout(el,design,resolvePublishedBannerImage(e,el));applyPublishedHeroMotion(el,e);
  if(design.backgroundMode==='transparent'){el.style.setProperty('background-color','transparent','important');el.style.setProperty('background-image','none','important')}
  else if(design.backgroundMode==='dark')el.style.setProperty('background-color','#0d0c09','important');
  if(page==='home'&&el.matches('.homepage-capsules')){
