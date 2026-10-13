@@ -231,7 +231,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  if(!enabled){layer?.remove();return}
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
- const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&/^(https?:|\\/|\\.\\/|\\.\\.\\/)/i.test(mediaValue)?mediaValue:'';
+ const url=typeof mediaValue==='string'&&mediaValue!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>mediaValue.startsWith(prefix))?mediaValue:'';
  layer.style.backgroundImage=url?'linear-gradient(90deg,rgba(12,8,6,.94),rgba(12,8,6,.70) 38%,rgba(12,8,6,.08)),url('+JSON.stringify(url)+')':'none';
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
@@ -840,7 +840,7 @@ function renderExistingEditor(){
   const thumb=cmsThumb(current,frame.contentDocument.baseURI,'Фонове фото градієнта');wrap.append(thumb.box);
   const input=document.createElement('input');input.placeholder='Посилання на фото · 1920 × 900';input.value=current;wrap.append(input);
   const setImage=value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),templateImage:value};saveExisting(all);cmsApplyExistingLayout(target.el,all[target.id].design||{},value);thumb.show(value==='__removed__'?'':value);$('status').textContent='Фонове фото градієнта збережене в чернетці'};
-  input.onchange=()=>{const v=input.value.trim();if(v&&!/^(https?:|\\/|\\.\\/|\\.\\.\\/)/i.test(v)){alert('Некоректне посилання');return}setImage(v||'__removed__')};
+  input.onchange=()=>{const v=input.value.trim();if(v&&!['https://','http://','/','./','../'].some(prefix=>v.startsWith(prefix))){alert('Некоректне посилання');return}setImage(v||'__removed__')};
   const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp';file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-gradient');setImage(url);input.value=url}catch(e){alert('Не вдалося завантажити фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};wrap.append(file);
   const remove=document.createElement('button');remove.type='button';remove.textContent='Видалити фонове фото';remove.onclick=()=>{setImage('__removed__');input.value=''};wrap.append(remove);host.append(wrap);
  }
