@@ -827,9 +827,25 @@ function renderExistingEditor(){
   applyExistingAnimation(target.el,v);$('status').textContent='Анімацію змінено у чернетці';
  },animationOptions));
  // Design controls for each existing section (draft only)
- addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
+ addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);cmsApplyExistingLayout(target.el,value,all[target.id].templateImage);renderExistingEditor();scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
+ // Template-specific photo controls: one photo for gradient, native fields for legacy layouts.
+ const gradientSelected=(draft.design?.photoPreset==='gradient-hero');
+ if(gradientSelected){
+  host.querySelectorAll('.photo-field,.cms-mapped-field').forEach(node=>{
+   if(node.classList.contains('photo-field')||node.querySelector('input[type=file]'))node.hidden=true;
+  });
+  const title=document.createElement('h3');title.textContent='ФОТО ДЛЯ ГРАДІЄНТНОГО БАНЕРА · 1920 × 900 px';host.append(title);
+  const wrap=document.createElement('div');wrap.className='field cms-gradient-image-field';
+  const current=draft.templateImage&&draft.templateImage!=='__removed__'?draft.templateImage:'';
+  const thumb=cmsThumb(current,frame.contentDocument.baseURI,'Фонове фото градієнта');wrap.append(thumb.box);
+  const input=document.createElement('input');input.placeholder='Посилання на фото · 1920 × 900';input.value=current;wrap.append(input);
+  const setImage=value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),templateImage:value};saveExisting(all);cmsApplyExistingLayout(target.el,all[target.id].design||{},value);thumb.show(value==='__removed__'?'':value);$('status').textContent='Фонове фото градієнта збережене в чернетці'};
+  input.onchange=()=>{const v=input.value.trim();if(v&&!/^(https?:|\\/|\\.\\/|\\.\\.\\/)/i.test(v)){alert('Некоректне посилання');return}setImage(v||'__removed__')};
+  const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp';file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-gradient');setImage(url);input.value=url}catch(e){alert('Не вдалося завантажити фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};wrap.append(file);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='Видалити фонове фото';remove.onclick=()=>{setImage('__removed__');input.value=''};wrap.append(remove);host.append(wrap);
+ }
  // The real homepage Capsules section uses #homeCapsulesMedia, populated asynchronously by site.js.
- if(target.el.matches('.homepage-capsules')||target.el.querySelector('#homeCapsulesMedia')){
+ if(!gradientSelected&&(target.el.matches('.homepage-capsules')||target.el.querySelector('#homeCapsulesMedia'))){
   const media=target.el.querySelector('#homeCapsulesMedia');
   const wrap=document.createElement('div');wrap.className='field cms-capsule-field';
   const label=document.createElement('label');label.textContent='ГОЛОВНЕ ФОТО БЛОКУ КАПСУЛИ';
