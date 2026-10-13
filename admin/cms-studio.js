@@ -36,6 +36,18 @@ function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
  // The CMS builds its own cms91-tabs. Delegate to its original tab handler so
  // hidden panels remain functional while presenting only one visible tab strip.
+ editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
+  const photo=panel.querySelector('.photo-field,.cms-gradient-image-field,.cms-capsule-field');
+  if(photo&&!panel.querySelector('.studio-media-heading')){
+   const heading=document.createElement('div');heading.className='studio-media-heading';heading.textContent='ФОНОВЕ ЗОБРАЖЕННЯ';
+   const panelTitle=panel.querySelector('.cms98-panel-heading');
+   panelTitle?.after(heading);heading.after(photo);
+  }
+  panel.querySelectorAll('h3.photos-title').forEach(h=>h.hidden=true);
+ });
+ editor.querySelectorAll('#existingEditor>h3,#existingEditor>p.muted').forEach(el=>{
+  if(/НАЯВНИЙ БЛОК|Тестові зміни/.test(el.textContent||''))el.hidden=true;
+ });
  editor.querySelectorAll('.cms91-tabs').forEach(bar=>{
   if(bar.dataset.studioUnified!==activeTab){
    bar.dataset.studioUnified=activeTab;
