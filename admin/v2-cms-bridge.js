@@ -10,6 +10,31 @@ engine.src='v2-cms-builder.html';engine.title='CMS data engine';engine.setAttrib
 engine.style.cssText='position:fixed;left:-200vw;top:0;width:1400px;height:900px;visibility:hidden;pointer-events:none';
 document.body.append(engine);
 let d=null,active=-1,rows=[],connected=false,syncing=false;
+let previewFrame=null,previewScale=1;
+function updateSelection(){
+ const selection=document.querySelector('#canvas .selection');
+ if(!selection||!previewFrame)return;
+ const doc=previewFrame.contentDocument;
+ if(!doc||!rows.length){selection.style.display='none';return;}
+ const id=rows[active]?.dataset.cmsId;
+ // Existing section IDs are assigned by the native CMS. Only draw if we can
+ // identify the actual element; never invent a percentage-based rectangle.
+ const target=id?doc.getElementById(id):null;
+ if(!target){selection.style.display='none';return;}
+ const rect=target.getBoundingClientRect();
+ const frameRect=previewFrame.getBoundingClientRect();
+ if(rect.width<=0||rect.height<=0){selection.style.display='none';return;}
+ const scale=frameRect.width/previewFrame.offsetWidth;
+ selection.style.display='block';
+ selection.style.left=(rect.left*scale)+'px';
+ selection.style.top=(rect.top*scale)+'px';
+ selection.style.width=(rect.width*scale)+'px';
+ selection.style.height=(rect.height*scale)+'px';
+ selection.style.right='auto';
+ const label=$('selectedLabel');
+ if(label)label.textContent=titleOf(rows[active]);
+}
+
 const uiReady=()=>connected&&d?.getElementById('existingBlocks');
 function showConnectionError(message){const n=$('notice');if(n){n.textContent=message;n.style.display='block';clearTimeout(say.timer);}}
 function waitForCms(){
@@ -60,7 +85,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
  const photo=root()?.querySelector('.photo-field img,.cms-thumb-box img,img');
  $('photo').src=photo?.src||thumbnail(selected||rows[0]||document.createElement('div'))||'thumb-1.jpg';
- $('selectedLabel').textContent=selected?titleOf(selected)+' ···':'';
+ updateSelection();
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
 function bindValue(id,re){$(id).addEventListener('change',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');setTimeout(sync,150)},true)}
@@ -81,6 +106,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
    mirror.style.transform='scale('+scale+')';
    canvas.style.height=Math.ceil(1200*scale)+'px';
    canvas.style.minHeight='0';
+   updateSelection();
   };
   new ResizeObserver(resizeMirror).observe(canvas);
   requestAnimationFrame(resizeMirror);
@@ -88,6 +114,8 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   const existingImage=canvas.querySelector(':scope > img');
   if(existingImage)existingImage.remove();
   canvas.prepend(mirror);
+  previewFrame=mirror;
+  mirror.addEventListener('load',()=>{updateSelection();});
   canvas.style.padding='0';
   const updateMirror=()=>{
    const src=nativeFrame.getAttribute('src');
