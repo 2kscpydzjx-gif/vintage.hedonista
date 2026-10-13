@@ -110,7 +110,12 @@ document.querySelectorAll('[data-inspector-tab]').forEach(b=>b.addEventListener(
  syncTabs();
 }));
 const editorScroll=inspector.querySelector('.cms-editor-scroll');
-if(editorScroll)new MutationObserver(()=>{syncTabs()}).observe(editorScroll,{childList:true,subtree:true});
+let tabSyncPending=false;
+if(editorScroll)new MutationObserver(()=>{
+ if(tabSyncPending)return;
+ tabSyncPending=true;
+ requestAnimationFrame(()=>{tabSyncPending=false;syncTabs()});
+}).observe(editorScroll,{childList:true,subtree:true});
 function applyDevice(){
  const widths={desktop:1440,tablet:820,mobile:390},w=widths[device];
  const deviceNames={desktop:'Комп’ютер',tablet:'Планшет',mobile:'Телефон'};
@@ -212,11 +217,18 @@ function selectVisualBlock(index){
  selectHighlight(index);
 }
 
+let autoSelectedPage='';
 function decorateRows(){
  if(!list)return;
  const rows=[...list.querySelectorAll('.existing-row')];let doc;try{doc=frame.contentDocument}catch{return}
  if(!doc?.body)return;
  const sections=previewSections(doc);
+ const pageKey=pageSelect.value;
+ if(rows.length && !rows.some(row=>row.querySelector('.existing-select.active')) && autoSelectedPage!==pageKey){
+  autoSelectedPage=pageKey;
+  rows[0].querySelector('.existing-select')?.click();
+  return;
+ }
  rows.forEach((row,i)=>{
   if(!row.querySelector('.studio-thumb')){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
