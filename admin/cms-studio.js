@@ -34,6 +34,16 @@ new MutationObserver(syncPages).observe(pageNav,{childList:true,subtree:true,att
 syncPages();
 function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
+ // The native page's Hero is not the obsolete gradient-banner template.
+ // Keep legacy controls/data available under Design, but do not mix its
+ // gradient upload into the active Content panel for a different layout.
+ const selectedRow=document.querySelector('#existingBlocks .existing-select.active');
+ const selectedIndex=[...document.querySelectorAll('#existingBlocks .existing-select')].indexOf(selectedRow);
+ let selectedSection=null;
+ try{selectedSection=previewSections(frame.contentDocument)[selectedIndex]}catch{}
+ const nativeHero=selectedIndex===0 && selectedSection &&
+   !selectedSection.classList.contains('vh-existing-gradient-hero');
+ inspector.classList.toggle('studio-native-hero',!!nativeHero);
  // The CMS builds its own cms91-tabs. Delegate to its original tab handler so
  // hidden panels remain functional while presenting only one visible tab strip.
  editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
@@ -46,7 +56,12 @@ function syncTabs(){
   // The selected gradient layout owns its own background image field.
   // Do not surface native image slots from an obsolete hero layout.
   const gradient=panel.querySelector('.cms-gradient-image-field');
-  if(gradient){
+  if(gradient && nativeHero){
+   gradient.hidden=true;
+   const legacyHeading=[...panel.querySelectorAll('h3')].find(el=>/ГРАДІЄНТНОГО БАНЕРА/.test(el.textContent||''));
+   if(legacyHeading)legacyHeading.hidden=true;
+  }
+  if(gradient && !nativeHero){
    panel.querySelectorAll('.photo-field').forEach(node=>node.hidden=true);
    const heading=panel.querySelector('.studio-media-heading');
    if(heading)heading.after(gradient);
