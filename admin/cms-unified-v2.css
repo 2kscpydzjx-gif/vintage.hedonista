@@ -89,3 +89,9 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #existingEditor .cms91-tab-panel[data-cms91-tab="content"] .field>label{margin:0 0 6px!important;font-size:10px!important}
 #existingEditor .cms91-tab-panel[data-cms91-tab="content"] textarea{min-height:60px!important;line-height:1.5!important}
 #existingEditor .cms91-tab-panel[data-cms91-tab="content"] .vh-rte-content{min-height:76px!important;line-height:1.5!important}
+
+#existingEditor .vh-cms-buttons-editor{display:flex;flex-direction:column;gap:9px;margin:4px 0 10px;padding-top:10px;border-top:1px solid #443529}
+#existingEditor .vh-cms-button-entry{display:grid;gap:7px;padding:10px;background:#241c17;border:1px solid #49382b;border-radius:4px}
+#existingEditor .vh-cms-button-entry input,#existingEditor .vh-cms-button-entry select{width:100%;min-height:37px!important;padding:9px!important;background:#191410!important;border:1px solid #554232!important;color:#f4eee8!important;border-radius:3px}
+#existingEditor .vh-cms-button-entry button,#existingEditor .vh-cms-add-button{width:100%;min-height:38px;border:1px solid #b99b7c;border-radius:4px;background:transparent;color:#f7f1eb;font-size:11px;cursor:pointer}
+#existingEditor .vh-cms-button-entry button:hover,#existingEditor .vh-cms-add-button:hover{background:#463526}
