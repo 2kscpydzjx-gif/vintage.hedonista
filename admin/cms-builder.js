@@ -987,6 +987,8 @@ function installCmsPreviewStyles(doc){
  if(style)return;
  style=doc.createElement('style');style.id='vh-cms-step66-styles';
  style.textContent=`
+ /* Editing mode: avoid storefront entrance animations obscuring the true content. */
+ .hero,.hero *,.homepage-capsules,.homepage-capsules *{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
  main > .vh-cms-injected-unit{margin:28px 0!important;display:block!important;clear:both}
  .vh-cms-injected-unit + .vh-cms-injected-unit{margin-top:28px!important}
  .vh-cms-injected-unit .vh-lab-card{margin:0!important;min-height:220px}
