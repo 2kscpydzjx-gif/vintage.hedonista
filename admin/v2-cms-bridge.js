@@ -60,7 +60,7 @@ const root=()=>d?.querySelector('#existingEditor:not([hidden])')||d?.querySelect
 function labeled(re){const scope=root();if(!scope)return null;for(const label of scope.querySelectorAll('label')){if(!re.test(label.textContent||''))continue;let id=label.getAttribute('for');let input=(id&&d.getElementById(id))||label.querySelector('input,textarea');if(input)return input;let next=label.nextElementSibling;if(next?.matches('input,textarea'))return next;}return null;}
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
-function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;b.click();active=i;setTimeout(sync,90);}
+function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;active=i;b.click();setTimeout(sync,90);}
 function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
 function previewSectionsForThumbs(){
  try{
@@ -93,7 +93,7 @@ function titleOf(row){let b=row.querySelector('.existing-select');return b?.quer
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
  const sections=previewSectionsForThumbs();
- const list=$('blocklist');if(!document.querySelector('[data-tab="blocks"].active'))return;list.replaceChildren();rows.forEach((row,i)=>{
+ const list=$('blocklist');const showBlocks=!!document.querySelector('[data-tab="blocks"].active');if(showBlocks)list.replaceChildren();if(showBlocks)rows.forEach((row,i)=>{
   let el=document.createElement('button');el.className='block'+(i===active?' active':'');
   let num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
   let img=document.createElement('img');img.className='thumb';img.alt='';const url=sectionPhoto(sections[i])||thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
@@ -361,7 +361,8 @@ $('zoom')?.addEventListener('click',()=>{
  zoomPercent=options[(options.indexOf(zoomPercent)+1)%options.length];
  $('zoom').firstChild.textContent=zoomPercent+'% ';
  const canvas=$('canvas');
- canvas.style.zoom=zoomPercent/100;
+ canvas.style.transform='scale('+zoomPercent/100+')';
+ canvas.style.transformOrigin='top center';
  updateSelection();
 });
 const moreMenu=document.createElement('div');
