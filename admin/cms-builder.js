@@ -634,7 +634,11 @@ if(b.type!=='text'){
  holder.append(media);
 }
 const typeBox=document.createElement('div');typeBox.className='cms93-type-control cms91-field';const typeLabel=document.createElement('label');typeLabel.textContent='ТИП МАКЕТУ';const typeSelect=document.createElement('select');for(const [value,name] of [['editorial','Фото та текст'],['banner','Hero на всю ширину · градієнт зліва'],['text','Тільки текст'],['gallery','Три фото · 1 велике + 2 менші']])typeSelect.add(new Option(name,value));typeSelect.value=b.type;typeSelect.onchange=()=>{b.type=typeSelect.value;persist();renderEditor();renderPreview()};typeBox.append(typeLabel,typeSelect);holder.append(typeBox);
-addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()},false,b.type,type=>{b.type=type;persist();renderEditor();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cms91Tabs(holder,b)}
+addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()},false,b.type,type=>{b.type=type;persist();renderEditor();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cms91Tabs(holder,b);
+ const removeBlock=document.createElement('button');removeBlock.type='button';removeBlock.className='secondary vh-delete-block';removeBlock.textContent='Видалити блок';
+ removeBlock.onclick=()=>{if(!confirm('Видалити новий блок із чернетки?'))return;const id=b.id;blocks=blocks.filter(x=>x.id!==id);saveOrder(mergedOrder().filter(x=>x!==id));selected=null;changed();$('status').textContent='Новий блок видалено з чернетки. Опублікуйте зміни.'};
+ holder.append(removeBlock);
+}
 
 function renderPreview(){scheduleLivePreview();if(pageId==='shared')return;const wrap=$('preview');wrap.replaceChildren();for(const b of blocks.filter(x=>x.visible)){const card=document.createElement('article');card.className='preview-card '+b.type;card.dataset.animation=actualAnimation(b.animation);applyBlockDesign(card,b.design);applyCmsSpacing(card,b.design);card.style.setProperty('--duration',(b.duration||650)+'ms');if(b.type==='gallery'){for(let i=0;i<3;i++){const photo=document.createElement('div');photo.className='photo';const url=i===0?b.image:b.images?.[i];if(url&&/^(https?:\/\/|\/|\.\/?|\.\.\/)/.test(url))photo.style.backgroundImage='url('+JSON.stringify(url)+')';card.append(photo)}}else if(b.type!=='text'){const photo=document.createElement('div');photo.className='photo';if(b.image&&/^(https?:\/\/|\/|\.\/?|\.\.\/)/.test(b.image))photo.style.backgroundImage='url('+JSON.stringify(b.image)+')';card.append(photo)}const copy=document.createElement('div');copy.className='copy';const label=document.createElement('span');label.className='tag';label.textContent='VINTAGE HEDONISTA';const title=document.createElement('h3');title.textContent=b.title;const desc=document.createElement('div');desc.innerHTML=clean(b.body);copy.append(label,title,desc);card.append(copy);if(b.design?.backgroundMode==='transparent'||b.design?.surface==='transparent'){card.style.setProperty('background','#f2e9de','important');copy.style.setProperty('background','none','important');card.style.setProperty('color','#211a15','important');copy.style.setProperty('color','#211a15','important')}wrap.append(card)} }
 let liveTimer=null,livePage='',sectionTargets=[];
@@ -659,7 +663,7 @@ function resizeDesktopPreview(){
  frame.style.setProperty('height',iframeHeight+'px','important');
  frame.setAttribute('scrolling','yes');
  const status=document.getElementById('cms125ViewportInfo');
- if(status)status.textContent=width+' × '+height+' px · '+Math.round(scale*100)+'% масштабу';
+ if(status)status.textContent=width+' × '+cmsPreviewDeviceHeight+' px · '+Math.round(scale*100)+'% масштабу';
 }
 if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeDesktopPreview).observe(previewWindow);
 window.addEventListener('resize',resizeDesktopPreview);
@@ -979,6 +983,7 @@ function renderExistingEditor(){
  }
  cms91Tabs(host,{type:'editorial'});
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути зміни цього блоку';reset.onclick=()=>{const d=readExisting();delete d[target.id];saveExisting(d);frame.src=frame.src};host.append(reset);
+ const removeBlock=document.createElement('button');removeBlock.type='button';removeBlock.className='secondary vh-delete-block';removeBlock.textContent='Видалити блок';removeBlock.onclick=()=>{if(!confirm('Прибрати блок «'+target.label+'» зі сторінки? Після публікації він буде прихований для покупців.'))return;const all=readExisting();all[target.id]={...(all[target.id]||{}),hidden:true};saveExisting(all);target.el.style.setProperty('display','none','important');selectedExisting=null;renderExistingList();renderExistingEditor();scheduleLivePreview();$('status').textContent='Блок приховано в чернетці. Збережіть та опублікуйте зміни.'};host.append(removeBlock);
 }
 function applyCapsulePhoto(section,url){
  const media=section?.querySelector('#homeCapsulesMedia');if(!media)return;
@@ -1168,9 +1173,10 @@ function cms96Viewport(){
  const bar=document.createElement('div');bar.className='cms96-device-bar';
  const title=document.createElement('span');title.textContent='ПЕРЕГЛЯД НА ПРИСТРОЯХ';bar.append(title);
  const devices=[['Комп’ютер',1440,900],['Ноутбук',1280,800],['Планшет',820,1180],['Телефон',390,844],['Великий телефон',430,932]];
+ devices.unshift(['Мій екран',Math.max(320,window.innerWidth),Math.max(400,window.innerHeight)]);
  devices.forEach(([name,width,height],i)=>{
   const button=document.createElement('button');button.type='button';button.textContent=name;
-  button.className=i===0?'active':'';
+  button.className=i===1?'active':'';
   button.onclick=()=>{
    cmsPreviewDeviceWidth=width;cmsPreviewDeviceHeight=height;
    resizeDesktopPreview();
