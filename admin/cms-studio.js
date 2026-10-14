@@ -117,7 +117,7 @@ function syncTabs(){
    (selectedSection.matches('.hero')||!selectedSection.classList.contains('vh-existing-gradient-hero'));
  inspector.classList.toggle('studio-native-hero',!!nativeHero);
  polishMediaFields(editor);
- studioPreviewPhoto(editor,selectedSection);
+ // Native mapped image controls own their thumbnails; do not inject a second stale preview.
  // Fixed-layout page blocks already have semantic heading elements.
  // The article editor remains untouched and retains its heading tools.
  const structuredPage=!['article','product'].includes(new URLSearchParams(location.search).get('page')||'home');
@@ -140,19 +140,7 @@ function syncTabs(){
    const panelTitle=panel.querySelector('.cms98-panel-heading');
    panelTitle?.after(heading);heading.after(photo);
   }
-  // The selected gradient layout owns its own background image field.
-  // Do not surface native image slots from an obsolete hero layout.
-  const gradient=panel.querySelector('.cms-gradient-image-field');
-  if(gradient && nativeHero){
-   gradient.hidden=true;
-   const legacyHeading=[...panel.querySelectorAll('h3')].find(el=>/ГРАДІЄНТНОГО БАНЕРА/.test(el.textContent||''));
-   if(legacyHeading)legacyHeading.hidden=true;
-  }
-  if(gradient && !nativeHero){
-   panel.querySelectorAll('.photo-field').forEach(node=>node.hidden=true);
-   const heading=panel.querySelector('.studio-media-heading');
-   if(heading)heading.after(gradient);
-  }
+  // Keep the original page's actual photo controls visible in every inspector.
   panel.querySelectorAll('h3.photos-title').forEach(h=>h.hidden=true);
  });
  editor.querySelectorAll('#existingEditor>h3,#existingEditor>p.muted').forEach(el=>{
@@ -175,25 +163,7 @@ function syncTabs(){
   }
   panel.querySelectorAll('p.muted').forEach(el=>{if(/Тестові зміни|Оригінал у Supabase/.test(el.textContent||''))el.hidden=true});
  });
- // Secondary native photo slots are optional. Keep their inputs and values
- // intact, but collapse them so the main image and text controls are visible.
- editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]').forEach(panel=>{
-  const photos=[...panel.querySelectorAll('.photo-field')].filter(el=>!el.hidden && !el.closest('.studio-extra-photos'));
-  if(photos.length<2)return;
-  let extras=panel.querySelector(':scope > details.studio-extra-photos');
-  if(!extras){
-   extras=document.createElement('details');extras.className='studio-extra-photos';
-   const summary=document.createElement('summary');summary.textContent='Додаткові фотографії ('+(photos.length-1)+')';
-   extras.append(summary);
-   photos[0].after(extras);
-  }
-  const secondary=photos.slice(1);
-  const summary=extras.querySelector('summary');
-  const count=secondary.length;
-  const label='Додаткові фотографії ('+count+')';
-  if(summary.textContent!==label)summary.textContent=label;
-  for(const photo of secondary)if(photo.parentElement!==extras)extras.append(photo);
- });
+ // Display every photo field directly, including multi-image HERO sections.
  editor.querySelectorAll('.cms91-tabs').forEach(bar=>{
   if(bar.dataset.studioUnified!==activeTab){
    bar.dataset.studioUnified=activeTab;
