@@ -217,7 +217,7 @@ if(editorScroll)new MutationObserver(()=>{
  if(tabSyncPending)return;
  tabSyncPending=true;
  requestAnimationFrame(()=>{tabSyncPending=false;syncTabs()});
-}).observe(editorScroll,{childList:true,subtree:true});
+}).observe(editorScroll.querySelector('#existingEditor')||editorScroll,{childList:true,subtree:false});
 function applyDevice(){
  const widths={desktop:1440,tablet:820,mobile:390},w=widths[device];
  const deviceNames={desktop:'Комп’ютер',tablet:'Планшет',mobile:'Телефон'};
