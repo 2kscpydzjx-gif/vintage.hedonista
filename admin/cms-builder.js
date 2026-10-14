@@ -800,20 +800,7 @@ function renderExistingEditor(){
  }
  }
  }
- const photos=[];
- const candidates=[target.el,...target.el.querySelectorAll('*')].slice(0,900);
- const imageURL=(str)=>{const m=String(str||'').match(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/);return m?.[1]?.trim()||''};
- for(const node of candidates){
-  if(photos.length>=40)break;
-  const add=(url,kind)=>{if(!url||url==='none'||url.startsWith('data:'))return;photos.push({node,url,kind})};
-  if(node.tagName==='IMG')add(node.getAttribute('src')||node.currentSrc,'img');
-  if(node.tagName==='VIDEO')add(node.getAttribute('poster'),'poster');
-  const computed=getComputedStyle(node);
-  add(imageURL(computed.backgroundImage),'bg');
-  for(const pseudo of ['::before','::after']){
-   try{add(imageURL(getComputedStyle(node,pseudo).backgroundImage),pseudo)}catch{}
-  }
- }
+ const photos=cmsSectionPhotos(target.el);
  if(photos.length&&draft.design?.photoPreset!=='gradient-hero'&&!cmsFieldsFor(target.el).length && !(pageId==='home'&&target.el.matches('.homepage-capsules'))){
   const title=document.createElement('h3');title.textContent='ФОТОГРАФІЇ БЛОКУ';title.className='photos-title';host.append(title);
   photos.forEach((photo,i)=>{
@@ -826,10 +813,7 @@ function renderExistingEditor(){
    const update=url=>{
     const latest=readExisting(),d={...(latest[target.id]||{})};
     d.images={...(d.images||{}),[key]:url};latest[target.id]=d;saveExisting(latest);
-    if(photo.kind==='img'){const next=url||photo.url;if(photo.node.getAttribute('src')!==next)photo.node.src=next;photo.node.removeAttribute('srcset')}
-    else if(photo.kind==='poster')photo.node.poster=url||photo.url;
-    else if(photo.kind==='bg')photo.node.style.backgroundImage='url('+JSON.stringify(url||photo.url)+')';
-    else {photo.node.style.setProperty('--cms-replacement-'+i,'url('+JSON.stringify(url||photo.url)+')');let st=frame.contentDocument.getElementById('vh-cms-photo-rule-'+i+'-'+photo.kind.replace(':',''));if(!st){st=frame.contentDocument.createElement('style');st.id='vh-cms-photo-rule-'+i+'-'+photo.kind.replace(':','');st.textContent='[data-cms-photo-'+i+']'+photo.kind+'{background-image:var(--cms-replacement-'+i+')!important}';frame.contentDocument.head.append(st)}if(!photo.node.hasAttribute('data-cms-photo-'+i))photo.node.setAttribute('data-cms-photo-'+i,'')}
+    cmsSetPhoto(photo,url||photo.url,i);
     showThumb(url||photo.url);
     $('status').textContent='Фото змінено у локальній чернетці · сайт не опубліковано';
    };
@@ -923,22 +907,55 @@ function applyExistingDrafts(){const data=readExisting();for(const t of sectionT
   if(media&&copy){media.style.order='2';copy.style.order='1'}
  }
 const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
+const cmsPhotoSlots=new WeakMap();
+function cmsSectionPhotos(section){
+ if(cmsPhotoSlots.has(section))return cmsPhotoSlots.get(section);
+ const photos=[],nodes=[section,...section.querySelectorAll('*')].slice(0,900);
+ const bgURL=s=>String(s||'').match(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/)?.[1]||'';
+ for(const node of nodes){
+  if(photos.length>=40)break;
+  const add=(url,kind)=>{if(url&&url!=='none'&&!url.startsWith('data:')&&photos.length<40)photos.push({node,url,kind})};
+  if(node.tagName==='IMG')add(node.getAttribute('src')||node.currentSrc,'img');
+  if(node.tagName==='VIDEO')add(node.getAttribute('poster'),'poster');
+  add(bgURL(getComputedStyle(node).backgroundImage),'bg');
+  for(const pseudo of ['::before','::after'])try{add(bgURL(getComputedStyle(node,pseudo).backgroundImage),pseudo)}catch{}
+ }
+ cmsPhotoSlots.set(section,photos);return photos;
+}
+function cmsSetPhoto(photo,value,index){
+ const {node,kind}=photo,doc=node.ownerDocument;
+ if(value==='__removed__'){
+  if(kind==='img')node.style.visibility='hidden';
+  else if(kind==='poster')node.removeAttribute('poster');
+  else if(kind==='bg')node.style.setProperty('background-image','none','important');
+  else {node.style.setProperty('--cms-replacement-'+index,'none');node.setAttribute('data-cms-photo-'+index,'')}
+  return;
+ }
+ if(!value)return;
+ if(kind==='img'){
+  node.style.removeProperty('visibility');
+  if(node.getAttribute('src')!==value)node.setAttribute('src',value);
+  node.removeAttribute('srcset');node.removeAttribute('sizes');
+ }else if(kind==='poster'){
+  if(node.getAttribute('poster')!==value)node.setAttribute('poster',value);
+ }else if(kind==='bg'){
+  const bg='url('+JSON.stringify(value)+')';
+  if(node.style.backgroundImage!==bg)node.style.setProperty('background-image',bg,'important');
+ }else{
+  const id='vh-cms-photo-rule-'+index+'-'+kind.replace(':','');
+  let st=doc.getElementById(id);
+  if(!st){st=doc.createElement('style');st.id=id;st.textContent='[data-cms-photo-'+index+']'+kind+'{background-image:var(--cms-replacement-'+index+')!important}';doc.head.append(st)}
+  node.style.setProperty('--cms-replacement-'+index,'url('+JSON.stringify(value)+')');
+  node.setAttribute('data-cms-photo-'+index,'');
+ }
+}
 function applyImageDrafts(){
  const drafts=readExisting();
  for(const target of sectionTargets){
-  if(pageId==='home'&&target.el.matches('.homepage-capsules'))continue; // Capsule has one dedicated image control.
-  const images=drafts[target.id]?.images;if(!images)continue;
-  let index=0;const nodes=[target.el,...target.el.querySelectorAll('*')].slice(0,900);
-  for(const node of nodes){
-   const candidates=[];const match=x=>String(x||'').match(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/)?.[1]||'';
-   if(node.tagName==='IMG')candidates.push(['img',node.getAttribute('src')]);
-   if(node.tagName==='VIDEO')candidates.push(['poster',node.getAttribute('poster')]);
-   candidates.push(['bg',match(getComputedStyle(node).backgroundImage)]);
-   for(const pseudo of ['::before','::after'])try{candidates.push([pseudo,match(getComputedStyle(node,pseudo).backgroundImage)])}catch{}
-   for(const [kind,url] of candidates){if(!url||url==='none'||url.startsWith('data:'))continue;
-    const value=images['image'+index];if(value==='__removed__'){if(kind==='img')node.style.visibility='hidden';else if(kind==='poster')node.removeAttribute('poster');else node.style.setProperty('background-image','none','important')}else if(value){if(kind==='img'){if(node.getAttribute('src')!==value)node.src=value;if(node.hasAttribute('srcset'))node.removeAttribute('srcset')}else if(kind==='poster'){if(node.getAttribute('poster')!==value)node.poster=value}else if(kind==='bg'){const bg='url('+JSON.stringify(value)+')';if(node.style.backgroundImage!==bg)node.style.backgroundImage=bg}else {node.style.setProperty('--cms-replacement-'+index,'url('+JSON.stringify(value)+')');let st=frame.contentDocument.getElementById('vh-cms-photo-rule-'+index+'-'+kind.replace(':',''));if(!st){st=frame.contentDocument.createElement('style');st.id='vh-cms-photo-rule-'+index+'-'+kind.replace(':','');st.textContent='[data-cms-photo-'+index+']'+kind+'{background-image:var(--cms-replacement-'+index+')!important}';frame.contentDocument.head.append(st)}if(!node.hasAttribute('data-cms-photo-'+index))node.setAttribute('data-cms-photo-'+index,'')}}index++;if(index>=40)break}
-   if(index>=40)break;
-  }
+  if(pageId==='home'&&target.el.matches('.homepage-capsules'))continue;
+  const photos=cmsSectionPhotos(target.el),images=drafts[target.id]?.images;
+  if(!images)continue;
+  photos.forEach((photo,i)=>{if(images['image'+i]!==undefined)cmsSetPhoto(photo,images['image'+i],i)});
  }
 }
 function detectSections(doc){if(pageId==='shared'){sectionTargets=[];return}const sel=$('insertAfter'),old=sel.value;sel.replaceChildren(new Option('Після основного вмісту','__end'));sectionTargets=[];const main=doc.querySelector('main')||doc.body;let candidates=(pageId==='home'?[...doc.body.children].filter(e=>e.tagName==='SECTION'):pageId==='about'?[...main.children].filter(e=>e.tagName==='SECTION'):[...main.children]).filter(e=>e.tagName!=='SCRIPT'&&e.tagName!=='STYLE'&&e.tagName!=='HEADER'&&e.tagName!=='FOOTER'&&(pageId==='home'||pageId==='about'||e.getBoundingClientRect().height>50));if(candidates.length<2){
