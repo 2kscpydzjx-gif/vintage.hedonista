@@ -829,7 +829,7 @@ function renderExistingEditor(){
     if(photo.kind==='img'){photo.node.src=url||photo.url;photo.node.removeAttribute('srcset')}
     else if(photo.kind==='poster')photo.node.poster=url||photo.url;
     else if(photo.kind==='bg')photo.node.style.backgroundImage='url('+JSON.stringify(url||photo.url)+')';
-    else {photo.node.style.setProperty('--cms-replacement-'+i,'url('+JSON.stringify(url||photo.url)+')');const st=frame.contentDocument.createElement('style');st.textContent='[data-cms-photo-'+i+']'+photo.kind+'{background-image:var(--cms-replacement-'+i+')!important}';photo.node.setAttribute('data-cms-photo-'+i,'');frame.contentDocument.head.append(st)}
+    else {photo.node.style.setProperty('--cms-replacement-'+i,'url('+JSON.stringify(url||photo.url)+')');let st=frame.contentDocument.getElementById('vh-cms-photo-rule-'+i+'-'+photo.kind.replace(':',''));if(!st){st=frame.contentDocument.createElement('style');st.id='vh-cms-photo-rule-'+i+'-'+photo.kind.replace(':','');st.textContent='[data-cms-photo-'+i+']'+photo.kind+'{background-image:var(--cms-replacement-'+i+')!important}';frame.contentDocument.head.append(st)}if(!photo.node.hasAttribute('data-cms-photo-'+i))photo.node.setAttribute('data-cms-photo-'+i,'')}
     showThumb(url||photo.url);
     $('status').textContent='Фото змінено у локальній чернетці · сайт не опубліковано';
    };
@@ -936,7 +936,7 @@ function applyImageDrafts(){
    candidates.push(['bg',match(getComputedStyle(node).backgroundImage)]);
    for(const pseudo of ['::before','::after'])try{candidates.push([pseudo,match(getComputedStyle(node,pseudo).backgroundImage)])}catch{}
    for(const [kind,url] of candidates){if(!url||url==='none'||url.startsWith('data:'))continue;
-    const value=images['image'+index];if(value==='__removed__'){if(kind==='img')node.style.visibility='hidden';else if(kind==='poster')node.removeAttribute('poster');else node.style.setProperty('background-image','none','important')}else if(value){if(kind==='img'){node.src=value;node.removeAttribute('srcset')}else if(kind==='poster')node.poster=value;else if(kind==='bg')node.style.backgroundImage='url('+JSON.stringify(value)+')';else {node.style.setProperty('--cms-replacement-'+index,'url('+JSON.stringify(value)+')');const st=frame.contentDocument.createElement('style');st.textContent='[data-cms-photo-'+index+']'+kind+'{background-image:var(--cms-replacement-'+index+')!important}';node.setAttribute('data-cms-photo-'+index,'');frame.contentDocument.head.append(st)}}index++;if(index>=40)break}
+    const value=images['image'+index];if(value==='__removed__'){if(kind==='img')node.style.visibility='hidden';else if(kind==='poster')node.removeAttribute('poster');else node.style.setProperty('background-image','none','important')}else if(value){if(kind==='img'){node.src=value;node.removeAttribute('srcset')}else if(kind==='poster')node.poster=value;else if(kind==='bg')node.style.backgroundImage='url('+JSON.stringify(value)+')';else {node.style.setProperty('--cms-replacement-'+index,'url('+JSON.stringify(value)+')');let st=frame.contentDocument.getElementById('vh-cms-photo-rule-'+index+'-'+kind.replace(':',''));if(!st){st=frame.contentDocument.createElement('style');st.id='vh-cms-photo-rule-'+index+'-'+kind.replace(':','');st.textContent='[data-cms-photo-'+index+']'+kind+'{background-image:var(--cms-replacement-'+index+')!important}';frame.contentDocument.head.append(st)}if(!node.hasAttribute('data-cms-photo-'+index))node.setAttribute('data-cms-photo-'+index,'')}}index++;if(index>=40)break}
    if(index>=40)break;
   }
  }
