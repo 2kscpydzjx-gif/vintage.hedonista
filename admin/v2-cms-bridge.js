@@ -120,7 +120,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  updateSelection();
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
-function bindValue(id,re){$(id).addEventListener('change',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');setTimeout(sync,150)},true)}
+function bindValue(id,re){$(id).addEventListener('input',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');},true)}
 engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  d=engine.contentDocument;if(!d?.querySelector('#existingBlocks')){if(++retries<40){setTimeout(initialize,250);return;}throw Error('Немає списку блоків');}connected=true;
  let nativeFrame=d.getElementById('siteFrame');
@@ -135,6 +135,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
    const w=canvas.getBoundingClientRect().width;
    if(!w)return;
    const scale=Math.min(1,w/1200);
+    canvas.style.width=Math.min(w,1200*scale)+'px';
    mirror.style.transform='scale('+scale+')';
    canvas.style.height=Math.ceil(1200*scale)+'px';
    canvas.style.minHeight='0';
@@ -293,6 +294,33 @@ if(positionSlider){
 }
 
 $('page').addEventListener('change',e=>{e.stopImmediatePropagation();let p=d?.getElementById('studioPage');if(p){p.value=e.target.value;p.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(sync,850)}},true);
-document.querySelectorAll('[data-device]').forEach(btn=>btn.addEventListener('click',()=>{d?.querySelector('[data-studio-device="'+btn.dataset.device+'"]')?.click()},true));
+// V2 device buttons control the visible preview itself, not only the hidden CMS.
+let selectedDevice='desktop';
+function applyDevice(device){
+ selectedDevice=device;
+ document.querySelectorAll('[data-device]').forEach(button=>{
+  const selected=button.dataset.device===device;
+  button.classList.toggle('active',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ });
+ const canvas=$('canvas');
+ const mirror=previewFrame;
+ if(!mirror)return;
+ const widths={desktop:1200,tablet:768,mobile:390};
+ const targetWidth=widths[device]||1200;
+ const available=canvas.parentElement?.clientWidth||targetWidth;
+ const scale=Math.min(1,Math.max(0.1,(available-12)/targetWidth));
+ canvas.style.width=Math.min(available,targetWidth*scale)+'px';
+ canvas.style.maxWidth='100%';
+ canvas.style.height=Math.ceil(1200*scale)+'px';
+ canvas.style.margin='0 auto';
+ mirror.style.width=targetWidth+'px';
+ mirror.style.transform='scale('+scale+')';
+ updateSelection();
+}
+document.querySelectorAll('[data-device]').forEach(btn=>btn.addEventListener('click',()=>{
+ applyDevice(btn.dataset.device);
+ d?.querySelector('[data-studio-device="'+btn.dataset.device+'"]')?.click();
+}));
 document.querySelectorAll('[data-rtab]').forEach(btn=>btn.addEventListener('click',()=>{d?.querySelector('[data-inspector-tab="'+btn.dataset.rtab+'"]')?.click()},true));
 })();
