@@ -248,7 +248,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  if(!layer){layer=doc.createElement('div');layer.className='vh-cms-gradient-layer';layer.setAttribute('aria-hidden','true');el.prepend(layer)}
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
  const raw=typeof mediaValue==='string'?mediaValue.trim():'';
- const url=raw&&raw!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>raw.startsWith(prefix))?raw:'';
+ const url=raw&&raw!=='__removed__'&&(/^(https?:|data:image\/|blob:|\/|\.\/|\.\.\/)/i.test(raw))?raw:'';
  const image=url?'url('+JSON.stringify(url)+')':'none';
  // Keep the image on a real CSS background layer, independent of storefront image nodes.
  layer.style.setProperty('background-image',url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none','important');
@@ -268,8 +268,11 @@ function applyBlockDesign(el,d){if(!el||!d)return;
  const heroGradient=pageId==='home'&&el.matches('.hero')&&d.photoPreset==='gradient-hero';
  if(heroGradient){
   const mapped=currentDraft?.mapped||{};
+  const heroMain=el.querySelector('#heroMain');
+  const heroMedia=el.querySelector('.hero-media');
   const heroUrl=mapped['static:#heroMain:0'];
-  const photo=typeof heroUrl==='string'&&heroUrl!=='__removed__'?heroUrl:'';
+  const fromBackground=(node)=>{const value=node?.style?.backgroundImage||node?.ownerDocument?.defaultView?.getComputedStyle(node)?.backgroundImage||'';return value.match(/url\\(["']?(.+?)["']?\\)/)?.[1]||''};
+  const photo=typeof heroUrl==='string'&&heroUrl!=='__removed__'&&heroUrl?heroUrl:(fromBackground(heroMain)||fromBackground(heroMedia));
   cmsApplyExistingLayout(el,d,photo);
   const media=el.querySelector('.hero-media');
   if(media)media.style.setProperty('display','none','important');
