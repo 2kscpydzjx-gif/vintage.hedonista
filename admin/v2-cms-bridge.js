@@ -152,6 +152,21 @@ function sectionPhoto(section){
  return '';
 }
 function titleOf(row){let b=row.querySelector('.existing-select');return b?.querySelector('.studio-row-name')?.textContent.trim()||b?.textContent.trim().replace(/^\d+\s*[·.]?\s*/,'')||'Блок'}
+function mappedInputs(){
+ const scope=root();if(!scope)return [];
+ return [...scope.querySelectorAll('.cms-mapped-field')].map(wrap=>({label:wrap.querySelector('label')?.textContent?.trim()||'',rich:wrap.querySelector('.vh-rte-content')}));
+}
+function mappedTextField(type){
+ const fields=mappedInputs().filter(f=>f.rich);
+ const re=type==='title'?/заголов|назв|heading|title|hero/i:/опис|підзаг|текст|description|subtitle/i;
+ return fields.find(f=>re.test(f.label))||(type==='title'?fields[0]:fields[1]||fields[0]);
+}
+function nativeRichCommit(field,value){
+ if(!field?.rich)return false;
+ field.rich.textContent=value;
+ field.rich.dispatchEvent(new field.rich.ownerDocument.defaultView.Event('input',{bubbles:true}));
+ return true;
+}
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
  const sections=previewSectionsForThumbs();
@@ -166,10 +181,10 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  });
  const selected=rows[active];$('paneltitle').textContent=selected?titleOf(selected):'Оберіть блок';$('count').textContent=rows.length?'Блок '+(active+1)+' з '+rows.length:'';
  const inputTitle=labeled(/заголовок|назва/i),inputDesc=labeled(/підзаголовок|опис/i),inputCta=labeled(/кнопк/i);
- if(document.activeElement!==$('title'))$('title').value=inputTitle?.value||'';
+ const mappedTitle=mappedTextField('title'),mappedDesc=mappedTextField('description');
+ if(document.activeElement!==$('title'))$('title').value=mappedTitle?.rich?.innerText||inputTitle?.value||'';
  if(document.activeElement!==$('description')){
-  const rich=root()?.querySelector('.vh-rte-content');
-  $('description').value=rich?rich.innerText:(inputDesc?.value||'');
+  $('description').value=mappedDesc?.rich?.innerText||inputDesc?.value||'';
  }
  refreshRich();
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
@@ -185,7 +200,7 @@ function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefau
 function bindValue(id,re){$(id).addEventListener('input',e=>{
  if(!connected)return;
  const native=labeled(re);
- if(!native){say('Це поле недоступне для вибраного блоку');return;}
+ if(!native){if(nativeRichCommit(mappedTextField(id),e.target.value)){updateMirrorText(id,e.target.value);return;}say('Це поле недоступне для вибраного блоку');return;}
  setNative(native,e.target.value);
  updateMirrorText(id,e.target.value);
 },true)}
