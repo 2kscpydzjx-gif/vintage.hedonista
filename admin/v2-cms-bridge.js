@@ -62,13 +62,41 @@ function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTARE
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;b.click();active=i;setTimeout(sync,90);}
 function thumbnail(row){let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+function previewSectionsForThumbs(){
+ try{
+  const frame=d?.getElementById('siteFrame');
+  const doc=frame?.contentDocument;
+  if(!doc?.body)return [];
+  const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+  const main=doc.querySelector('main')||doc.body;
+  let sections=page.includes('головн')?[...doc.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...main.children].filter(el=>el.tagName==='SECTION'):[...main.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+  if(sections.length<2){
+   const nested=[...main.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);
+   sections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));
+  }
+  return sections.slice(0,35);
+ }catch{return [];}
+}
+function sectionPhoto(section){
+ if(!section)return '';
+ const img=section.querySelector('img[src],img[data-src]');
+ const source=img?.currentSrc||img?.src||img?.getAttribute('data-src');
+ if(source&&!source.startsWith('data:image/svg'))return source;
+ for(const node of [section,...section.querySelectorAll('*')].slice(0,100)){
+  const bg=node.ownerDocument.defaultView.getComputedStyle(node).backgroundImage;
+  const match=bg.match(/url\\(["']?(.*?)["']?\\)/);
+  if(match?.[1])return match[1];
+ }
+ return '';
+}
 function titleOf(row){let b=row.querySelector('.existing-select');return b?.querySelector('.studio-row-name')?.textContent.trim()||b?.textContent.trim().replace(/^\d+\s*[·.]?\s*/,'')||'Блок'}
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
+ const sections=previewSectionsForThumbs();
  const list=$('blocklist');list.replaceChildren();rows.forEach((row,i)=>{
   let el=document.createElement('button');el.className='block'+(i===active?' active':'');
   let num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
-  let img=document.createElement('img');img.className='thumb';img.alt='';const url=thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
+  let img=document.createElement('img');img.className='thumb';img.alt='';const url=sectionPhoto(sections[i])||thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
   let title=document.createElement('span');title.className='blocktitle';title.textContent=titleOf(row);
   let more=document.createElement('span');more.className='more';more.textContent='•••';
   el.append(num,img,title,more);el.onclick=(e)=>{if(e.target===more){const trigger=row.querySelector('.studio-row-menu-trigger');if(trigger)trigger.click();else say('Додаткові дії доступні в CMS');return}nativeSelect(i)};
@@ -85,7 +113,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
  const inspector=root();
   const photo=inspector?.querySelector('.studio-source-preview,.photo-field img,.cms-thumb-box img');
-  const imageUrl=thumbnail(selected)||photo?.currentSrc||photo?.src;
+  const imageUrl=sectionPhoto(sections[active])||photo?.currentSrc||photo?.src||thumbnail(selected);
   const photoPreview=$('photo');
   if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
   else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
