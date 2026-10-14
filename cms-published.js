@@ -128,7 +128,7 @@ function cmsApplyPublishedAnimation(section,animation){
  @media(prefers-reduced-motion:reduce){.cms-animation-fade-up,.cms-animation-fade-left,.cms-animation-fade-right,.cms-animation-fade,.cms-animation-zoom{animation:none!important}}
  `;document.head.append(css)}
 }
-function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};original.forEach((el,i)=>{const e=edits['existing-'+i];if(!e)return;el.dataset.vhCmsIndex=String(i);if(e.images&&e.design?.photoPreset!=='gradient-hero')cmsApplyPublishedImages(el,e.images);cmsApplyPublishedAnimation(el,e.animation);if(e.hidden)el.style.display='none';for(const f of fields(el)){const v=e.mapped?.[f.id];if(typeof v!=='string')continue;if(f.type==='text')f.el.innerHTML=safeHtml(v);else if(f.type==='link'&&/^(https?:|mailto:|tel:|\/|#)/i.test(v))f.el.setAttribute('href',v);else if(f.type==='image'){if(v==='__removed__'){f.el.style.backgroundImage='none';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}else if(/^(https?:|\/|\.\/|\.\.\/|data:image\/)/i.test(v)){f.el.style.backgroundImage='url('+JSON.stringify(v)+')';f.el.style.backgroundSize='cover';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}}}if(page==='home'&&el.matches('.homepage-capsules')){
+function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};original.forEach((el,i)=>{const e=edits['existing-'+i];if(!e)return;el.dataset.vhCmsIndex=String(i);if(e.images&&!e.mapped&&e.design?.photoPreset!=='gradient-hero')cmsApplyPublishedImages(el,e.images);cmsApplyPublishedAnimation(el,e.animation);if(e.hidden)el.style.display='none';for(const f of fields(el)){const v=e.mapped?.[f.id];if(typeof v!=='string')continue;if(f.type==='text')f.el.innerHTML=safeHtml(v);else if(f.type==='link'&&/^(https?:|mailto:|tel:|\/|#)/i.test(v))f.el.setAttribute('href',v);else if(f.type==='image'){if(v==='__removed__'){f.el.style.backgroundImage='none';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}else if(/^(https?:|\/|\.\/|\.\.\/|data:image\/)/i.test(v)){f.el.style.backgroundImage='url('+JSON.stringify(v)+')';f.el.style.backgroundSize='cover';f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}}}if(page==='home'&&el.matches('.homepage-capsules')){
  const media=el.querySelector('#homeCapsulesMedia');
  if(media&&typeof e.capsuleImage==='string'){
   if(e.capsuleImage==='__removed__')media.replaceChildren();
@@ -137,7 +137,7 @@ function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existi
   }
  }
 }
-if(e.design&&typeof e.design==='object'){const design=e.design;cmsApplyExistingLayout(el,design,resolvePublishedBannerImage(e,el));applyPublishedHeroMotion(el,e);
+if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fields(el).some(f=>f.type==='image'))cmsApplyExistingLayout(el,design,resolvePublishedBannerImage(e,el));applyPublishedHeroMotion(el,e);
  if(design.backgroundMode==='transparent'){el.style.setProperty('background-color','transparent','important');el.style.setProperty('background-image','none','important')}
  else if(design.backgroundMode==='dark')el.style.setProperty('background-color','#0d0c09','important');
  if(page==='home'&&el.matches('.homepage-capsules')){
@@ -276,7 +276,25 @@ function renderAboutBlocks(data,original){
  else{for(const b of newBlocks){const node=nodes.get(b.id);if(node){const footer=document.querySelector('body > footer');if(footer&&main===document.body)footer.before(node);else main.append(node)}}}
 }
 function shell(s){if(!s)return;const header=document.querySelector('body > header'),footer=document.querySelector('footer.site-footer-v64,body > footer');if(header){const logo=header.querySelector('.vh-header-logo,.brand img');if(logo&&s.headerLogo)logo.src=s.headerLogo;const nav=header.querySelector('nav.nav,nav');if(nav)[...nav.querySelectorAll('a')].forEach((a,i)=>{const n=s.nav?.[String(i)];if(n?.label)a.textContent=n.label;if(n?.href&&/^(https?:|\/|\.\/|\.\.\/|[\w-]+\.html|#)/i.test(n.href))a.setAttribute('href',n.href)})}if(footer){const logo=footer.querySelector('.vh-footer-logo-img,.footer-v64-logo img');if(logo&&s.footerLogo)logo.src=s.footerLogo;const p=footer.querySelector('.footer-v64-center p,.footer-v64-center');if(p&&s.footerText)p.textContent=s.footerText;for(const [key,sel] of [['instagram','[data-footer-instagram]'],['telegram','[data-footer-telegram]']]){const a=footer.querySelector(sel);if(a&&/^https:\/\//i.test(s[key]||''))a.href=s[key]}}}
-async function run(){try{const [{data,error},{data:home,error:he}]=await Promise.all([db.from('vh_page_revisions').select('blocks,shared').eq('page_key',page).eq('revision_status','published').maybeSingle(),db.from('vh_page_revisions').select('shared').eq('page_key','home').eq('revision_status','published').maybeSingle()]);if(error||he){console.warn('CMS published content unavailable',error||he);return}if(page==='capsules'&&!window.__VH_CAPSULES_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:capsules-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='home'&&!window.__VH_HOME_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:home-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='journal'&&!window.__VH_JOURNAL_RENDER_DONE){
+const publishedCacheKey='vh-published-cache-v1-'+page;
+const homeCacheKey='vh-published-cache-v1-home-shell';
+function readPublishedCache(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
+function writePublishedCache(key,value){if(!value)return;try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+async function fetchPublished(key){
+ const {data,error}=await db.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','published').maybeSingle();
+ if(error)throw error;return data;
+}
+async function run(){try{
+ const [pageResult,homeResult]=await Promise.allSettled([fetchPublished(page),fetchPublished('home')]);
+ let data=pageResult.status==='fulfilled'?pageResult.value:null;
+ let home=homeResult.status==='fulfilled'?homeResult.value:null;
+ if(data)writePublishedCache(publishedCacheKey,data);
+ else data=readPublishedCache(publishedCacheKey);
+ if(home)writePublishedCache(homeCacheKey,home);
+ else home=readPublishedCache(homeCacheKey);
+ if(pageResult.status==='rejected')console.warn('CMS using last published page snapshot',pageResult.reason);
+ if(homeResult.status==='rejected')console.warn('CMS using last published shared snapshot',homeResult.reason);
+if(page==='capsules'&&!window.__VH_CAPSULES_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:capsules-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='home'&&!window.__VH_HOME_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:home-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='journal'&&!window.__VH_JOURNAL_RENDER_DONE){
  await Promise.race([new Promise(resolve=>window.addEventListener('vh:journal-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);
 }
 if(page==='about'&&!window.__VH_ABOUT_SETTINGS_READY){await Promise.race([new Promise(resolve=>window.addEventListener('vh:about-settings-ready',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,8000))]);}
