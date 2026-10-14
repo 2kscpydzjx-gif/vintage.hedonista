@@ -279,12 +279,13 @@ function shell(s){if(!s)return;const header=document.querySelector('body > heade
 async function run(){try{const [{data,error},{data:home,error:he}]=await Promise.all([db.from('vh_page_revisions').select('blocks,shared').eq('page_key',page).eq('revision_status','published').maybeSingle(),db.from('vh_page_revisions').select('shared').eq('page_key','home').eq('revision_status','published').maybeSingle()]);if(error||he){console.warn('CMS published content unavailable',error||he);return}if(page==='capsules'&&!window.__VH_CAPSULES_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:capsules-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='home'&&!window.__VH_HOME_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:home-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='journal'&&!window.__VH_JOURNAL_RENDER_DONE){
  await Promise.race([new Promise(resolve=>window.addEventListener('vh:journal-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);
 }
+if(page==='about'&&!window.__VH_ABOUT_SETTINGS_READY){await Promise.race([new Promise(resolve=>window.addEventListener('vh:about-settings-ready',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,8000))]);}
 if(data){apply(data);
  // Some storefront scripts replace the original hero markup after CMS runs.
  // Reapply the same published revision when their render completes.
  const eventName=page==='home'?'vh:home-rendered':page==='capsules'?'vh:capsules-rendered':page==='journal'?'vh:journal-rendered':null;
  if(eventName)window.addEventListener(eventName,()=>{try{apply(data)}catch(err){console.warn('CMS hero reapply failed',err)}},{once:true});
- }if(home?.shared)shell(home.shared)}catch(e){console.warn('CMS published content failed',e)}finally{document.documentElement.classList.remove('vh-cms-booting')}}
+ }if(home?.shared)shell(home.shared)}catch(e){console.warn('CMS published content failed',e)}finally{window.__VH_PUBLISHED_READY=true;window.dispatchEvent(new Event('vh:published-ready'));document.documentElement.classList.remove('vh-cms-booting')}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
 
