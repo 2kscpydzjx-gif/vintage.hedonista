@@ -1,0 +1,30 @@
+name: V2 editor smoke test
+on:
+  pull_request:
+    paths:
+      - 'admin/v2-editor.html'
+      - 'admin/v2-cms-bridge.js'
+      - 'tests/v2-smoke.cjs'
+      - '.github/workflows/v2-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bridge syntax
+        run: node --check admin/v2-cms-bridge.js
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start static server and test
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v2-server.log 2>&1 &
+          sleep 2
+          node tests/v2-smoke.cjs

@@ -11,6 +11,15 @@ engine.style.cssText='position:fixed;left:-200vw;top:0;width:1400px;height:900px
 document.body.append(engine);
 let d=null,active=-1,rows=[],connected=false,syncing=false;
 let previewFrame=null,previewScale=1;
+function visiblePreviewSections(){
+ const doc=previewFrame?.contentDocument;
+ if(!doc?.body)return [];
+ const main=doc.querySelector('main')||doc.body;
+ const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+ let sections=page.includes('головн')?[...doc.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...main.children].filter(el=>el.tagName==='SECTION'):[...main.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ if(sections.length<2){const nested=[...main.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);sections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));}
+ return sections.slice(0,35);
+}
 function updateSelection(){
  const selection=document.querySelector('#canvas .selection');
  if(!selection||!previewFrame)return;
@@ -19,7 +28,7 @@ function updateSelection(){
  const id=rows[active]?.dataset.cmsId;
  // Existing section IDs are assigned by the native CMS. Only draw if we can
  // identify the actual element; never invent a percentage-based rectangle.
- const target=id?doc.getElementById(id):null;
+ const target=(id&&doc.getElementById(id))||visiblePreviewSections()[active]||null;
  if(!target){selection.style.display='none';return;}
  const rect=target.getBoundingClientRect();
  const frameRect=previewFrame.getBoundingClientRect();
@@ -72,6 +81,67 @@ function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTARE
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;active=i;b.click();setTimeout(sync,90);}
 function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+/* Synchronize draft changes from the native CMS preview into the visible V2 preview.
+ * Keep the visible iframe stable; never reload it on text or image edits.
+ * Existing page sections are matched by their structural position because CMS
+ * identifiers are stored on list rows, not on the original site elements.
+ */
+let nativePreviewObserver=null, nativePreviewTimer=null, nativePreviewDocument=null;
+function syncVisibleDraft(){
+ const native=d?.getElementById('siteFrame')?.contentDocument;
+ const visible=previewFrame?.contentDocument;
+ if(!native?.body||!visible?.body||native.location.pathname!==visible.location.pathname)return;
+ const nativeSections=previewSectionsForThumbs();
+ const visibleMain=visible.querySelector('main')||visible.body;
+ const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+ let visibleSections=page.includes('головн')?[...visible.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...visibleMain.children].filter(el=>el.tagName==='SECTION'):[...visibleMain.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ if(visibleSections.length<2){const nested=[...visibleMain.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);visibleSections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));}
+ visibleSections=visibleSections.slice(0,35);
+ if(nativeSections.length!==visibleSections.length){
+  // Do not destructively rewrite the public page if its structure differs.
+  // A delayed site script may still be initializing.
+  return;
+ }
+ // Only synchronize existing element/text nodes. Replacing innerHTML destroys
+ // listeners attached by the public site's scripts (carousels, navigation, etc.).
+ const syncNode=(source,target)=>{
+  if(source.nodeType!==target.nodeType)return;
+  if(source.nodeType===3){if(target.nodeValue!==source.nodeValue)target.nodeValue=source.nodeValue;return;}
+  if(source.nodeType!==1||['SCRIPT','IFRAME','VIDEO','CANVAS'].includes(source.tagName)||source.tagName!==target.tagName)return;
+  for(const attr of [...target.attributes]){
+   if(!source.hasAttribute(attr.name)&&!/^on/i.test(attr.name))target.removeAttribute(attr.name);
+  }
+  for(const attr of source.attributes){
+   if(/^on/i.test(attr.name))continue;
+   if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
+  }
+  const a=[...source.childNodes],b=[...target.childNodes];
+  if(a.length!==b.length)return;
+  for(let j=0;j<a.length;j++)syncNode(a[j],b[j]);
+ };
+ nativeSections.forEach((source,i)=>{
+  const target=visibleSections[i];
+  if(target)syncNode(source,target);
+ });
+ for(const id of ['vh-cms-step66-styles','vh-cms-injected-style']){
+  const source=native.getElementById(id),target=visible.getElementById(id);
+  if(source){if(!target)visible.head.append(source.cloneNode(true));else if(target.textContent!==source.textContent)target.textContent=source.textContent;}
+  else target?.remove();
+ }
+ updateSelection();
+}
+function watchNativePreview(){
+ const doc=d?.getElementById('siteFrame')?.contentDocument;
+ if(!doc?.body||doc===nativePreviewDocument)return;
+ nativePreviewObserver?.disconnect();
+ nativePreviewDocument=doc;
+ nativePreviewObserver=new MutationObserver(()=>{
+  clearTimeout(nativePreviewTimer);
+  nativePreviewTimer=setTimeout(syncVisibleDraft,100);
+ });
+ nativePreviewObserver.observe(doc.body,{subtree:true,childList:true,attributes:true,characterData:true});
+ syncVisibleDraft();
+}
 function previewSectionsForThumbs(){
  try{
   const frame=d?.getElementById('siteFrame');
@@ -125,7 +195,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
   const photo=inspector?.querySelector('.studio-source-preview,.photo-field img,.cms-thumb-box img');
   const imageUrl=sectionPhoto(sections[active])||photo?.currentSrc||photo?.src||thumbnail(selected);
   const photoPreview=$('photo');
-  if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
+  if(imageUrl){if(photoPreview.getAttribute('src')!==imageUrl)photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
   else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
  updateSelection();
  }finally{syncing=false}}
@@ -142,13 +212,12 @@ function updateMirrorText(field,value){
   const section=previewSectionsForThumbs()[active];
   const mirrored=previewFrame?.contentDocument;
   if(!section||!mirrored)return;
-  const sections=[...mirrored.querySelectorAll('main > section,body > section')];
-  const nativeSections=previewSectionsForThumbs();
-  const target=section.id?mirrored.getElementById(section.id):sections[active];
+   const target=section.id?mirrored.getElementById(section.id):visiblePreviewSections()[active];
   if(!target)return;
   const selector=field==='title'?'h1,h2,h3':field==='description'?'p':'a,button';
   const element=target.querySelector(selector);
   if(element)element.textContent=value;
+  updateSelection();
  }catch{}
 }
 engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
@@ -171,20 +240,21 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
    canvas.style.minHeight='0';
    updateSelection();
   };
-  new ResizeObserver(resizeMirror).observe(canvas);
+  new ResizeObserver(()=>applyDevice(selectedDevice)).observe(canvas.parentElement);
   requestAnimationFrame(resizeMirror);
   mirror.setAttribute('loading','eager');
   const existingImage=canvas.querySelector(':scope > img');
   if(existingImage)existingImage.remove();
   canvas.prepend(mirror);
   previewFrame=mirror;
-  mirror.addEventListener('load',()=>{updateSelection();sync();});
+  mirror.addEventListener('load',()=>{watchNativePreview();syncVisibleDraft();updateSelection();sync();});
   canvas.style.padding='0';
   const updateMirror=()=>{
    const src=nativeFrame.getAttribute('src');
    if(src&&mirror.getAttribute('src')!==src)mirror.setAttribute('src',src);
   };
-  new MutationObserver(updateMirror).observe(nativeFrame,{attributes:true,attributeFilter:['src']});
+  new MutationObserver(()=>{updateMirror();nativePreviewDocument=null;watchNativePreview();}).observe(nativeFrame,{attributes:true,attributeFilter:['src']});
+  nativeFrame.addEventListener('load',()=>{nativePreviewDocument=null;watchNativePreview();});
   updateMirror();
   // Native page updates are rendered inside its own frame; V2 mirrors the URL.
   // Preserve selection overlay so inspector updates cannot throw on null.
