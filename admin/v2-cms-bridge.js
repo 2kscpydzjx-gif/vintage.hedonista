@@ -212,13 +212,12 @@ function updateMirrorText(field,value){
   const section=previewSectionsForThumbs()[active];
   const mirrored=previewFrame?.contentDocument;
   if(!section||!mirrored)return;
-  const sections=[...mirrored.querySelectorAll('main > section,body > section')];
-  const nativeSections=previewSectionsForThumbs();
-  const target=section.id?mirrored.getElementById(section.id):sections[active];
+   const target=section.id?mirrored.getElementById(section.id):visiblePreviewSections()[active];
   if(!target)return;
   const selector=field==='title'?'h1,h2,h3':field==='description'?'p':'a,button';
   const element=target.querySelector(selector);
   if(element)element.textContent=value;
+  updateSelection();
  }catch{}
 }
 engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
