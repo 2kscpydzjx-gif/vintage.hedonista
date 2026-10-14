@@ -125,7 +125,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
   const photo=inspector?.querySelector('.studio-source-preview,.photo-field img,.cms-thumb-box img');
   const imageUrl=sectionPhoto(sections[active])||photo?.currentSrc||photo?.src||thumbnail(selected);
   const photoPreview=$('photo');
-  if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
+  if(imageUrl){if(photoPreview.getAttribute('src')!==imageUrl)photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
   else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
  updateSelection();
  }finally{syncing=false}}
@@ -171,7 +171,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
    canvas.style.minHeight='0';
    updateSelection();
   };
-  new ResizeObserver(resizeMirror).observe(canvas);
+  new ResizeObserver(()=>applyDevice(selectedDevice)).observe(canvas.parentElement);
   requestAnimationFrame(resizeMirror);
   mirror.setAttribute('loading','eager');
   const existingImage=canvas.querySelector(':scope > img');
