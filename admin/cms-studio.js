@@ -114,7 +114,7 @@ function syncTabs(){
  let selectedSection=null;
  try{selectedSection=previewSections(frame.contentDocument)[selectedIndex]}catch{}
  const nativeHero=selectedIndex===0 && selectedSection &&
-   !selectedSection.classList.contains('vh-existing-gradient-hero');
+   (selectedSection.matches('.hero')||!selectedSection.classList.contains('vh-existing-gradient-hero'));
  inspector.classList.toggle('studio-native-hero',!!nativeHero);
  polishMediaFields(editor);
  studioPreviewPhoto(editor,selectedSection);
