@@ -696,13 +696,26 @@ function cmsFieldsFor(section){
    staticFields.push({el,id,type});
   }
  }
- return [...named,...staticFields];
+ const explicit=[...named,...staticFields];
+ if(explicit.length)return explicit;
+ // One consistent, visible block schema for all other content sections.
+ // Do not expose product cards or database-driven catalog records as page media.
+ if(section.querySelector('#productGrid,.product-grid,[id*=productGrid]'))return [];
+ const result=[];
+ const heading=section.querySelector('h1,h2,h3');
+ const description=[...section.querySelectorAll('p')].find(el=>el.getBoundingClientRect().height>0);
+ const media=cmsSectionPhotos(section).find(photo=>photo.node.getBoundingClientRect().height>30);
+ if(media)result.push({el:media.node,id:'unified:image',type:'image',photo:media});
+ if(heading)result.push({el:heading,id:'unified:title',type:'text'});
+ if(description)result.push({el:description,id:'unified:description',type:'text'});
+ return result;
 }
 function cmsApplyMapped(section,mapped){
  for(const f of cmsFieldsFor(section)){
   if(!(f.id in mapped))continue;
   const value=mapped[f.id];
   if(f.type==='image'){
+   if(f.photo){cmsSetPhoto(f.photo,value,0);continue}
    if(value==='__removed__'){f.el.style.setProperty('background-image','none','important');f.el.classList.remove('loaded');f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}
    else if(value){f.el.style.setProperty('background-image','url('+JSON.stringify(value)+')','important');f.el.style.backgroundSize='cover';f.el.style.backgroundPosition='center';f.el.querySelectorAll('img').forEach(img=>img.style.display='none');f.el.classList.add('loaded')}
   }else if(f.type==='link'){if(typeof value==='string'&&/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(value))f.el.setAttribute('href',value)}
@@ -775,7 +788,7 @@ function cmsRenderMappedEditor(host,target,draft){
   const label=document.createElement('label');label.textContent=cmsReadableLabel(f);wrap.append(label);
   const value=draft.mapped?.[f.id];
   if(f.type==='image'){
-   const original=f.el.querySelector('img')?.getAttribute('src')||getComputedStyle(f.el).backgroundImage.match(/url\(["']?(.+?)["']?\)/)?.[1]||'';
+   const original=f.photo?.url||f.el.querySelector('img')?.getAttribute('src')||getComputedStyle(f.el).backgroundImage.match(/url\(["']?(.+?)["']?\)/)?.[1]||'';
    const {box,img:thumb,show:showThumb}=cmsThumb(value??original,frame.contentDocument.baseURI,f.id);
    const x=document.createElement('button');x.className='cms-photo-x';x.type='button';x.textContent='×';x.title='Прибрати фото';x.onclick=()=>{save(f.id,'__removed__');showThumb('')};box.append(thumb,x);wrap.append(box);
    const input=document.createElement('input');input.placeholder='URL або шлях до фото';input.value=value&&value!=='__removed__'&&!value.startsWith('data:')?value:'';
