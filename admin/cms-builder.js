@@ -271,7 +271,7 @@ function applyBlockDesign(el,d){if(!el||!d)return;
   const heroMain=el.querySelector('#heroMain');
   const heroMedia=el.querySelector('.hero-media');
   const heroUrl=mapped['static:#heroMain:0'];
-  const fromBackground=(node)=>{const value=node?.style?.backgroundImage||node?.ownerDocument?.defaultView?.getComputedStyle(node)?.backgroundImage||'';return value.match(/url\\(["']?(.+?)["']?\\)/)?.[1]||''};
+  const fromBackground=(node)=>{const value=node?.style?.backgroundImage||node?.ownerDocument?.defaultView?.getComputedStyle(node)?.backgroundImage||'';return value.match(/url\(["']?(.+?)["']?\)/)?.[1]||''};
   const photo=typeof heroUrl==='string'&&heroUrl!=='__removed__'&&heroUrl?heroUrl:(fromBackground(heroMain)||fromBackground(heroMedia));
   cmsApplyExistingLayout(el,d,photo);
   const media=el.querySelector('.hero-media');
