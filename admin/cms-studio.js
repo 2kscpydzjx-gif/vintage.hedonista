@@ -209,6 +209,22 @@ function syncTabs(){
   bar.style.setProperty('display','none','important');
  });
  compactContentPanel(editor);
+ // The homepage first block has exactly one editable image: the currently
+ // displayed primary hero. Suppress legacy gradient and secondary media fields.
+ if(pageSelect.value==='home'&&selectedSection?.matches('.hero')){
+  const panel=editor.querySelector('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]');
+  if(panel){
+   const fields=[...panel.querySelectorAll('.vh-compact-media')];
+   const primary=fields.find(el=>el.classList.contains('cms-mapped-field')&&el.querySelector('input[type="file"]'))||fields[0];
+   for(const el of fields)if(el!==primary)el.style.setProperty('display','none','important');
+   if(primary){
+    primary.style.removeProperty('display');
+    const src=studioImageFromSection(selectedSection);
+    const img=primary.querySelector('.cms-thumb-box img');
+    if(img&&src&&img.getAttribute('src')!==src){img.src=src;img.hidden=false}
+   }
+  }
+ }
  inspector.querySelector('.studio-tab-notice')?.remove();
 }
 
