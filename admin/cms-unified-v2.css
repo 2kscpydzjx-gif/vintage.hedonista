@@ -164,3 +164,15 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 }
 #existingEditor>.vh-delete-block,#editorFields>.vh-delete-block{display:block!important;width:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important;box-sizing:border-box!important;margin:8px auto 28px!important;padding:12px!important;border:1px solid #a76b63!important;color:#f0c3b8!important;background:#2b1a19!important;border-radius:5px!important;cursor:pointer}
 #existingEditor>.vh-delete-block:hover,#editorFields>.vh-delete-block:hover{background:#51302a!important}
+
+/* STEP 189 — fix the ACTUAL DOM: .preview is a direct child of main,
+   not a descendant of .layout (which uses display:contents). */
+@media(min-width:1100px){
+ html body>main>.preview{overflow:hidden!important;overflow-x:hidden!important;overflow-y:hidden!important;min-width:0!important;min-height:0!important;overscroll-behavior:none!important}
+ html body>main>.preview>.live-preview-frame{display:block!important;position:relative!important;overflow:hidden!important;overflow-x:hidden!important;overflow-y:hidden!important;width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;min-height:0!important;margin:0!important;padding:0!important;box-sizing:border-box!important;scrollbar-width:none!important}
+ html body>main>.preview>.live-preview-frame::-webkit-scrollbar{display:none!important}
+ html body>main>.preview>.live-preview-frame>#desktopViewport{margin:0!important;overflow:hidden!important;max-width:none!important}
+ html body>main>.preview>.live-preview-frame #siteFrame{display:block!important;border:0!important;overflow:auto!important}
+ html body>main>.layout>.editor{overflow:hidden!important}
+ html body>main>.layout>.editor>.cms-editor-scroll{height:calc(100% - 104px)!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important}
+}
