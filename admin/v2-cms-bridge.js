@@ -107,46 +107,9 @@ function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-sel
  */
 let nativePreviewObserver=null, nativePreviewTimer=null, nativePreviewDocument=null;
 function syncVisibleDraft(){
- const native=d?.getElementById('siteFrame')?.contentDocument;
- const visible=previewFrame?.contentDocument;
- if(!native?.body||!visible?.body||native.location.pathname!==visible.location.pathname)return;
- const nativeSections=previewSectionsForThumbs();
- const visibleMain=visible.querySelector('main')||visible.body;
- const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
- let visibleSections=page.includes('головн')?[...visible.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...visibleMain.children].filter(el=>el.tagName==='SECTION'):[...visibleMain.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
- if(visibleSections.length<2){const nested=[...visibleMain.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);visibleSections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));}
- visibleSections=visibleSections.slice(0,35);
- if(nativeSections.length!==visibleSections.length){
-  // Do not destructively rewrite the public page if its structure differs.
-  // A delayed site script may still be initializing.
-  return;
- }
- // Only synchronize existing element/text nodes. Replacing innerHTML destroys
- // listeners attached by the public site's scripts (carousels, navigation, etc.).
- const syncNode=(source,target)=>{
-  if(source.nodeType!==target.nodeType)return;
-  if(source.nodeType===3){if(target.nodeValue!==source.nodeValue)target.nodeValue=source.nodeValue;return;}
-  if(source.nodeType!==1||['SCRIPT','IFRAME','VIDEO','CANVAS'].includes(source.tagName)||source.tagName!==target.tagName)return;
-  for(const attr of [...target.attributes]){
-   if(!source.hasAttribute(attr.name)&&!/^on/i.test(attr.name))target.removeAttribute(attr.name);
-  }
-  for(const attr of source.attributes){
-   if(/^on/i.test(attr.name))continue;
-   if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
-  }
-  const a=[...source.childNodes],b=[...target.childNodes];
-  if(a.length!==b.length)return;
-  for(let j=0;j<a.length;j++)syncNode(a[j],b[j]);
- };
- nativeSections.forEach((source,i)=>{
-  const target=visibleSections[i];
-  if(target)syncNode(source,target);
- });
- for(const id of ['vh-cms-step66-styles','vh-cms-injected-style']){
-  const source=native.getElementById(id),target=visible.getElementById(id);
-  if(source){if(!target)visible.head.append(source.cloneNode(true));else if(target.textContent!==source.textContent)target.textContent=source.textContent;}
-  else target?.remove();
- }
+ // Never copy native CMS markup into the live public page. Its injected markup
+ // can replace background-image structures and destroy the original hero layout.
+ // Native CMS changes are reflected in the V2 inspector; public preview stays intact.
  updateSelection();
 }
 function watchNativePreview(){
@@ -445,8 +408,15 @@ document.querySelectorAll('[data-device]').forEach(btn=>btn.addEventListener('cl
 document.querySelectorAll('[data-rtab]').forEach(btn=>btn.addEventListener('click',()=>{
  const tab=btn.dataset.rtab;
  document.querySelectorAll('[data-rtab]').forEach(el=>el.classList.toggle('active',el===btn));
- for(const name of ['content','design','animation'])$(name)?.classList.toggle('hidden',name!==tab);
- d?.querySelector('[data-inspector-tab="'+tab+'"]')?.click();
+ for(const name of ['content','design','animation']){
+  const panel=$(name);
+  if(!panel)continue;
+  const shown=name===tab;
+  panel.classList.toggle('hidden',!shown);
+  panel.style.display=shown?'block':'none';
+ }
+
+ // V2 tabs are independent: do not let the hidden CMS switch the visible panel.
 }));
 const leftList=$('blocklist');
 const leftHead=$('sidehead');
