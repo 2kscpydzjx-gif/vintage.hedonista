@@ -669,7 +669,7 @@ function renderExistingList(){if(pageId==='shared')return;
 // Field IDs are taken from the actual frontend, not guessed from the first heading/paragraph.
 const cmsMappedPages=new Set(['home','about','delivery','contacts','catalog','capsules','journal','product','article','account','checkout']);
 const cmsStaticSelectors={
- home:['#heroEyebrow','#heroTitle','#heroDescription','#heroMain','#heroSide1','#heroSide2','#heroCatalogBtn','#heroAboutBtn'],
+ home:['#heroMain','#heroEyebrow','#heroTitle','#heroDescription','#heroCatalogBtn','#heroAboutBtn'],
  catalog:['.catalog-heading .kicker','.catalog-heading .page-title','.catalog-intro-label','.catalog-intro'],
  capsules:['.capsule-hero-copy .capsule-kicker','.capsule-hero-copy h1','.capsule-hero-copy h2','.capsule-hero-copy p','.capsule-hero-photo','.capsule-intro-grid h2','.capsule-intro-grid p'],
  journal:['#journalPageTitle','#journalPageSubtitle','#journalNewTitle','#journalGuideTitle','#journalGuideSubtitle','#journalOtherTitle','#journalCtaTitle','#journalCtaText','#journalCtaLink'],
@@ -823,7 +823,7 @@ function renderExistingEditor(){
  }
  }
  }
- const photos=cmsSectionPhotos(target.el);
+ const photos=(pageId==='home'&&target.el.matches('.hero'))?[]:cmsSectionPhotos(target.el);
  if(photos.length&&(!cmsFieldsFor(target.el).some(f=>f.type==='image'))&&!(pageId==='home'&&target.el.matches('.homepage-capsules'))&&!(pageId==='home'&&target.el.matches('.hero'))){
   const title=document.createElement('h3');title.textContent='ФОТОГРАФІЇ БЛОКУ';title.className='photos-title';host.append(title);
   photos.forEach((photo,i)=>{
