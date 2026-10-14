@@ -355,6 +355,25 @@ document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click
   leftList.append(item);
  }
 }));
+let zoomPercent=100;
+$('zoom')?.addEventListener('click',()=>{
+ const options=[50,75,100,125];
+ zoomPercent=options[(options.indexOf(zoomPercent)+1)%options.length];
+ $('zoom').firstChild.textContent=zoomPercent+'% ';
+ const canvas=$('canvas');
+ canvas.style.zoom=zoomPercent/100;
+ updateSelection();
+});
+const moreMenu=document.createElement('div');
+moreMenu.style.cssText='position:fixed;z-index:9999;display:none;background:#241d18;border:1px solid #695440;padding:7px;border-radius:7px;right:15px;top:70px;min-width:190px';
+const nativeLink=document.createElement('button');
+nativeLink.textContent='Відкрити старий редактор';
+nativeLink.style.cssText='width:100%;padding:10px;background:transparent;color:#f4e7da;border:0;text-align:left;cursor:pointer';
+nativeLink.addEventListener('click',()=>{location.href='cms-builder.html';});
+moreMenu.append(nativeLink);
+document.body.append(moreMenu);
+$('moreActions')?.addEventListener('click',()=>{moreMenu.style.display=moreMenu.style.display==='none'?'block':'none';});
+document.addEventListener('pointerdown',e=>{if(!moreMenu.contains(e.target)&&e.target!==$('moreActions'))moreMenu.style.display='none';});
 const originalSync=sync;
 // Do not overwrite the Pages/Styles sidebar with the block list during CMS refresh.
 
