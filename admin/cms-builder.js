@@ -471,13 +471,18 @@ const crop=document.createElement('details');crop.className='cms91-crop';crop.in
    const cropImage=document.createElement('img');cropImage.alt='Кадрування капсули';cropImage.draggable=false;
    const cropHint=document.createElement('span');cropHint.className='cms132-hint';cropHint.textContent='Затисніть та перетягніть фото';
    cropStage.append(cropImage,cropHint);fields.append(cropStage);
-   const source=frame?.contentDocument?.querySelector('.homepage-capsules #homeCapsulesMedia img');
-   const sourceUrl=source?.currentSrc||source?.src||'';
+   const selectedTarget=sectionTargets.find(t=>t.id===selectedExisting);
+   const selectedSection=selectedTarget?.el;
+   const source=selectedSection?.querySelector('#homeCapsulesMedia img, .editorial-media img, .hero-media img, img[src]');
+   const mappedPhoto=selectedSection?cmsFieldsFor(selectedSection).find(field=>field.type==='image'):null;
+   const selectedDraft=selectedTarget?readExisting()?.[selectedTarget.id]:null;
+   const mappedUrl=mappedPhoto&&selectedDraft?.mapped?.[mappedPhoto.id];
+   const sourceUrl=(typeof mappedUrl==='string'&&mappedUrl!=='__removed__'?mappedUrl:'')||source?.currentSrc||source?.src||'';
    if(sourceUrl)cropImage.src=sourceUrl;else{cropHint.textContent='Спочатку завантажте фото';cropStage.classList.add('cms132-empty')}
    // Use the actual image panel proportions when available, not an arbitrary 16:9 crop.
-   const media=frame?.contentDocument?.querySelector('.homepage-capsules #homeCapsulesMedia');
+   const media=selectedSection?.querySelector('#homeCapsulesMedia, .editorial-media, .hero-media, .vh-lab-photo')||source?.parentElement;
    const measured=media?.getBoundingClientRect();
-   const ratio=measured?.width>0&&measured?.height>0?measured.width/measured.height:active==='mobile'?3/4:active==='tablet'?4/3:16/9;
+   const ratio=active==='mobile'?3/4:active==='tablet'?4/3:measured?.width>0&&measured?.height>0?measured.width/measured.height:16/9;
    cropStage.style.aspectRatio=String(Math.max(.45,Math.min(3,ratio)));
    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
    const paint=()=>{
