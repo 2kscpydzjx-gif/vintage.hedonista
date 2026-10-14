@@ -298,12 +298,13 @@ if(page==='capsules'&&!window.__VH_CAPSULES_RENDER_DONE){await Promise.race([new
  await Promise.race([new Promise(resolve=>window.addEventListener('vh:journal-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);
 }
 if(page==='about'&&!window.__VH_ABOUT_SETTINGS_READY){await Promise.race([new Promise(resolve=>window.addEventListener('vh:about-settings-ready',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,8000))]);}
+if(page==='about'&&!data)document.documentElement.classList.add('vh-cms-no-publication');
 if(data){apply(data);
  // Some storefront scripts replace the original hero markup after CMS runs.
  // Reapply the same published revision when their render completes.
  const eventName=page==='home'?'vh:home-rendered':page==='capsules'?'vh:capsules-rendered':page==='journal'?'vh:journal-rendered':null;
  if(eventName)window.addEventListener(eventName,()=>{try{apply(data)}catch(err){console.warn('CMS hero reapply failed',err)}},{once:true});
- }if(home?.shared)shell(home.shared)}catch(e){console.warn('CMS published content failed',e)}finally{window.__VH_PUBLISHED_READY=true;window.dispatchEvent(new Event('vh:published-ready'));document.documentElement.classList.remove('vh-cms-booting')}}
+ }if(home?.shared)shell(home.shared)}catch(e){console.warn('CMS published content failed',e);if(page==='about')document.documentElement.classList.add('vh-cms-no-publication')}finally{window.__VH_PUBLISHED_READY=true;window.dispatchEvent(new Event('vh:published-ready'));document.documentElement.classList.remove('vh-cms-booting')}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
 
