@@ -1032,7 +1032,10 @@ function applyImageDrafts(){
  const drafts=readExisting();
  for(const target of sectionTargets){
   if(pageId==='home'&&target.el.matches('.homepage-capsules'))continue;
-  const photos=cmsSectionPhotos(target.el),images=drafts[target.id]?.images;
+  const current=drafts[target.id]||{};
+  if(pageId==='home'&&target.el.matches('.hero'))continue;
+  if(current.mapped&&cmsFieldsFor(target.el).some(f=>f.type==='image'))continue;
+  const photos=cmsSectionPhotos(target.el),images=current.images;
   if(!images)continue;
   photos.forEach((photo,i)=>{if(images['image'+i]!==undefined)cmsSetPhoto(photo,images['image'+i],i)});
  }
