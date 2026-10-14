@@ -594,17 +594,18 @@ function resizeDesktopPreview(){
  if(!viewport||!previewWindow)return;
  const available=Math.max(1,previewWindow.clientWidth-2);
  const width=cmsPreviewDeviceWidth;
- const height=cmsPreviewDeviceHeight;
  const scale=Math.min(1,available/width);
+ const visibleHeight=Math.max(300,previewWindow.getBoundingClientRect().height||window.innerHeight-76);
+ const iframeHeight=Math.ceil(visibleHeight/scale);
  viewport.style.setProperty('width',width+'px','important');
- viewport.style.setProperty('height',height+'px','important');
+ viewport.style.setProperty('height',iframeHeight+'px','important');
  viewport.style.transformOrigin='top left';
  viewport.style.transform='scale('+scale+')';
- previewWindow.style.height=Math.ceil(height*scale+2)+'px';
- previewWindow.style.overflow='auto';
+ previewWindow.style.overflow='hidden';
  frame.style.setProperty('width',width+'px','important');
  frame.style.setProperty('max-width','none','important');
- frame.style.setProperty('height',height+'px','important');
+ frame.style.setProperty('height',iframeHeight+'px','important');
+ frame.setAttribute('scrolling','yes');
  const status=document.getElementById('cms125ViewportInfo');
  if(status)status.textContent=width+' × '+height+' px · '+Math.round(scale*100)+'% масштабу';
 }
