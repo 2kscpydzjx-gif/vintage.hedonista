@@ -135,3 +135,12 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 .vh-design-ratios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
 .vh-design-ratios button{min-width:0;padding:8px 3px;border:1px solid #755741;border-radius:5px;background:#30231b;color:#f1e4d4;cursor:pointer;font-size:11px}
 .vh-design-ratios button:hover{background:#614632}
+
+/* Prevent crop inspector controls from stretching beyond the right sidebar. */
+#existingEditor .cms133-zoom,#editorFields .cms133-zoom{display:grid!important;grid-template-columns:38px minmax(0,1fr) 38px 42px!important;gap:5px!important;align-items:center!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#existingEditor .cms133-zoom button,#editorFields .cms133-zoom button{width:38px!important;min-width:0!important;max-width:38px!important;padding:6px 0!important}
+#existingEditor .cms133-zoom input[type=range],#editorFields .cms133-zoom input[type=range]{width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important}
+#existingEditor .cms133-zoom output,#editorFields .cms133-zoom output{width:42px!important;min-width:0!important;text-align:right!important;font-size:11px!important;white-space:nowrap}
+#existingEditor .cms96-slot,#existingEditor .cms96-slot>*,#existingEditor .cms129-device-crop,#existingEditor .cms133-advanced{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#existingEditor .cms96-slider{display:grid!important;grid-template-columns:minmax(0,95px) minmax(0,1fr) 38px!important;gap:6px!important;align-items:center!important}
+#existingEditor .cms96-slider input[type=range]{min-width:0!important;width:100%!important}
