@@ -921,6 +921,11 @@ function cmsRenderCustomButtons(section,buttons){
   const a=section.ownerDocument.createElement('a');a.className='vh-cms-custom-button';
   a.textContent=button.label||'Кнопка';a.href=/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(button.url||'')?button.url:'#';
   a.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 18px;border:1px solid currentColor;text-decoration:none;font:12px Arial,sans-serif;letter-spacing:.4px';
+  if(Number.isFinite(Number(button.x))&&Number.isFinite(Number(button.y))){
+   holder.style.position='relative';holder.style.minHeight='180px';
+   a.style.position='absolute';a.style.left=Math.max(0,Math.min(100,Number(button.x)))+'%';
+   a.style.top=Math.max(0,Math.min(100,Number(button.y)))+'%';a.style.transform='translate(-50%,-50%)';
+  }
   holder.append(a);
  }
 }
@@ -940,6 +945,11 @@ function cmsCustomButtonEditor(host,target,draft){
    for(const [value,label] of [['left','Ліворуч'],['center','По центру'],['right','Праворуч']])align.add(new Option(label,value));
    align.value=b.position||'left';align.onchange=()=>{b.position=align.value;save()};group.append(align);
    const remove=document.createElement('button');remove.type='button';remove.textContent='Видалити кнопку';remove.onclick=()=>{buttons.splice(i,1);save();draw()};group.append(remove);
+   for(const [axis,label] of [['x','По горизонталі'],['y','По вертикалі']]){
+    const control=document.createElement('label');control.className='vh-cms-position-label';control.textContent=label;
+    const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='1';range.value=b[axis]??50;
+    range.oninput=()=>{b[axis]=Number(range.value);save()};control.append(range);group.append(control);
+   }
    wrap.append(group);
   }
   const add=document.createElement('button');add.type='button';add.className='vh-cms-add-button';add.textContent='+ Додати кнопку';add.onclick=()=>{buttons.push({label:'Нова кнопка',url:'#',position:'left'});save();draw()};wrap.append(add);
