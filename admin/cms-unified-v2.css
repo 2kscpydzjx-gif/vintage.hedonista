@@ -144,3 +144,13 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #existingEditor .cms96-slot,#existingEditor .cms96-slot>*,#existingEditor .cms129-device-crop,#existingEditor .cms133-advanced{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
 #existingEditor .cms96-slider{display:grid!important;grid-template-columns:minmax(0,95px) minmax(0,1fr) 38px!important;gap:6px!important;align-items:center!important}
 #existingEditor .cms96-slider input[type=range]{min-width:0!important;width:100%!important}
+
+/* Compact image fitting widget: one contained thumbnail, never a full-height image. */
+#existingEditor .cms129-device-crop,#editorFields .cms129-device-crop{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important;padding:10px!important}
+#existingEditor .cms129-device-crop .cms132-stage,#editorFields .cms129-device-crop .cms132-stage{display:block!important;position:relative!important;width:100%!important;max-width:100%!important;height:150px!important;min-height:0!important;max-height:150px!important;aspect-ratio:auto!important;overflow:hidden!important;border-radius:6px!important;border:1px solid #6b4c37!important;background:#130e0b!important;touch-action:none}
+#existingEditor .cms129-device-crop .cms132-stage img,#editorFields .cms129-device-crop .cms132-stage img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover;user-select:none}
+#existingEditor .cms129-device-crop .cms132-hint,#editorFields .cms129-device-crop .cms132-hint{position:absolute!important;left:7px!important;bottom:7px!important;top:auto!important;font-size:10px!important;padding:4px 7px!important;background:#1c140fc9!important;color:#fff!important;pointer-events:none!important}
+#existingEditor .cms129-device-crop>p,#editorFields .cms129-device-crop>p{font-size:11px!important;line-height:1.4!important;margin:4px 0 8px!important}
+#existingEditor .cms129-device-crop .cms129-tabs,#editorFields .cms129-device-crop .cms129-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;margin-bottom:8px!important}
+#existingEditor .cms129-device-crop .cms129-tabs button,#editorFields .cms129-device-crop .cms129-tabs button{min-width:0!important;width:100%!important;padding:7px 3px!important;font-size:11px!important}
+#existingEditor .cms96-slots{display:none!important}
