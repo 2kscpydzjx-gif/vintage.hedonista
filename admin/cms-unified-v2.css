@@ -106,3 +106,13 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #existingEditor .vh-cms-position-label{display:flex;flex-direction:column;gap:6px;color:#d4b89b;font-size:11px}
 #existingEditor .vh-cms-position-label input[type=range]{width:100%!important;accent-color:#c4a17e;padding:0!important;min-height:20px!important}
 #existingEditor .cms91-tab-panel[data-cms91-tab="content"] .cms-gradient-image-field[hidden]{display:none!important}
+
+/* One scrolling surface: the website itself inside the preview iframe. */
+@media(min-width:1000px){
+ body>main>.layout>.preview{overflow:hidden!important;height:calc(100vh - 74px)!important;max-height:calc(100vh - 74px)!important}
+ body>main>.layout>.preview .live-preview-frame{height:100%!important;max-height:100%!important;overflow:hidden!important;border:0!important;background:#171310!important}
+ body>main>.layout>.preview #desktopViewport{margin:0!important;overflow:visible!important}
+ body>main>.layout>.preview #siteFrame{display:block!important;border:0!important;overflow:auto!important;background:#171310!important}
+}
+#existingEditor>button.secondary{display:block!important;width:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important;margin:12px auto 30px!important;min-height:40px!important;position:relative!important;z-index:2!important}
+#existingEditor .vh-cms-button-entry input[type=number]{min-height:37px!important;width:100%!important}
