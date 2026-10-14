@@ -104,6 +104,37 @@ function studioPreviewPhoto(editor,section){
  if(!preview){preview=document.createElement('img');preview.className='studio-source-preview';preview.alt='Поточне фото блоку';thumb.prepend(preview)}
  if(preview.getAttribute('src')!==source)preview.src=source;
 }
+function compactContentPanel(editor){
+ const panels=editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]');
+ for(const panel of panels){
+  for(const el of panel.querySelectorAll(':scope > h3,:scope > p.muted,:scope > small,:scope > .cms98-panel-heading,:scope > .studio-media-heading'))el.hidden=true;
+  for(const field of panel.querySelectorAll('.photo-field,.cms-gradient-image-field,.cms-mapped-field')){
+   const file=field.querySelector('input[type="file"]');
+   const thumb=field.querySelector('.cms-thumb-box');
+   if(!file||!thumb)continue;
+   field.classList.add('vh-compact-media');
+   field.querySelectorAll(':scope > label,:scope > h3,:scope > small').forEach(el=>el.hidden=true);
+   let actions=field.querySelector(':scope > .vh-media-actions');
+   if(!actions){
+    actions=document.createElement('div');actions.className='vh-media-actions';
+    const upload=document.createElement('button');upload.type='button';upload.className='vh-media-action';upload.textContent='Завантажити фото';upload.onclick=()=>file.click();
+    const remove=document.createElement('button');remove.type='button';remove.className='vh-media-action';remove.textContent='Видалити фото';
+    remove.onclick=()=>{const original=thumb.querySelector('.cms-photo-x');if(original)original.click()};
+    actions.append(upload,remove);field.append(actions);
+   }
+   thumb.querySelectorAll('.cms-photo-x').forEach(el=>el.classList.add('vh-hidden-original-remove'));
+   field.querySelectorAll('.studio-replace-image').forEach(el=>el.hidden=true);
+  }
+  for(const field of panel.querySelectorAll('.field')){
+   if(field.classList.contains('vh-compact-media'))continue;
+   const label=field.querySelector(':scope > label');
+   if(label){
+    const t=label.textContent.trim();
+    if(/^(ПОЛЯ СТОРІНКИ|НАЯВНИЙ БЛОК)/.test(t))label.hidden=true;
+   }
+  }
+ }
+}
 function syncTabs(){
  const editor=inspector.querySelector('.cms-editor-scroll');if(!editor)return;
  // The native page's Hero is not the obsolete gradient-banner template.
@@ -173,6 +204,7 @@ function syncTabs(){
   bar.hidden=true;
   bar.style.setProperty('display','none','important');
  });
+ compactContentPanel(editor);
  inspector.querySelector('.studio-tab-notice')?.remove();
 }
 
