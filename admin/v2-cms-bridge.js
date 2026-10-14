@@ -68,6 +68,7 @@ const say=(s)=>{const n=$('notice');if(!n)return;n.textContent=s;n.style.display
 const root=()=>d?.querySelector('#existingEditor:not([hidden])')||d?.querySelector('#editorFields');
 function labeled(re){
  const scope=root();if(!scope)return null;
+ const candidates=[...scope.querySelectorAll('input:not([type=file]):not([type=hidden]),textarea')];
  for(const label of scope.querySelectorAll('label')){
   if(!re.test(label.textContent||''))continue;
   const id=label.getAttribute('for');
@@ -75,11 +76,29 @@ function labeled(re){
   const input=(id&&d.getElementById(id))||field?.querySelector('input:not([type=file]),textarea');
   if(input)return input;
  }
+ // CMS uses non-label field headings for some block types.
+ for(const input of candidates){
+  const container=input.closest('.field,.cms91-field,.cms-field,.studio-field')||input.parentElement;
+  const hint=[input.name,input.id,input.placeholder,container?.querySelector('.field-label,.studio-label,strong')?.textContent].filter(Boolean).join(' ');
+  if(re.test(hint))return input;
+ }
  return null;
 }
-function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
+function setNative(el,value){if(!el)return false;const view=el.ownerDocument.defaultView;const proto=el.tagName==='TEXTAREA'?view.HTMLTextAreaElement.prototype:view.HTMLInputElement.prototype;const setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new view.Event('input',{bubbles:true}));el.dispatchEvent(new view.Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
-function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;active=i;b.click();setTimeout(sync,90);}
+function nativeSelect(i){
+ const b=rows[i]?.querySelector('.existing-select');
+ if(!b){say('Блок ще не завантажений');return;}
+ active=i;
+ // Update V2 immediately; native inspector can be rendered asynchronously.
+ document.querySelectorAll('#blocklist .block').forEach((el,index)=>el.classList.toggle('active',index===i));
+ $('paneltitle').textContent=titleOf(rows[i]);
+ $('count').textContent='Блок '+(i+1)+' з '+rows.length;
+ b.click();
+ sync();
+ setTimeout(sync,150);
+ setTimeout(sync,500);
+}
 function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
 /* Synchronize draft changes from the native CMS preview into the visible V2 preview.
  * Keep the visible iframe stable; never reload it on text or image edits.
