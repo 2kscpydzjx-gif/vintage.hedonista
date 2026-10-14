@@ -55,3 +55,19 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
  .editor .cms-editor-scroll{padding:20px 19px 30px!important}
  .studio-inspector-head h2{font-size:17px!important;font-weight:400!important}
 }
+
+/* Unified content controls on every page. Native and mapped media share one visual system. */
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]{display:flex;flex-direction:column;gap:14px;padding:12px 0 24px!important}
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"][hidden]{display:none!important}
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]>.field,
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]>.photo-field{margin:0!important;padding:12px!important;background:#211b17!important;border:1px solid #3c3027!important;border-radius:5px!important;min-width:0!important}
+#existingEditor .cms-mapped-field:has(.cms-thumb-box),
+#existingEditor .photo-field{display:flex!important;flex-direction:column!important;gap:10px!important}
+#existingEditor .cms-mapped-field[hidden],#existingEditor .photo-field[hidden]{display:none!important}
+#existingEditor .cms-thumb-box{width:100%!important;max-width:none!important;min-height:130px!important;max-height:240px!important;overflow:hidden!important;background:#30261f!important;border:1px solid #514033!important;border-radius:4px!important}
+#existingEditor .cms-thumb-box>img:not([hidden]){display:block!important;width:100%!important;height:180px!important;max-height:220px!important;object-fit:contain!important;background:#30261f!important}
+#existingEditor .studio-replace-image{display:block!important;width:100%!important;min-height:42px!important;border:1px solid #66503e!important;background:#32271f!important;color:#f1e6d9!important;border-radius:4px!important}
+#existingEditor .cms-mapped-field>label,#existingEditor .photo-field label{color:#d5b79a!important;font-size:11px!important;letter-spacing:.5px!important}
+#existingEditor .cms98-panel-heading{font-size:12px!important;color:#d4b18d!important;margin:0 0 6px!important}
+#existingEditor .studio-extra-photos{display:contents!important}
+#existingEditor .studio-extra-photos>summary{display:none!important}
