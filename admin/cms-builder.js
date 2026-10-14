@@ -914,18 +914,20 @@ function cmsRenderCustomButtons(section,buttons){
  let holder=section.querySelector(':scope > .vh-cms-custom-buttons');
  if(!buttons?.length){holder?.remove();return}
  if(!holder){holder=section.ownerDocument.createElement('div');holder.className='vh-cms-custom-buttons';section.append(holder)}
- const pos=buttons[0]?.position||'left';
- holder.style.cssText='display:flex;flex-wrap:wrap;gap:10px;padding:12px 20px;justify-content:'+(pos==='center'?'center':pos==='right'?'flex-end':'flex-start');
+ holder.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 20px;min-height:64px;position:relative;box-sizing:border-box';
  holder.replaceChildren();
  for(const button of buttons){
   const a=section.ownerDocument.createElement('a');a.className='vh-cms-custom-button';
-  a.textContent=button.label||'Кнопка';a.href=/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(button.url||'')?button.url:'#';
-  a.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 18px;border:1px solid currentColor;text-decoration:none;font:12px Arial,sans-serif;letter-spacing:.4px';
-  if(Number.isFinite(Number(button.x))&&Number.isFinite(Number(button.y))){
-   holder.style.position='relative';holder.style.minHeight='180px';
+  a.textContent=button.label||'Кнопка';
+  a.href=/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(button.url||'')?button.url:'#';
+  const width=Math.max(70,Math.min(500,Number(button.width)||160));
+  const light=button.style==='light';
+  a.style.cssText='display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:40px;padding:9px 14px;width:'+width+'px;max-width:100%;border:1px solid '+(light?'#eee1ce':'#b99b7c')+';background:'+(light?'#eee1ce':'#201811')+';color:'+(light?'#231b16':'#fff')+';text-decoration:none;font:12px Arial,sans-serif;letter-spacing:.4px';
+  if(button.x!==undefined&&button.y!==undefined){
+   holder.style.minHeight='200px';
    a.style.position='absolute';a.style.left=Math.max(0,Math.min(100,Number(button.x)))+'%';
    a.style.top=Math.max(0,Math.min(100,Number(button.y)))+'%';a.style.transform='translate(-50%,-50%)';
-  }
+  }else a.style.marginLeft=button.position==='right'?'auto':button.position==='center'?'auto':'0';
   holder.append(a);
  }
 }
@@ -950,6 +952,9 @@ function cmsCustomButtonEditor(host,target,draft){
     const range=document.createElement('input');range.type='range';range.min='0';range.max='100';range.step='1';range.value=b[axis]??50;
     range.oninput=()=>{b[axis]=Number(range.value);save()};control.append(range);group.append(control);
    }
+   const widthLabel=document.createElement('label');widthLabel.className='vh-cms-position-label';widthLabel.textContent='Ширина кнопки (70–500 px)';
+   const width=document.createElement('input');width.type='number';width.min=70;width.max=500;width.value=b.width||160;width.onchange=()=>{b.width=Math.max(70,Math.min(500,Number(width.value)||160));save()};widthLabel.append(width);group.append(widthLabel);
+   const appearance=document.createElement('select');appearance.add(new Option('Темна · золотистий контур','dark'));appearance.add(new Option('Світла · темний текст','light'));appearance.value=b.style||'dark';appearance.onchange=()=>{b.style=appearance.value;save()};group.append(appearance);
    wrap.append(group);
   }
   const add=document.createElement('button');add.type='button';add.className='vh-cms-add-button';add.textContent='+ Додати кнопку';add.onclick=()=>{buttons.push({label:'Нова кнопка',url:'#',position:'left'});save();draw()};wrap.append(add);
