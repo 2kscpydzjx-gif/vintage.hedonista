@@ -61,14 +61,42 @@ function labeled(re){const scope=root();if(!scope)return null;for(const label of
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;b.click();active=i;setTimeout(sync,90);}
-function thumbnail(row){let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-row-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+function previewSectionsForThumbs(){
+ try{
+  const frame=d?.getElementById('siteFrame');
+  const doc=frame?.contentDocument;
+  if(!doc?.body)return [];
+  const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+  const main=doc.querySelector('main')||doc.body;
+  let sections=page.includes('головн')?[...doc.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...main.children].filter(el=>el.tagName==='SECTION'):[...main.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+  if(sections.length<2){
+   const nested=[...main.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);
+   sections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));
+  }
+  return sections.slice(0,35);
+ }catch{return [];}
+}
+function sectionPhoto(section){
+ if(!section)return '';
+ const img=section.querySelector('img[src],img[data-src]');
+ const source=img?.currentSrc||img?.src||img?.getAttribute('data-src');
+ if(source&&!source.startsWith('data:image/svg'))return source;
+ for(const node of [section,...section.querySelectorAll('*')].slice(0,100)){
+  const bg=node.ownerDocument.defaultView.getComputedStyle(node).backgroundImage;
+  const match=bg.match(/url\(["']?(.*?)["']?\)/);
+  if(match?.[1])return match[1];
+ }
+ return '';
+}
 function titleOf(row){let b=row.querySelector('.existing-select');return b?.querySelector('.studio-row-name')?.textContent.trim()||b?.textContent.trim().replace(/^\d+\s*[·.]?\s*/,'')||'Блок'}
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
+ const sections=previewSectionsForThumbs();
  const list=$('blocklist');list.replaceChildren();rows.forEach((row,i)=>{
   let el=document.createElement('button');el.className='block'+(i===active?' active':'');
   let num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
-  let img=document.createElement('img');img.className='thumb';img.alt='';img.src=thumbnail(row)||'thumb-1.jpg';
+  let img=document.createElement('img');img.className='thumb';img.alt='';const url=sectionPhoto(sections[i])||thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
   let title=document.createElement('span');title.className='blocktitle';title.textContent=titleOf(row);
   let more=document.createElement('span');more.className='more';more.textContent='•••';
   el.append(num,img,title,more);el.onclick=(e)=>{if(e.target===more){const trigger=row.querySelector('.studio-row-menu-trigger');if(trigger)trigger.click();else say('Додаткові дії доступні в CMS');return}nativeSelect(i)};
@@ -83,8 +111,12 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  }
  refreshRich();
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
- const photo=root()?.querySelector('.photo-field img,.cms-thumb-box img,img');
- $('photo').src=photo?.src||thumbnail(selected||rows[0]||document.createElement('div'))||'thumb-1.jpg';
+ const inspector=root();
+  const photo=inspector?.querySelector('.studio-source-preview,.photo-field img,.cms-thumb-box img');
+  const imageUrl=sectionPhoto(sections[active])||photo?.currentSrc||photo?.src||thumbnail(selected);
+  const photoPreview=$('photo');
+  if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
+  else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
  updateSelection();
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
@@ -115,7 +147,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   if(existingImage)existingImage.remove();
   canvas.prepend(mirror);
   previewFrame=mirror;
-  mirror.addEventListener('load',()=>{updateSelection();});
+  mirror.addEventListener('load',()=>{updateSelection();sync();});
   canvas.style.padding='0';
   const updateMirror=()=>{
    const src=nativeFrame.getAttribute('src');
@@ -138,7 +170,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  };
  for(const id of ['existingEditor','editorFields']){
   const node=d.getElementById(id);
-  if(node)new MutationObserver(refreshInspector).observe(node,{childList:true,subtree:false,attributes:true,attributeFilter:['hidden']});
+  if(node)new MutationObserver(refreshInspector).observe(node,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','src','style','value']});
  }
  const nativeStatus=d.getElementById('status');
  if(nativeStatus)new MutationObserver(()=>{
@@ -168,7 +200,7 @@ function observeOperation(buttonId,action){
 bind('save',()=>observeOperation('save','Збереження'));
 bind('publish',()=>{if(confirm('Опублікувати зміни на сайті?'))observeOperation('publish','Публікація')});
 /* Compact block picker, anchored to the approved Add button; no redesign. */
-const blockTypes=[['editorial','Фото + текст'],['banner','Банер'],['text','Текстовий блок'],['gallery','Галерея']];
+const blockTypes=[['editorial','Фото + текст']];
 const picker=document.createElement('div');
 picker.setAttribute('role','menu');
 picker.setAttribute('aria-label','Тип нового блоку');
@@ -180,7 +212,7 @@ for(const [type,label] of blockTypes){
   picker.style.display='none';
   const native=d?.getElementById('add');
   if(!connected||!native){say('CMS ще не готова до додавання блоку');return;}
-  native.dataset.v2BlockType=type;native.click();setTimeout(sync,160);
+  native.click();setTimeout(sync,160);
  });
  picker.append(item);
 }
@@ -194,8 +226,8 @@ bind('add',()=>{
 });
 document.addEventListener('pointerdown',e=>{if(!picker.contains(e.target)&&e.target!==$('add'))picker.style.display='none';});
 
-bind('changePhoto',()=>{let f=root()?.querySelector('input[type=file]');if(f)f.click();else say('У цьому блоці немає поля завантаження фото')});
-$('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const input=root()?.querySelector('input[type=file]');if(!input){say('У цьому блоці немає поля завантаження фото');e.target.value='';return;}try{const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));say('Фото передано в CMS; перевір прев’ю.');}catch(err){say('Не вдалося передати фото: '+err.message)}e.target.value='';});
+bind('changePhoto',()=>{let f=root()?.querySelector('.photo-field input[type=file],.cms-thumb-box input[type=file],input[type=file]');if(f)f.click();else say('У цьому блоці немає поля завантаження фото')});
+$('upload')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const input=root()?.querySelector('.photo-field input[type=file],.cms-thumb-box input[type=file],input[type=file]');if(!input){say('У цьому блоці немає поля завантаження фото');e.target.value='';return;}try{const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));say('Фото передано в CMS; перевір прев’ю.');}catch(err){say('Не вдалося передати фото: '+err.message)}e.target.value='';});
 bind('editPhoto',()=>{const scope=root();const btn=[...(scope?.querySelectorAll('button')||[])].find(b=>/кадруван|позиці|редагувати фото/i.test(b.textContent||''));if(btn)btn.click();else say('Для цього блоку кадрування поки недоступне');});
 bind('undo',()=>d?.getElementById('studioUndo')?.click());bind('redo',()=>d?.getElementById('studioRedo')?.click());
 bindValue('title',/заголовок|назва/i);
