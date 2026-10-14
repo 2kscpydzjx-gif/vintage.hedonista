@@ -57,7 +57,17 @@ function checkSession(){const status=cmsStatus();if(/увійти|авториз
 
 const say=(s)=>{const n=$('notice');if(!n)return;n.textContent=s;n.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>n.style.display='none',3500)};
 const root=()=>d?.querySelector('#existingEditor:not([hidden])')||d?.querySelector('#editorFields');
-function labeled(re){const scope=root();if(!scope)return null;for(const label of scope.querySelectorAll('label')){if(!re.test(label.textContent||''))continue;let id=label.getAttribute('for');let input=(id&&d.getElementById(id))||label.querySelector('input,textarea');if(input)return input;let next=label.nextElementSibling;if(next?.matches('input,textarea'))return next;}return null;}
+function labeled(re){
+ const scope=root();if(!scope)return null;
+ for(const label of scope.querySelectorAll('label')){
+  if(!re.test(label.textContent||''))continue;
+  const id=label.getAttribute('for');
+  const field=label.closest('.field,.cms91-field,.cms-field')||label.parentElement;
+  const input=(id&&d.getElementById(id))||field?.querySelector('input:not([type=file]),textarea');
+  if(input)return input;
+ }
+ return null;
+}
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;active=i;b.click();setTimeout(sync,90);}
@@ -120,7 +130,27 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  updateSelection();
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
-function bindValue(id,re){$(id).addEventListener('input',e=>{e.stopImmediatePropagation();if(!connected)return say('CMS ще не підключена');if(!setNative(labeled(re),e.target.value))say('Для цього блоку поле недоступне');},true)}
+function bindValue(id,re){$(id).addEventListener('input',e=>{
+ if(!connected)return;
+ const native=labeled(re);
+ if(!native){say('Це поле недоступне для вибраного блоку');return;}
+ setNative(native,e.target.value);
+ updateMirrorText(id,e.target.value);
+},true)}
+function updateMirrorText(field,value){
+ try{
+  const section=previewSectionsForThumbs()[active];
+  const mirrored=previewFrame?.contentDocument;
+  if(!section||!mirrored)return;
+  const sections=[...mirrored.querySelectorAll('main > section,body > section')];
+  const nativeSections=previewSectionsForThumbs();
+  const target=section.id?mirrored.getElementById(section.id):sections[active];
+  if(!target)return;
+  const selector=field==='title'?'h1,h2,h3':field==='description'?'p':'a,button';
+  const element=target.querySelector(selector);
+  if(element)element.textContent=value;
+ }catch{}
+}
 engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  d=engine.contentDocument;if(!d?.querySelector('#existingBlocks')){if(++retries<40){setTimeout(initialize,250);return;}throw Error('Немає списку блоків');}connected=true;
  let nativeFrame=d.getElementById('siteFrame');
