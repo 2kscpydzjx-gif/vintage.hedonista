@@ -810,7 +810,7 @@ function renderExistingEditor(){
  }
  }
  const photos=cmsSectionPhotos(target.el);
- if(photos.length&&draft.design?.photoPreset!=='gradient-hero'&&!cmsFieldsFor(target.el).length && !(pageId==='home'&&target.el.matches('.homepage-capsules'))){
+ if(photos.length&&(!cmsFieldsFor(target.el).some(f=>f.type==='image'))&&!(pageId==='home'&&target.el.matches('.homepage-capsules'))&&!(pageId==='home'&&target.el.matches('.hero'))){
   const title=document.createElement('h3');title.textContent='ФОТОГРАФІЇ БЛОКУ';title.className='photos-title';host.append(title);
   photos.forEach((photo,i)=>{
    const key='image'+i,wrap=document.createElement('div');wrap.className='photo-field';const thumbBox=document.createElement('div');thumbBox.className='cms-thumb-box';
@@ -845,9 +845,9 @@ function renderExistingEditor(){
   applyExistingAnimation(target.el,v);$('status').textContent='Анімацію змінено у чернетці';
  },animationOptions));
  // Design controls for each existing section (draft only)
- addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);cmsApplyExistingLayout(target.el,value,all[target.id].templateImage);renderExistingEditor();scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
+ addDesignControls(host,target.id,draft.design||{},value=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),design:value};saveExisting(all);applyBlockDesign(target.el,value);if(!(pageId==='home'&&target.el.matches('.hero')))cmsApplyExistingLayout(target.el,value,all[target.id].templateImage);renderExistingEditor();scheduleLivePreview()},pageId==='home'&&target.el.matches('.homepage-capsules'));
  // Template-specific photo controls: one photo for gradient, native fields for legacy layouts.
- const gradientSelected=(draft.design?.photoPreset==='gradient-hero');
+ const gradientSelected=(draft.design?.photoPreset==='gradient-hero')&&!(pageId==='home'&&target.el.matches('.hero'));
  if(gradientSelected){
   host.querySelectorAll('.photo-field,.cms-mapped-field').forEach(node=>{
    if(node.classList.contains('photo-field')||node.querySelector('input[type=file]'))node.hidden=true;
