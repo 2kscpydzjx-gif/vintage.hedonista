@@ -406,11 +406,30 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   if(!isCapsules){const note=document.createElement('p');note.className='cms96-help';note.textContent='Готові шаблони: «Hero на всю ширину» (1920 × 900 px) та «Три фото» (1600 × 1200 + 900 × 900 + 900 × 900 px) вибираються у полі «ТИП МАКЕТУ» на вкладці «Контент». Підказки під кожним фото змінюються автоматично.';photo.append(note)}
  const title=document.createElement('div');title.className='cms91-caption';title.textContent='МАКЕТ БЛОКУ · виберіть готову композицію';photo.append(title);
  const grid=document.createElement('div');grid.className='cms91-layout-grid';
- const presets=isCapsules?[['right','Фото праворуч','Текст · фото'],['left','Фото ліворуч','Фото · текст'],['stacked','Фото зверху','Фото над текстом']]:[['left','Фото ліворуч','50 / 50'],['right','Фото праворуч','50 / 50'],['square','Квадрат із відступами','1 : 1'],['wide','Акцент на фото','60 / 40'],['framed','Фото з двох боків','Фото · текст · фото']];
+ const presets=[['left','Фото ліворуч','Фото · текст'],['right','Фото праворуч','Текст · фото'],['stacked','Фото зверху','Фото над текстом'],['text-only','Тільки текст','Без фотографії'],['wide','Акцент на фото','65 / 35'],['framed','Два фото','Фото · текст · фото']];
  if(onBlockType){
    presets.push(['gradient-hero','Фото з градієнтом','1920 × 900 · на всю ширину'],['three-photos','Три фото','1600 × 1200 + 2 × 900 × 900']);
   }
-  for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{if(value==='gradient-hero'||value==='three-photos'){onBlockType?.(value==='gradient-hero'?'banner':'gallery');return;}d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?60:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
+  for(const [value,name,hint] of presets){const btn=document.createElement('button');btn.type='button';btn.className='cms91-preset';btn.dataset.preset=value;btn.innerHTML='<span class="cms91-mini cms91-mini-'+value+'"><i></i><b></b></span><strong>'+name+'</strong><small>'+hint+'</small>';btn.onclick=()=>{if(value==='gradient-hero'||value==='three-photos'){onBlockType?.(value==='gradient-hero'?'banner':'gallery');return;}d.photoPreset=value;d.layout=value==='stacked'?'stacked':value==='right'?'photo-right':'photo-left';d.photoRatio=value==='square'?'1/1':'auto';d.photoWidth=value==='wide'?65:50;d.photoInset=value==='square'?28:0;update();commit()};grid.append(btn)}photo.append(grid);
+ // Unified compact proportions and height controls for every editable block.
+ const proportion=document.createElement('div');proportion.className='vh-design-proportions';
+ const proportionTitle=document.createElement('h4');proportionTitle.textContent='ПРОПОРЦІЇ ТА ВИСОТА';proportion.append(proportionTitle);
+ const addDimension=(key,caption,min,max,step,fallback,unit)=>{
+  const row=document.createElement('label');row.className='vh-design-dimension';
+  const name=document.createElement('span');name.textContent=caption;
+  const range=document.createElement('input');range.type='range';range.min=min;range.max=max;range.step=step;range.value=d[key]??fallback;
+  const output=document.createElement('output');output.textContent=range.value+unit;
+  range.oninput=()=>{d[key]=Number(range.value);output.textContent=range.value+unit;commit()};
+  row.append(name,range,output);proportion.append(row);return {range,output};
+ };
+ const widthControl=addDimension('photoWidth','Фото / текст',25,75,5,50,'%');
+ addDimension('minHeight','Мінімальна висота',120,900,20,320,' px');
+ const ratioHints=document.createElement('div');ratioHints.className='vh-design-ratios';
+ for(const [ratio,name] of [[35,'35 / 65'],[50,'50 / 50'],[65,'65 / 35']]){
+  const btn=document.createElement('button');btn.type='button';btn.textContent=name;btn.onclick=()=>{d.photoWidth=ratio;widthControl.range.value=ratio;widthControl.output.textContent=ratio+'%';commit()};ratioHints.append(btn)
+ }
+ proportion.append(ratioHints);
+ photo.append(proportion);
  if(isCapsules){const row=document.createElement('label');row.className='cms96-slider';row.textContent='ШИРИНА ФОТО · %';const range=document.createElement('input');range.type='range';range.min='25';range.max='75';range.step='5';range.value=d.photoWidth??50;const output=document.createElement('output');output.textContent=range.value+'%';range.oninput=()=>{d.photoWidth=Number(range.value);output.textContent=range.value+'%';commit()};row.append(range,output);photo.append(row)}
  if(!onBlockType){
  if(!document.getElementById('vh-gradient-tile-css')){const st=document.createElement('style');st.id='vh-gradient-tile-css';st.textContent='.cms91-mini-gradient-hero{display:block!important;position:relative!important;overflow:hidden!important;background:linear-gradient(90deg,#1b120e 0%,#3d281d 36%,#916b50 76%,#b89577 100%)!important}.cms91-mini-gradient-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72),transparent 80%)}.cms91-mini-gradient-hero i{position:absolute!important;left:12%!important;top:30%!important;width:32%!important;height:9%!important;background:#f2e5d5!important;z-index:1!important}.cms91-mini-gradient-hero b{position:absolute!important;left:12%!important;top:48%!important;width:23%!important;height:5%!important;background:#d5bd9d!important;z-index:1!important}';document.head.append(st)}
