@@ -154,3 +154,13 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #existingEditor .cms129-device-crop .cms129-tabs,#editorFields .cms129-device-crop .cms129-tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;margin-bottom:8px!important}
 #existingEditor .cms129-device-crop .cms129-tabs button,#editorFields .cms129-device-crop .cms129-tabs button{min-width:0!important;width:100%!important;padding:7px 3px!important;font-size:11px!important}
 #existingEditor .cms96-slots{display:none!important}
+
+/* One scrollbar for page content: the iframe scrolls; the editor preview shell does not. */
+@media(min-width:1000px){
+ body>main>.layout>.preview,
+ body>main>.layout>.preview .live-preview-frame,
+ body>main>.layout>.preview #desktopViewport{overflow:hidden!important;overscroll-behavior:contain!important}
+ body>main>.layout>.preview #siteFrame{overflow:auto!important;overscroll-behavior:contain!important}
+}
+#existingEditor>.vh-delete-block,#editorFields>.vh-delete-block{display:block!important;width:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important;box-sizing:border-box!important;margin:8px auto 28px!important;padding:12px!important;border:1px solid #a76b63!important;color:#f0c3b8!important;background:#2b1a19!important;border-radius:5px!important;cursor:pointer}
+#existingEditor>.vh-delete-block:hover,#editorFields>.vh-delete-block:hover{background:#51302a!important}
