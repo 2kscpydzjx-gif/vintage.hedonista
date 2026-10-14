@@ -116,3 +116,22 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 }
 #existingEditor>button.secondary{display:block!important;width:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important;margin:12px auto 30px!important;min-height:40px!important;position:relative!important;z-index:2!important}
 #existingEditor .vh-cms-button-entry input[type=number]{min-height:37px!important;width:100%!important}
+
+/* Unified design inspector v9: compact, aligned and scroll-safe. */
+#existingEditor .cms91-design,#editorFields .cms91-design{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.cms91-design .cms94-design-section{min-width:0;max-width:100%;box-sizing:border-box;padding:12px!important;margin:0 0 10px!important;overflow:visible}
+.cms91-design .cms91-layout-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;width:100%;min-width:0}
+.cms91-design .cms91-preset{width:100%;min-width:0;box-sizing:border-box;padding:9px!important;text-align:left}
+.cms91-design .cms91-preset strong,.cms91-design .cms91-preset small{overflow-wrap:anywhere}
+.cms91-design .cms91-field,.cms91-design .cms96-slider,.cms91-design .cms92-margin{min-width:0;max-width:100%;box-sizing:border-box}
+.cms91-design input[type=range]{min-width:0;max-width:100%;width:100%}
+.cms91-design select{max-width:100%;width:100%;box-sizing:border-box}
+.cms91-design .cms129-device-crop,.cms91-design .cms132-stage,.cms91-design .cms96-slots{max-width:100%;min-width:0;box-sizing:border-box}
+.cms91-design .cms132-stage{overflow:hidden}
+.vh-design-proportions{padding:12px 0;border-top:1px solid #5d4737;border-bottom:1px solid #5d4737;margin:12px 0}
+.vh-design-proportions h4{font-size:11px;letter-spacing:.12em;color:#dfb78d;margin:0 0 12px}
+.vh-design-dimension{display:grid;grid-template-columns:minmax(0,90px) minmax(0,1fr) 49px;align-items:center;gap:8px;margin:10px 0;font-size:11px}
+.vh-design-dimension output{text-align:right;font-variant-numeric:tabular-nums;color:#d5af86;white-space:nowrap}
+.vh-design-ratios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.vh-design-ratios button{min-width:0;padding:8px 3px;border:1px solid #755741;border-radius:5px;background:#30231b;color:#f1e4d4;cursor:pointer;font-size:11px}
+.vh-design-ratios button:hover{background:#614632}
