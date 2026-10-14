@@ -260,7 +260,12 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  }
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
- cmsApplyExistingLayout(el,d,readExisting()?.[selectedExisting]?.templateImage);
+ const currentTarget=sectionTargets.find(t=>t.el===el);
+ const currentDraft=currentTarget?readExisting()?.[currentTarget.id]:null;
+ const hasMappedPhoto=cmsFieldsFor(el).some(field=>field.type==='image');
+ // Native hero and mapped image sections must never lose their actual media to an old gradient preset.
+ if(!hasMappedPhoto&&!el.matches('.hero'))cmsApplyExistingLayout(el,d,currentDraft?.templateImage);
+ else {el.classList.remove('vh-existing-gradient-hero','vh-existing-two-photo');el.querySelector(':scope > .vh-cms-gradient-layer')?.remove()}
  if(d.backgroundMode){el.style.setProperty('background-color',d.backgroundMode==='transparent'?'transparent':'#0d0c09','important')}
  if(d.textTone){el.style.setProperty('color',({light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'})[d.textTone]||'#f2e5d5','important')}
  if(el.matches('.homepage-capsules')){
