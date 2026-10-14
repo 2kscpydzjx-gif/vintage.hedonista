@@ -315,10 +315,14 @@ if(!d.backgroundMode&&d.background)el.style.setProperty('background-color',d.bac
  } }
  }
  if(el.classList.contains('vh-lab-card')||el.classList.contains('preview-card')){
- el.style.display=layout==='stacked'?'flex':'grid';
+ const onlyText=d.photoPreset==='text-only';
+ const width=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
+ el.style.display=layout==='stacked'||onlyText?'flex':'grid';
  el.style.flexDirection=layout==='stacked'?'column':'';
- el.style.gridTemplateColumns=layout==='stacked'?'1fr':d.photoPreset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':'1fr 1fr';
+ el.style.gridTemplateColumns=layout==='stacked'||onlyText?'1fr':d.photoPreset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':`${width}% ${100-width}%`;
  const photo=el.querySelector('.vh-lab-photo,.photo'),copy=el.querySelector('.vh-lab-copy,.copy');
+ if(photo)photo.style.display=onlyText?'none':'';
+ if(copy&&onlyText){copy.style.width='100%';copy.style.flex='1'}
  if(photo)photo.style.order=layout==='photo-right'?'2':'0';
  if(copy)copy.style.order=layout==='photo-right'?'1':'1';
  }
