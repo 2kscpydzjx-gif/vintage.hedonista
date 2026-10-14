@@ -73,6 +73,8 @@ function polishMediaFields(editor){
    This is presentation only: the native CMS input remains the source of truth. */
 function studioImageFromSection(section){
  if(!section)return '';
+ const hero=section.querySelector('#heroMain,#heroSide1,#heroSide2');
+ if(hero){const css=hero.ownerDocument.defaultView.getComputedStyle(hero).backgroundImage;const m=css.match(/url\(["']?(.*?)["']?\)/);if(m?.[1])return m[1]}
  const image=section.querySelector('img[src],img[data-src]');
  if(image){const src=image.currentSrc||image.src||image.getAttribute('data-src');if(src)return src}
  const nodes=[section,...section.querySelectorAll('*')].slice(0,120);
@@ -359,7 +361,7 @@ function decorateRows(){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
   }
   const thumb=row.querySelector('.studio-thumb'),section=sections[i];if(!thumb||!section)return;
-  const image=section.querySelector('img[src],img[data-src]');const bgElement=[section,...section.querySelectorAll('*')].slice(0,45).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
+  const hero=section.querySelector('#heroMain');const image=hero?null:section.querySelector('img[src],img[data-src]');const bgElement=hero||[section,...section.querySelectorAll('*')].slice(0,45).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
   const url=image?.currentSrc||image?.src||((bgElement&&getComputedStyle(bgElement).backgroundImage.match(/url\(["']?(.*?)["']?\)/))||[])[1];
   if(url)thumb.style.backgroundImage='url('+JSON.stringify(url)+')';
   else thumb.style.backgroundImage='linear-gradient(140deg,#5e4a3a,#241a15)';
