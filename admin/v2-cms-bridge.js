@@ -72,6 +72,54 @@ function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTARE
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;active=i;b.click();setTimeout(sync,90);}
 function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+/* Synchronize draft changes from the native CMS preview into the visible V2 preview.
+ * Keep the visible iframe stable; never reload it on text or image edits.
+ * Existing page sections are matched by their structural position because CMS
+ * identifiers are stored on list rows, not on the original site elements.
+ */
+let nativePreviewObserver=null, nativePreviewTimer=null, nativePreviewDocument=null;
+function syncVisibleDraft(){
+ const native=d?.getElementById('siteFrame')?.contentDocument;
+ const visible=previewFrame?.contentDocument;
+ if(!native?.body||!visible?.body||native.location.pathname!==visible.location.pathname)return;
+ const nativeSections=previewSectionsForThumbs();
+ const visibleMain=visible.querySelector('main')||visible.body;
+ let visibleSections=[...visibleMain.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ if(nativeSections.length!==visibleSections.length){
+  // Do not destructively rewrite the public page if its structure differs.
+  // A delayed site script may still be initializing.
+  return;
+ }
+ nativeSections.forEach((source,i)=>{
+  const target=visibleSections[i];
+  if(!target||source.tagName!==target.tagName)return;
+  const html=source.outerHTML;
+  if(target.outerHTML===html)return;
+  // Preserve the existing node and its event handlers wherever possible.
+  // Replace only its attributes and markup, not the entire iframe.
+  [...target.attributes].forEach(a=>{if(!source.hasAttribute(a.name))target.removeAttribute(a.name)});
+  [...source.attributes].forEach(a=>target.setAttribute(a.name,a.value));
+  if(target.innerHTML!==source.innerHTML)target.innerHTML=source.innerHTML;
+ });
+ for(const id of ['vh-cms-step66-styles','vh-cms-injected-style']){
+  const source=native.getElementById(id),target=visible.getElementById(id);
+  if(source){if(!target)visible.head.append(source.cloneNode(true));else if(target.textContent!==source.textContent)target.textContent=source.textContent;}
+  else target?.remove();
+ }
+ updateSelection();
+}
+function watchNativePreview(){
+ const doc=d?.getElementById('siteFrame')?.contentDocument;
+ if(!doc?.body||doc===nativePreviewDocument)return;
+ nativePreviewObserver?.disconnect();
+ nativePreviewDocument=doc;
+ nativePreviewObserver=new MutationObserver(()=>{
+  clearTimeout(nativePreviewTimer);
+  nativePreviewTimer=setTimeout(syncVisibleDraft,100);
+ });
+ nativePreviewObserver.observe(doc.body,{subtree:true,childList:true,attributes:true,characterData:true});
+ syncVisibleDraft();
+}
 function previewSectionsForThumbs(){
  try{
   const frame=d?.getElementById('siteFrame');
@@ -178,13 +226,14 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   if(existingImage)existingImage.remove();
   canvas.prepend(mirror);
   previewFrame=mirror;
-  mirror.addEventListener('load',()=>{updateSelection();sync();});
+  mirror.addEventListener('load',()=>{watchNativePreview();syncVisibleDraft();updateSelection();sync();});
   canvas.style.padding='0';
   const updateMirror=()=>{
    const src=nativeFrame.getAttribute('src');
    if(src&&mirror.getAttribute('src')!==src)mirror.setAttribute('src',src);
   };
-  new MutationObserver(updateMirror).observe(nativeFrame,{attributes:true,attributeFilter:['src']});
+  new MutationObserver(()=>{updateMirror();nativePreviewDocument=null;watchNativePreview();}).observe(nativeFrame,{attributes:true,attributeFilter:['src']});
+  nativeFrame.addEventListener('load',()=>{nativePreviewDocument=null;watchNativePreview();});
   updateMirror();
   // Native page updates are rendered inside its own frame; V2 mirrors the URL.
   // Preserve selection overlay so inspector updates cannot throw on null.
