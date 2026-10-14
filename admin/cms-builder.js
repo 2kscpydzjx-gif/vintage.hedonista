@@ -744,6 +744,29 @@ function cmsFieldsFor(section){
  return result;
 }
 function cmsApplyMapped(section,mapped){
+ // A single uploaded HERO image replaces the entire old three-slot collage in preview.
+ if(pageId==='home'&&section.matches('.hero')&&Object.prototype.hasOwnProperty.call(mapped,'static:#heroMain:0')){
+  const url=mapped['static:#heroMain:0'];
+  const main=section.querySelector('#heroMain');
+  const media=section.querySelector('.hero-media');
+  const stack=section.querySelector('.hero-stack');
+  if(main&&media){
+   if(url&&url!=='__removed__'){
+    media.style.setProperty('display','block','important');
+    media.style.setProperty('grid-template-columns','1fr','important');
+    main.style.setProperty('display','block','important');
+    main.style.setProperty('width','100%','important');
+    main.style.setProperty('height','100%','important');
+    main.style.setProperty('background-image','url('+JSON.stringify(url)+')','important');
+    main.style.setProperty('background-size','cover','important');
+    main.style.setProperty('background-position','center','important');
+    if(stack)stack.style.setProperty('display','none','important');
+   }else if(url==='__removed__'){
+    main.style.setProperty('background-image','none','important');
+    if(stack)stack.style.setProperty('display','none','important');
+   }
+  }
+ }
  for(const f of cmsFieldsFor(section)){
   if(!(f.id in mapped))continue;
   const value=mapped[f.id];
