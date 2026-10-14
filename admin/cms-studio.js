@@ -369,7 +369,7 @@ function decorateRows(){
    const thumb=document.createElement('span');thumb.className='studio-thumb';thumb.setAttribute('aria-hidden','true');row.querySelector('.existing-select')?.prepend(thumb);
   }
   const thumb=row.querySelector('.studio-thumb'),section=currentSection;if(!thumb||!section)return;
-  const hero=section.querySelector('#heroMain');const image=hero?null:section.querySelector('img[src],img[data-src]');const bgElement=hero||[section,...section.querySelectorAll('*')].slice(0,45).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
+  const hero=section.querySelector('#heroMain');const image=hero?null:section.querySelector('img[src],img[data-src]');const bgElement=(hero&&getComputedStyle(hero).backgroundImage.includes('url(')?hero:null)||[section,...section.querySelectorAll('*')].slice(0,90).find(el=>getComputedStyle(el).backgroundImage.includes('url('));
   const url=image?.currentSrc||image?.src||((bgElement&&getComputedStyle(bgElement).backgroundImage.match(/url\(["']?(.*?)["']?\)/))||[])[1];
   if(url)thumb.style.backgroundImage='url('+JSON.stringify(url)+')';
   else thumb.style.backgroundImage='linear-gradient(140deg,#5e4a3a,#241a15)';
