@@ -1067,11 +1067,13 @@ function watchPreviewDom(doc){
     !target.closest?.('#vh-cms-injected');
   });
   if(!external)return;
+  // Product sliders and delayed site scripts can mutate continuously; avoid repeated full repaints.
   clearTimeout(previewReconcileTimer);
   const epoch=previewEpoch;
-  previewReconcileTimer=setTimeout(()=>{if(epoch===previewEpoch)updateLivePreview()},120);
+  previewReconcileTimer=setTimeout(()=>{if(epoch===previewEpoch)updateLivePreview()},900);
  });
- previewObserver.observe(doc.body,{subtree:true,childList:true,characterData:true});
+ // Observe structural changes only: text updates and editor styling must not trigger full preview reconciliation.
+ previewObserver.observe(doc.body,{subtree:true,childList:true});
 }
 function updateLivePreview(){
  disconnectPreviewObserver();
