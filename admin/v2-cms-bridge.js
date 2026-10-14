@@ -11,6 +11,15 @@ engine.style.cssText='position:fixed;left:-200vw;top:0;width:1400px;height:900px
 document.body.append(engine);
 let d=null,active=-1,rows=[],connected=false,syncing=false;
 let previewFrame=null,previewScale=1;
+function visiblePreviewSections(){
+ const doc=previewFrame?.contentDocument;
+ if(!doc?.body)return [];
+ const main=doc.querySelector('main')||doc.body;
+ const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+ let sections=page.includes('головн')?[...doc.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...main.children].filter(el=>el.tagName==='SECTION'):[...main.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ if(sections.length<2){const nested=[...main.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);sections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));}
+ return sections.slice(0,35);
+}
 function updateSelection(){
  const selection=document.querySelector('#canvas .selection');
  if(!selection||!previewFrame)return;
@@ -19,7 +28,7 @@ function updateSelection(){
  const id=rows[active]?.dataset.cmsId;
  // Existing section IDs are assigned by the native CMS. Only draw if we can
  // identify the actual element; never invent a percentage-based rectangle.
- const target=id?doc.getElementById(id):null;
+ const target=(id&&doc.getElementById(id))||visiblePreviewSections()[active]||null;
  if(!target){selection.style.display='none';return;}
  const rect=target.getBoundingClientRect();
  const frameRect=previewFrame.getBoundingClientRect();
