@@ -1214,7 +1214,21 @@ function installPreviewLinks(doc){
   }
  },true);
 }
-frame.addEventListener('load',()=>{try{installPreviewLinks(frame.contentDocument);applySharedPreview(frame.contentDocument);detectSections(frame.contentDocument);reconcileAfterFrameLoad()}catch(e){$('status').textContent='Не вдалося відкрити перегляд: '+e.message}});
+frame.addEventListener('load',()=>{
+ const doc=frame.contentDocument;
+ const loadedPage=pageId;
+ const start=()=>{
+  if(pageId!==loadedPage||frame.contentDocument!==doc)return;
+  try{installPreviewLinks(doc);applySharedPreview(doc);detectSections(doc);reconcileAfterFrameLoad()}
+  catch(e){$('status').textContent='Не вдалося відкрити перегляд: '+e.message}
+ };
+ if(loadedPage==='about'&&!doc.defaultView?.__VH_PUBLISHED_READY){
+  let done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(fallback);start()};
+  doc.defaultView.addEventListener('vh:published-ready',finish,{once:true});
+  const fallback=setTimeout(finish,9000);
+ }else start();
+});
 $('insertAfter').addEventListener('change',updateLivePreview);$('reloadSite').onclick=()=>{frame.src=frame.src};
 function changed(){persist();render()}function render(){renderPages();renderList();renderExistingList();renderEditor();renderPreview()}
 $('add').onclick=()=>{const type='editorial';const b={id:'demo-'+Date.now(),type,title:({editorial:'Новий Editorial',banner:'Новий банер',text:'Новий текстовий блок',gallery:'Нова галерея'})[type],body:'<p>Відредагуйте текст цього блоку.</p>',image:'',images:{},design:{photoPreset:'left',backgroundMode:'dark',textTone:'light',spacing:'normal'},animation:'system',duration:650,visible:true};blocks.push(b);saveOrder([...mergedOrder().filter(id=>id!==b.id),b.id]);selected=b.id;changed()};$('save').onclick=async()=>{const button=$('save');button.disabled=true;try{await saveCloudDraft()}catch(e){$('status').textContent='Помилка збереження: '+e.message}finally{button.disabled=false}};$('publish').onclick=async()=>{const b=$('publish');b.disabled=true;try{await publishCloudPage()}catch(e){$('status').textContent='Помилка публікації: '+e.message}finally{b.disabled=false}};$('reset').onclick=()=>{if(confirm('Скинути локальну чернетку? Збережена в Supabase версія залишиться без змін.')){localStorage.removeItem(orderKey());localStorage.removeItem(existingKey());blocks=pageId==='home'?structuredClone(defaults):[];selected=blocks[0]?.id||null;changed()}};render();
