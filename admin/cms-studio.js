@@ -125,6 +125,10 @@ function compactContentPanel(editor){
    thumb.querySelectorAll('.cms-photo-x').forEach(el=>el.classList.add('vh-hidden-original-remove'));
    field.querySelectorAll('.studio-replace-image').forEach(el=>el.hidden=true);
   }
+  const media=[...panel.children].filter(el=>el.classList.contains('vh-compact-media'));
+  const other=[...panel.children].filter(el=>!media.includes(el));
+  const first=other[0];
+  if(first)for(const el of media)if(el.compareDocumentPosition(first)&Node.DOCUMENT_POSITION_PRECEDING)panel.insertBefore(el,first);
   for(const field of panel.querySelectorAll('.field')){
    if(field.classList.contains('vh-compact-media'))continue;
    const label=field.querySelector(':scope > label');
