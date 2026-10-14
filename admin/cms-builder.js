@@ -858,6 +858,7 @@ function cmsRenderMappedEditor(host,target,draft){
   const all=readExisting(),d={...(all[target.id]||{})};
   d.mapped={...(d.mapped||{}),[id]:value};all[target.id]=d;saveExisting(all);
   cmsApplyMapped(target.el,d.mapped);
+  if(d.design&&target.el.matches('.hero'))applyBlockDesign(target.el,d.design);
   $('status').textContent='Чернетку збережено локально · не опубліковано';
  };
  for(const f of fields){
