@@ -84,7 +84,10 @@ function syncVisibleDraft(){
  if(!native?.body||!visible?.body||native.location.pathname!==visible.location.pathname)return;
  const nativeSections=previewSectionsForThumbs();
  const visibleMain=visible.querySelector('main')||visible.body;
- let visibleSections=[...visibleMain.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ const page=d?.getElementById('studioPage')?.selectedOptions?.[0]?.textContent?.toLowerCase()||'';
+ let visibleSections=page.includes('головн')?[...visible.body.children].filter(el=>el.tagName==='SECTION'):page.includes('про нас')?[...visibleMain.children].filter(el=>el.tagName==='SECTION'):[...visibleMain.children].filter(el=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(el.tagName)&&el.getBoundingClientRect().height>50);
+ if(visibleSections.length<2){const nested=[...visibleMain.querySelectorAll('section')].filter(el=>el.getBoundingClientRect().height>50);visibleSections=nested.filter(el=>!nested.some(parent=>parent!==el&&parent.contains(el)));}
+ visibleSections=visibleSections.slice(0,35);
  if(nativeSections.length!==visibleSections.length){
   // Do not destructively rewrite the public page if its structure differs.
   // A delayed site script may still be initializing.
