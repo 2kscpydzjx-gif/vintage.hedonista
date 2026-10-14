@@ -93,16 +93,26 @@ function syncVisibleDraft(){
   // A delayed site script may still be initializing.
   return;
  }
+ // Only synchronize existing element/text nodes. Replacing innerHTML destroys
+ // listeners attached by the public site's scripts (carousels, navigation, etc.).
+ const syncNode=(source,target)=>{
+  if(source.nodeType!==target.nodeType)return;
+  if(source.nodeType===3){if(target.nodeValue!==source.nodeValue)target.nodeValue=source.nodeValue;return;}
+  if(source.nodeType!==1||['SCRIPT','IFRAME','VIDEO','CANVAS'].includes(source.tagName)||source.tagName!==target.tagName)return;
+  for(const attr of [...target.attributes]){
+   if(!source.hasAttribute(attr.name)&&!/^on/i.test(attr.name))target.removeAttribute(attr.name);
+  }
+  for(const attr of source.attributes){
+   if(/^on/i.test(attr.name))continue;
+   if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
+  }
+  const a=[...source.childNodes],b=[...target.childNodes];
+  if(a.length!==b.length)return;
+  for(let j=0;j<a.length;j++)syncNode(a[j],b[j]);
+ };
  nativeSections.forEach((source,i)=>{
   const target=visibleSections[i];
-  if(!target||source.tagName!==target.tagName)return;
-  const html=source.outerHTML;
-  if(target.outerHTML===html)return;
-  // Preserve the existing node and its event handlers wherever possible.
-  // Replace only its attributes and markup, not the entire iframe.
-  [...target.attributes].forEach(a=>{if(!source.hasAttribute(a.name))target.removeAttribute(a.name)});
-  [...source.attributes].forEach(a=>target.setAttribute(a.name,a.value));
-  if(target.innerHTML!==source.innerHTML)target.innerHTML=source.innerHTML;
+  if(target)syncNode(source,target);
  });
  for(const id of ['vh-cms-step66-styles','vh-cms-injected-style']){
   const source=native.getElementById(id),target=visible.getElementById(id);
