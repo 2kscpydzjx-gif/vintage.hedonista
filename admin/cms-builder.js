@@ -666,8 +666,9 @@ function renderExistingList(){if(pageId==='shared')return;
 }
 // STEP69: Explicit DOM field mappings for the three informational pages.
 // Field IDs are taken from the actual frontend, not guessed from the first heading/paragraph.
-const cmsMappedPages=new Set(['about','delivery','contacts','catalog','capsules','journal','product','article','account','checkout']);
+const cmsMappedPages=new Set(['home','about','delivery','contacts','catalog','capsules','journal','product','article','account','checkout']);
 const cmsStaticSelectors={
+ home:['#heroEyebrow','#heroTitle','#heroDescription','#heroMain','#heroSide1','#heroSide2','#heroCatalogBtn','#heroAboutBtn'],
  catalog:['.catalog-heading .kicker','.catalog-heading .page-title','.catalog-intro-label','.catalog-intro'],
  capsules:['.capsule-hero-copy .capsule-kicker','.capsule-hero-copy h1','.capsule-hero-copy h2','.capsule-hero-copy p','.capsule-hero-photo','.capsule-intro-grid h2','.capsule-intro-grid p'],
  journal:['#journalPageTitle','#journalPageSubtitle','#journalNewTitle','#journalGuideTitle','#journalGuideSubtitle','#journalOtherTitle','#journalCtaTitle','#journalCtaText','#journalCtaLink'],
@@ -690,7 +691,7 @@ function cmsFieldsFor(section){
   for(const el of section.querySelectorAll(selector)){
    // Do not expose controls, dynamic collections, checkout fields, or Supabase records.
    const id='static:'+selector+':'+[...section.querySelectorAll(selector)].indexOf(el);
-   const type=el.matches('.capsule-hero-photo')?'image':el.tagName==='A'?'link':'text';
+   const type=el.matches('.capsule-hero-photo,#heroMain,#heroSide1,#heroSide2')?'image':el.tagName==='A'?'link':'text';
    staticFields.push({el,id,type});
   }
  }
@@ -701,8 +702,8 @@ function cmsApplyMapped(section,mapped){
   if(!(f.id in mapped))continue;
   const value=mapped[f.id];
   if(f.type==='image'){
-   if(value==='__removed__'){f.el.style.backgroundImage='none';f.el.classList.remove('loaded');f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}
-   else if(value){f.el.style.backgroundImage='url('+JSON.stringify(value)+')';f.el.style.backgroundSize='cover';f.el.style.backgroundPosition='center';f.el.querySelectorAll('img').forEach(img=>img.style.display='none');f.el.classList.add('loaded')}
+   if(value==='__removed__'){f.el.style.setProperty('background-image','none','important');f.el.classList.remove('loaded');f.el.querySelectorAll('img').forEach(img=>img.style.display='none')}
+   else if(value){f.el.style.setProperty('background-image','url('+JSON.stringify(value)+')','important');f.el.style.backgroundSize='cover';f.el.style.backgroundPosition='center';f.el.querySelectorAll('img').forEach(img=>img.style.display='none');f.el.classList.add('loaded')}
   }else if(f.type==='link'){if(typeof value==='string'&&/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(value))f.el.setAttribute('href',value)}
   else if(typeof value==='string')f.el.innerHTML=clean(value);
  }
