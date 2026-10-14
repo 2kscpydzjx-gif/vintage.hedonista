@@ -61,7 +61,7 @@ function labeled(re){const scope=root();if(!scope)return null;for(const label of
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;b.click();active=i;setTimeout(sync,90);}
-function thumbnail(row){let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+function thumbnail(row){if(!row)return '';let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
 function previewSectionsForThumbs(){
  try{
   const frame=d?.getElementById('siteFrame');
@@ -147,7 +147,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
   if(existingImage)existingImage.remove();
   canvas.prepend(mirror);
   previewFrame=mirror;
-  mirror.addEventListener('load',()=>{updateSelection();});
+  mirror.addEventListener('load',()=>{updateSelection();sync();});
   canvas.style.padding='0';
   const updateMirror=()=>{
    const src=nativeFrame.getAttribute('src');
