@@ -61,7 +61,7 @@ function labeled(re){const scope=root();if(!scope)return null;for(const label of
 function setNative(el,value){if(!el)return false;let proto=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;let setter=Object.getOwnPropertyDescriptor(proto,'value')?.set;if(setter)setter.call(el,value);else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true;}
 function currentRows(){return [...d.querySelectorAll('#existingBlocks .existing-row')];}
 function nativeSelect(i){let b=rows[i]?.querySelector('.existing-select');if(!b)return;b.click();active=i;setTimeout(sync,90);}
-function thumbnail(row){let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-row-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
+function thumbnail(row){let b=row.querySelector('.existing-select');let img=b?.querySelector('img');if(img?.src)return img.src;let thumb=b?.querySelector('.studio-thumb');if(thumb?.style.backgroundImage){let m=thumb.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/);if(m)return m[1]}return ''}
 function titleOf(row){let b=row.querySelector('.existing-select');return b?.querySelector('.studio-row-name')?.textContent.trim()||b?.textContent.trim().replace(/^\d+\s*[·.]?\s*/,'')||'Блок'}
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
@@ -84,8 +84,8 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  refreshRich();
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
  const inspector=root();
-  const photo=inspector?.querySelector('.photo-field img,.cms-thumb-box img');
-  const imageUrl=photo?.currentSrc||photo?.src||thumbnail(selected);
+  const photo=inspector?.querySelector('.studio-source-preview,.photo-field img,.cms-thumb-box img');
+  const imageUrl=thumbnail(selected)||photo?.currentSrc||photo?.src;
   const photoPreview=$('photo');
   if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
   else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
