@@ -1,0 +1,24 @@
+/* Single native CMS visual skin. All existing controls remain native and functional. */
+:root{--bg:#171310;--panel:#201a16;--line:#342b25;--gold:#c9a784;--text:#eee9e3;--muted:#a49b91}
+body{background:#171310!important;color:#eee9e3!important;font-family:Arial,Helvetica,sans-serif!important}
+.sidebar{background:#171310!important;border-right:1px solid #342b25!important}
+.brand{font-family:Georgia,serif!important;color:#f4e8dc!important}
+body>main{background:#171310!important}
+.editor{background:#201a16!important;border-color:#342b25!important}
+.preview{background:#171310!important}
+.studio-inspector-head,.studio-inspector-tabs,.studio-list-title,.studio-pages-heading{background:#201a16!important;color:#eee9e3!important;border-color:#342b25!important}
+.studio-inspector-tabs button{background:transparent!important;color:#a49b91!important}
+.studio-inspector-tabs button.active{color:#eee9e3!important;border-bottom:2px solid #c9a784!important}
+.existing-row,.cms-sort-row{background:#241e19!important;border:1px solid #3a3028!important;border-radius:5px!important;margin:5px 0!important}
+.existing-select{color:#eee9e3!important;background:transparent!important}
+.existing-select.active{background:#3b2e24!important;color:#f2d4b5!important}
+input,textarea,select{background:#28211c!important;border:1px solid #554638!important;color:#f5ece4!important;border-radius:4px!important}
+button{border-radius:4px}
+button:not(.secondary):not(.existing-select):not(.studio-icon-button){background:#d2b08f;color:#211915;border-color:#d2b08f}
+button.secondary{background:#28211c!important;color:#eee9e3!important;border-color:#554638!important}
+#publish{background:#d2b08f!important;color:#211915!important;border:1px solid #d2b08f!important}
+#realEditorLink{display:none!important}
+#pageSeoPanel{background:#241e19!important;color:#eee9e3!important;border-color:#554638!important}
+#pageSeoPanel p{color:#a49b91!important}
+.live-preview-frame{background:#171310!important}
+#siteFrame{background:white}
