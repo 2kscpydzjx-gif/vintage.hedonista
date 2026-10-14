@@ -93,7 +93,7 @@ function titleOf(row){let b=row.querySelector('.existing-select');return b?.quer
 function sync(){if(!connected||syncing)return;syncing=true;try{
  rows=currentRows();let index=rows.findIndex(r=>r.querySelector('.existing-select.active'));if(index>=0)active=index;else if(active<0)active=0;
  const sections=previewSectionsForThumbs();
- const list=$('blocklist');list.replaceChildren();rows.forEach((row,i)=>{
+ const list=$('blocklist');if(!document.querySelector('[data-tab="blocks"].active'))return;list.replaceChildren();rows.forEach((row,i)=>{
   let el=document.createElement('button');el.className='block'+(i===active?' active':'');
   let num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
   let img=document.createElement('img');img.className='thumb';img.alt='';const url=sectionPhoto(sections[i])||thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
@@ -322,5 +322,40 @@ document.querySelectorAll('[data-device]').forEach(btn=>btn.addEventListener('cl
  applyDevice(btn.dataset.device);
  d?.querySelector('[data-studio-device="'+btn.dataset.device+'"]')?.click();
 }));
-document.querySelectorAll('[data-rtab]').forEach(btn=>btn.addEventListener('click',()=>{d?.querySelector('[data-inspector-tab="'+btn.dataset.rtab+'"]')?.click()},true));
+// Local V2 tabs must switch the visible panels even when native CMS tabs differ.
+document.querySelectorAll('[data-rtab]').forEach(btn=>btn.addEventListener('click',()=>{
+ const tab=btn.dataset.rtab;
+ document.querySelectorAll('[data-rtab]').forEach(el=>el.classList.toggle('active',el===btn));
+ for(const name of ['content','design','animation'])$(name)?.classList.toggle('hidden',name!==tab);
+ d?.querySelector('[data-inspector-tab="'+tab+'"]')?.click();
+}));
+const leftList=$('blocklist');
+const leftHead=$('sidehead');
+const addWrap=$('add')?.parentElement;
+document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+ const tab=btn.dataset.tab;
+ document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el===btn));
+ leftList.replaceChildren();
+ if(tab==='blocks'){leftHead.textContent='СТРУКТУРА СТОРІНКИ';addWrap.hidden=false;sync();return;}
+ addWrap.hidden=true;
+ if(tab==='pages'){
+  leftHead.textContent='СТОРІНКИ САЙТУ';
+  [...$('page').options].forEach(option=>{
+   const item=document.createElement('button');
+   item.className='block'+(option.value===$('page').value?' active':'');
+   item.textContent=option.textContent;
+   item.addEventListener('click',()=>{$('page').value=option.value;$('page').dispatchEvent(new Event('change',{bubbles:true}));});
+   leftList.append(item);
+  });
+ }else{
+  leftHead.textContent='СТИЛІ СТОРІНКИ';
+  const item=document.createElement('button');item.className='block';
+  item.textContent='Налаштування дизайну вибраного блоку';
+  item.addEventListener('click',()=>document.querySelector('[data-rtab="design"]')?.click());
+  leftList.append(item);
+ }
+}));
+const originalSync=sync;
+// Do not overwrite the Pages/Styles sidebar with the block list during CMS refresh.
+
 })();
