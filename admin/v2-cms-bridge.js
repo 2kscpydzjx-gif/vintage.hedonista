@@ -83,8 +83,12 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  }
  refreshRich();
  if(document.activeElement!==$('cta'))$('cta').value=inputCta?.value||'';
- const photo=root()?.querySelector('.photo-field img,.cms-thumb-box img,img');
- $('photo').src=photo?.src||thumbnail(selected||rows[0]||document.createElement('div'))||'thumb-1.jpg';
+ const inspector=root();
+  const photo=inspector?.querySelector('.photo-field img,.cms-thumb-box img');
+  const imageUrl=photo?.currentSrc||photo?.src||thumbnail(selected);
+  const photoPreview=$('photo');
+  if(imageUrl){photoPreview.src=imageUrl;photoPreview.style.visibility='visible';}
+  else{photoPreview.removeAttribute('src');photoPreview.style.visibility='hidden';}
  updateSelection();
  }finally{syncing=false}}
 function bind(id,fn){let el=$(id);el.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();fn()},true)}
@@ -138,7 +142,7 @@ engine.addEventListener('load',()=>{let retries=0;const initialize=()=>{try{
  };
  for(const id of ['existingEditor','editorFields']){
   const node=d.getElementById(id);
-  if(node)new MutationObserver(refreshInspector).observe(node,{childList:true,subtree:false,attributes:true,attributeFilter:['hidden']});
+  if(node)new MutationObserver(refreshInspector).observe(node,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','src','style','value']});
  }
  const nativeStatus=d.getElementById('status');
  if(nativeStatus)new MutationObserver(()=>{
