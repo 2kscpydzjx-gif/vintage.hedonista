@@ -23,6 +23,17 @@ const assert = require('node:assert/strict');
  assert.equal(await page.locator('#sidehead').innerText(),'СТОРІНКИ САЙТУ');
  await page.locator('[data-tab="blocks"]').click();
  assert.equal(await page.locator('#sidehead').innerText(),'СТРУКТУРА СТОРІНКИ');
+ // Ensure the approved editor uses the real CMS bridge rather than its reference screenshot.
+ const bridgeLoaded=await page.evaluate(()=>[...document.scripts].some(s=>s.src.includes('v2-cms-bridge.js')));
+ assert.equal(bridgeLoaded,true,'V2 CMS bridge script must load');
+ const engine=page.locator('iframe[title="CMS data engine"]');
+ assert.equal(await engine.count(),1,'Hidden CMS engine must be mounted');
+ const engineDocument=engine.contentFrame();
+ await engineDocument.locator('#existingBlocks').waitFor({timeout:10000});
+ assert.equal(await engineDocument.locator('#siteFrame').count(),1,'Native CMS preview must exist');
+ // Anonymous CI must not accidentally claim that a draft was saved or published.
+ assert.equal(await page.locator('#save').count(),1);
+ assert.equal(await page.locator('#publish').count(),1);
  const critical=errors.filter(x=>/ReferenceError|SyntaxError|TypeError/.test(x));
  assert.deepEqual(critical,[],'Critical browser errors: '+critical.join('; '));
  await browser.close();
