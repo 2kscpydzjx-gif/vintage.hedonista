@@ -68,7 +68,7 @@ function sync(){if(!connected||syncing)return;syncing=true;try{
  const list=$('blocklist');list.replaceChildren();rows.forEach((row,i)=>{
   let el=document.createElement('button');el.className='block'+(i===active?' active':'');
   let num=document.createElement('span');num.className='num';num.textContent=String(i+1).padStart(2,'0');
-  let img=document.createElement('img');img.className='thumb';img.alt='';img.src=thumbnail(row)||'thumb-1.jpg';
+  let img=document.createElement('img');img.className='thumb';img.alt='';const url=thumbnail(row);if(url)img.src=url;else img.style.visibility='hidden';
   let title=document.createElement('span');title.className='blocktitle';title.textContent=titleOf(row);
   let more=document.createElement('span');more.className='more';more.textContent='•••';
   el.append(num,img,title,more);el.onclick=(e)=>{if(e.target===more){const trigger=row.querySelector('.studio-row-menu-trigger');if(trigger)trigger.click();else say('Додаткові дії доступні в CMS');return}nativeSelect(i)};
@@ -172,7 +172,7 @@ function observeOperation(buttonId,action){
 bind('save',()=>observeOperation('save','Збереження'));
 bind('publish',()=>{if(confirm('Опублікувати зміни на сайті?'))observeOperation('publish','Публікація')});
 /* Compact block picker, anchored to the approved Add button; no redesign. */
-const blockTypes=[['editorial','Фото + текст'],['banner','Банер'],['text','Текстовий блок'],['gallery','Галерея']];
+const blockTypes=[['editorial','Фото + текст']];
 const picker=document.createElement('div');
 picker.setAttribute('role','menu');
 picker.setAttribute('aria-label','Тип нового блоку');
@@ -184,7 +184,7 @@ for(const [type,label] of blockTypes){
   picker.style.display='none';
   const native=d?.getElementById('add');
   if(!connected||!native){say('CMS ще не готова до додавання блоку');return;}
-  native.dataset.v2BlockType=type;native.click();setTimeout(sync,160);
+  native.click();setTimeout(sync,160);
  });
  picker.append(item);
 }
