@@ -915,7 +915,11 @@ function applyExistingDrafts(){const data=readExisting();for(const t of sectionT
 const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 const cmsPhotoSlots=new WeakMap();
 function cmsSectionPhotos(section){
- if(cmsPhotoSlots.has(section))return cmsPhotoSlots.get(section);
+ if(cmsPhotoSlots.has(section)){
+  const saved=cmsPhotoSlots.get(section);
+  if(saved.every(p=>p.node===section||section.contains(p.node)))return saved;
+  cmsPhotoSlots.delete(section);
+ }
  const photos=[],nodes=[section,...section.querySelectorAll('*')].slice(0,900);
  const bgURL=s=>String(s||'').match(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/)?.[1]||'';
  for(const node of nodes){
@@ -1115,7 +1119,15 @@ function reconcileAfterFrameLoad(){
  // Apply immediately, then after delayed site initialization (fonts, data, scripts).
  for(const delay of [0,180,600,1500,3200])setTimeout(()=>{
   if(epoch!==previewEpoch || livePage!==pageId)return;
-  try{updateLivePreview()}catch(e){console.warn('Preview reconcile',e)}
+  try{
+   const doc=frame.contentDocument;
+   if(doc?.body&&pageId!=='shared'){
+    // Rebuild the section list only if delayed page scripts replaced its DOM.
+    const stale=!sectionTargets.length||sectionTargets.some(t=>!doc.contains(t.el));
+    if(stale)detectSections(doc);
+   }
+   updateLivePreview();
+  }catch(e){console.warn('Preview reconcile',e)}
  },delay);
 }
 function installPreviewLinks(doc){
