@@ -753,6 +753,8 @@ const cmsSelectorLabels={
  '.capsule-intro-grid p':'КАПСУЛИ · Текст вступу'
 };
 function cmsReadableLabel(f){
+ const homeNames={'#heroEyebrow':'Підпис HERO','#heroTitle':'Заголовок HERO','#heroDescription':'Опис HERO','#heroMain':'Головне фото HERO','#heroSide1':'Друге фото HERO','#heroSide2':'Третє фото HERO'};
+ for(const [id,label] of Object.entries(homeNames))if(f.id==='static:'+id+':0')return label;
  if(cmsLabels[f.id])return cmsLabels[f.id];
  if(f.id.startsWith('static:')){const selector=f.id.slice(7,f.id.lastIndexOf(':'));return cmsSelectorLabels[selector]||'ПОЛЕ СТОРІНКИ · '+selector}
  return f.id.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^(about)/i,'ПРО НАС · ').replace(/^(delivery)/i,'ДОСТАВКА · ').replace(/^(contacts)/i,'КОНТАКТИ · ');
