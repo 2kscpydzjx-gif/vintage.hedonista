@@ -753,8 +753,13 @@ function cmsApplyMapped(section,mapped){
   if(main&&media){
    if(url&&url!=='__removed__'){
     media.style.setProperty('display','block','important');
+    media.style.setProperty('position','relative','important');
+    media.style.setProperty('min-height','260px','important');
+    media.style.setProperty('background-image','url('+JSON.stringify(url)+')','important');
+    media.style.setProperty('background-size','cover','important');
+    media.style.setProperty('background-position','center','important');
     media.style.setProperty('grid-template-columns','1fr','important');
-    main.style.setProperty('display','block','important');
+    main.style.setProperty('display','none','important');
     main.style.setProperty('width','100%','important');
     main.style.setProperty('height','100%','important');
     main.style.setProperty('background-image','url('+JSON.stringify(url)+')','important');
