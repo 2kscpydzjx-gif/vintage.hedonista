@@ -274,7 +274,7 @@ for(const [label,command,value] of [['B','bold',null],['I','italic',null],['H2',
  toolbar.append(btn);
 }
 richView.addEventListener('input',commitRich);
-description.addEventListener('change',e=>{
+description.addEventListener('input',e=>{
  e.stopImmediatePropagation();
  if(root()?.querySelector('.vh-rte-content'))return;
  if(!setNative(labeled(/підзаголовок|опис/i),e.target.value))say('Поле опису недоступне для цього блоку');
