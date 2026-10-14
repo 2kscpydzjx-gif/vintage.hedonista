@@ -24,12 +24,6 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #siteFrame{background:white}
 
 /* Approved three-column editor composition: blocks | canvas | inspector */
-@media(min-width:1000px){
- body>main{grid-template-columns:300px minmax(0,1fr) 340px!important}
- body>main>.layout{grid-column:1 / 4!important}
- body>main>.preview{grid-column:2!important}
- body>main .editor{grid-column:3!important}
-}
 .page-context{display:none!important}
 #existingEditor .field,#editorFields .field{padding:10px 0!important;margin-bottom:10px!important;border-bottom:1px solid #3b3029!important}
 #existingEditor .field>label,#editorFields .field>label{display:block!important;color:#c9b6a5!important;font:11px/1.5 Arial,sans-serif!important;letter-spacing:.6px!important;margin-bottom:10px!important}
