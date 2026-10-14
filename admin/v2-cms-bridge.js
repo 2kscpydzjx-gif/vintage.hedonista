@@ -84,7 +84,7 @@ function sectionPhoto(section){
  if(source&&!source.startsWith('data:image/svg'))return source;
  for(const node of [section,...section.querySelectorAll('*')].slice(0,100)){
   const bg=node.ownerDocument.defaultView.getComputedStyle(node).backgroundImage;
-  const match=bg.match(/url\\(["']?(.*?)["']?\\)/);
+  const match=bg.match(/url\(["']?(.*?)["']?\)/);
   if(match?.[1])return match[1];
  }
  return '';
