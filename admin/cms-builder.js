@@ -839,6 +839,7 @@ function renderExistingEditor(){
  };right.append(label,input,file,note);thumbnail.append(remove);wrap.append(thumbnail,right);host.append(wrap);
   });
  }
+ cmsCustomButtonEditor(host,target,draft);
  // Shared animation controls for existing site sections. 'System' retains their native CSS animation.
  host.append(field('АНІМАЦІЯ','select',draft.animation||'system',v=>{
   const all=readExisting();all[target.id]={...(all[target.id]||{}),animation:v};saveExisting(all);
@@ -909,13 +910,49 @@ function applyExistingAnimation(el,value){
  el.classList.remove('cms-animation-fade-up','cms-animation-fade-left','cms-animation-fade-right','cms-animation-zoom','cms-animation-fade','cms-animation-none');
  if(value&&value!=='system')el.classList.add('cms-animation-'+value);
 }
+function cmsRenderCustomButtons(section,buttons){
+ let holder=section.querySelector(':scope > .vh-cms-custom-buttons');
+ if(!buttons?.length){holder?.remove();return}
+ if(!holder){holder=section.ownerDocument.createElement('div');holder.className='vh-cms-custom-buttons';section.append(holder)}
+ const pos=buttons[0]?.position||'left';
+ holder.style.cssText='display:flex;flex-wrap:wrap;gap:10px;padding:12px 20px;justify-content:'+(pos==='center'?'center':pos==='right'?'flex-end':'flex-start');
+ holder.replaceChildren();
+ for(const button of buttons){
+  const a=section.ownerDocument.createElement('a');a.className='vh-cms-custom-button';
+  a.textContent=button.label||'Кнопка';a.href=/^(https?:|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(button.url||'')?button.url:'#';
+  a.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 18px;border:1px solid currentColor;text-decoration:none;font:12px Arial,sans-serif;letter-spacing:.4px';
+  holder.append(a);
+ }
+}
+function cmsCustomButtonEditor(host,target,draft){
+ const wrap=document.createElement('div');wrap.className='vh-cms-buttons-editor';
+ const buttons=Array.isArray(draft.customButtons)?draft.customButtons.map(b=>({...b})):[];
+ const save=()=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),customButtons:buttons.map(b=>({...b}))};saveExisting(all);cmsRenderCustomButtons(target.el,buttons)};
+ const draw=()=>{
+  wrap.replaceChildren();
+  for(const [i,b] of buttons.entries()){
+   const group=document.createElement('div');group.className='vh-cms-button-entry';
+   for(const [key,label] of [['label','Назва кнопки'],['url','Посилання кнопки']]){
+    const input=document.createElement('input');input.placeholder=label;input.value=b[key]||'';
+    input.oninput=()=>{b[key]=input.value;save()};group.append(input);
+   }
+   const align=document.createElement('select');
+   for(const [value,label] of [['left','Ліворуч'],['center','По центру'],['right','Праворуч']])align.add(new Option(label,value));
+   align.value=b.position||'left';align.onchange=()=>{b.position=align.value;save()};group.append(align);
+   const remove=document.createElement('button');remove.type='button';remove.textContent='Видалити кнопку';remove.onclick=()=>{buttons.splice(i,1);save();draw()};group.append(remove);
+   wrap.append(group);
+  }
+  const add=document.createElement('button');add.type='button';add.className='vh-cms-add-button';add.textContent='+ Додати кнопку';add.onclick=()=>{buttons.push({label:'Нова кнопка',url:'#',position:'left'});save();draw()};wrap.append(add);
+ };
+ draw();host.append(wrap);
+}
 function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){
  if(pageId==='home'&&t.el.matches('.homepage-capsules')){
   const media=t.el.querySelector('#homeCapsulesMedia'),copy=t.el.querySelector('.editorial-copy');
   // Keep the public site's default composition: copy left, one image right.
   if(media&&copy){media.style.order='2';copy.style.order='1'}
  }
-const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);if(!(pageId==='home'&&t.el.matches('.hero')))cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
+const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);if(!(pageId==='home'&&t.el.matches('.hero')))cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);cmsRenderCustomButtons(t.el,d.customButtons);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 const cmsPhotoSlots=new WeakMap();
 function cmsSectionPhotos(section){
  if(cmsPhotoSlots.has(section)){
