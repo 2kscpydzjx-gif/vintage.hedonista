@@ -22,10 +22,11 @@ async function requireAdmin(){
 }
 async function loadCloudDraft(){
  if(!cloudReady)return;
- const key=pageId==='shared'?'home':pageId;
+ const requestedPage=pageId;
+ const key=requestedPage==='shared'?'home':requestedPage;
  const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(error)throw error;
- if((pageId==='shared'?'home':pageId)!==key)return;
+ if(pageId!==requestedPage)return;
  revisionTokens.set(key,data?.updated_at||null);
  if(pageId==='shared'){
   if(data?.shared&&Object.keys(data.shared).length){localStorage.setItem(sharedStorageKey,JSON.stringify(data.shared));renderSharedEditor();updateLivePreview()}
@@ -717,9 +718,14 @@ function cmsThumb(raw,base,alt='Мініатюра'){
  const img=document.createElement('img');img.alt=alt;img.hidden=true;
  const label=document.createElement('span');label.className='cms-thumb-empty-label';label.textContent='Немає фото';
  box.append(img,label);
- const show=value=>{const url=cmsPreviewImage(value,base);img.hidden=true;img.removeAttribute('src');box.classList.add('cms-thumb-empty');label.hidden=false;if(!url)return;
+ const show=value=>{
+  const url=cmsPreviewImage(value,base);
+  if(!url){img.hidden=true;img.removeAttribute('src');box.classList.add('cms-thumb-empty');label.hidden=false;return}
+  if(img.getAttribute('src')===url&&!img.hidden)return;
   img.onload=()=>{img.hidden=false;box.classList.remove('cms-thumb-empty');label.hidden=true};
-  img.onerror=()=>{img.hidden=true;img.removeAttribute('src');box.classList.add('cms-thumb-empty');label.hidden=false};img.src=url;
+  img.onerror=()=>{img.hidden=true;box.classList.add('cms-thumb-empty');label.hidden=false};
+  if(img.getAttribute('src')!==url)img.src=url;
+  else if(img.complete&&img.naturalWidth)img.onload();
  };
  show(raw);return {box,img,show};
 }
