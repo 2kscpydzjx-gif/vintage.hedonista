@@ -262,6 +262,15 @@ function renderAboutBlocks(data,original){
    copy.style.setProperty('color','#211a15','important');
    copy.querySelectorAll('h2,p,div,span').forEach(x=>x.style.setProperty('color','#211a15','important'));
   }
+  if(d.photoPreset==='text-only'){
+   card.querySelectorAll('.vh-cms-live-photo').forEach(photo=>photo.remove());
+   card.style.display='block';
+   copy.style.width='100%';
+  }else if(b.type!=='gallery'&&b.type!=='text'&&d.photoPreset!=='gradient-hero'){
+   const width=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
+   card.style.gridTemplateColumns=d.layout==='stacked'?'1fr':width+'% '+(100-width)+'%';
+   if(d.layout==='photo-right'){const media=card.querySelector('.vh-cms-live-photo');if(media)media.style.order='2';copy.style.order='1'}
+  }
   section.append(card);const motion=['fade-up','fade-left','fade-right','zoom','fade','none'].includes(b.animation)?b.animation:'fade-up';section.dataset.motion=motion;section.style.setProperty('--vh-cms-duration',limit(b.duration,200,1500,650)+'ms');nodes.set(b.id,section);
  }
  // Animate once when published blocks enter the viewport.
