@@ -1034,7 +1034,7 @@ function detectSections(doc){if(pageId==='shared'){sectionTargets=[];return}cons
   const top=containers.filter(el=>!containers.some(parent=>parent!==el&&parent.contains(el)));
   if(top.length>1)candidates=top;
  }
-}candidates.slice(0,35).forEach((el,i)=>{const label=(el.querySelector('h1,h2,h3')?.textContent||el.getAttribute('aria-label')||el.id||el.className||'Блок '+(i+1)).toString().replace(/\s+/g,' ').trim().slice(0,75);const id='existing-'+i;sectionTargets.push({id,el,label});sel.add(new Option((i+1)+'. '+label,id))});sel.value=[...sel.options].some(x=>x.value===old)?old:'__end';renderExistingList();applyExistingDrafts();applyImageDrafts();renderExistingEditor();}
+}candidates.slice(0,35).forEach((el,i)=>{const label=(el.querySelector('h1,h2,h3')?.textContent||el.getAttribute('aria-label')||el.id||el.className||'Блок '+(i+1)).toString().replace(/\s+/g,' ').trim().slice(0,75);const id='existing-'+i;sectionTargets.push({id,el,label});sel.add(new Option((i+1)+'. '+label,id))});sel.value=[...sel.options].some(x=>x.value===old)?old:'__end';renderExistingList();for(const target of sectionTargets)cmsSectionPhotos(target.el);applyExistingDrafts();applyImageDrafts();renderExistingEditor();}
 function installCmsPreviewStyles(doc){
  let style=doc.getElementById('vh-cms-step66-styles');
  if(style)return;
@@ -1175,14 +1175,14 @@ function reconcileAfterFrameLoad(){
  const epoch=++previewEpoch;
  disconnectPreviewObserver();clearTimeout(previewReconcileTimer);
  // Apply immediately, then after delayed site initialization (fonts, data, scripts).
- for(const delay of [0,180,600,1500,3200])setTimeout(()=>{
+ for(const delay of [0,400,1600])setTimeout(()=>{
   if(epoch!==previewEpoch || livePage!==pageId)return;
   try{
    const doc=frame.contentDocument;
    if(doc?.body&&pageId!=='shared'){
     // Rebuild the section list only if delayed page scripts replaced its DOM.
     const stale=!sectionTargets.length||sectionTargets.some(t=>!doc.contains(t.el));
-    if(stale)detectSections(doc);
+    if(stale){detectSections(doc)}
    }
    updateLivePreview();
   }catch(e){console.warn('Preview reconcile',e)}
