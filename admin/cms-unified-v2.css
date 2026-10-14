@@ -95,3 +95,14 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
 #existingEditor .vh-cms-button-entry input,#existingEditor .vh-cms-button-entry select{width:100%;min-height:37px!important;padding:9px!important;background:#191410!important;border:1px solid #554232!important;color:#f4eee8!important;border-radius:3px}
 #existingEditor .vh-cms-button-entry button,#existingEditor .vh-cms-add-button{width:100%;min-height:38px;border:1px solid #b99b7c;border-radius:4px;background:transparent;color:#f7f1eb;font-size:11px;cursor:pointer}
 #existingEditor .vh-cms-button-entry button:hover,#existingEditor .vh-cms-add-button:hover{background:#463526}
+
+/* Inspector must remain usable at laptop heights and narrow widths */
+.editor,.cms-editor-scroll,#existingEditor,#editorFields{min-width:0!important;box-sizing:border-box!important}
+.editor .cms-editor-scroll{overflow-x:hidden!important;overflow-y:auto!important;max-height:calc(100vh - 210px)!important;padding-bottom:110px!important}
+#existingEditor .secondary,#existingEditor button{max-width:100%!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]>h3,
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]>p.muted,
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"]>.cms98-panel-heading{display:none!important}
+#existingEditor .vh-cms-position-label{display:flex;flex-direction:column;gap:6px;color:#d4b89b;font-size:11px}
+#existingEditor .vh-cms-position-label input[type=range]{width:100%!important;accent-color:#c4a17e;padding:0!important;min-height:20px!important}
+#existingEditor .cms91-tab-panel[data-cms91-tab="content"] .cms-gradient-image-field[hidden]{display:none!important}
