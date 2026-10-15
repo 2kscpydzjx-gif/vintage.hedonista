@@ -224,3 +224,6 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
  body.cms-shared-mode>.layout{display:block!important}
  body.cms-shared-mode #sharedEditor{display:block!important}
 }
+
+/* Shared CMS: hide empty status toast without hiding actionable errors or publish feedback. */
+#status:empty{display:none!important}
