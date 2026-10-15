@@ -137,7 +137,7 @@ const pages=[
 {id:'shared',name:'Шапка та підвал · усі сторінки',description:'Спільне оформлення, навігація, текст підвалу та соцмережі',url:'index.html',editor:'settings'}
 ];
 const sharedStorageKey='vh-cms-shared-shell-step71';
-const sharedDefaults={headerLogo:'',footerLogo:'',footerText:'',instagram:'',telegram:'',nav:{}};
+const sharedDefaults={headerLogo:'',footerLogo:'',footerText:'',footerCopyright:'',instagram:'',telegram:'',nav:{}};
 function sharedDraft(){try{return {...sharedDefaults,...JSON.parse(localStorage.getItem(sharedStorageKey)||'{}')}}catch{return {...sharedDefaults}}}
 function saveShared(d){try{localStorage.setItem(sharedStorageKey,JSON.stringify(d));$('status').textContent='Спільні елементи змінено · натисніть «Зберегти чернетку в Supabase»'}catch{$('status').textContent='Не вдалося зберегти спільну чернетку'}}
 function applySharedPreview(doc){
@@ -147,27 +147,36 @@ function applySharedPreview(doc){
  const nav=header.querySelector('nav.nav,nav');if(nav){[...nav.querySelectorAll('a')].forEach((a,i)=>{const n=d.nav?.[String(i)];if(!n)return;if(n.label)a.textContent=n.label;if(n.href)a.href=n.href})}}
  if(footer){const logo=footer.querySelector('.vh-footer-logo-img,.footer-v64-logo img');if(logo&&d.footerLogo)logo.src=d.footerLogo;
  const text=footer.querySelector('.footer-v64-center p,.footer-v64-center');if(text&&d.footerText!==undefined&&d.footerText!=='')text.textContent=d.footerText;
+ const copyright=footer.querySelector('.footer-v64-copy');if(copyright&&d.footerCopyright)copyright.textContent=d.footerCopyright;
  const ig=footer.querySelector('[data-footer-instagram]'),tg=footer.querySelector('[data-footer-telegram]');
  if(ig&&d.instagram)ig.href=d.instagram;if(tg&&d.telegram)tg.href=d.telegram;
  }
 }
 function renderSharedEditor(){
  const host=$('sharedEditor');if(!host)return;host.replaceChildren();const d=sharedDraft();
- const title=document.createElement('h3');title.textContent='СПІЛЬНІ ЕЛЕМЕНТИ САЙТУ';host.append(title);
- const note=document.createElement('p');note.className='muted';note.textContent='Ці налаштування однакові для всіх семи сторінок у попередньому перегляді. Публікація на сайт поки не підключена.';host.append(note);
+ const title=document.createElement('h3');title.textContent='ШАПКА ТА ПІДВАЛ';host.append(title);
+ const note=document.createElement('p');note.className='muted';note.textContent='Один набір налаштувань для всіх сторінок. Зміни видно в прев’ю одразу; на сайті — після «Зберегти чернетку» та «Опублікувати».';host.append(note);
  const add=(label,key,placeholder,kind='text')=>{const box=document.createElement('div');box.className='field';const lab=document.createElement('label');lab.textContent=label;const inp=document.createElement(kind==='textarea'?'textarea':'input');inp.value=d[key]||'';inp.placeholder=placeholder||'';inp.addEventListener('change',()=>{if((key==='instagram'||key==='telegram')&&!safeLink(inp.value,false)){inp.setCustomValidity('Вкажіть повне посилання https://');inp.reportValidity();return}inp.setCustomValidity('');const next=sharedDraft();next[key]=inp.value.trim();saveShared(next);updateLivePreview()});box.append(lab,inp);host.append(box);return inp};
  const sub=document.createElement('h3');sub.textContent='ВЕРХНЯ ШАПКА';host.append(sub);
  add('ЛОГОТИП У ШАПЦІ · URL / ШЛЯХ','headerLogo','assets/your-logo.webp');
  const navTitle=document.createElement('p');navTitle.className='muted';navTitle.textContent='Пункти меню (назва і адреса)';host.append(navTitle);
  const navDefaults=[['ГОЛОВНА','index.html'],['КАТАЛОГ','catalog.html'],['ПРО НАС','about.html'],['ЖУРНАЛ','journal.html'],['ДОСТАВКА І ОПЛАТА','delivery.html'],['КОНТАКТИ','contacts.html']];
  navDefaults.forEach(([label,url],i)=>{const row=document.createElement('div');row.className='cms-nav-edit';const name=document.createElement('input');name.value=d.nav?.[String(i)]?.label||label;name.setAttribute('aria-label','Назва '+label);const link=document.createElement('input');link.value=d.nav?.[String(i)]?.href||url;link.setAttribute('aria-label','Адреса '+label);const change=()=>{if(!safeLink(link.value,true)){link.setCustomValidity('Недопустима адреса');link.reportValidity();return}link.setCustomValidity('');const next=sharedDraft();next.nav={...(next.nav||{}),[String(i)]:{label:name.value,href:link.value}};saveShared(next);updateLivePreview()};name.addEventListener('change',change);link.addEventListener('change',change);row.append(name,link);host.append(row)});
- const foot=document.createElement('h3');foot.textContent='НИЖНЯ ШАПКА · ПІДВАЛ';host.append(foot);
+ const foot=document.createElement('h3');foot.textContent='ПІДВАЛ САЙТУ';host.append(foot);
  add('ЛОГОТИП У ПІДВАЛІ · URL / ШЛЯХ','footerLogo','assets/your-logo.webp');
- add('ТЕКСТ ПО ЦЕНТРУ','footerText','Вінтажний одяг з історією, відібраний зі смаком.','textarea');
+ add('ОПИС БРЕНДУ','footerText','Вінтажний одяг з історією, відібраний зі смаком.','textarea');
+ add('КОПІРАЙТ У ПІДВАЛІ','footerCopyright','© 2026 Vintage Hedonista');
+ const socialTitle=document.createElement('p');socialTitle.className='muted';socialTitle.textContent='КНОПКИ СОЦМЕРЕЖ · URL ПОЧИНАЄТЬСЯ З HTTPS://';host.append(socialTitle);
  const instagram=add('ПОСИЛАННЯ INSTAGRAM','instagram','https://www.instagram.com/...');
  const telegram=add('ПОСИЛАННЯ TELEGRAM','telegram','https://t.me/...');
  for(const input of [instagram,telegram])input.addEventListener('change',()=>{if(input.value&&!safeLink(input.value,false)){input.setCustomValidity('Вкажіть повне посилання https://');input.reportValidity()}else input.setCustomValidity('')});
- cms91Tabs(host,{type:'editorial'});
+ const previewActions=document.createElement('div');previewActions.className='vh-shared-preview-actions';
+ for(const [label,selector] of [['Переглянути шапку','body > header'],['Переглянути підвал','footer.site-footer-v64,body > footer']]){
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=label;
+  button.onclick=()=>{try{const target=frame.contentDocument?.querySelector(selector);target?.scrollIntoView({behavior:'smooth',block:'start'})}catch{}};
+  previewActions.append(button);
+ }
+ host.append(previewActions);
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути спільні налаштування';reset.onclick=()=>{if(confirm('Скинути спільну локальну чернетку шапки й підвалу?')){localStorage.removeItem(sharedStorageKey);renderSharedEditor();updateLivePreview()}};host.append(reset);
 }
 function safeLink(v,relative){if(!v)return true;return relative?/^(https?:\/\/|\/|\.\.?\/|[a-z0-9_-]+\.html(?:[?#].*)?|#)/i.test(v):/^https:\/\/[^\s]+$/i.test(v)}
