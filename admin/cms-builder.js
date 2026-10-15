@@ -140,7 +140,7 @@ const pages=[
 const sharedStorageKey='vh-cms-shared-shell-step71';
 const sharedDefaults={headerLogo:'',footerLogo:'',footerText:'',footerCopyright:'',instagram:'',telegram:'',nav:{}};
 function sharedDraft(){try{return {...sharedDefaults,...JSON.parse(localStorage.getItem(sharedStorageKey)||'{}')}}catch{return {...sharedDefaults}}}
-function saveShared(d){try{localStorage.setItem(sharedStorageKey,JSON.stringify(d));$('status').textContent='Спільні елементи змінено · натисніть «Зберегти чернетку в Supabase»'}catch{$('status').textContent='Не вдалося зберегти спільну чернетку'}}
+function saveShared(d){try{localStorage.setItem(sharedStorageKey,JSON.stringify(d));$('status').textContent=''}catch{$('status').textContent='Не вдалося зберегти спільну чернетку'}}
 function applySharedPreview(doc){
  const d=sharedDraft();
  const header=doc.querySelector('body > header'),footer=doc.querySelector('footer.site-footer-v64,body > footer');
