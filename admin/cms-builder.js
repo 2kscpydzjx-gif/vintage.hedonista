@@ -153,7 +153,7 @@ function applySharedPreview(doc){
  }
 }
 function renderSharedEditor(){
- const host=$('sharedEditor');if(!host)return;host.replaceChildren();const d=sharedDraft();
+ const host=$('sharedEditor');if(!host)return;const inspector=$('existingEditor')?.parentElement;if(inspector&&host.parentElement!==inspector)inspector.append(host);host.replaceChildren();const d=sharedDraft();
  const title=document.createElement('h3');title.textContent='ШАПКА ТА ПІДВАЛ';host.append(title);
  const note=document.createElement('p');note.className='muted';note.textContent='Один набір налаштувань для всіх сторінок. Зміни видно в прев’ю одразу; на сайті — після «Зберегти чернетку» та «Опублікувати».';host.append(note);
  const add=(label,key,placeholder,kind='text')=>{const box=document.createElement('div');box.className='field';const lab=document.createElement('label');lab.textContent=label;const inp=document.createElement(kind==='textarea'?'textarea':'input');inp.value=d[key]||'';inp.placeholder=placeholder||'';inp.addEventListener('change',()=>{if((key==='instagram'||key==='telegram')&&!safeLink(inp.value,false)){inp.setCustomValidity('Вкажіть повне посилання https://');inp.reportValidity();return}inp.setCustomValidity('');const next=sharedDraft();next[key]=inp.value.trim();saveShared(next);updateLivePreview()});box.append(lab,inp);host.append(box);return inp};
