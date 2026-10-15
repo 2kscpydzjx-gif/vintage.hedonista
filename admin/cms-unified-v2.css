@@ -176,3 +176,30 @@ button.secondary{background:#28211c!important;color:#eee9e3!important;border-col
  html body>main>.layout>.editor{overflow:hidden!important}
  html body>main>.layout>.editor>.cms-editor-scroll{height:calc(100% - 104px)!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important}
 }
+
+/* STEP 190: The global header/footer editor occupies the inspector column.
+   Do not hide the preview; shared settings need the same live canvas. */
+@media(min-width:1100px){
+ html body.cms-shared-mode>main{grid-template-columns:300px minmax(0,1fr) 335px!important}
+ html body.cms-shared-mode>main>.layout{display:none!important}
+ html body.cms-shared-mode>main>.preview{display:block!important;grid-column:2!important;grid-row:1!important;overflow:hidden!important}
+ html body.cms-shared-mode>main>#sharedEditor{display:block!important;grid-column:3!important;grid-row:1!important;align-self:stretch!important;min-width:0!important;min-height:0!important;max-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box!important;margin:0!important;padding:18px 17px 65px!important;border:0!important;border-left:1px solid #433228!important;background:#1b1511!important;scrollbar-width:thin}
+ html body.cms-shared-mode>main>.preview>.live-preview-frame{height:100%!important;overflow:hidden!important}
+ html body.cms-shared-mode>main>#sharedEditor .field{margin:10px 0!important;gap:5px!important}
+ html body.cms-shared-mode>main>#sharedEditor input,html body.cms-shared-mode>main>#sharedEditor textarea{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;padding:10px!important;font-size:12px!important;background:#100d0b!important;color:#eee4d8!important;border:1px solid #574031!important;border-radius:4px!important}
+ html body.cms-shared-mode>main>#sharedEditor h3{margin:20px 0 12px!important;padding-bottom:9px!important;border-bottom:1px solid #574031!important;font-size:12px!important;letter-spacing:1.1px!important;color:#dfbb90!important}
+ html body.cms-shared-mode>main>#sharedEditor h3:first-child{margin-top:0!important;font-size:16px!important;color:#f3e6d7!important}
+ html body.cms-shared-mode>main>#sharedEditor .cms-nav-edit{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;margin:7px 0!important}
+ html body.cms-shared-mode>main>#sharedEditor .cms-nav-edit input{padding:8px 6px!important;font-size:11px!important}
+ html body.cms-shared-mode>main>#sharedEditor .vh-shared-preview-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin:18px 0!important}
+ html body.cms-shared-mode>main>#sharedEditor .vh-shared-preview-actions button{min-width:0!important;white-space:normal!important;font-size:11px!important;padding:10px 5px!important}
+ html body.cms-shared-mode>main>#sharedEditor>button:last-child{width:100%!important;margin-top:10px!important}
+ html body.cms-shared-mode>main>.preview .section-title{display:none!important}
+}
+@media(min-width:1100px) and (max-width:1500px){
+ html body.cms-shared-mode>main{grid-template-columns:300px minmax(0,1fr) 308px!important}
+}
+@media(max-width:1099px){
+ html body.cms-shared-mode>main>#sharedEditor{display:block!important;overflow-y:auto!important;max-height:75vh!important;padding:18px!important;margin:0!important}
+ html body.cms-shared-mode>main>.preview{display:block!important}
+}
