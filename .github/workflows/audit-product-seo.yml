@@ -1,0 +1,26 @@
+name: Audit product SEO coverage
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 4 * * *'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare Supabase products with static SEO pages
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/audit-seo-products.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-seo-audit
+          path: seo-audit-report.json
+          if-no-files-found: ignore
