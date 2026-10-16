@@ -6,6 +6,7 @@ on:
     paths:
       - 'seo-product/**'
       - 'scripts/build-product-jsonld.cjs'
+      - '.github/workflows/product-jsonld.yml'
 permissions:
   contents: write
 jobs:
