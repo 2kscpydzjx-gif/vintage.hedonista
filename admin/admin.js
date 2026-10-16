@@ -1326,7 +1326,7 @@ async function editProduct(id){
      image_url:x.image_url,
      sort_order:Number(x.sort_order||0),
      existing:true,
-     alt_text:x.alt_text||autoProductImageAlt(i)
+     alt_text:x.alt_text||''
    }));
 
  if(!PRODUCT_GALLERY.length&&p.cover_image){
