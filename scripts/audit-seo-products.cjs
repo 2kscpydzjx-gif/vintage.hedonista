@@ -17,7 +17,7 @@ async function main(){
   endpoint.searchParams.set('status','in.(published,reserved,sold)');
   endpoint.searchParams.set('limit','1000');
   endpoint.searchParams.set('offset',String(offset));
-  const response=await fetch(endpoint,{headers:{apikey:key,Authorization:'Bearer '+key}});
+  const response=await fetch(endpoint,{headers:{apikey:key,Authorization:'Bearer '+key,'Accept-Profile':'public'}});
   if(!response.ok){
    const body=(await response.text()).slice(0,800);
    console.error('Supabase request failed:',JSON.stringify({status:response.status,endpoint:endpoint.origin+endpoint.pathname,response:body}));
