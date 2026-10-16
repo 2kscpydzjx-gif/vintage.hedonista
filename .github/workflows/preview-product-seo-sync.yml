@@ -1,0 +1,21 @@
+name: Preview product SEO synchronization
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preview Supabase to static SEO differences (no writes)
+        run: node scripts/sync-product-seo.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-seo-sync-preview
+          path: seo-sync-report.json
+          if-no-files-found: ignore
