@@ -31,20 +31,49 @@ async function main(){
  }
  const root=path.resolve(__dirname,'..','seo-product');
  const missing=[],outdated=[],invalid=[];
+ const normalize=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+ const field=(html,id)=>{
+  const tag=html.match(new RegExp('<[^>]+\\bid=["\\x27]'+id+'["\\x27][^>]*>([\\s\\S]*?)<\\/[^>]+>','i'));
+  return tag?normalize(tag[1]):null;
+ };
+ const imgSrc=html=>{
+  const tag=html.match(/<img\b[^>]*\bid=["']galleryMainImg["'][^>]*>/i);
+  return tag?.[0].match(/\bsrc=["']([^"']+)["']/i)?.[1]||null;
+ };
+ const add=(p,field,expected,actual)=>outdated.push({id:p.id,slug:p.slug,field,expected,actual});
  for(const p of all){
-  if(!p.slug){invalid.push({id:p.id,reason:'Missing slug'});continue;}
+  if(!p.slug||p.slug==='.'||p.slug==='..'||p.slug.includes('/')||p.slug.includes('\\')){invalid.push({id:p.id,reason:'Missing or unsafe slug'});continue;}
   const file=path.join(root,encodeURIComponent(p.slug),'index.html');
-  // Slugs may contain Unicode; existing files may use raw Unicode instead of encoded names.
   const rawFile=path.join(root,p.slug,'index.html');
   const actual=fs.existsSync(rawFile)?rawFile:fs.existsSync(file)?file:null;
   if(!actual){missing.push({id:p.id,slug:p.slug,status:p.status});continue;}
   const html=fs.readFileSync(actual,'utf8');
-  if(!html.includes('id="productName"'))invalid.push({id:p.id,slug:p.slug,reason:'No static product title'});
-  if(!html.includes('id="vh-static-product-jsonld"'))outdated.push({id:p.id,slug:p.slug,reason:'No static JSON-LD'});
+  const name=field(html,'productName');
+  if(name===null){invalid.push({id:p.id,slug:p.slug,reason:'No static product title'});continue;}
+  if(normalize(p.name)!==name)add(p,'name',normalize(p.name),name);
+  const priceText=field(html,'productPrice');
+  const price=priceText?.replace(/\s/g,'').replace(',','.').match(/\d+(?:\.\d+)?/)?.[0];
+  if(priceText!==null&&Number.isFinite(Number(p.price))&&price!==undefined&&Number(price)!==Number(p.price))add(p,'price',String(p.price),price);
+  const brand=field(html,'productBrandFact');
+  if(brand!==null&&normalize(p.brand||'')!==normalize(brand==='—'?'':brand))add(p,'brand',normalize(p.brand||''),brand);
+  const cover=imgSrc(html);
+  if(p.cover_image&&cover&&normalize(p.cover_image)!==normalize(cover))add(p,'cover_image',String(p.cover_image),cover);
+  const short=field(html,'productShortDescription');
+  if(short!==null&&p.short_description&&normalize(p.short_description)!==short)add(p,'short_description',normalize(p.short_description),short);
+  const jsonBlock=html.match(/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>([\s\S]*?)<\/script>/i);
+  if(!jsonBlock){invalid.push({id:p.id,slug:p.slug,reason:'No static Product JSON-LD'});continue;}
+  try{
+   const schema=JSON.parse(jsonBlock[1]);
+   if(schema['@type']!=='Product')invalid.push({id:p.id,slug:p.slug,reason:'Incorrect JSON-LD type'});
+   if(normalize(schema.name)!==normalize(p.name))add(p,'jsonld.name',normalize(p.name),normalize(schema.name));
+   if(schema.offers?.price!==undefined&&Number(schema.offers.price)!==Number(p.price))add(p,'jsonld.price',String(p.price),String(schema.offers.price));
+   if(p.cover_image&&schema.image?.length&&normalize(schema.image[0])!==normalize(p.cover_image))add(p,'jsonld.image',String(p.cover_image),String(schema.image[0]));
+  }catch(e){invalid.push({id:p.id,slug:p.slug,reason:'Invalid Product JSON-LD: '+e.message});}
  }
- const report={checked:all.length,missingCount:missing.length,invalidCount:invalid.length,outdatedCount:outdated.length,missing,invalid,outdated};
+ const affected=new Set(outdated.map(x=>x.id)).size;
+ const report={checked:all.length,missingCount:missing.length,invalidCount:invalid.length,outdatedCount:affected,outdatedFields:outdated.length,missing,invalid,outdated};
  const output=path.resolve(__dirname,'..','seo-audit-report.json');
  fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
- console.log(JSON.stringify({checked:report.checked,missing:missing.length,invalid:invalid.length,outdated:outdated.length,report:'seo-audit-report.json'}));
+ console.log(JSON.stringify({checked:report.checked,missing:missing.length,invalid:invalid.length,outdatedProducts:affected,outdatedFields:outdated.length,report:'seo-audit-report.json'}));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});
