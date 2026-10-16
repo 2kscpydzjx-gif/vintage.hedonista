@@ -12,7 +12,7 @@ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)){console.error('Unexpect
 async function main(){
  let offset=0,all=[];
  while(true){
-  const endpoint=new URL('/rest/v1/products',url);
+  const endpoint=new URL(url.replace(/\/$/,'')+'/rest/v1/products');
   endpoint.searchParams.set('select','id,name,slug,status,price,brand,short_description,cover_image');
   endpoint.searchParams.set('status','in.(published,reserved,sold)');
   endpoint.searchParams.set('limit','1000');
