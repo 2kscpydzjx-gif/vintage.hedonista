@@ -955,6 +955,13 @@ function productCheck(id,val=false){
 function normalizeProductGallery(){
  PRODUCT_GALLERY.forEach((x,i)=>x.sort_order=i);
 }
+function autoProductImageAlt(index){
+ const name=String($('pName')?.value||'').trim();
+ const brand=String($('pBrand')?.value||'').trim();
+ if(!name)return '';
+ const base=(brand&&!name.toLocaleLowerCase('uk-UA').includes(brand.toLocaleLowerCase('uk-UA'))?name+' '+brand:name);
+ return (base+(index===0?' — головне фото':' — фото '+(index+1))).slice(0,250);
+}
 function productGalleryUrl(item){
  return item.local_url||item.image_url||''
 }
@@ -970,7 +977,7 @@ function renderProductAdminGallery(){
        <img src="${productGalleryUrl(img)}" alt="${esc(img.alt_text||'')}">
        ${i===0?'<span class="admin-main-badge">ГОЛОВНЕ</span>':''}
      </div>
-     <label style="display:block;padding:6px 8px;font-size:12px">ALT фото<input class="input" style="width:100%;margin-top:4px" maxlength="250" data-gallery-alt="${i}" value="${esc(img.alt_text||'')}" placeholder="Опишіть, що зображено"></label>
+     <label style="display:block;padding:6px 8px;font-size:12px">ALT фото<input class="input" style="width:100%;margin-top:4px" maxlength="250" data-gallery-alt="${i}" value="${esc(img.alt_text||autoProductImageAlt(i))}" placeholder="Опишіть, що зображено"></label>
      <div class="admin-product-photo-actions">
        ${i!==0?`<button type="button" class="btn tiny" onclick="makeProductImageMain(${i})">Головне</button>`:''}
        <button type="button" class="btn tiny" onclick="moveProductImage(${i},-1)" ${i===0?'disabled':''}>←</button>
@@ -1319,7 +1326,7 @@ async function editProduct(id){
      image_url:x.image_url,
      sort_order:Number(x.sort_order||0),
      existing:true,
-     alt_text:x.alt_text||''
+     alt_text:x.alt_text||autoProductImageAlt(i)
    }));
 
  if(!PRODUCT_GALLERY.length&&p.cover_image){
@@ -1384,9 +1391,9 @@ async function saveProductImages(productId){
    if(item.file){
      const prepared=await prepareImage(item.file,1200,1200,'#35291d',.93);
      const url=await uploadFile(prepared,`products/${productId}-${Date.now()}-${i}-${crypto.randomUUID()}.jpg`);
-     finalImages.push({image_url:url,sort_order:i,alt_text:item.alt_text||''})
+     finalImages.push({image_url:url,sort_order:i,alt_text:item.alt_text?.trim()||autoProductImageAlt(i)})
    }else if(item.image_url){
-     finalImages.push({image_url:item.image_url,sort_order:i,alt_text:item.alt_text||''})
+     finalImages.push({image_url:item.image_url,sort_order:i,alt_text:item.alt_text?.trim()||autoProductImageAlt(i)})
    }
  }
 
