@@ -18,7 +18,11 @@ async function main(){
   endpoint.searchParams.set('limit','1000');
   endpoint.searchParams.set('offset',String(offset));
   const response=await fetch(endpoint,{headers:{apikey:key,Authorization:'Bearer '+key}});
-  if(!response.ok)throw Error('Supabase read failed: HTTP '+response.status);
+  if(!response.ok){
+   const body=(await response.text()).slice(0,800);
+   console.error('Supabase request failed:',JSON.stringify({status:response.status,endpoint:endpoint.origin+endpoint.pathname,response:body}));
+   throw Error('Supabase read failed: HTTP '+response.status);
+  }
   const rows=await response.json();
   if(!Array.isArray(rows))throw Error('Unexpected Supabase response');
   all.push(...rows);
