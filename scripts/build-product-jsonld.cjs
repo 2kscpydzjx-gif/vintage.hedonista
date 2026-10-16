@@ -27,9 +27,10 @@ for(const file of walk(root)){
  // Availability is intentionally omitted: published does not imply in stock.
  const json=JSON.stringify(data).replace(/</g,'\\u003c');
  const block='<script type="application/ld+json" id="vh-static-product-jsonld">'+json+'</script>';
- const prior=/<script\s+type=["']application\/ld\+json["'](?:\s+id=["']vh-static-product-jsonld["'])?[^>]*>[\s\S]*?<\/script>/i;
+ const prior=/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>[\s\S]*?<\/script>/i;
  if(prior.test(html))html=html.replace(prior,block);
- else html=html.replace('</head>',block+'</head>');
+ else if(html.includes('</head>'))html=html.replace('</head>',block+'</head>');
+ else {skipped++;continue;}
  if(html!==fs.readFileSync(file,'utf8')){fs.writeFileSync(file,html);changed++;}
 }
 console.log('Updated '+changed+' SEO pages; skipped '+skipped+'.');
