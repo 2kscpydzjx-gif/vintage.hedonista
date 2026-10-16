@@ -5,7 +5,7 @@ function vhProductAutoSEO(){
  const name=plain(field('pName')),brand=plain(field('pBrand')),short=plain(field('pShort')),description=plain(field('pDescription'));
  const category=plain(document.getElementById('pCategory')?.selectedOptions?.[0]?.textContent||'');
  const slug=field('pSlug');
- const suffix=' — Vintage Hedonista';const title=name?(name.length+suffix.length<=65?name+suffix:name.slice(0,65-suffix.length-1).trimEnd()+'…'+suffix):'';
+ const suffix=' — Vintage Hedonista';const title=name?(name.length+suffix.length<=65?name+suffix:name.slice(0,65-suffix.length-1).replace(/\s+\S*$/,'').trimEnd()+'…'+suffix):'';
  const detail=short||description;
  const fallback=[name,brand,category].filter(Boolean).join(' · ')+'. Вінтажний одяг в одному екземплярі у Vintage Hedonista.';const source=detail||fallback;const sentences=source.match(/[^.!?]+[.!?]+/g)||[];let summary=sentences.find(s=>s.trim().length>=35&&s.trim().length<=160)?.trim()||'';if(!summary){const prefix=source.slice(0,156);const boundary=prefix.lastIndexOf(' ');summary=(source.length>156?(boundary>75?prefix.slice(0,boundary):prefix).replace(/[\s,;:–-]+$/,'')+'…':source).trim()}
  const keyword=[brand,name].filter(Boolean).join(' ').slice(0,100);
