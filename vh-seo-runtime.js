@@ -9,10 +9,10 @@ function set({title,description,canonicalUrl}={}){
 }
 function productStructuredData(product,images=[]){
  if(!product||!product.name)return;
- const cleanText=value=>String(value||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();
+ const cleanText=value=>String(value||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  const origin='https://2kscpydzjx-gif.github.io/vintage.hedonista/';
  const url=product.slug?new URL('seo-product/'+encodeURIComponent(product.slug)+'/index.html',origin).href:location.href;
- const photos=[...new Set(images.filter(x=>typeof x==='string'&&/^https?:\\/\\//i.test(x)))].slice(0,12);
+ const photos=[...new Set(images.filter(x=>typeof x==='string'&&/^https?:\/\//i.test(x)))].slice(0,12);
  const rawPrice=Number(product.price);
  const available=product.status==='published';
  const schema={'@context':'https://schema.org','@type':'Product',
