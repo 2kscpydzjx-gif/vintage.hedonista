@@ -4,9 +4,11 @@
 // Does not write to Supabase or GitHub.
 const fs=require('node:fs');
 const path=require('node:path');
-const url=process.env.SUPABASE_URL;
-const key=process.env.SUPABASE_PUBLISHABLE_KEY;
-if(!url||!key){console.error('Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY');process.exit(1);}
+const config=fs.readFileSync(path.resolve(__dirname,'..','config.js'),'utf8');
+const url=config.match(/supabaseUrl\s*:\s*["']([^"']+)["']/)?.[1];
+const key=config.match(/supabaseKey\s*:\s*["'](sb_publishable_[^"']+)["']/)?.[1];
+if(!url||!key){console.error('Public Supabase settings missing in config.js');process.exit(1);}
+if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)){console.error('Unexpected Supabase URL');process.exit(1);}
 async function main(){
  let offset=0,all=[];
  while(true){
