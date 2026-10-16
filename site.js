@@ -935,6 +935,9 @@ async function initProduct(){
 
  if(!currentImages.length&&data.cover_image){currentImages=[data.cover_image];currentImageAlts=[data.name||'Фото товару']}
 
+ // SEO is generated from existing product data; no product record or manual SEO field is overwritten.
+ window.VHSEORuntime?.productStructuredData(data,currentImages);
+
  renderProduct();
 
  let rec=[];
