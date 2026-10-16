@@ -6,8 +6,8 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..','seo-product');
 const decode=s=>s.replace(/&quot;/g,'"').replace(/&#39;|&#x27;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-const strip=s=>decode(s.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
-function tag(html,id){const safe=id.replace(/[.*+?^$\{\}()|[\]\\]/g,'\\$&');const m=html.match(new RegExp('<[^>]+id=["\\']'+safe+'["\\'][^>]*>([\\s\\S]*?)<\\/[^>]+>','i'));return m?strip(m[1]):'';}
+function tag(html,id){const m=html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>([\\s\\S]*?)<\\/[^>]+>`,'i'));return m?strip(m[1]):'';}
+function attr(html,id,name){const match=html.match(new RegExp(`<[^>]+id=["']${id}["'][^>]*>`,'i'));return match?.[0].match(new RegExp(`\\b${name}=["']([^"']+)["']`,'i'))?.[1]||'';}
 function attr(html,id,name){const match=html.match(new RegExp('<[^>]+id=["\\']'+id+'["\\'][^>]*>','i'));return match?.[0].match(new RegExp('\\b'+name+'=["\\']([^"\\']+)["\\']','i'))?.[1]||'';}
 function walk(dir){if(!fs.existsSync(dir))return [];return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):e.name==='index.html'?[path.join(dir,e.name)]:[]);}
 let changed=0,skipped=0;
