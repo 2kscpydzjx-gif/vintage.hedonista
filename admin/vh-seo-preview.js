@@ -8,6 +8,7 @@ function vhProductAutoSEO(){
  const suffix=' — Vintage Hedonista';const title=name?(name.length+suffix.length<=65?name+suffix:name.slice(0,65-suffix.length-1).replace(/\s+\S*$/,'').trimEnd()+'…'+suffix):'';
  const detail=short||description;
  const fallback=[name,brand,category].filter(Boolean).join(' · ')+'. Вінтажний одяг в одному екземплярі у Vintage Hedonista.';const source=detail||fallback;const sentences=source.match(/[^.!?]+[.!?]+/g)||[];let summary=sentences.find(s=>s.trim().length>=35&&s.trim().length<=160)?.trim()||'';if(!summary){const prefix=source.slice(0,156);const boundary=prefix.lastIndexOf(' ');summary=(source.length>156?(boundary>75?prefix.slice(0,boundary):prefix).replace(/[\s,;:–-]+$/,'')+'…':source).trim()}
+ if(summary.length<105&&name){const extra='Перегляньте фото, розмір і характеристики у Vintage Hedonista.';if(!summary.includes('Vintage Hedonista')&&summary.length+extra.length+1<=160)summary=summary.replace(/[. ]+$/,'')+'. '+extra;}
  const keyword=[brand,name].filter(Boolean).join(' ').slice(0,100);
  return {title,description:summary.slice(0,160),keyword,slug};
 }
