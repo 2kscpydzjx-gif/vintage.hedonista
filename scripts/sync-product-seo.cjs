@@ -33,7 +33,7 @@ async function products(){
  return all;
 }
 async function main(){
- const all=await products(),changed=[],missing=[],skipped=[];
+ const all=await products(),changed=[],missing=[],skipped=[],differences=[];
  for(const p of all){
   if(!p.slug||p.slug==='.'||p.slug==='..'||/[\/\\]/.test(p.slug)){skipped.push({id:p.id,reason:'Invalid slug'});continue;}
   const base=path.join(root,'seo-product');
@@ -64,9 +64,24 @@ async function main(){
    const safe=JSON.stringify(schema).replace(/</g,'\\u003c');
    html=html.replace(jsonRe,'<script type="application/ld+json" id="vh-static-product-jsonld">'+safe+'</script>');
   }else{skipped.push({slug:p.slug,reason:'Missing static JSON-LD'});continue;}
-  if(html!==original){changed.push(p.slug);if(write)fs.writeFileSync(file,html);}
+  if(html!==original){
+   const fields=[];
+   const inspect=(field,before,after)=>{if(String(before??'')!==String(after??''))fields.push({field,before,after});};
+   for(const [id,field] of [['productName','name'],['productPrice','price'],['productBrandFact','brand'],['productShortDescription','short_description']]){
+    inspect(field,getField(original,id),getField(html,id));
+   }
+   const image=s=>decode(s.match(/<img\b[^>]*\bid=["']galleryMainImg["'][^>]*>/i)?.[0]?.match(/\bsrc=["']([^"']*)["']/i)?.[1]||'');
+   inspect('cover_image',image(original),image(html));
+   const schema=s=>{
+    const match=s.match(/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>([\s\S]*?)<\/script>/i);
+    return match?JSON.parse(match[1]):null;
+   };
+   const before=schema(original),after=schema(html);
+   for(const [field,read] of [['jsonld.name',x=>x?.name],['jsonld.description',x=>x?.description],['jsonld.brand',x=>x?.brand?.name],['jsonld.image',x=>x?.image?.[0]],['jsonld.price',x=>x?.offers?.price]])inspect(field,read(before),read(after));
+   if(fields.length){changed.push(p.slug);differences.push({id:p.id,slug:p.slug,fields});if(write)fs.writeFileSync(file,html);}
+  }
  }
- const report={mode:write?'write':'dry-run',checked:all.length,changedCount:changed.length,missingCount:missing.length,skippedCount:skipped.length,changed,missing,skipped};
+ const report={mode:write?'write':'dry-run',checked:all.length,changedCount:changed.length,missingCount:missing.length,skippedCount:skipped.length,changed,missing,skipped,differences};
  fs.writeFileSync(path.join(root,'seo-sync-report.json'),JSON.stringify(report,null,2)+'\n');
  console.log(JSON.stringify({mode:report.mode,checked:report.checked,changed:report.changedCount,missing:report.missingCount,skipped:report.skippedCount}));
  if(missing.length||skipped.length)process.exitCode=1;
