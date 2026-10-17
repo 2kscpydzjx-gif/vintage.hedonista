@@ -372,8 +372,9 @@ async function initCatalog(){
 
  const params=new URLSearchParams(location.search);
  const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/index\.html$/);
-  catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):null);
- catalogState.subcategory=params.get('subcategory')||null;
+ const staticSubcategory=location.pathname.match(/\/seo-subcategory\/([^/]+)\/([^/]+)\/index\.html$/);
+  catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null);
+ catalogState.subcategory=params.get('subcategory')||(staticSubcategory?decodeURIComponent(staticSubcategory[2]):null);
 
  // If URL contains an old/non-active category, return to all products.
  if(catalogState.category&&!catalogCategories.some(c=>c.slug===catalogState.category)){
