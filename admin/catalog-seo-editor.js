@@ -15,8 +15,19 @@ function options(){
 }
 function fallback(){
  if(selected==='all')return defaults?.all||{};
- if(selected.startsWith('category:'))return defaults?.categories?.[selected.slice(9)]||{};
- if(selected.startsWith('subcategory:')){const parts=selected.split(':');return defaults?.subcategories?.[parts[1]+'/'+parts[2]]||{}}
+ const parts=selected.split(':');
+ const cat=categories.find(x=>x.slug===parts[1]);
+ if(parts[0]==='category'){
+  const existing=defaults?.categories?.[parts[1]];if(existing)return existing;
+  const name=cat?.name||parts[1]||'';
+  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
+ }
+ if(parts[0]==='subcategory'){
+  const existing=defaults?.subcategories?.[parts[1]+'/'+parts[2]];if(existing)return existing;
+  const sub=subcategories.find(x=>x.slug===parts[2]&&String(x.category_id)===String(cat?.id));
+  const name=sub?.name||parts[2]||'';
+  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
+ }
  return {};
 }
 function fill(data){
