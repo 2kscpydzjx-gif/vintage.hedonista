@@ -1,0 +1,46 @@
+name: Test product SEO synchronization
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate snapshots from current Supabase data
+        run: |
+          node scripts/generate-sitemap.mjs
+          node scripts/build-product-jsonld.cjs
+      - name: Confirm current data matches
+        run: node scripts/sync-product-seo.cjs --check
+      - name: Simulate outdated title in temporary checkout
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const base='seo-product';
+          const slug=fs.readdirSync(base).find(s=>fs.existsSync(path.join(base,s,'index.html')));
+          if(!slug)throw Error('No product snapshots found');
+          const file=path.join(base,slug,'index.html');
+          const html=fs.readFileSync(file,'utf8');
+          const updated=html.replace(/(<[^>]+id=["']productName["'][^>]*>)([\s\S]*?)(<\/[^>]+>)/i,'$1SEO TEST STALE TITLE$3');
+          if(updated===html)throw Error('Could not simulate stale product title');
+          fs.writeFileSync(file,updated);
+          console.log('Simulated stale title in '+slug);
+          NODE
+      - name: Confirm validator rejects outdated SEO
+        run: |
+          if node scripts/sync-product-seo.cjs --check; then
+            echo "ERROR: outdated SEO passed validation"
+            exit 1
+          else
+            echo "PASS: outdated SEO correctly rejected"
+          fi
+      - name: Regenerate and verify recovery
+        run: |
+          node scripts/generate-sitemap.mjs
+          node scripts/build-product-jsonld.cjs
+          node scripts/sync-product-seo.cjs --check
