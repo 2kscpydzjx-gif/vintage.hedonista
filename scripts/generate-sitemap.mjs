@@ -118,12 +118,51 @@ function snapshot(kind,row){
 for(const dir of ['seo-product','seo-article','seo-category','seo-subcategory'])rmSync(join(root,dir),{recursive:true,force:true});
 for(const p of products)if(p.slug)snapshot('product',p);
 for(const n of news)if(n.slug)snapshot('article',n);
+// Category SEO fallbacks. Supabase vh_seo_metadata always takes priority.
+const categorySeoFallbacks={
+  "sukni": [
+    "Вінтажні сукні жіночі | Vintage Hedonista",
+    "Відкрийте колекцію вінтажних жіночих суконь Vintage Hedonista. Оригінальні фасони, виразні деталі та особливі знахідки для індивідуального стилю."
+  ],
+  "sorochky-ta-bluzy": [
+    "Вінтажні блузи та сорочки | Vintage Hedonista",
+    "Вінтажні жіночі блузи та сорочки з характером. Романтичні силуети, цікаві фактури й оригінальні деталі в колекції Vintage Hedonista."
+  ],
+  "verkhnii-odyah": [
+    "Вінтажний верхній одяг жіночий | Vintage Hedonista",
+    "Вінтажний жіночий верхній одяг: пальта, тренчі, куртки та інші особливі речі. Відкрийте добірку Vintage Hedonista для образів із характером."
+  ],
+  "dzhynsy-ta-bryuky": [
+    "Вінтажні джинси та брюки жіночі | Vintage Hedonista",
+    "Жіночі вінтажні джинси, брюки та штани з виразним кроєм. Знайдіть оригінальні моделі для повсякденних і сміливих образів у Vintage Hedonista."
+  ],
+  "spidnytsi": [
+    "Вінтажні спідниці жіночі | Vintage Hedonista",
+    "Вінтажні жіночі спідниці різних фасонів і довжин. Обирайте особливі силуети та фактури для індивідуального гардероба у Vintage Hedonista."
+  ],
+  "kofty-ta-kardyhany": [
+    "Вінтажні кофти та кардигани | Vintage Hedonista",
+    "Вінтажні жіночі кофти й кардигани: цікава в'язка, фактури та оригінальні силуети. Добірка особливих речей у Vintage Hedonista."
+  ],
+  "komplekty-ta-kostyumy": [
+    "Вінтажні костюми та комплекти | Vintage Hedonista",
+    "Жіночі вінтажні костюми та комплекти для виразних образів. Відкрийте оригінальні поєднання речей у колекції Vintage Hedonista."
+  ],
+  "vzuttya": [
+    "Вінтажне жіноче взуття | Vintage Hedonista",
+    "Вінтажне жіноче взуття з характером: класичні та незвичайні моделі, цікаві деталі й особливі знахідки у Vintage Hedonista."
+  ],
+  "aksesuary": [
+    "Вінтажні аксесуари жіночі | Vintage Hedonista",
+    "Вінтажні жіночі аксесуари для завершення образу. Оригінальні деталі, що підкреслюють індивідуальність, у добірці Vintage Hedonista."
+  ]
+};
 for(const c of categories)if(c.slug){
  const slug=String(c.slug).normalize('NFC');
  if(slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe category slug: '+slug);
  const meta=seoMap.get('category:'+c.id)||{};
- const title=strip(meta.seo_title)||c.name+' — вінтажний одяг | Vintage Hedonista';
- const desc=strip(meta.meta_description)||'Переглядайте '+c.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.';
+ const title=strip(meta.seo_title)||categorySeoFallbacks[slug]?.[0]||c.name+' — вінтажний одяг | Vintage Hedonista';
+ const desc=strip(meta.meta_description)||categorySeoFallbacks[slug]?.[1]||'Переглядайте '+c.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.';
  const canonical=new URL('seo-category/'+encodeURIComponent(slug)+'/index.html',base).href;
  let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
  html=html.replace(/<head>/i,'<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
