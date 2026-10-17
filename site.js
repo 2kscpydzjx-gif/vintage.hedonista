@@ -1132,6 +1132,22 @@ function renderProduct(){
  const vhPlainText=value=>String(value??'').replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39);/gi,m=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'",'&nbsp;':' ','&#39;':"'"}[m.toLowerCase()]||m));
  const p=currentProduct;
  $('productBreadcrumb').textContent=vhPlainText(p.name)||'ТОВАР';
+ // SEO breadcrumbs: link to the static category/subcategory snapshots.
+ // Keep the existing breadcrumb appearance and do not alter catalog filters.
+ const crumbs=document.querySelector('.product-breadcrumbs');
+ if(crumbs){
+  crumbs.querySelectorAll('[data-vh-seo-crumb]').forEach(node=>node.remove());
+  const current=$('productBreadcrumb');
+  const category=p.categories?.slug&&p.categories?.name?p.categories:null;
+  const subcategory=category&&p.subcategories?.slug&&p.subcategories?.name?p.subcategories:null;
+  const addCrumb=(name,path)=>{
+   const separator=document.createElement('span');separator.textContent='/';separator.dataset.vhSeoCrumb='1';
+   const anchor=document.createElement('a');anchor.href=new URL(path,document.baseURI).href;anchor.textContent=vhPlainText(name);anchor.dataset.vhSeoCrumb='1';
+   crumbs.insertBefore(separator,current);crumbs.insertBefore(anchor,current);
+  };
+  if(category)addCrumb(category.name,'seo-category/'+encodeURIComponent(category.slug)+'/index.html');
+  if(subcategory)addCrumb(subcategory.name,'seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(subcategory.slug)+'/index.html');
+ }
  if($('productBrandFact'))$('productBrandFact').textContent=vhPlainText(p.brand)||'—';
  if($('productSeason'))$('productSeason').textContent=p.season||'—';
  $('productName').textContent=vhPlainText(p.name);
