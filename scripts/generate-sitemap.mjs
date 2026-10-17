@@ -51,7 +51,11 @@ function editorialHtml(content){
  const image=content.image?'<img class="vh-catalog-seo-image" src="'+htmlEscape(content.image)+'" alt="'+htmlEscape(content.heading)+'" loading="lazy">':'';
  return '<div class="vh-catalog-seo-layout"><div class="vh-catalog-seo-copy"><h2>'+htmlEscape(content.heading)+'</h2><p>'+htmlEscape(content.description)+'</p>'+(features?'<div class="vh-catalog-seo-features">'+features+'</div>':'')+'</div>'+image+'</div>';
 }
-function embedEditorial(html,content){const markup=editorialHtml(content);return html.replace(/(<section class="vh-catalog-seo wrap" id="catalogSeoEditorial"[^>]*)( hidden)(><\\/section>)/,(_,a,_hidden,b)=>a+(markup?'':' hidden')+b.replace('</section>',markup+'</section>'));}
+function embedEditorial(html,content){
+ const markup=editorialHtml(content);
+ return html.replace('<section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію" hidden></section>',
+  '<section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію"'+(markup?'':' hidden')+'>'+markup+'</section>');
+}
 // Static HTML snapshots: unique titles/descriptions in initial HTML response.
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.
 const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article,category,subcategory)');
