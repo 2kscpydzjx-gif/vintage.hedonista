@@ -706,7 +706,11 @@ async function renderCatalogEditorial(){
  const currentCat=catalogCategories.find(x=>x.slug===catalogState.category);
  const currentSub=catalogSubcategories.find(x=>x.slug===catalogState.subcategory&&String(x.category_id)===String(currentCat?.id));
  if(identity!==(currentCat?.slug||'all')+'/'+(currentSub?.slug||''))return;
- const data=currentSub?(vhEditorialConfig?.subcategories?.[currentCat.slug+'/'+currentSub.slug]||vhEditorialFallback('subcategory',currentSub.name)):currentCat?(vhEditorialConfig?.categories?.[currentCat.slug]||vhEditorialFallback('category',currentCat.name)):vhEditorialConfig?.all;
+ const pageKey=currentSub?'subcategory:'+currentCat.slug+':'+currentSub.slug:currentCat?'category:'+currentCat.slug:'all';
+ let saved=null;
+ try{const result=await publicSb.from('vh_catalog_seo_blocks').select('heading,description,features,image').eq('page_key',pageKey).maybeSingle();if(!result.error)saved=result.data}catch(e){console.warn('SEO block override unavailable',e)}
+ const data=saved||(currentSub?(vhEditorialConfig?.subcategories?.[currentCat.slug+'/'+currentSub.slug]||vhEditorialFallback('subcategory',currentSub.name)):currentCat?(vhEditorialConfig?.categories?.[currentCat.slug]||vhEditorialFallback('category',currentCat.name)):vhEditorialConfig?.all);
+ if(pageKey!==(catalogState.subcategory?'subcategory:'+catalogState.category+':'+catalogState.subcategory:catalogState.category?'category:'+catalogState.category:'all'))return;
  if(!data?.heading||!data?.description){box.hidden=true;box.replaceChildren();return}
  const layout=document.createElement('div');layout.className='vh-catalog-seo-layout';
  const copy=document.createElement('div');copy.className='vh-catalog-seo-copy';
