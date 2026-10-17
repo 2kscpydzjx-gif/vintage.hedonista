@@ -90,6 +90,7 @@ async function main(){
  const report={mode:write?'write':'dry-run',checked:all.length,changedCount:changed.length,missingCount:missing.length,skippedCount:skipped.length,changed,missing,skipped,differences};
  fs.writeFileSync(path.join(root,'seo-sync-report.json'),JSON.stringify(report,null,2)+'\n');
  console.log(JSON.stringify({mode:report.mode,checked:report.checked,changed:report.changedCount,missing:report.missingCount,skipped:report.skippedCount}));
+ if(changed.length)console.error('SEO discrepancies:',JSON.stringify(differences.map(d=>({slug:d.slug,fields:d.fields.map(f=>f.field)}))));
  if(missing.length||skipped.length||(process.argv.includes('--check')&&changed.length))process.exitCode=1;
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});
