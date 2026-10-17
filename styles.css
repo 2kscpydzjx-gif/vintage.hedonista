@@ -17957,3 +17957,9 @@ body.home-page .homepage-capsules #homeCapsulesMedia>img{
 .vh-catalog-seo-features p{font-size:12px;line-height:1.7;color:#766b61;margin:0}
 .vh-catalog-seo-image{width:min(28vw,315px);height:auto;max-height:390px;object-fit:cover}
 @media(max-width:800px){.vh-catalog-seo{margin:24px auto 10px;padding:32px 16px 22px;border-bottom:0}.vh-catalog-seo-layout{grid-template-columns:1fr;gap:24px}.vh-catalog-seo-image{width:100%;max-height:350px}.vh-catalog-seo-features{grid-template-columns:1fr;gap:16px;margin-top:24px}.vh-catalog-seo-features>div+div{border-left:0;border-top:1px solid rgba(82,64,48,.16);padding:14px 0 0}}
+
+/* SEO editorial footer spacing: remove the parent catalog bottom gutter too. */
+body.catalog-mobile-page .catalog-page{padding-bottom:0!important}
+body.catalog-mobile-page .vh-catalog-seo{margin-bottom:0!important;padding-top:52px!important;padding-bottom:18px!important;border-bottom:0!important}
+body.catalog-mobile-page .vh-catalog-seo-copy>p:last-child{margin-bottom:0!important}
+@media(max-width:800px){body.catalog-mobile-page .vh-catalog-seo{padding-top:36px!important;padding-bottom:16px!important}}
