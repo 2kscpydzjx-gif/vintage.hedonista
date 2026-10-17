@@ -391,6 +391,7 @@ async function initCatalog(){
  buildCatalogFilters();
  bindCatalogControls();
  applyCatalog(true)
+ void renderCatalogEditorial();
 }
 
 
@@ -690,6 +691,33 @@ function updateCategoryCanonical(){
  link.href=staticCanonical||url.href;
  if(!link.parentNode)document.head.appendChild(link);
 }
+let vhEditorialConfig=null;
+let vhEditorialLoad=null;
+function vhEditorialFallback(kind,name){
+ return {heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.'};
+}
+async function renderCatalogEditorial(){
+ const box=$('catalogSeoEditorial');if(!box)return;
+ const cat=catalogCategories.find(x=>x.slug===catalogState.category);
+ const sub=catalogSubcategories.find(x=>x.slug===catalogState.subcategory&&String(x.category_id)===String(cat?.id));
+ const identity=(cat?.slug||'all')+'/'+(sub?.slug||'');
+ if(!vhEditorialLoad)vhEditorialLoad=fetch(new URL('catalog-seo-content.json',document.baseURI)).then(r=>{if(!r.ok)throw Error('SEO content HTTP '+r.status);return r.json()}).catch(e=>{console.warn('Catalog SEO content',e);return null});
+ vhEditorialConfig=await vhEditorialLoad;
+ const currentCat=catalogCategories.find(x=>x.slug===catalogState.category);
+ const currentSub=catalogSubcategories.find(x=>x.slug===catalogState.subcategory&&String(x.category_id)===String(currentCat?.id));
+ if(identity!==(currentCat?.slug||'all')+'/'+(currentSub?.slug||''))return;
+ const data=currentSub?(vhEditorialConfig?.subcategories?.[currentCat.slug+'/'+currentSub.slug]||vhEditorialFallback('subcategory',currentSub.name)):currentCat?(vhEditorialConfig?.categories?.[currentCat.slug]||vhEditorialFallback('category',currentCat.name)):vhEditorialConfig?.all;
+ if(!data?.heading||!data?.description){box.hidden=true;box.replaceChildren();return}
+ const layout=document.createElement('div');layout.className='vh-catalog-seo-layout';
+ const copy=document.createElement('div');copy.className='vh-catalog-seo-copy';
+ const h=document.createElement('h2');h.textContent=data.heading;copy.append(h);
+ const p=document.createElement('p');p.textContent=data.description;copy.append(p);
+ if(Array.isArray(data.features)&&data.features.length){const grid=document.createElement('div');grid.className='vh-catalog-seo-features';for(const [heading,description] of data.features.slice(0,3)){const item=document.createElement('div'),h3=document.createElement('h3'),p3=document.createElement('p');h3.textContent=heading;p3.textContent=description;item.append(h3,p3);grid.append(item)}copy.append(grid)}
+ layout.append(copy);
+ if(data.image){const img=document.createElement('img');img.className='vh-catalog-seo-image';img.src=data.image;img.alt=data.heading;img.loading='lazy';layout.append(img)}
+ box.replaceChildren(layout);box.hidden=false;
+}
+
 async function applySelectedCategorySEO(){
  const request=++categorySeoRequest;
  const cat=catalogCategories.find(c=>c.slug===catalogState.category);
@@ -732,6 +760,7 @@ function updateCatalogUrl(){
  else url.searchParams.delete('subcategory');
  history.replaceState({},'',url)
  void applySelectedCategorySEO()
+ void renderCatalogEditorial()
 }
 
 function resetCatalogFilters(){
