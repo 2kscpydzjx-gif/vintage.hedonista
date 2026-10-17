@@ -24,7 +24,7 @@ async function products(){
  while(true){
   const u=new URL(url.replace(/\/$/,'')+'/rest/v1/products');
   u.searchParams.set('select','id,name,slug,status,price,brand,short_description,cover_image');
-  u.searchParams.set('status','eq.published');
+  u.searchParams.set('status','in.(published,reserved,sold)');
   u.searchParams.set('limit','1000');u.searchParams.set('offset',String(all.length));
   const res=await fetch(u,{headers:{apikey:key,Authorization:'Bearer '+key,'Accept-Profile':'public'}});
   if(!res.ok)throw Error('Supabase read failed: HTTP '+res.status);
@@ -50,6 +50,9 @@ async function main(){
   if(p.cover_image){
    html=html.replace(/(<img\b[^>]*\bid=["']galleryMainImg["'][^>]*\bsrc=["'])([^"']*)(["'])/i,(_,a,b,c)=>a+escapeHTML(p.cover_image)+c);
   }
+  const inventoryMeta=/<meta\s+name=["']vh-product-inventory["']\s+content=["'][^"']*["']\s*\/?\s*>/i;
+  if(inventoryMeta.test(html))html=html.replace(inventoryMeta,'<meta name="vh-product-inventory" content="'+p.status+'">');
+  else {skipped.push({slug:p.slug,reason:'Missing inventory marker; regenerate snapshots'});continue;}
   // Rebuild only our own static Product JSON-LD; preserve unrelated SEO tags.
   const jsonRe=/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>[\s\S]*?<\/script>/i;
   const existing=html.match(jsonRe);
@@ -60,7 +63,7 @@ async function main(){
    if(p.brand)schema.brand={'@type':'Brand',name:p.brand};else delete schema.brand;
    if(p.cover_image)schema.image=[p.cover_image];
    if(p.price!==null&&p.price!==undefined){
-    schema.offers={...(schema.offers||{}),'@type':'Offer',priceCurrency:'UAH',price:String(p.price),itemCondition:'https://schema.org/UsedCondition'};
+    schema.offers={...(schema.offers||{}),'@type':'Offer',priceCurrency:'UAH',price:String(p.price),itemCondition:'https://schema.org/UsedCondition',availability:'https://schema.org/'+({published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[p.status])};
    }
    const safe=JSON.stringify(schema).replace(/</g,'\\u003c');
    html=html.replace(jsonRe,'<script type="application/ld+json" id="vh-static-product-jsonld">'+safe+'</script>');
@@ -73,12 +76,14 @@ async function main(){
    }
    const image=s=>decode(s.match(/<img\b[^>]*\bid=["']galleryMainImg["'][^>]*>/i)?.[0]?.match(/\bsrc=["']([^"']*)["']/i)?.[1]||'');
    inspect('cover_image',image(original),image(html));
+   const inventory=s=>s.match(/<meta\s+name=["']vh-product-inventory["']\s+content=["']([^"']+)/i)?.[1];
+   inspect('status',inventory(original),inventory(html));
    const schema=s=>{
     const match=s.match(/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>([\s\S]*?)<\/script>/i);
     return match?JSON.parse(match[1]):null;
    };
    const before=schema(original),after=schema(html);
-   for(const [field,read] of [['jsonld.name',x=>x?.name],['jsonld.description',x=>x?.description],['jsonld.brand',x=>x?.brand?.name],['jsonld.image',x=>x?.image?.[0]],['jsonld.price',x=>x?.offers?.price]])inspect(field,read(before),read(after));
+   for(const [field,read] of [['jsonld.name',x=>x?.name],['jsonld.description',x=>x?.description],['jsonld.brand',x=>x?.brand?.name],['jsonld.image',x=>x?.image?.[0]],['jsonld.price',x=>x?.offers?.price],['jsonld.availability',x=>x?.offers?.availability]])inspect(field,read(before),read(after));
    if(fields.length){changed.push(p.slug);differences.push({id:p.id,slug:p.slug,fields});if(write)fs.writeFileSync(file,html);}
   }
  }
