@@ -371,8 +371,10 @@ async function initCatalog(){
  catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
- catalogState.category=params.get('category')||null;
- catalogState.subcategory=params.get('subcategory')||null;
+ const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/index\.html$/);
+ const staticSubcategory=location.pathname.match(/\/seo-subcategory\/([^/]+)\/([^/]+)\/index\.html$/);
+  catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null);
+ catalogState.subcategory=params.get('subcategory')||(staticSubcategory?decodeURIComponent(staticSubcategory[2]):null);
 
  // If URL contains an old/non-active category, return to all products.
  if(catalogState.category&&!catalogCategories.some(c=>c.slug===catalogState.category)){
@@ -682,23 +684,25 @@ let categorySeoRequest=0;
 function updateCategoryCanonical(){
  const link=document.querySelector('link[rel="canonical"]')||document.createElement('link');
  link.rel='canonical';
- const url=new URL('catalog.html',location.href);
+ const url=new URL('catalog.html',document.baseURI);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
- link.href=url.href;
+ const staticCanonical=document.querySelector('meta[name="vh-static-canonical"]')?.content;
+ link.href=staticCanonical||url.href;
  if(!link.parentNode)document.head.appendChild(link);
 }
 async function applySelectedCategorySEO(){
  const request=++categorySeoRequest;
  const cat=catalogCategories.find(c=>c.slug===catalogState.category);
- const title=cat?cat.name+' — вінтажний одяг | Vintage Hedonista':'Каталог вінтажного жіночого одягу — Vintage Hedonista';
- const description=cat?'Переглядайте '+cat.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.':'Переглядайте каталог вінтажного жіночого одягу та аксесуарів Vintage Hedonista.';
+ const sub=catalogSubcategories.find(c=>c.slug===catalogState.subcategory&&String(c.category_id)===String(cat?.id));
+ const title=sub?sub.name+' — вінтажний одяг | Vintage Hedonista':cat?cat.name+' — вінтажний одяг | Vintage Hedonista':'Каталог вінтажного жіночого одягу — Vintage Hedonista';
+ const description=sub?'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.':cat?'Переглядайте '+cat.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.':'Переглядайте каталог вінтажного жіночого одягу та аксесуарів Vintage Hedonista.';
  updateCategoryCanonical();
  const heading=document.querySelector('.catalog-heading .page-title');
- if(heading)heading.textContent=cat?cat.name.toUpperCase():'КАТАЛОГ';
+ if(heading)heading.textContent=sub?sub.name.toUpperCase():cat?cat.name.toUpperCase():'КАТАЛОГ';
  const apply=(seoTitle,seoDescription)=>{
   if(request!==categorySeoRequest)return;
   const finalTitle=seoTitle||title,finalDescription=seoDescription||description;
-  if(window.VHSEORuntime)window.VHSEORuntime.set({title:finalTitle,description:finalDescription});
+  if(window.VHSEORuntime)window.VHSEORuntime.set({title:finalTitle,description:finalDescription,canonicalUrl:document.querySelector('meta[name="vh-static-canonical"]')?.content});
   else{
    document.title=finalTitle;
    let meta=document.querySelector('meta[name="description"]');
@@ -709,7 +713,7 @@ async function applySelectedCategorySEO(){
  };
  if(cat){
   try{
-   const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type','category').eq('entity_id',String(cat.id)).maybeSingle();
+   const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type',sub?'subcategory':'category').eq('entity_id',String(sub?.id||cat.id)).maybeSingle();
    if(error)console.warn('Category SEO',error);
    apply(data?.seo_title,data?.meta_description);
   }catch(e){console.warn('Category SEO',e);apply()}
@@ -717,7 +721,11 @@ async function applySelectedCategorySEO(){
 }
 
 function updateCatalogUrl(){
- const url=new URL(location.href);
+ const onSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname);
+ if(onSeoSnapshot){
+  document.querySelector('meta[name="vh-static-canonical"]')?.remove();
+ }
+ const url=onSeoSnapshot?new URL('catalog.html',document.baseURI):new URL(location.href);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
  else url.searchParams.delete('category');
  if(catalogState.subcategory)url.searchParams.set('subcategory',catalogState.subcategory);

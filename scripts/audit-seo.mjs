@@ -7,7 +7,7 @@ const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&am
 let errors=[];let checked=0;
 for(const address of urls){
  const u=new URL(address);
- if(!/^\/vintage\.hedonista\/seo-(product|article)\//.test(u.pathname))continue;
+ if(!/^\/vintage\.hedonista\/seo-(product|article|category|subcategory)\//.test(u.pathname))continue;
  const path=decodeURIComponent(u.pathname.replace(/^\/vintage\.hedonista\//,'')); // URL is encoded, disk folder is Unicode
  const file=join(root,path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
@@ -17,6 +17,10 @@ for(const address of urls){
  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Missing H1: '+path);
  if(/<img\b[^>]*\balt="[^"]*"[^>]*\balt=/i.test(html))errors.push('Duplicate ALT: '+path);
  if(!/<base\b[^>]*id="vh-seo-base"/i.test(html))errors.push('Missing root base: '+path);
+ if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
+  if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
+  if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
+ }
 }
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 for(const page of staticPages){

@@ -23,7 +23,7 @@ jobs:
         run: node scripts/audit-seo.mjs
       - name: Commit updated sitemap if changed
         run: |
-          git add -A sitemap.xml seo-product seo-article
+          git add -A sitemap.xml seo-product seo-article seo-category seo-subcategory
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

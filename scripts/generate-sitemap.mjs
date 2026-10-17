@@ -21,21 +21,27 @@ async function rows(table,select,filter){
 const root=fileURLToPath(new URL('../',import.meta.url));
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 const entries=staticPages.map(p=>new URL(p,base).href);
-const [products,news,categories]=await Promise.all([
+const [products,news,categories,subcategories]=await Promise.all([
  rows('products','id,slug,name,status,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
  rows('news','id,slug,title,excerpt,cover_image,content','status=eq.published'),
- rows('categories','slug','is_active=eq.true')
+ rows('categories','id,name,slug','is_active=eq.true'),
+ rows('subcategories','id,category_id,name,slug','id=not.is.null')
 ]);
 for(const p of products)if(p.slug)entries.push(new URL('seo-product/'+encodeURIComponent(p.slug)+'/index.html',base).href);
 for(const n of news)if(n.slug)entries.push(new URL('seo-article/'+encodeURIComponent(n.slug)+'/index.html',base).href);
-for(const c of categories)if(c.slug)entries.push(new URL('catalog.html?category='+encodeURIComponent(c.slug),base).href);
+for(const c of categories)if(c.slug)entries.push(new URL('seo-category/'+encodeURIComponent(c.slug)+'/index.html',base).href);
+const activeCategories=new Map(categories.map(c=>[String(c.id),c]));
+for(const sub of subcategories){
+ const parent=activeCategories.get(String(sub.category_id));
+ if(parent?.slug&&sub.slug)entries.push(new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href);
+}
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const unique=[...new Set(entries)];
 if(products.length===0&&news.length===0)throw Error('No published products or articles were returned; refusing to overwrite sitemap.xml. Check Supabase public SELECT permissions and publication statuses.');
 const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+unique.map(u=>'  <url><loc>'+esc(u)+'</loc></url>').join('\n')+'\n</urlset>\n';
 // Static HTML snapshots: unique titles/descriptions in initial HTML response.
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.
-const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article)');
+const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article,category,subcategory)');
 const seoMap=new Map(seo.map(x=>[x.entity_type+':'+x.entity_id,x]));
 // Decode already-escaped HTML entities before escaping output once.
 // CMS fields may contain literal "&amp;" from rich text editing.
@@ -86,8 +92,40 @@ function snapshot(kind,row){
  writeFileSync(join(target,'index.html'),html);
 }
 // Do not delete existing snapshots until all Supabase requests succeeded.
-for(const dir of ['seo-product','seo-article'])rmSync(join(root,dir),{recursive:true,force:true});
+for(const dir of ['seo-product','seo-article','seo-category','seo-subcategory'])rmSync(join(root,dir),{recursive:true,force:true});
 for(const p of products)if(p.slug)snapshot('product',p);
 for(const n of news)if(n.slug)snapshot('article',n);
+for(const c of categories)if(c.slug){
+ const slug=String(c.slug).normalize('NFC');
+ if(slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe category slug: '+slug);
+ const meta=seoMap.get('category:'+c.id)||{};
+ const title=strip(meta.seo_title)||c.name+' — вінтажний одяг | Vintage Hedonista';
+ const desc=strip(meta.meta_description)||'Переглядайте '+c.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.';
+ const canonical=new URL('seo-category/'+encodeURIComponent(slug)+'/index.html',base).href;
+ let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
+ html=html.replace(/<head>/i,'<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
+ html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
+ html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
+ html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
+ html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(c.name.toUpperCase())+'</h1>');
+ html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
+ const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
+}
+for(const sub of subcategories){
+ const parent=activeCategories.get(String(sub.category_id));
+ if(!parent?.slug||!sub.slug)continue;
+ const meta=seoMap.get('subcategory:'+sub.id)||{};
+ const title=strip(meta.seo_title)||sub.name+' — вінтажний одяг | Vintage Hedonista';
+ const desc=strip(meta.meta_description)||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
+ const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
+ let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
+ html=html.replace('<head>','<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
+ html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
+ html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
+ html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
+ html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(sub.name.toUpperCase())+'</h1>');
+ const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
+ mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
+}
 writeFileSync(new URL('../sitemap.xml',import.meta.url),xml);
 console.log(`Sitemap + SEO HTML: ${unique.length} URLs (${products.length} products, ${news.length} articles, ${categories.length} categories)`);
