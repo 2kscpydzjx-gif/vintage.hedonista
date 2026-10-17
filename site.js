@@ -156,7 +156,7 @@ $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const {data:cats,error:catError}=catsRes;
  if(catError)console.error(catError);
  const categoryItems=cats||[];
- $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="catalog.html?category=${encodeURIComponent(c.slug)}">${c.cover_image?`<img src="${c.cover_image}" alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
+ $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="seo-category/${encodeURIComponent(c.slug)}/index.html">${c.cover_image?`<img src="${c.cover_image}" alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
  initCategoryCarousel();
 
  $('journalTitle').textContent=s.homepage_journal_title||'HEDONISTA JOURNAL';$('journalLink').textContent=(s.homepage_journal_link_text||'ВЕСЬ ЖУРНАЛ')+' →';const {data:news,error:newsError}=newsRes;if(newsError)console.error(newsError);$('homeNews').innerHTML=(news||[]).length?(news||[]).map(newsCard).join(''):'<div class="empty">Опублікуйте першу новину в адмінці</div>';
@@ -413,7 +413,7 @@ function categorySubcategoryMarkup(category){
      <input type="radio" name="subcategory" value="${x.slug}" ${catalogState.subcategory===x.slug?'checked':''}>
      <span>${x.name}</span>
      <small class="filter-option-count">${counts.get(x.slug)||0}</small>
-   </label>`).join('')}
+   </label><a class="vh-seo-filter-link" href="${new URL(`seo-subcategory/${encodeURIComponent(category.slug)}/${encodeURIComponent(x.slug)}/index.html`,document.baseURI).href}" aria-label="Відкрити сторінку ${x.name}" title="Сторінка підкатегорії">↗</a>`).join('')}
  </div>`
 }
 
@@ -446,7 +446,7 @@ function renderCategoryFilters(){
       <input type="checkbox" name="category" value="${c.slug}" ${catalogState.category===c.slug?'checked':''}>
       <span>${c.name}</span>
       <small class="filter-option-count">${counts.get(c.slug)||0}</small>
-    </label>
+    </label><a class="vh-seo-filter-link" href="${new URL(`seo-category/${encodeURIComponent(c.slug)}/index.html`,document.baseURI).href}" aria-label="Відкрити сторінку ${c.name}" title="Сторінка категорії">↗</a>
     ${categorySubcategoryMarkup(c)}
    </div>`).join('')
 }

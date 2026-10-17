@@ -17938,3 +17938,8 @@ body.home-page .homepage-capsules #homeCapsulesMedia>img{
 .cms133-zoom output{min-width:42px;text-align:right}
 .cms133-advanced{padding:6px 0}
 .cms132-stage{max-height:none;min-height:180px}
+
+/* Canonical category links: separate from checkbox/radio filter controls. */
+.category-filter-item > .category-parent-option, .category-subcategories > .subcategory-option {display:inline-flex;vertical-align:middle;width:calc(100% - 30px);}
+.vh-seo-filter-link{display:inline-flex;align-items:center;justify-content:center;width:26px;min-height:28px;vertical-align:middle;color:inherit;text-decoration:none;opacity:.75;font-size:15px;}
+.vh-seo-filter-link:hover,.vh-seo-filter-link:focus-visible{opacity:1;text-decoration:underline;}
