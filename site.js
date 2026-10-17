@@ -721,7 +721,11 @@ async function applySelectedCategorySEO(){
 }
 
 function updateCatalogUrl(){
- const url=new URL(location.href);
+ const onSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname);
+ if(onSeoSnapshot){
+  document.querySelector('meta[name="vh-static-canonical"]')?.remove();
+ }
+ const url=onSeoSnapshot?new URL('catalog.html',document.baseURI):new URL(location.href);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
  else url.searchParams.delete('category');
  if(catalogState.subcategory)url.searchParams.set('subcategory',catalogState.subcategory);
