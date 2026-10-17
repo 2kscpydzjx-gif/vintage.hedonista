@@ -12,7 +12,5 @@ create table if not exists public.vh_catalog_seo_blocks (
 alter table public.vh_catalog_seo_blocks enable row level security;
 drop policy if exists "Public can read catalog SEO" on public.vh_catalog_seo_blocks;
 create policy "Public can read catalog SEO" on public.vh_catalog_seo_blocks for select to anon,authenticated using (true);
--- IMPORTANT: writes restricted to admin users. Replace this predicate with your existing
--- admin role authorization if your Supabase project uses a different scheme.
--- No broad authenticated INSERT/UPDATE policy is installed by this migration.
--- Configure an admin-only policy before saving from the editor.
+drop policy if exists "Admins manage catalog SEO" on public.vh_catalog_seo_blocks;
+create policy "Admins manage catalog SEO" on public.vh_catalog_seo_blocks for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
