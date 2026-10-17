@@ -24,7 +24,9 @@ for(const file of walk(root)){
  if(/^https?:\/\//.test(image))data.image=[decode(image)];
  if(brand&&brand!=='—')data.brand={'@type':'Brand',name:brand};
  if(price)data.offers={'@type':'Offer',url:canonical,priceCurrency:'UAH',price,itemCondition:'https://schema.org/UsedCondition'};
- // Availability is intentionally omitted: published does not imply in stock.
+ const inventory=html.match(/<meta\s+name=["']vh-product-inventory["']\s+content=["']([^"']+)/i)?.[1];
+ const availability={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[inventory];
+ if(data.offers&&availability)data.offers.availability='https://schema.org/'+availability;
  const json=JSON.stringify(data).replace(/</g,'\\u003c');
  const block='<script type="application/ld+json" id="vh-static-product-jsonld">'+json+'</script>';
  const prior=/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>[\s\S]*?<\/script>/i;
