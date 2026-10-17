@@ -679,20 +679,41 @@ function bindCatalogControls(){
 }
 
 let categorySeoRequest=0;
+function updateCategoryCanonical(){
+ const link=document.querySelector('link[rel="canonical"]')||document.createElement('link');
+ link.rel='canonical';
+ const url=new URL('catalog.html',location.href);
+ if(catalogState.category)url.searchParams.set('category',catalogState.category);
+ link.href=url.href;
+ if(!link.parentNode)document.head.appendChild(link);
+}
 async function applySelectedCategorySEO(){
  const request=++categorySeoRequest;
  const cat=catalogCategories.find(c=>c.slug===catalogState.category);
- const title=cat?cat.name+' — Vintage Hedonista':'Каталог — Vintage Hedonista';
- const description=cat?'Вінтажний одяг: '+cat.name+'. Добірні речі у Vintage Hedonista.':'Вінтажний одяг та унікальні речі у Vintage Hedonista.';
- if(cat && window.VHSEORuntime){
-  // Dynamic category URL is catalog.html?category=slug; avoid overriding after rapid filter switches.
-  try {
+ const title=cat?cat.name+' — вінтажний одяг | Vintage Hedonista':'Каталог вінтажного жіночого одягу — Vintage Hedonista';
+ const description=cat?'Переглядайте '+cat.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.':'Переглядайте каталог вінтажного жіночого одягу та аксесуарів Vintage Hedonista.';
+ updateCategoryCanonical();
+ const heading=document.querySelector('.catalog-heading .page-title');
+ if(heading)heading.textContent=cat?cat.name.toUpperCase():'КАТАЛОГ';
+ const apply=(seoTitle,seoDescription)=>{
+  if(request!==categorySeoRequest)return;
+  const finalTitle=seoTitle||title,finalDescription=seoDescription||description;
+  if(window.VHSEORuntime)window.VHSEORuntime.set({title:finalTitle,description:finalDescription});
+  else{
+   document.title=finalTitle;
+   let meta=document.querySelector('meta[name="description"]');
+   if(!meta){meta=document.createElement('meta');meta.name='description';document.head.appendChild(meta)}
+   meta.content=finalDescription;
+  }
+  updateCategoryCanonical();
+ };
+ if(cat){
+  try{
    const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type','category').eq('entity_id',String(cat.id)).maybeSingle();
    if(error)console.warn('Category SEO',error);
-   if(request!==categorySeoRequest)return;
-   window.VHSEORuntime.set({title:data?.seo_title||title,description:data?.meta_description||description});
-  }catch(e){console.warn('Category SEO',e);if(request===categorySeoRequest)window.VHSEORuntime.set({title,description})}
- }else if(window.VHSEORuntime){window.VHSEORuntime.set({title,description})}
+   apply(data?.seo_title,data?.meta_description);
+  }catch(e){console.warn('Category SEO',e);apply()}
+ }else apply();
 }
 
 function updateCatalogUrl(){
