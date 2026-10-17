@@ -119,7 +119,7 @@ for(const sub of subcategories){
  const desc=strip(meta.meta_description)||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
  const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
  let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
- html=html.replace('<head>','<head><base href="'+htmlEscape(base)+'">');
+ html=html.replace('<head>','<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
  html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
