@@ -413,7 +413,7 @@ function categorySubcategoryMarkup(category){
      <input type="radio" name="subcategory" value="${x.slug}" ${catalogState.subcategory===x.slug?'checked':''}>
      <span>${x.name}</span>
      <small class="filter-option-count">${counts.get(x.slug)||0}</small>
-   </label><a class="vh-seo-filter-link" href="${new URL(`seo-subcategory/${encodeURIComponent(category.slug)}/${encodeURIComponent(x.slug)}/index.html`,document.baseURI).href}" aria-label="Відкрити сторінку ${x.name}" title="Сторінка підкатегорії">↗</a>`).join('')}
+   </label>`).join('')}
  </div>`
 }
 
@@ -446,7 +446,7 @@ function renderCategoryFilters(){
       <input type="checkbox" name="category" value="${c.slug}" ${catalogState.category===c.slug?'checked':''}>
       <span>${c.name}</span>
       <small class="filter-option-count">${counts.get(c.slug)||0}</small>
-    </label><a class="vh-seo-filter-link" href="${new URL(`seo-category/${encodeURIComponent(c.slug)}/index.html`,document.baseURI).href}" aria-label="Відкрити сторінку ${c.name}" title="Сторінка категорії">↗</a>
+    </label>
     ${categorySubcategoryMarkup(c)}
    </div>`).join('')
 }
