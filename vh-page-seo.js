@@ -1,4 +1,6 @@
 (function(){
+ // Generated catalog SEO snapshots must not inherit homepage SEO metadata.
+ if(document.querySelector('meta[name="vh-static-canonical"]'))return;
  const page=location.pathname.split('/').pop().replace(/\.html$/,'')||'index';
  const keys={index:'home',catalog:'catalog',about:'about',journal:'journal',delivery:'delivery',contacts:'contacts',capsule:'capsules'};
  const key=keys[page];if(!key||!window.VH_CONFIG||!window.supabase||!window.VHSEORuntime)return;
