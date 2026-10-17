@@ -13,6 +13,7 @@ if(!url||!key||!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)){console.err
 const escapeHTML=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const decode=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
 const strip=s=>decode(s.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
+const normalize=s=>decode(String(s??'')).replace(/\s+/g,' ').trim();
 const getField=(html,id)=>{const m=html.match(new RegExp('(<[^>]+\\bid=["\\x27]'+id+'["\\x27][^>]*>)([\\s\\S]*?)(<\\/[^>]+>)','i'));return m?strip(m[2]):null;};
 const replaceField=(html,id,value)=>{
  const re=new RegExp('(<[^>]+\\bid=["\\x27]'+id+'["\\x27][^>]*>)([\\s\\S]*?)(<\\/[^>]+>)','i');
@@ -43,9 +44,9 @@ async function main(){
   const original=fs.readFileSync(file,'utf8');let html=original;
   if(getField(html,'productName')===null){skipped.push({slug:p.slug,reason:'Missing productName'});continue;}
   html=replaceField(html,'productName',p.name);
-  if(getField(html,'productPrice')!==null&&p.price!==null&&p.price!==undefined)html=replaceField(html,'productPrice',p.price+' грн');
+  if(getField(html,'productPrice')!==null&&p.price!==null&&p.price!==undefined)html=replaceField(html,'productPrice',Number(p.price).toLocaleString('uk-UA').replace(/[\u00a0\u202f]/g,' ')+' грн');
   if(getField(html,'productBrandFact')!==null)html=replaceField(html,'productBrandFact',p.brand||'—');
-  if(getField(html,'productShortDescription')!==null&&p.short_description!==null)html=replaceField(html,'productShortDescription',p.short_description);
+  if(getField(html,'productShortDescription')!==null&&p.short_description!==null)html=replaceField(html,'productShortDescription',decode(p.short_description));
   if(p.cover_image){
    html=html.replace(/(<img\b[^>]*\bid=["']galleryMainImg["'][^>]*\bsrc=["'])([^"']*)(["'])/i,(_,a,b,c)=>a+escapeHTML(p.cover_image)+c);
   }
@@ -54,8 +55,8 @@ async function main(){
   const existing=html.match(jsonRe);
   if(existing){
    const schema=JSON.parse(existing[0].replace(/^<script[^>]*>/i,'').replace(/<\/script>$/i,''));
-   schema.name=p.name;
-   if(p.short_description!==null)schema.description=p.short_description||'';
+   schema.name=normalize(p.name);
+   if(p.short_description!==null)schema.description=decode(p.short_description||'');
    if(p.brand)schema.brand={'@type':'Brand',name:p.brand};else delete schema.brand;
    if(p.cover_image)schema.image=[p.cover_image];
    if(p.price!==null&&p.price!==undefined){
@@ -66,7 +67,7 @@ async function main(){
   }else{skipped.push({slug:p.slug,reason:'Missing static JSON-LD; run the generator first'});continue;}
   if(html!==original){
    const fields=[];
-   const inspect=(field,before,after)=>{if(String(before??'')!==String(after??''))fields.push({field,before,after});};
+   const inspect=(field,before,after)=>{if(normalize(before)!==normalize(after))fields.push({field,before,after});};
    for(const [id,field] of [['productName','name'],['productPrice','price'],['productBrandFact','brand'],['productShortDescription','short_description']]){
     inspect(field,getField(original,id),getField(html,id));
    }
