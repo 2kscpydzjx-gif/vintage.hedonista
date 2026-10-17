@@ -22,7 +22,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 const entries=staticPages.map(p=>new URL(p,base).href);
 const [products,news,categories]=await Promise.all([
- rows('products','id,slug,name,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=eq.published'),
+ rows('products','id,slug,name,status,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
  rows('news','id,slug,title,excerpt,cover_image,content','status=eq.published'),
  rows('categories','slug','is_active=eq.true')
 ]);
@@ -65,6 +65,8 @@ function snapshot(kind,row){
  if(isProduct){
   const plain=strip(row.description||row.short_description||'');
   const replaceText=(id,value)=>{const re=new RegExp('(<[^>]+\\bid="'+id+'"[^>]*>)[\\s\\S]*?(</[^>]+>)','i');html=html.replace(re,(_,a,b)=>a+htmlEscape(value)+b)};
+  // Static inventory marker is read by the JSON-LD generator and SEO sync check.
+  html=html.replace('</head>','<meta name="vh-product-inventory" content="'+htmlEscape(row.status||'')+'"></head>');
   replaceText('productName',row.name||'Товар');
   replaceText('productBreadcrumb',row.name||'Товар');
   replaceText('productShortDescription',row.short_description||'');
