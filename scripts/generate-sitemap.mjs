@@ -21,21 +21,27 @@ async function rows(table,select,filter){
 const root=fileURLToPath(new URL('../',import.meta.url));
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 const entries=staticPages.map(p=>new URL(p,base).href);
-const [products,news,categories]=await Promise.all([
+const [products,news,categories,subcategories]=await Promise.all([
  rows('products','id,slug,name,status,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
  rows('news','id,slug,title,excerpt,cover_image,content','status=eq.published'),
- rows('categories','id,name,slug','is_active=eq.true')
+ rows('categories','id,name,slug','is_active=eq.true'),
+ rows('subcategories','id,category_id,name,slug','id=not.is.null')
 ]);
 for(const p of products)if(p.slug)entries.push(new URL('seo-product/'+encodeURIComponent(p.slug)+'/index.html',base).href);
 for(const n of news)if(n.slug)entries.push(new URL('seo-article/'+encodeURIComponent(n.slug)+'/index.html',base).href);
 for(const c of categories)if(c.slug)entries.push(new URL('seo-category/'+encodeURIComponent(c.slug)+'/index.html',base).href);
+const activeCategories=new Map(categories.map(c=>[String(c.id),c]));
+for(const sub of subcategories){
+ const parent=activeCategories.get(String(sub.category_id));
+ if(parent?.slug&&sub.slug)entries.push(new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href);
+}
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const unique=[...new Set(entries)];
 if(products.length===0&&news.length===0)throw Error('No published products or articles were returned; refusing to overwrite sitemap.xml. Check Supabase public SELECT permissions and publication statuses.');
 const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+unique.map(u=>'  <url><loc>'+esc(u)+'</loc></url>').join('\n')+'\n</urlset>\n';
 // Static HTML snapshots: unique titles/descriptions in initial HTML response.
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.
-const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article,category)');
+const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article,category,subcategory)');
 const seoMap=new Map(seo.map(x=>[x.entity_type+':'+x.entity_id,x]));
 // Decode already-escaped HTML entities before escaping output once.
 // CMS fields may contain literal "&amp;" from rich text editing.
@@ -86,7 +92,7 @@ function snapshot(kind,row){
  writeFileSync(join(target,'index.html'),html);
 }
 // Do not delete existing snapshots until all Supabase requests succeeded.
-for(const dir of ['seo-product','seo-article','seo-category'])rmSync(join(root,dir),{recursive:true,force:true});
+for(const dir of ['seo-product','seo-article','seo-category','seo-subcategory'])rmSync(join(root,dir),{recursive:true,force:true});
 for(const p of products)if(p.slug)snapshot('product',p);
 for(const n of news)if(n.slug)snapshot('article',n);
 for(const c of categories)if(c.slug){
