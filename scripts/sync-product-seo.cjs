@@ -59,7 +59,7 @@ async function main(){
   if(existing){
    const schema=JSON.parse(existing[0].replace(/^<script[^>]*>/i,'').replace(/<\/script>$/i,''));
    schema.name=normalize(p.name);
-   if(p.short_description!==null)schema.description=decode(p.short_description||'');
+   if(p.short_description!==null)schema.description=strip(p.short_description||'');
    if(p.brand)schema.brand={'@type':'Brand',name:p.brand};else delete schema.brand;
    if(p.cover_image)schema.image=[p.cover_image];
    if(p.price!==null&&p.price!==undefined){
