@@ -7,7 +7,7 @@ const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&am
 let errors=[];let checked=0;
 for(const address of urls){
  const u=new URL(address);
- if(!/^\/vintage\.hedonista\/seo-(product|article)\//.test(u.pathname))continue;
+ if(!/^\/vintage\.hedonista\/seo-(product|article|category|subcategory)\//.test(u.pathname))continue;
  const path=decodeURIComponent(u.pathname.replace(/^\/vintage\.hedonista\//,'')); // URL is encoded, disk folder is Unicode
  const file=join(root,path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
