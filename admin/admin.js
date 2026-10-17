@@ -1488,6 +1488,7 @@ $('saveProductBtn').onclick=async()=>{
    await loadProducts();
    await editProduct(productId);
    vhClearDraft('productForm');
+   productEditorMarkClean();
    toast(wasEditing?'Товар оновлено':'Товар додано');
  }catch(e){
    console.error(e);
@@ -2885,11 +2886,28 @@ function updateProductEditorState(dirty){
  el.innerHTML=dirty?'<span></span>Є незбережені зміни':'<span></span>Зміни збережені';
 }
 
+// Compare actual form values against the last successfully saved/loaded state.
+// Programmatic input/change events must not create a false unsaved warning.
+let productSavedFingerprint=null;
+function productFormFingerprint(){
+ const form=$('productForm');if(!form)return null;
+ return JSON.stringify([...form.querySelectorAll('input,select,textarea')]
+  .filter(el=>!['file','button','submit'].includes(el.type))
+  .map(el=>[el.id||el.name,el.type==='checkbox'||el.type==='radio'?el.checked:el.value]));
+}
+function productEditorMarkClean(){
+ productSavedFingerprint=productFormFingerprint();
+ updateProductEditorState(false);
+}
+function productEditorRecheck(){
+ if(productSavedFingerprint===null)return updateProductEditorState(true);
+ updateProductEditorState(productFormFingerprint()!==productSavedFingerprint);
+}
 document.addEventListener('input',e=>{
- if(e.target.closest('#productForm'))updateProductEditorState(true)
+ if(e.target.closest('#productForm'))productEditorRecheck();
 });
 document.addEventListener('change',e=>{
- if(e.target.closest('#productForm'))updateProductEditorState(true)
+ if(e.target.closest('#productForm'))productEditorRecheck();
 });
 
 $('saveProductTopBtn')?.addEventListener('click',()=>$('saveProductBtn')?.click());
@@ -2903,23 +2921,23 @@ $('previewProductBtn')?.addEventListener('click',()=>{
 const originalResetProductForm=resetProductForm;
 resetProductForm=function(){
  originalResetProductForm();
- updateProductEditorState(false)
+ productEditorMarkClean()
 };
 
 const originalEditProduct=editProduct;
 editProduct=function(id){
  const result=originalEditProduct(id);
- updateProductEditorState(false);
+ Promise.resolve(result).then(()=>productEditorMarkClean());
  return result
 };
 window.editProduct=editProduct;
 window.openProductForm=function(){
  resetProductForm();
  goPage('productForm');
- updateProductEditorState(false)
+ productEditorMarkClean()
 };
 
-$('saveProductBtn')?.addEventListener('click',()=>setTimeout(()=>updateProductEditorState(false),700));
+// The save handler itself marks clean only after Supabase confirms success.
 
 
 /* ==========================================================
