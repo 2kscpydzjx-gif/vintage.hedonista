@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const map={'index.html':'home','catalog.html':'catalog','capsule.html':'capsules','about.html':'about','journal.html':'journal','delivery.html':'delivery','contacts.html':'contacts'};
-const page=map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
+const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)&&!!document.querySelector('meta[name="vh-static-canonical"]');
+const page=isCatalogSeoSnapshot?'catalog':map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
 const config=window.VH_CONFIG;if(!config||!window.supabase){document.documentElement.classList.remove('vh-cms-booting');return;}
 const db=window.supabase.createClient(config.supabaseUrl,config.supabaseKey);
 const safeHtml=html=>{const t=document.createElement('template');t.innerHTML=String(html);const allowed=new Set(['P','BR','STRONG','B','EM','I','UL','OL','LI','H2','H3','A']);function scrub(root){for(const n of [...root.childNodes]){if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;if(!allowed.has(n.tagName)){n.replaceWith(...n.childNodes);scrub(root);continue}for(const a of [...n.attributes]){if(a.name==='href'&&n.tagName==='A'&&/^(https?:|mailto:|tel:|\/|#)/i.test(a.value))continue;n.removeAttribute(a.name)}scrub(n)}}scrub(t.content);return t.innerHTML};
