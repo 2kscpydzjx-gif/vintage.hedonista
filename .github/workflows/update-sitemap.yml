@@ -13,11 +13,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Generate sitemap from published Supabase records
+      - name: Generate sitemap from publicly visible Supabase products
         run: node scripts/generate-sitemap.mjs
       - name: Build static product structured data
         run: node scripts/build-product-jsonld.cjs
-      - name: Validate published product fields against Supabase (read-only)
+      - name: Validate visible product fields against Supabase (read-only)
         run: node scripts/sync-product-seo.cjs --check
       - name: Audit generated SEO HTML
         run: node scripts/audit-seo.mjs
