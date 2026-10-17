@@ -24,7 +24,7 @@ async function products(){
  while(true){
   const u=new URL(url.replace(/\/$/,'')+'/rest/v1/products');
   u.searchParams.set('select','id,name,slug,status,price,brand,short_description,cover_image');
-  u.searchParams.set('status','in.(published,reserved,sold)');
+  u.searchParams.set('status','eq.published');
   u.searchParams.set('limit','1000');u.searchParams.set('offset',String(all.length));
   const res=await fetch(u,{headers:{apikey:key,Authorization:'Bearer '+key,'Accept-Profile':'public'}});
   if(!res.ok)throw Error('Supabase read failed: HTTP '+res.status);
