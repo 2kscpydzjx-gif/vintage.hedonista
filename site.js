@@ -1138,6 +1138,12 @@ function renderProduct(){
  if(crumbs){
   crumbs.querySelectorAll('[data-vh-seo-crumb]').forEach(node=>node.remove());
   const current=$('productBreadcrumb');
+  // Move the existing separator together with the product title:
+  // HOME / CATALOG / CATEGORY / SUBCATEGORY / PRODUCT.
+  const productSeparator=current.previousElementSibling;
+  if(productSeparator?.tagName==='SPAN'&&productSeparator.textContent.trim()==='/'){
+   productSeparator.remove();
+  }
   const category=p.categories?.slug&&p.categories?.name?p.categories:null;
   const subcategory=category&&p.subcategories?.slug&&p.subcategories?.name?p.subcategories:null;
   const addCrumb=(name,path)=>{
@@ -1147,6 +1153,8 @@ function renderProduct(){
   };
   if(category)addCrumb(category.name,'seo-category/'+encodeURIComponent(category.slug)+'/index.html');
   if(subcategory)addCrumb(subcategory.name,'seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(subcategory.slug)+'/index.html');
+  const finalSeparator=document.createElement('span');finalSeparator.textContent='/';finalSeparator.dataset.vhSeoCrumb='1';
+  crumbs.insertBefore(finalSeparator,current);
  }
  if($('productBrandFact'))$('productBrandFact').textContent=vhPlainText(p.brand)||'—';
  if($('productSeason'))$('productSeason').textContent=p.season||'—';
