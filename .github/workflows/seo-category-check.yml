@@ -1,0 +1,34 @@
+name: Validate SEO category snapshots
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/generate-sitemap.mjs'
+      - 'scripts/audit-seo.mjs'
+      - 'site.js'
+      - '.github/workflows/seo-category-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check site.js
+          node --check scripts/generate-sitemap.mjs
+          node --check scripts/audit-seo.mjs
+      - name: Generate sitemap and static SEO pages
+        run: node scripts/generate-sitemap.mjs
+      - name: Audit SEO output
+        run: node scripts/audit-seo.mjs
+      - name: Show generated page counts
+        run: |
+          echo "Categories: $(find seo-category -name index.html | wc -l)"
+          echo "Subcategories: $(find seo-subcategory -name index.html | wc -l)"
+          echo "Sitemap URLs: $(grep -c '<loc>' sitemap.xml)"
