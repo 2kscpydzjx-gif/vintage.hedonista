@@ -18,5 +18,16 @@ for(const address of urls){
  if(/<img\b[^>]*\balt="[^"]*"[^>]*\balt=/i.test(html))errors.push('Duplicate ALT: '+path);
  if(!/<base\b[^>]*id="vh-seo-base"/i.test(html))errors.push('Missing root base: '+path);
 }
+const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
+for(const page of staticPages){
+ const html=readFileSync(join(root,page),'utf8');
+ const head=html.split(/<\\/head>/i)[0];
+ const title=head.match(/<title>([^<]+)<\\/title>/i)?.[1];
+ const description=head.match(/<meta\\s+name="description"\\s+content="([^"]+)"/i)?.[1];
+ const canonical=head.match(/<link\\s+rel="canonical"\\s+href="([^"]+)"/i)?.[1];
+ if(!title)errors.push('Missing title: '+page);
+ if(!description)errors.push('Missing description: '+page);
+ if(canonical!==new URL(page,'https://2kscpydzjx-gif.github.io/vintage.hedonista/').href)errors.push('Canonical mismatch: '+page);
+}
 if(errors.length){console.error(errors.slice(0,30).join('\n'));process.exitCode=1}
 else console.log(`SEO audit OK: ${checked} snapshot HTML files, canonical and H1 verified (${urls.length} sitemap URLs).`);
