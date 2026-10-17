@@ -39,6 +39,19 @@ const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&g
 const unique=[...new Set(entries)];
 if(products.length===0&&news.length===0)throw Error('No published products or articles were returned; refusing to overwrite sitemap.xml. Check Supabase public SELECT permissions and publication statuses.');
 const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+unique.map(u=>'  <url><loc>'+esc(u)+'</loc></url>').join('\n')+'\n</urlset>\n';
+// Editorial content is rendered into static SEO snapshots for crawlers.
+const catalogEditorial=JSON.parse(readFileSync(new URL('../catalog-seo-content.json',import.meta.url),'utf8'));
+function editorialFor(kind,name,slug,parentSlug){
+ const override=kind==='category'?catalogEditorial.categories?.[slug]:catalogEditorial.subcategories?.[parentSlug+'/'+slug];
+ return override||{heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.'};
+}
+function editorialHtml(content){
+ if(!content?.heading||!content?.description)return '';
+ const features=(content.features||[]).slice(0,3).map(([title,desc])=>'<div><h3>'+htmlEscape(title)+'</h3><p>'+htmlEscape(desc)+'</p></div>').join('');
+ const image=content.image?'<img class="vh-catalog-seo-image" src="'+htmlEscape(content.image)+'" alt="'+htmlEscape(content.heading)+'" loading="lazy">':'';
+ return '<div class="vh-catalog-seo-layout"><div class="vh-catalog-seo-copy"><h2>'+htmlEscape(content.heading)+'</h2><p>'+htmlEscape(content.description)+'</p>'+(features?'<div class="vh-catalog-seo-features">'+features+'</div>':'')+'</div>'+image+'</div>';
+}
+function embedEditorial(html,content){const markup=editorialHtml(content);return html.replace(/(<section class="vh-catalog-seo wrap" id="catalogSeoEditorial"[^>]*)( hidden)(><\\/section>)/,(_,a,_hidden,b)=>a+(markup?'':' hidden')+b.replace('</section>',markup+'</section>'));}
 // Static HTML snapshots: unique titles/descriptions in initial HTML response.
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.
 const seo=await rows('vh_seo_metadata','entity_type,entity_id,seo_title,meta_description','entity_type=in.(product,article,category,subcategory)');
@@ -108,6 +121,7 @@ for(const c of categories)if(c.slug){
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(c.name.toUpperCase())+'</h1>');
+ html=embedEditorial(html,editorialFor('category',c.name,slug));
  html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
  const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
 }
@@ -124,6 +138,7 @@ for(const sub of subcategories){
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(sub.name.toUpperCase())+'</h1>');
+ html=embedEditorial(html,editorialFor('subcategory',sub.name,sub.slug,parent.slug));
  const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
  mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
 }
