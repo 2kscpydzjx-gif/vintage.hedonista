@@ -23,9 +23,17 @@ function productStructuredData(product,images=[]){
   ...(product.sku?{sku:String(product.sku)}:{}),
   ...(Number.isFinite(rawPrice)&&rawPrice>=0?{offers:{'@type':'Offer',url,priceCurrency:'UAH',price:rawPrice,availability:available?'https://schema.org/InStock':'https://schema.org/OutOfStock',itemCondition:'https://schema.org/UsedCondition'}}:{})
  };
+ // Static SEO snapshots already contain Product JSON-LD. Update that same
+ // element after loading live inventory instead of creating a duplicate Product.
+ let staticEl=document.getElementById('vh-static-product-jsonld');
+ if(staticEl){
+  staticEl.textContent=JSON.stringify(schema).replace(/</g,'\\u003c');
+  document.getElementById('vh-product-structured-data')?.remove();
+ }else{
  let el=document.getElementById('vh-product-structured-data');
  if(!el){el=document.createElement('script');el.type='application/ld+json';el.id='vh-product-structured-data';document.head.append(el)}
  el.textContent=JSON.stringify(schema).replace(/</g,'\\u003c');
+ }
  // Match the visible product breadcrumbs with machine-readable navigation.
  const category=product.categories?.slug&&product.categories?.name?product.categories:null;
  const subcategory=category&&product.subcategories?.slug&&product.subcategories?.name?product.subcategories:null;
