@@ -111,5 +111,21 @@ for(const c of categories)if(c.slug){
  html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
  const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
 }
+for(const sub of subcategories){
+ const parent=activeCategories.get(String(sub.category_id));
+ if(!parent?.slug||!sub.slug)continue;
+ const meta=seoMap.get('subcategory:'+sub.id)||{};
+ const title=strip(meta.seo_title)||sub.name+' — вінтажний одяг | Vintage Hedonista';
+ const desc=strip(meta.meta_description)||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
+ const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
+ let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
+ html=html.replace('<head>','<head><base href="'+htmlEscape(base)+'">');
+ html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
+ html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
+ html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
+ html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(sub.name.toUpperCase())+'</h1>');
+ const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
+ mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
+}
 writeFileSync(new URL('../sitemap.xml',import.meta.url),xml);
 console.log(`Sitemap + SEO HTML: ${unique.length} URLs (${products.length} products, ${news.length} articles, ${categories.length} categories)`);
