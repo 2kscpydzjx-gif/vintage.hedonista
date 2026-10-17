@@ -26,6 +26,20 @@ function productStructuredData(product,images=[]){
  let el=document.getElementById('vh-product-structured-data');
  if(!el){el=document.createElement('script');el.type='application/ld+json';el.id='vh-product-structured-data';document.head.append(el)}
  el.textContent=JSON.stringify(schema).replace(/</g,'\\u003c');
+ // Match the visible product breadcrumbs with machine-readable navigation.
+ const category=product.categories?.slug&&product.categories?.name?product.categories:null;
+ const subcategory=category&&product.subcategories?.slug&&product.subcategories?.name?product.subcategories:null;
+ const entries=[
+  {name:'Головна',url:new URL('index.html',origin).href},
+  {name:'Каталог',url:new URL('catalog.html',origin).href}
+ ];
+ if(category)entries.push({name:cleanText(category.name),url:new URL('seo-category/'+encodeURIComponent(category.slug)+'/index.html',origin).href});
+ if(subcategory)entries.push({name:cleanText(subcategory.name),url:new URL('seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(subcategory.slug)+'/index.html',origin).href});
+ entries.push({name:cleanText(product.name),url});
+ const breadcrumbs={'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:entries.map((entry,i)=>({'@type':'ListItem',position:i+1,name:entry.name,item:entry.url}))};
+ let breadcrumbEl=document.getElementById('vh-product-breadcrumb-structured-data');
+ if(!breadcrumbEl){breadcrumbEl=document.createElement('script');breadcrumbEl.type='application/ld+json';breadcrumbEl.id='vh-product-breadcrumb-structured-data';document.head.append(breadcrumbEl)}
+ breadcrumbEl.textContent=JSON.stringify(breadcrumbs).replace(/</g,'\\u003c');
 }
 window.VHSEORuntime={apply,set,productStructuredData};
 })();
