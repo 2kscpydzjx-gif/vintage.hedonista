@@ -21,10 +21,10 @@ for(const address of urls){
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 for(const page of staticPages){
  const html=readFileSync(join(root,page),'utf8');
- const head=html.split(/<\\/head>/i)[0];
- const title=head.match(/<title>([^<]+)<\\/title>/i)?.[1];
- const description=head.match(/<meta\\s+name="description"\\s+content="([^"]+)"/i)?.[1];
- const canonical=head.match(/<link\\s+rel="canonical"\\s+href="([^"]+)"/i)?.[1];
+ const head=html.slice(0,html.toLowerCase().indexOf('</head>'));
+ const title=head.match(/<title>([^<]+)<\/title>/i)?.[1];
+ const description=head.match(/<meta\s+name="description"\s+content="([^"]+)"/i)?.[1];
+ const canonical=head.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1];
  if(!title)errors.push('Missing title: '+page);
  if(!description)errors.push('Missing description: '+page);
  if(canonical!==new URL(page,'https://2kscpydzjx-gif.github.io/vintage.hedonista/').href)errors.push('Canonical mismatch: '+page);
