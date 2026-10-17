@@ -156,7 +156,16 @@ function snapshot(kind,row){
  const titleFallback=(isProduct?row.name:row.title)+' — Vintage Hedonista';
  const meta=seoMap.get((isProduct?'product:':'article:')+row.id)||{};
  const title=strip(meta.seo_title)||titleFallback;
- const desc=strip(meta.meta_description)||strip(isProduct?row.name:row.excerpt)||'Vintage Hedonista';
+ const productDescription=()=>{
+  const name=strip(row.name);
+  const brand=strip(row.brand);
+  const material=strip(row.material);
+  const condition=strip(row.condition);
+  const details=[brand&&'Бренд: '+brand,material&&'Матеріал: '+material,condition&&'Стан: '+condition].filter(Boolean);
+  const intro=name||'Вінтажний одяг';
+  return [intro+' у Vintage Hedonista.',...details].join(' ')+' Перегляньте фото та характеристики товару.';
+ };
+ const desc=strip(meta.meta_description)||(isProduct?productDescription():strip(row.excerpt)||'Vintage Hedonista');
  const canonical=new URL(dir+'/'+encodeURIComponent(row.slug)+'/index.html',base).href;
  let html=readFileSync(new URL('../'+file,import.meta.url),'utf8');
  // Base URL makes the existing site's relative links/assets resolve from root.
