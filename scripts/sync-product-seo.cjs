@@ -11,7 +11,10 @@ const key=process.env.SUPABASE_PUBLISHABLE_KEY||config.match(/supabaseKey\s*:\s*
 const write=process.argv.includes('--write');
 if(!url||!key||!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url)){console.error('Missing or invalid public Supabase configuration');process.exit(1);}
 const escapeHTML=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const decode=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+const decode=s=>String(s??'').replace(/&(?:amp|lt|gt|quot|apos|nbsp|#39|#x([0-9a-f]+)|#([0-9]+));/gi,(match,hex,dec)=>{
+ if(hex||dec){const cp=parseInt(hex||dec,hex?16:10);return cp>0&&cp<=0x10ffff&&!(cp>=0xd800&&cp<=0xdfff)?String.fromCodePoint(cp):match;}
+ return {'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'",'&nbsp;':' ','&#39;':"'"}[match.toLowerCase()]??match;
+});
 const strip=s=>decode(s.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
 const normalize=s=>decode(String(s??'')).replace(/\s+/g,' ').trim();
 const getField=(html,id)=>{const m=html.match(new RegExp('(<[^>]+\\bid=["\\x27]'+id+'["\\x27][^>]*>)([\\s\\S]*?)(<\\/[^>]+>)','i'));return m?strip(m[2]):null;};
@@ -46,7 +49,7 @@ async function main(){
   html=replaceField(html,'productName',p.name);
   if(getField(html,'productPrice')!==null&&p.price!==null&&p.price!==undefined)html=replaceField(html,'productPrice',Number(p.price).toLocaleString('uk-UA').replace(/[\u00a0\u202f]/g,' ')+' грн');
   if(getField(html,'productBrandFact')!==null)html=replaceField(html,'productBrandFact',p.brand||'—');
-  if(getField(html,'productShortDescription')!==null&&p.short_description!==null)html=replaceField(html,'productShortDescription',decode(p.short_description));
+  if(getField(html,'productShortDescription')!==null&&p.short_description!==null)html=replaceField(html,'productShortDescription',p.short_description);
   if(p.cover_image){
    html=html.replace(/(<img\b[^>]*\bid=["']galleryMainImg["'][^>]*\bsrc=["'])([^"']*)(["'])/i,(_,a,b,c)=>a+escapeHTML(p.cover_image)+c);
   }
