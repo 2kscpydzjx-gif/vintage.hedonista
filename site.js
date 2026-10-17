@@ -684,7 +684,7 @@ let categorySeoRequest=0;
 function updateCategoryCanonical(){
  const link=document.querySelector('link[rel="canonical"]')||document.createElement('link');
  link.rel='canonical';
- const url=new URL('catalog.html',location.href);
+ const url=new URL('catalog.html',document.baseURI);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
  const staticCanonical=document.querySelector('meta[name="vh-static-canonical"]')?.content;
  link.href=staticCanonical||url.href;
@@ -701,7 +701,7 @@ async function applySelectedCategorySEO(){
  const apply=(seoTitle,seoDescription)=>{
   if(request!==categorySeoRequest)return;
   const finalTitle=seoTitle||title,finalDescription=seoDescription||description;
-  if(window.VHSEORuntime)window.VHSEORuntime.set({title:finalTitle,description:finalDescription});
+  if(window.VHSEORuntime)window.VHSEORuntime.set({title:finalTitle,description:finalDescription,canonicalUrl:document.querySelector('meta[name="vh-static-canonical"]')?.content});
   else{
    document.title=finalTitle;
    let meta=document.querySelector('meta[name="description"]');
