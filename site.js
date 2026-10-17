@@ -371,7 +371,8 @@ async function initCatalog(){
  catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
- catalogState.category=params.get('category')||null;
+ const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/index\.html$/);
+  catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):null);
  catalogState.subcategory=params.get('subcategory')||null;
 
  // If URL contains an old/non-active category, return to all products.
@@ -684,7 +685,8 @@ function updateCategoryCanonical(){
  link.rel='canonical';
  const url=new URL('catalog.html',location.href);
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
- link.href=url.href;
+ const staticCanonical=document.querySelector('meta[name="vh-static-canonical"]')?.content;
+ link.href=staticCanonical||url.href;
  if(!link.parentNode)document.head.appendChild(link);
 }
 async function applySelectedCategorySEO(){
