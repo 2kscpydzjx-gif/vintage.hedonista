@@ -63,7 +63,7 @@ async function main(){
    }
    const safe=JSON.stringify(schema).replace(/</g,'\\u003c');
    html=html.replace(jsonRe,'<script type="application/ld+json" id="vh-static-product-jsonld">'+safe+'</script>');
-  }else{skipped.push({slug:p.slug,reason:'Missing static JSON-LD'});continue;}
+  }else{skipped.push({slug:p.slug,reason:'Missing static JSON-LD; run the generator first'});continue;}
   if(html!==original){
    const fields=[];
    const inspect=(field,before,after)=>{if(String(before??'')!==String(after??''))fields.push({field,before,after});};
