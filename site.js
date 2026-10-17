@@ -685,10 +685,16 @@ let categorySeoRequest=0;
 function updateCategoryCanonical(){
  const link=document.querySelector('link[rel="canonical"]')||document.createElement('link');
  link.rel='canonical';
- const url=new URL('catalog.html',document.baseURI);
- if(catalogState.category)url.searchParams.set('category',catalogState.category);
- const staticCanonical=document.querySelector('meta[name="vh-static-canonical"]')?.content;
- link.href=staticCanonical||url.href;
+ // Filter query URLs are UI state, not separate indexable pages.
+ // Point Google at the existing static SEO snapshot for the selection.
+ let path='catalog.html';
+ if(catalogState.category){
+  const category=encodeURIComponent(catalogState.category);
+  path=catalogState.subcategory
+   ?'seo-subcategory/'+category+'/'+encodeURIComponent(catalogState.subcategory)+'/index.html'
+   :'seo-category/'+category+'/index.html';
+ }
+ link.href=new URL(path,document.baseURI).href;
  if(!link.parentNode)document.head.appendChild(link);
 }
 let vhEditorialConfig=null;
