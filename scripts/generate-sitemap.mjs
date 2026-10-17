@@ -41,8 +41,14 @@ if(products.length===0&&news.length===0)throw Error('No published products or ar
 const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+unique.map(u=>'  <url><loc>'+esc(u)+'</loc></url>').join('\n')+'\n</urlset>\n';
 // Editorial content is rendered into static SEO snapshots for crawlers.
 const catalogEditorial=JSON.parse(readFileSync(new URL('../catalog-seo-content.json',import.meta.url),'utf8'));
+// Missing table before the one-time migration must not break sitemap generation.
+let savedEditorial=[];
+try{savedEditorial=await rows('vh_catalog_seo_blocks','page_key,heading,description,features,image','page_key=not.is.null')}
+catch(e){if(/HTTP 404|HTTP 400/.test(String(e)))console.warn('SEO blocks table not yet installed; using defaults');else throw e}
+const editorialOverrides=new Map(savedEditorial.map(row=>[row.page_key,row]));
 function editorialFor(kind,name,slug,parentSlug){
- const override=kind==='category'?catalogEditorial.categories?.[slug]:catalogEditorial.subcategories?.[parentSlug+'/'+slug];
+ const key=kind==='category'?'category:'+slug:'subcategory:'+parentSlug+':'+slug;
+ const override=editorialOverrides.get(key)||(kind==='category'?catalogEditorial.categories?.[slug]:catalogEditorial.subcategories?.[parentSlug+'/'+slug]);
  return override||{heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.'};
 }
 function editorialHtml(content){

@@ -522,6 +522,19 @@
       <div class="field"><label>Назва</label><input class="input" id="catName"></div>
       <div class="field"><label>Slug</label><input class="input" id="catSlug" readonly title="Slug формується автоматично з назви категорії"></div>
       <section class="vh-seo-panel" data-seo-type="category"></section>
+      <details id="seoBlockEditor" class="vh-seo-editorial-admin" style="margin:18px 0;padding:18px;border:1px solid #bdb0a0;border-radius:6px">
+        <summary style="cursor:pointer;font-weight:600">SEO-блок каталогу (H2 та опис)</summary>
+        <p style="font-size:12px;line-height:1.6">Окремий текст для «Усі товари», категорії або підкатегорії. Колонки та фотографія необов'язкові.</p>
+        <div class="field"><label>Сторінка</label><select class="input" id="seoBlockTarget"><option value="all">Усі товари</option></select></div>
+        <div class="field"><label>Заголовок H2</label><input class="input" id="seoBlockHeading" placeholder="Вінтажний одяг із характером"></div>
+        <div class="field"><label>Основний опис</label><textarea class="input" id="seoBlockDescription" rows="5" placeholder="Текст під заголовком"></textarea></div>
+        <div class="field"><label>Фото (URL, необов'язково)</label><input class="input" id="seoBlockImage" placeholder="https://..."></div>
+        <div class="field"><label>Інформаційні колонки (необов'язково)</label>
+        <div style="margin:10px 0;padding:10px;border:1px solid #ddd1c3"><small>Колонка 1</small><input class="input" id="seoFeatureTitle0" placeholder="Заголовок"><textarea class="input" id="seoFeatureBody0" rows="2" placeholder="Опис"></textarea></div><div style="margin:10px 0;padding:10px;border:1px solid #ddd1c3"><small>Колонка 2</small><input class="input" id="seoFeatureTitle1" placeholder="Заголовок"><textarea class="input" id="seoFeatureBody1" rows="2" placeholder="Опис"></textarea></div><div style="margin:10px 0;padding:10px;border:1px solid #ddd1c3"><small>Колонка 3</small><input class="input" id="seoFeatureTitle2" placeholder="Заголовок"><textarea class="input" id="seoFeatureBody2" rows="2" placeholder="Опис"></textarea></div>
+        </div>
+        <p id="seoBlockStatus" style="font-size:12px"></p>
+        <div class="form-actions"><button class="btn" id="seoBlockReload" type="button">СКАСУВАТИ ЗМІНИ</button><button class="btn primary" id="seoBlockSave" type="button">ЗБЕРЕГТИ SEO-БЛОК</button></div>
+      </details>
       
 
       <div class="check-row">
@@ -1133,4 +1146,4 @@
   </div>
 </div>
 
-<script src="vh-seo-preview.js?v=106"></script></body></html>
+<script src="vh-seo-preview.js?v=106"></script><script src="catalog-seo-editor.js?v=1"></script></body></html>
