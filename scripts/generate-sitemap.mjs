@@ -31,6 +31,81 @@ for(const p of products)if(p.slug)entries.push(new URL('seo-product/'+encodeURIC
 for(const n of news)if(n.slug)entries.push(new URL('seo-article/'+encodeURIComponent(n.slug)+'/index.html',base).href);
 for(const c of categories)if(c.slug)entries.push(new URL('seo-category/'+encodeURIComponent(c.slug)+'/index.html',base).href);
 const activeCategories=new Map(categories.map(c=>[String(c.id),c]));
+// Curated subcategory metadata fallbacks; saved Supabase metadata takes priority.
+const subcategorySeoFallbacks={
+  "aksesuary/korsety": [
+    "Вінтажні корсети | Vintage Hedonista",
+    "Вінтажні корсети з виразним силуетом і незвичайними деталями. Перегляньте добірку корсетів у Vintage Hedonista."
+  ],
+  "aksesuary/головні-убори": [
+    "Вінтажні головні убори | Vintage Hedonista",
+    "Вінтажні головні убори для особливих образів. Знайдіть оригінальні аксесуари з характером у Vintage Hedonista."
+  ],
+  "aksesuary/краватки": [
+    "Вінтажні краватки | Vintage Hedonista",
+    "Вінтажні краватки з цікавими візерунками та фактурами. Акцентні аксесуари для індивідуального стилю у Vintage Hedonista."
+  ],
+  "aksesuary/пояси": [
+    "Вінтажні пояси та ремені | Vintage Hedonista",
+    "Вінтажні пояси та ремені, які доповнюють силует і додають образу характеру. Добірка аксесуарів Vintage Hedonista."
+  ],
+  "aksesuary/прикраси": [
+    "Вінтажні прикраси | Vintage Hedonista",
+    "Вінтажні прикраси з оригінальними деталями для повсякденних і святкових образів. Відкрийте колекцію Vintage Hedonista."
+  ],
+  "aksesuary/рукавички": [
+    "Вінтажні рукавички | Vintage Hedonista",
+    "Вінтажні рукавички для елегантних образів. Незвичайні фактури та деталі у добірці аксесуарів Vintage Hedonista."
+  ],
+  "aksesuary/сумки-та-клатчі": [
+    "Вінтажні сумки та клатчі | Vintage Hedonista",
+    "Вінтажні сумки та клатчі з характером. Відкрийте оригінальні моделі та цікаві деталі у Vintage Hedonista."
+  ],
+  "aksesuary/хустки": [
+    "Вінтажні хустки | Vintage Hedonista",
+    "Вінтажні хустки з виразними принтами та кольорами. Стильні акценти для різних образів у Vintage Hedonista."
+  ],
+  "dzhynsy-ta-bryuky/shorty": [
+    "Вінтажні жіночі шорти | Vintage Hedonista",
+    "Вінтажні жіночі шорти з оригінальним кроєм і деталями. Обирайте особливі моделі для літніх образів у Vintage Hedonista."
+  ],
+  "dzhynsy-ta-bryuky/брюки": [
+    "Вінтажні жіночі брюки | Vintage Hedonista",
+    "Вінтажні жіночі брюки та штани різних силуетів. Класичні й виразні моделі для індивідуального стилю у Vintage Hedonista."
+  ],
+  "dzhynsy-ta-bryuky/джинси": [
+    "Вінтажні жіночі джинси | Vintage Hedonista",
+    "Вінтажні жіночі джинси з характерним кроєм і деталями. Відкрийте джинсову класику у добірці Vintage Hedonista."
+  ],
+  "verkhnii-odyah/kimono": [
+    "Вінтажні кімоно | Vintage Hedonista",
+    "Вінтажні кімоно з виразними принтами та вільними силуетами. Незвичайні речі для особливих образів у Vintage Hedonista."
+  ],
+  "verkhnii-odyah/plashchi": [
+    "Вінтажні плащі та тренчі | Vintage Hedonista",
+    "Вінтажні жіночі плащі та тренчі з характерним кроєм. Відкрийте елегантні моделі верхнього одягу у Vintage Hedonista."
+  ],
+  "verkhnii-odyah/кейпи-та-пончо": [
+    "Вінтажні кейпи та пончо | Vintage Hedonista",
+    "Вінтажні кейпи та пончо з оригінальними силуетами. Виразний верхній одяг для незвичайних образів у Vintage Hedonista."
+  ],
+  "verkhnii-odyah/куртки": [
+    "Вінтажні жіночі куртки | Vintage Hedonista",
+    "Вінтажні жіночі куртки з цікавими фактурами та деталями. Знайдіть особливий верхній одяг у Vintage Hedonista."
+  ],
+  "verkhnii-odyah/пальто": [
+    "Вінтажні жіночі пальта | Vintage Hedonista",
+    "Вінтажні жіночі пальта: класичні силуети, виразний крій та цікаві фактури. Добірка Vintage Hedonista."
+  ],
+  "verkhnii-odyah/піджаки-та-жакети": [
+    "Вінтажні жакети та піджаки | Vintage Hedonista",
+    "Вінтажні жіночі жакети й піджаки з характером. Класичні та незвичайні фасони для індивідуальних образів у Vintage Hedonista."
+  ],
+  "verkhnii-odyah/шуби": [
+    "Вінтажні шуби | Vintage Hedonista",
+    "Вінтажні шуби та виразні зимові силуети. Перегляньте колекцію верхнього одягу Vintage Hedonista."
+  ]
+};
 for(const sub of subcategories){
  const parent=activeCategories.get(String(sub.category_id));
  if(parent?.slug&&sub.slug)entries.push(new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href);
@@ -178,8 +253,8 @@ for(const sub of subcategories){
  const parent=activeCategories.get(String(sub.category_id));
  if(!parent?.slug||!sub.slug)continue;
  const meta=seoMap.get('subcategory:'+sub.id)||{};
- const title=strip(meta.seo_title)||sub.name+' — вінтажний одяг | Vintage Hedonista';
- const desc=strip(meta.meta_description)||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
+ const title=strip(meta.seo_title)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[0]||sub.name+' — вінтажний одяг | Vintage Hedonista';
+ const desc=strip(meta.meta_description)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[1]||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
  const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
  let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
  html=html.replace('<head>','<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
