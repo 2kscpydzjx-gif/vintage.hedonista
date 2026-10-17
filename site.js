@@ -395,6 +395,12 @@ async function initCatalog(){
 }
 
 
+// Preserve current filter typography and spacing for link-backed labels.
+(function(){
+ const style=document.createElement('style');
+ style.textContent='.vh-seo-filter-link{color:inherit!important;text-decoration:none!important;font:inherit;letter-spacing:inherit;line-height:inherit;cursor:pointer}.vh-seo-filter-link:focus-visible{outline:2px solid currentColor;outline-offset:2px}';
+ document.head.appendChild(style);
+})();
 function categorySubcategoryMarkup(category){
  const list=catalogSubcategories.filter(x=>String(x.category_id)===String(category.id));
  if(catalogState.category!==category.slug||!list.length)return '';
@@ -408,11 +414,11 @@ function categorySubcategoryMarkup(category){
  return `<div class="category-subcategories" data-parent-category="${category.slug}">
    <label class="filter-option subcategory-option ${!catalogState.subcategory?'is-active':''}">
      <input type="radio" name="subcategory" value="" ${!catalogState.subcategory?'checked':''}>
-     <span>Усі товари категорії</span>
+     <a class="vh-seo-filter-link" href="seo-category/${encodeURIComponent(category.slug)}/index.html">Усі товари категорії</a>
    </label>
    ${list.map(x=>`<label class="filter-option subcategory-option ${catalogState.subcategory===x.slug?'is-active':''}">
      <input type="radio" name="subcategory" value="${x.slug}" ${catalogState.subcategory===x.slug?'checked':''}>
-     <span>${x.name}</span>
+     <a class="vh-seo-filter-link" href="seo-subcategory/${encodeURIComponent(category.slug)}/${encodeURIComponent(x.slug)}/index.html">${x.name}</a>
      <small class="filter-option-count">${counts.get(x.slug)||0}</small>
    </label>`).join('')}
  </div>`
@@ -439,13 +445,13 @@ function renderCategoryFilters(){
  box.innerHTML=
    `<div class="category-filter-item category-filter-all"><label class="filter-option">
       <input type="checkbox" name="category" value="" ${!catalogState.category?'checked':''}>
-      <span>Усі товари</span>
+      <a class="vh-seo-filter-link" href="catalog.html">Усі товари</a>
       <small class="filter-option-count">${catalogProducts.length}</small>
     </label></div>`+
    catalogCategories.map(c=>`<div class="category-filter-item ${catalogState.category===c.slug?'is-open':''}" data-category-item="${c.slug}">
     <label class="filter-option category-parent-option">
       <input type="checkbox" name="category" value="${c.slug}" ${catalogState.category===c.slug?'checked':''}>
-      <span>${c.name}</span>
+      <a class="vh-seo-filter-link" href="seo-category/${encodeURIComponent(c.slug)}/index.html">${c.name}</a>
       <small class="filter-option-count">${counts.get(c.slug)||0}</small>
     </label>
     ${categorySubcategoryMarkup(c)}
@@ -568,6 +574,20 @@ function bindCatalogControls(){
    if(e.key==='Escape')closeSortMenu();
  });
 
+ // Preserve instant checkbox/radio filtering while exposing real crawlable SEO links.
+ $('categoryFilters').addEventListener('click',e=>{
+  const link=e.target.closest('a.vh-seo-filter-link');
+  if(!link)return;
+  // Modifier/middle clicks still open the actual SEO page in a new tab.
+  if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||e.button!==0)return;
+  e.preventDefault();
+  e.stopPropagation();
+  const input=link.closest('label')?.querySelector('input[name="category"],input[name="subcategory"]');
+  if(!input)return;
+  if(input.name==='category')input.checked=input.value!==catalogState.category||!input.value;
+  else input.checked=true;
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+ });
  $('categoryFilters').addEventListener('change',e=>{
    const input=e.target.closest('input[name="category"]');
    if(!input)return;
