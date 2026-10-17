@@ -17,6 +17,22 @@ for(const address of urls){
  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Missing H1: '+path);
  if(/<img\b[^>]*\balt="[^"]*"[^>]*\balt=/i.test(html))errors.push('Duplicate ALT: '+path);
  if(!/<base\b[^>]*id="vh-seo-base"/i.test(html))errors.push('Missing root base: '+path);
+ if(/\/seo-category\//.test(u.pathname)){
+  const nav=html.match(/<nav class="vh-seo-subcategory-links"[^>]*>([\s\S]*?)<\/nav>/i)?.[1];
+  if(nav){
+   const hrefs=[...nav.matchAll(/<a\s+href="([^"]+)"/gi)].map(m=>m[1].replaceAll('&amp;','&'));
+   if(!hrefs.length)errors.push('Empty subcategory navigation: '+path);
+   for(const href of hrefs){
+    let target;
+    try{target=new URL(href,address)}catch{errors.push('Invalid subcategory URL: '+href);continue}
+    if(target.origin!==u.origin||!target.pathname.startsWith(u.pathname.replace(/seo-category\/[^/]+\/index\.html$/,'seo-subcategory/'))){
+     errors.push('Unexpected subcategory link: '+href);continue
+    }
+    const targetPath=decodeURIComponent(target.pathname.replace(/^\/vintage\.hedonista\//,''));
+    if(!existsSync(join(root,targetPath)))errors.push('Broken subcategory link: '+href);
+   }
+  }
+ }
  if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
   if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
   if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
