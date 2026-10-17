@@ -14,3 +14,8 @@ drop policy if exists "Public can read catalog SEO" on public.vh_catalog_seo_blo
 create policy "Public can read catalog SEO" on public.vh_catalog_seo_blocks for select to anon,authenticated using (true);
 drop policy if exists "Admins manage catalog SEO" on public.vh_catalog_seo_blocks;
 create policy "Admins manage catalog SEO" on public.vh_catalog_seo_blocks for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
+
+-- PostgreSQL table privileges are required in addition to RLS policies.
+grant usage on schema public to anon, authenticated;
+grant select on public.vh_catalog_seo_blocks to anon;
+grant select, insert, update, delete on public.vh_catalog_seo_blocks to authenticated;
