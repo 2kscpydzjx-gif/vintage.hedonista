@@ -18,7 +18,7 @@ jobs:
       - name: Build static product structured data
         run: node scripts/build-product-jsonld.cjs
       - name: Validate published product fields against Supabase (read-only)
-        run: node scripts/sync-product-seo.cjs
+        run: node scripts/sync-product-seo.cjs --check
       - name: Audit generated SEO HTML
         run: node scripts/audit-seo.mjs
       - name: Commit updated sitemap if changed
