@@ -15,6 +15,8 @@ jobs:
           node-version: '22'
       - name: Generate sitemap from published Supabase records
         run: node scripts/generate-sitemap.mjs
+      - name: Build static product structured data
+        run: node scripts/build-product-jsonld.cjs
       - name: Audit generated SEO HTML
         run: node scripts/audit-seo.mjs
       - name: Commit updated sitemap if changed
