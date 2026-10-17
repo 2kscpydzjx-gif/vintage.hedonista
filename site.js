@@ -693,11 +693,12 @@ function updateCategoryCanonical(){
 async function applySelectedCategorySEO(){
  const request=++categorySeoRequest;
  const cat=catalogCategories.find(c=>c.slug===catalogState.category);
- const title=cat?cat.name+' — вінтажний одяг | Vintage Hedonista':'Каталог вінтажного жіночого одягу — Vintage Hedonista';
- const description=cat?'Переглядайте '+cat.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.':'Переглядайте каталог вінтажного жіночого одягу та аксесуарів Vintage Hedonista.';
+ const sub=catalogSubcategories.find(c=>c.slug===catalogState.subcategory&&String(c.category_id)===String(cat?.id));
+ const title=sub?sub.name+' — вінтажний одяг | Vintage Hedonista':cat?cat.name+' — вінтажний одяг | Vintage Hedonista':'Каталог вінтажного жіночого одягу — Vintage Hedonista';
+ const description=sub?'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.':cat?'Переглядайте '+cat.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.':'Переглядайте каталог вінтажного жіночого одягу та аксесуарів Vintage Hedonista.';
  updateCategoryCanonical();
  const heading=document.querySelector('.catalog-heading .page-title');
- if(heading)heading.textContent=cat?cat.name.toUpperCase():'КАТАЛОГ';
+ if(heading)heading.textContent=sub?sub.name.toUpperCase():cat?cat.name.toUpperCase():'КАТАЛОГ';
  const apply=(seoTitle,seoDescription)=>{
   if(request!==categorySeoRequest)return;
   const finalTitle=seoTitle||title,finalDescription=seoDescription||description;
@@ -712,7 +713,7 @@ async function applySelectedCategorySEO(){
  };
  if(cat){
   try{
-   const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type','category').eq('entity_id',String(cat.id)).maybeSingle();
+   const {data,error}=await publicSb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type',sub?'subcategory':'category').eq('entity_id',String(sub?.id||cat.id)).maybeSingle();
    if(error)console.warn('Category SEO',error);
    apply(data?.seo_title,data?.meta_description);
   }catch(e){console.warn('Category SEO',e);apply()}
