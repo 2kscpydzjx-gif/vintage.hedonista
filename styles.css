@@ -17991,3 +17991,9 @@ body.catalog-mobile-page .vh-catalog-seo::before{
   }
   body.catalog-mobile-page .vh-catalog-seo::before{left:12px;right:12px}
 }
+
+/* Crawlable subcategory links in static SEO category snapshots. */
+.vh-seo-subcategory-links{margin:28px 0 42px;padding:20px 0;border-top:1px solid rgba(90,65,48,.2)}
+.vh-seo-subcategory-links h2{font-size:18px;font-weight:500;margin:0 0 14px}
+.vh-seo-subcategory-links>div{display:flex;flex-wrap:wrap;gap:10px 20px}
+.vh-seo-subcategory-links a{color:inherit;text-decoration:underline;text-underline-offset:3px;font-size:14px}

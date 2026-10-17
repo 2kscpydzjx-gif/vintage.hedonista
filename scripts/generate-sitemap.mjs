@@ -232,6 +232,13 @@ const categorySeoFallbacks={
     "Вінтажні жіночі аксесуари для завершення образу. Оригінальні деталі, що підкреслюють індивідуальність, у добірці Vintage Hedonista."
   ]
 };
+// Crawlable category-to-subcategory navigation in generated SEO snapshots.
+function subcategoryLinksHtml(category){
+ const children=subcategories.filter(sub=>String(sub.category_id)===String(category.id)&&sub.slug);
+ if(!children.length)return '';
+ const links=children.map(sub=>'<a href="'+htmlEscape(new URL('seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href)+'">'+htmlEscape(sub.name)+'</a>').join(' ');
+ return '<nav class="vh-seo-subcategory-links" aria-label="Підкатегорії"><h2>Переглянути підкатегорії</h2><div>'+links+'</div></nav>';
+}
 for(const c of categories)if(c.slug){
  const slug=String(c.slug).normalize('NFC');
  if(slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe category slug: '+slug);
@@ -246,6 +253,7 @@ for(const c of categories)if(c.slug){
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(c.name.toUpperCase())+'</h1>');
  html=embedEditorial(html,editorialFor('category',c.name,slug));
+ html=html.replace('</main>','<div class="wrap">'+subcategoryLinksHtml(c)+'</div></main>');
  html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
  const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
 }
