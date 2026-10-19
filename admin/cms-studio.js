@@ -108,7 +108,7 @@ function compactContentPanel(editor){
  const panels=editor.querySelectorAll('#existingEditor .cms91-tab-panel[data-cms91-tab="content"]');
  for(const panel of panels){
   for(const el of panel.querySelectorAll(':scope > h3,:scope > p.muted,:scope > small,:scope > .cms98-panel-heading,:scope > .studio-media-heading'))el.hidden=true;
-  for(const field of panel.querySelectorAll('.photo-field,.cms-gradient-image-field,.cms-mapped-field')){
+  for(const field of panel.querySelectorAll('.photo-field,.cms-gradient-image-field,.cms-mapped-field,.cms-capsule-field,.field:has(input[type="file"][accept*="image"]),.cms-field:has(input[type="file"][accept*="image"])')){
    const file=field.querySelector('input[type="file"]');
    const thumb=field.querySelector('.cms-thumb-box');
    if(!file||!thumb)continue;
