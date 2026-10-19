@@ -108,8 +108,19 @@ async function prepareImage(file,targetW,targetH,bg='#2a1d14',quality=.92){
 async function uploadFile(file,path){
  // Keep Storage filename/content type consistent after automatic WebP conversion.
  if(file?.type==='image/webp')path=String(path).replace(/\.(?:jpe?g|png)$/i,'.webp');
- const {error}=await sb.storage.from(VH_CONFIG.storageBucket).upload(path,file,{upsert:false,contentType:file.type||'image/jpeg',cacheControl:'31536000'});
- if(error)throw error;
+ // Retry temporary network/storage failures; never retry permission or duplicate-path errors.
+ let uploadError=null;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const result=await sb.storage.from(VH_CONFIG.storageBucket).upload(path,file,{upsert:false,contentType:file.type||'image/jpeg',cacheControl:'31536000'});
+   if(!result.error){uploadError=null;break}
+   uploadError=result.error;
+   const status=Number(uploadError.statusCode||uploadError.status||0);
+   if((status>=400&&status<500&&status!==408&&status!==429)||/already exists|duplicate|unauthori[sz]ed|permission|row.level.security/i.test(uploadError.message||''))break;
+  }catch(error){uploadError=error}
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+ }
+ if(uploadError)throw new Error('Фото не завантажено після повторних спроб: '+(uploadError.message||uploadError));
  const url=sb.storage.from(VH_CONFIG.storageBucket).getPublicUrl(path).data.publicUrl;
  try{
    await sb.from('media_library').upsert({
