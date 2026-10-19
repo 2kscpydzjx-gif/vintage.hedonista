@@ -84,6 +84,11 @@ async function detail(){
   const unavailable=products.some(p=>p.status!=='published'||(p.stock!=null&&Number(p.stock)<=0));
   const sold=products.some(p=>p.status==='sold');
   if(add){add.disabled=unavailable||!products.length;add.textContent=unavailable?(sold?'ОБРАЗ ПРОДАНО':'ОБРАЗ ЗАРЕЗЕРВОВАНО'):'ДОДАТИ ОБРАЗ У КОШИК';}
+  main.style.position='relative';
+  let photoBadge=main.querySelector('.vh-capsule-photo-badge');
+  if(!photoBadge){photoBadge=document.createElement('span');photoBadge.className='vh-capsule-photo-badge';photoBadge.style.cssText='position:absolute;top:18px;left:0;z-index:3;background:#1e1712;color:white;padding:10px 15px;font-size:11px;font-weight:700;letter-spacing:.12em;pointer-events:none';main.appendChild(photoBadge)}
+  photoBadge.textContent=unavailable?(sold?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'):'';
+  photoBadge.style.display=unavailable?'block':'none';
 
  }
  function renderLooks(){
