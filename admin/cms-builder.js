@@ -321,10 +321,10 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  const left=framed?triple.left:w;
  const right=framed?triple.right:100-w;
  const center=framed?triple.center:0;
- el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?triple.css:preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
- el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
+ el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?triple.css:preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
  media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
  media.style.setProperty('grid-row','1','important');
  copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
