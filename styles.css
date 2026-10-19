@@ -18066,3 +18066,31 @@ body.catalog-mobile-page .vh-catalog-seo::before{
  .catalog-card-badges .catalog-badge:is(.reserved,.sold),
  .vh-capsule-item-badge,.vh-product-status-seal{font-size:8px!important;padding:7px 8px!important}
 }
+
+/* V266 — understated archival inventory label, no decorative symbol */
+.catalog-card-badges .catalog-badge:is(.reserved,.sold),
+.vh-capsule-photo-badge,
+.vh-capsule-item-badge,
+.vh-product-status-seal{
+ gap:0!important;
+ padding:8px 12px!important;
+ background:#e7d8bf!important;
+ color:#4b3828!important;
+ border:1px solid rgba(83,61,42,.72)!important;
+ border-radius:0!important;
+ box-shadow:inset 0 0 0 3px #e7d8bf,inset 0 0 0 4px rgba(83,61,42,.32),0 2px 7px rgba(20,12,7,.13)!important;
+ font-family:Georgia,'Times New Roman',serif!important;
+ font-size:10px!important;
+ font-weight:400!important;
+ letter-spacing:.105em!important;
+ line-height:1.4!important;
+}
+.catalog-card-badges .catalog-badge:is(.reserved,.sold)::before,
+.vh-capsule-photo-badge::before,
+.vh-capsule-item-badge::before,
+.vh-product-status-seal::before{content:none!important;display:none!important}
+.vh-capsule-item-badge{font-size:9px!important;padding:7px 9px!important}
+@media(max-width:600px){
+ .catalog-card-badges .catalog-badge:is(.reserved,.sold),
+ .vh-capsule-item-badge,.vh-product-status-seal{font-size:8px!important;padding:7px 8px!important}
+}
