@@ -2264,11 +2264,16 @@ async function submitCartCheckout(){
   await vhRefreshBundleOffers(checked);
   const offers=[...new Set(checked.map(x=>x.capsule_offer?.id).filter(Boolean))];
   if(offers.length){
-   const {data:links,error:linkError}=await sb.from('capsule_look_products').select('capsule_id,look_id,product_id').in('capsule_id',offers);
-   if(linkError)throw linkError;
+   const [{data:links,error:linkError},{data:mainLooks,error:lookError}]=await Promise.all([
+    sb.from('capsule_look_products').select('capsule_id,look_id,product_id').in('capsule_id',offers),
+    sb.from('capsule_looks').select('id,capsule_id,is_main').in('capsule_id',offers).eq('is_main',true)
+   ]);
+   if(linkError||lookError)throw linkError||lookError;
    for(const item of checked){
     const offer=item.capsule_offer;
     if(!offer)continue;
+    const isMain=(mainLooks||[]).some(x=>String(x.id)===String(offer.look_id)&&String(x.capsule_id)===String(offer.id));
+    if(!isMain){delete item.capsule_offer;continue}
     const actual=(links||[]).filter(x=>String(x.capsule_id)===String(offer.id)&&String(x.look_id)===String(offer.look_id)).map(x=>String(x.product_id)).sort();
     const expected=[...new Set(offer.product_ids.map(String))].sort();
     if(JSON.stringify(actual)!==JSON.stringify(expected))delete item.capsule_offer;
