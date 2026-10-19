@@ -94,7 +94,7 @@ async function detail(){
     cart.push({id:p.id,name:p.name,slug:p.slug,brand:p.brand||'',price:Number(p.price||0),cover_image:p.cover_image||''});
     added++;
    }
-   if(added){
+   if(added||already){
     const capsule=capsules[idx];
     const completeIds=[...new Set(products.map(p=>String(p.id)))];
     if(lookIdx===0&&completeIds.length===products.length&&unavailable===0&&Number(capsule.price)>0){
