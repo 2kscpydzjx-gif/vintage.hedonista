@@ -1,3 +1,6 @@
+
+const VH_CAPSULE_STATUS_STYLE="display:inline-flex!important;align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
+function vhStyleCapsuleBadge(node){if(!node)return;for(const d of VH_CAPSULE_STATUS_STYLE.split(';')){const i=d.indexOf(':');if(i<0)continue;node.style.setProperty(d.slice(0,i),d.slice(i+1).replace(/!important$/,''),'important')}}
 (()=>{
 'use strict';
 const cfg=window.VH_CONFIG||{};
@@ -86,7 +89,7 @@ async function detail(){
   if(add){add.disabled=unavailable||!products.length;add.textContent=unavailable?(sold?'ОБРАЗ ПРОДАНО':'ОБРАЗ ЗАРЕЗЕРВОВАНО'):'ДОДАТИ ОБРАЗ У КОШИК';}
   main.style.position='relative';
   let photoBadge=main.querySelector('.vh-capsule-photo-badge');
-  if(!photoBadge){photoBadge=document.createElement('span');photoBadge.className='vh-capsule-photo-badge';main.appendChild(photoBadge)}
+  if(!photoBadge){photoBadge=document.createElement('span');photoBadge.className='vh-capsule-photo-badge';main.appendChild(photoBadge);vhStyleCapsuleBadge(photoBadge)}
   photoBadge.textContent=unavailable?(sold?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'):'';
   photoBadge.style.display=unavailable?'block':'none';
 
@@ -94,7 +97,7 @@ async function detail(){
  function renderLooks(){
   track.innerHTML='';looks.forEach((l,i)=>{const b=document.createElement('button');b.className=`capsule-look-option${i===lookIdx?' active':''}`;b.type='button';b.innerHTML=`<div class="capsule-look-thumb ${l.image_url?'has-image':''}">${l.image_url?`<img src="${esc(l.image_url)}" alt="${esc(l.title||'')}" loading="lazy">`:ph(`ФОТО ОБРАЗУ ${String(i+1).padStart(2,'0')}`,'1:1')}</div><span>${esc(l.title||`ОБРАЗ ${String(i+1).padStart(2,'0')}`)}</span>`;b.onclick=()=>vh47ChooseLook(i);track.appendChild(b)});$('#capsulePrev').disabled=looks.length<2;$('#capsuleNext').disabled=looks.length<2
  }
- function renderProducts(){const products=activeProducts();grid.innerHTML='';products.forEach(p=>{const a=document.createElement('article');a.className='capsule-product-card';a.innerHTML=`<a class="capsule-product-photo ${p.cover_image?'has-image':''}" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">${p.cover_image?`<img src="${esc(p.cover_image)}" alt="${esc(p.name)}" loading="lazy">`:'ФОТО ТОВАРУ'}${p.status==='sold'||p.status==='reserved'?`<span class="vh-capsule-item-badge">${p.status==='sold'?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'}</span>`:''}</a><h3>${esc(p.name)}</h3>${p.brand?`<div class="capsule-product-brand">${esc(p.brand)}</div>`:''}<p>${money(p.price)}</p><a class="capsule-product-open" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">ПЕРЕГЛЯНУТИ →</a>`;grid.appendChild(a)});if(!products.length)grid.innerHTML='<div class="capsule-front-empty">До цього образу ще не додано товарів.</div>'}
+ function renderProducts(){const products=activeProducts();grid.innerHTML='';products.forEach(p=>{const a=document.createElement('article');a.className='capsule-product-card';a.innerHTML=`<a class="capsule-product-photo ${p.cover_image?'has-image':''}" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">${p.cover_image?`<img src="${esc(p.cover_image)}" alt="${esc(p.name)}" loading="lazy">`:'ФОТО ТОВАРУ'}${p.status==='sold'||p.status==='reserved'?`<span class="vh-capsule-item-badge" style="${VH_CAPSULE_STATUS_STYLE}">${p.status==='sold'?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'}</span>`:''}</a><h3>${esc(p.name)}</h3>${p.brand?`<div class="capsule-product-brand">${esc(p.brand)}</div>`:''}<p>${money(p.price)}</p><a class="capsule-product-open" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">ПЕРЕГЛЯНУТИ →</a>`;grid.appendChild(a)});if(!products.length)grid.innerHTML='<div class="capsule-front-empty">До цього образу ще не додано товарів.</div>'}
  function addActiveLookToCart(){
   const products=activeProducts();
   if(!products.length)return showError('У цьому образі немає товарів');
