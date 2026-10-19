@@ -688,6 +688,7 @@ const crop=document.createElement('details');crop.className='cms91-crop';crop.in
  if(photoFields.length>=3){photo.replaceChildren(section('МАКЕТ І КОМПОЗИЦІЯ',photoFields.slice(0,2)),section('ТОЧНЕ КАДРУВАННЯ',photoFields.slice(2)))}
  details.append(content,photo);host.append(details);return details;
 }
+let cms91ActiveTab='content';
 function cms91Tabs(holder,b){
  const content=document.createElement('div'),design=document.createElement('div'),motion=document.createElement('div');
  for(const [el,key] of [[content,'content'],[design,'design'],[motion,'animation']]){el.className='cms91-tab-panel';el.dataset.cms91Tab=key}
@@ -699,11 +700,11 @@ function cms91Tabs(holder,b){
   else content.append(el);
  }
  const bar=document.createElement('div');bar.className='cms91-tabs';const panels={content,design,animation:motion};
- const switchTo=key=>{for(const [k,v] of Object.entries(panels))v.hidden=k!==key;bar.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.tab===key))};
+ const switchTo=key=>{cms91ActiveTab=key;for(const [k,v] of Object.entries(panels))v.hidden=k!==key;bar.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x.dataset.tab===key))};
  for(const [key,name] of [['content','Контент'],['design','Дизайн'],['animation','Анімація']]){const btn=document.createElement('button');btn.type='button';btn.dataset.tab=key;btn.textContent=name;btn.onclick=()=>switchTo(key);bar.append(btn)}
  const headings={content:'Тексти та фотографії',design:'Макет, кольори та відступи',animation:'Анімація появи'};
  for(const [key,panel] of Object.entries(panels)){const h=document.createElement('div');h.className='cms98-panel-heading';h.textContent=headings[key];panel.prepend(h)}
- holder.prepend(bar);holder.append(content,design,motion);switchTo('content');
+ holder.prepend(bar);holder.append(content,design,motion);switchTo(cms91ActiveTab);
 }
 function renderEditor(){if(pageId==='shared')return;if(selectedExisting)return;const holder=$('editorFields');holder.replaceChildren();const b=current();if(!b){holder.textContent='Додайте або оберіть блок';return}holder.append(field('ЗАГОЛОВОК','input',b.title,v=>{b.title=v;persist();renderList();renderPreview()}));const body=document.createElement('div');body.className='field';body.append(makeRichEditor(b.body||'',v=>{b.body=v;persist();renderPreview()}));holder.append(body);
 if(b.type!=='text'){
