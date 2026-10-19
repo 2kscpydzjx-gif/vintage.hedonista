@@ -35,8 +35,8 @@ syncPages();
 function polishMediaFields(editor){
  // The URL is an implementation detail, not a second photo editor.
  // Keep its value and change handler intact for existing drafts.
- for(const field of editor.querySelectorAll('#existingEditor .photo-field,#existingEditor .cms-gradient-image-field,#existingEditor .cms-mapped-field,#existingEditor .cms-capsule-field')){
-  const isImage=field.classList.contains('photo-field')||field.classList.contains('cms-gradient-image-field')||
+ for(const field of editor.querySelectorAll('#existingEditor .photo-field,#existingEditor .cms-gradient-image-field,#existingEditor .cms-mapped-field,#existingEditor .cms-capsule-field,#existingEditor .field:has(input[type="file"]),#editorFields .field:has(input[type="file"]),#existingEditor .cms-field:has(input[type="file"]),#editorFields .cms-field:has(input[type="file"])')){
+  const isImage=!!field.querySelector('input[type="file"][accept*="image"]')||field.classList.contains('photo-field')||field.classList.contains('cms-gradient-image-field')||
     field.classList.contains('cms-capsule-field')||!!field.querySelector('.cms-thumb-box');
   if(!isImage)continue;
   for(const input of field.querySelectorAll('input:not([type="file"])')){
