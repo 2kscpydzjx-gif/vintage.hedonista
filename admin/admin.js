@@ -3807,8 +3807,12 @@ async function loadCapsulesAdmin(){
 }
 function fillCapsuleStyleSelects(){
  const opts='<option value="">Оберіть стиль</option>'+CAPSULE_STYLES.map(x=>`<option value="${x.id}">${esc(x.title||'Без назви')}</option>`).join('');
- if($('capsuleEditStyle'))$('capsuleEditStyle').innerHTML=opts;
- if($('capsuleStyleFilter'))$('capsuleStyleFilter').innerHTML='<option value="">УСІ СТИЛІ</option>'+CAPSULE_STYLES.map(x=>`<option value="${x.id}">${esc(x.title||'Без назви')}</option>`).join('')
+ const editSelect=$('capsuleEditStyle'),filterSelect=$('capsuleStyleFilter');
+ const selectedStyle=editSelect?.value||editingCapsule?.style_id||'';
+ const selectedFilter=filterSelect?.value||'';
+ if(editSelect){editSelect.innerHTML=opts;editSelect.value=String(selectedStyle);if(editSelect.selectedIndex<0)editSelect.value='';}
+ if(filterSelect)filterSelect.innerHTML='<option value="">УСІ СТИЛІ</option>'+CAPSULE_STYLES.map(x=>`<option value="${x.id}">${esc(x.title||'Без назви')}</option>`).join('');
+ if(filterSelect){filterSelect.value=String(selectedFilter);if(filterSelect.selectedIndex<0)filterSelect.value='';}
 }
 function renderCapsuleStylesAdmin(){const box=$('capsuleStylesList');if(!box)return;box.innerHTML=CAPSULE_STYLES.length?'':'<div class="capsule-admin-empty">Стилів ще немає. Натисніть «+ ДОДАТИ СТИЛЬ».</div>';CAPSULE_STYLES.forEach(x=>{const el=document.createElement('article');el.className='capsule-mini-card';el.innerHTML=`<div class="capsule-mini-card-media">${capImg(x.image_url,'ФОТО СТИЛЮ')}</div><div class="capsule-mini-card-body"><b>${esc(x.title||'ЗАГОЛОВОК')}</b><small>${esc(x.short_description||'Тут короткий опис')}</small></div><div class="capsule-mini-card-foot capsule-card-actions"><button class="btn edit">РЕДАГУВАТИ</button><button class="btn danger delete">ВИДАЛИТИ</button></div>`;el.querySelector('.edit').onclick=()=>openStyleEditor(x);el.querySelector('.delete').onclick=()=>deleteCapsuleStyle(x);box.appendChild(el)})}
 async function deleteCapsuleStyle(x){
@@ -3855,7 +3859,9 @@ async function saveStyleEditor(){
   const saved=r.data;
   const idx=CAPSULE_STYLES.findIndex(x=>String(x.id)===String(saved.id));if(idx>=0)CAPSULE_STYLES[idx]=saved;else CAPSULE_STYLES.push(saved);
   renderCapsuleStylesAdmin();fillCapsuleStyleSelects();editingCapsuleStyle=saved;
-  toast('Стиль збережено');vhClearDraft('capsuleStyleForm');
+  if(f){$('styleEditImage').value='';$('styleEditImagePreview').innerHTML=capImg(saved.image_url,'ФОТО КАРТКИ');}
+  if(h){$('styleHeroImage').value='';$('styleHeroPreview').innerHTML=capImg(saved.hero_image,'ФОТО HERO');}
+  toast('Стиль збережено');await vhClearDraft('capsuleStyleForm');
   loadCapsulesAdmin().catch(console.error);
  }catch(e){console.error('SAVE STYLE ERROR',e);toast('Не вдалося зберегти: '+(e.message||e))}finally{btn.disabled=false}
 }
@@ -3930,7 +3936,13 @@ async function saveCapsuleEditor(){
   }
   // Keep old capsule_products synchronized with the main look for compatibility with older code/data exports.
   del=await sb.from('capsule_products').delete().eq('capsule_id',id);if(del.error)throw del.error;const mainIds=editingCapsuleLooks[0]?.product_ids||[];if(mainIds.length){const cr=await sb.from('capsule_products').insert(mainIds.map((product_id,i)=>({capsule_id:id,product_id,sort_order:i*10})));if(cr.error)throw cr.error}
-  await loadCapsulesAdmin();editingCapsule=CAPSULES.find(c=>String(c.id)===String(id))||{...payload,id};toast('Капсулу збережено');vhClearDraft('capsuleForm')
+  await loadCapsulesAdmin();
+  editingCapsule=CAPSULES.find(c=>String(c.id)===String(id))||{...payload,id};
+  $('capsuleEditStyle').value=String(style_id);
+  if(coverFile){$('capsuleEditCoverImage').value='';$('capsuleEditCoverPreview').innerHTML=`<img src="${esc(cover_image)}" alt="">`;}
+  editingCapsuleLooks.forEach((look,i)=>{if(i===0)look.image_url=cover_image;if(look.file){look.image_url=CAPSULE_LOOKS.filter(l=>String(l.capsule_id)===String(id)).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0))[i]?.image_url||look.image_url;delete look.file;}});
+  renderCapsuleLooksEditor();
+  toast('Капсулу збережено');await vhClearDraft('capsuleForm')
  }catch(e){console.error('SAVE CAPSULE ERROR',e);toast('Не вдалося зберегти: '+(e.message||e))}finally{btn.disabled=false}
 }
 async function saveCapsulePage(){const btn=$('saveCapsulePageBtn');btn.disabled=true;try{let hero_image=CAPSULE_PAGE_SETTINGS.hero_image||null;const file=$('capHeroImage')?.files?.[0];if(file){const ph=await prepareImage(file,1920,900,'#493522',.90);hero_image=await uploadFile(ph,`capsules/page/hero-${Date.now()}.jpg`);}const payload={id:1,hero_kicker:$('capHeroKicker').value.trim(),hero_title:$('capHeroTitle').value.trim(),hero_subtitle:$('capHeroSubtitle').value.trim(),hero_description:$('capHeroDescription').value.trim(),hero_button_text:$('capHeroButton').value.trim(),hero_image,mood_title:$('capMoodTitle').value.trim(),mood_text:$('capMoodText').value.trim(),updated_at:new Date().toISOString()};const {error}=await sb.from('capsule_page_settings').upsert(payload);if(error)throw error;toast('HERO збережено');await loadCapsulesAdmin()}catch(e){toast(e.message||'Помилка')}finally{btn.disabled=false}}
@@ -3958,7 +3970,7 @@ const VH_DRAFT_DB='vh-admin-editor-drafts-v1';
 function vhDraftDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(VH_DRAFT_DB,1);req.onupgradeneeded=()=>req.result.createObjectStore('drafts');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function vhDraftWrite(key,value){const db=await vhDraftDB();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(value,key);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function vhDraftRead(key){const db=await vhDraftDB();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly');const req=tx.objectStore('drafts').get(key);req.onsuccess=()=>{db.close();resolve(req.result)};req.onerror=()=>{db.close();reject(req.error)}})}
-async function vhClearDraft(page){try{const db=await vhDraftDB();const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').delete(page);tx.oncomplete=()=>db.close()}catch(e){console.warn(e)}}
+async function vhClearDraft(page){clearTimeout(vhDraftTimer);try{const db=await vhDraftDB();await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').delete(page);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch(e){console.warn(e)}}
 let vhDraftTimer;
 async function vhSaveDraft(page){const root=document.getElementById(page);if(!root)return;const fields={};for(const el of root.querySelectorAll('input,select,textarea')){if(!el.id||el.type==='file'||el.type==='button')continue;fields[el.id]=el.type==='checkbox'?el.checked:el.value}
  const files={};for(const el of root.querySelectorAll('input[type=file]'))if(el.id&&el.files?.length)files[el.id]=Array.from(el.files);
