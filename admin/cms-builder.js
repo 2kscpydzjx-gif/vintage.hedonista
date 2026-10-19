@@ -688,6 +688,20 @@ const crop=document.createElement('details');crop.className='cms91-crop';crop.in
  if(photoFields.length>=3){photo.replaceChildren(section('МАКЕТ І КОМПОЗИЦІЯ',photoFields.slice(0,2)),section('ТОЧНЕ КАДРУВАННЯ',photoFields.slice(2)))}
  details.append(content,photo);host.append(details);return details;
 }
+function cmsValidPhotoUrl(value){
+ const url=String(value||'').trim();
+ return !url||/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(url);
+}
+function cmsPhotoUrlField(value,onSave,placeholder){
+ const input=document.createElement('input');
+ input.type='url';input.placeholder=placeholder||'Посилання на фото';input.value=value||'';
+ input.onchange=()=>{
+  const url=input.value.trim();
+  if(!cmsValidPhotoUrl(url)){alert('Вкажіть коректне посилання на фото');input.value=value||'';return}
+  onSave(url);
+ };
+ return input;
+}
 function cmsSharedTextFields(host,model){
  if(model.title!==null){
   host.append(field('ЗАГОЛОВОК','input',model.title||'',value=>model.onTitle(value)));
@@ -734,7 +748,7 @@ if(b.type!=='text'){
   const btn=document.createElement('button');btn.type='button';btn.textContent=url?'Замінити фото':'Завантажити фото';btn.onclick=()=>input.click();
   input.onchange=async()=>{const f=input.files?.[0];if(!f)return;try{await uploadCmsImage(f,b,btn,i)}catch(e){$('status').textContent='Помилка завантаження фото: '+e.message}finally{input.value=''}};
   const del=document.createElement('button');del.type='button';del.className='cms93-remove';del.textContent='× Прибрати';del.disabled=!url;del.onclick=()=>{if(i===0)b.image='';else{b.images={...(b.images||{})};delete b.images[i]}persist();renderEditor();renderPreview()};
-  const urlField=document.createElement('input');urlField.type='url';urlField.placeholder='Або вставити URL фотографії';urlField.value=url||'';urlField.onchange=()=>{const v=urlField.value.trim();if(v&&!/^(https?:\/\/|\/|\.\/?|\.\.\/)/i.test(v)){alert('Вкажіть коректне посилання');return}if(i===0)b.image=v;else{b.images={...(b.images||{}),[i]:v}}persist();renderEditor();renderPreview()};
+  const urlField=cmsPhotoUrlField(url,v=>{if(i===0)b.image=v;else{b.images={...(b.images||{}),[i]:v}}persist();renderEditor();renderPreview()},'Або вставити URL фотографії');
   actions.append(btn,del,input,urlField);row.append(preview,actions);wrap.append(h,hint,row);media.append(wrap);
  }
  holder.append(media);
@@ -1032,8 +1046,7 @@ function renderExistingEditor(){
    const effective=draft.images?.[key]==='__removed__'?'':(draft.images?.[key]||photo.url);const {box:thumbnail,img,show:showThumb}=cmsThumb(effective,frame.contentDocument.baseURI,'Мініатюра '+(i+1));
    const right=document.createElement('div');right.className='photo-controls';
    const label=document.createElement('label');label.textContent='Фото '+(i+1)+' · замінити URL';
-   const input=document.createElement('input');input.type='url';input.value=draft.images?.[key]==='__removed__'?'':(draft.images?.[key]||'');
-   input.placeholder='https://... або шлях до фото';
+   const input=cmsPhotoUrlField(draft.images?.[key]==='__removed__'?'':(draft.images?.[key]||''),url=>update(url),'https://... або шлях до фото');
    const update=url=>{
     const latest=readExisting(),d={...(latest[target.id]||{})};
     d.images={...(d.images||{}),[key]:url};latest[target.id]=d;saveExisting(latest);
@@ -1041,7 +1054,7 @@ function renderExistingEditor(){
     showThumb(url||photo.url);
     $('status').textContent='Фото змінено у локальній чернетці · сайт не опубліковано';
    };
-   input.onchange=()=>{const url=input.value.trim();if(url&&/^(javascript:|data:)/i.test(url)){alert('Неприпустимий формат адреси');return}update(url)};
+   
    const file=document.createElement('input');file.type='file';file.accept='image/png,image/jpeg,image/webp,image/gif';
    file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-'+key);update(url);input.value=url;$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
    const note=document.createElement('small');note.textContent='Зміни збережуться після натискання «Зберегти чернетку»';
