@@ -274,6 +274,13 @@ function cmsApplyExistingLayout(el,d,mediaValue){
   }
  }
 }
+// Single column-ratio contract for every photo/text/photo layout.
+function cmsThreeColumnWidths(design){
+ const clamp=(value,fallback)=>Math.max(20,Math.min(45,Number.isFinite(Number(value))?Number(value):fallback));
+ const left=clamp(design?.capsuleLeftWidth,38);
+ const right=Math.min(clamp(design?.capsuleRightWidth,38),80-left);
+ return {left,right,center:100-left-right,css:left+'% '+(100-left-right)+'% '+right+'%'};
+}
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
@@ -310,13 +317,14 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  if(!active){for(const key of ['--vh-cms-editorial-columns','--vh-cms-media-column','--vh-cms-copy-column'])el.style.removeProperty(key);return}
  const w=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
  const framed=preset==='framed';
- const left=framed?Math.max(20,Math.min(45,Number(d.capsuleLeftWidth)||38)):w;
- const right=framed?Math.max(20,Math.min(45,Number(d.capsuleRightWidth)||38)):100-w;
- const center=100-left-right;
- el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ const triple=cmsThreeColumnWidths(d);
+ const left=framed?triple.left:w;
+ const right=framed?triple.right:100-w;
+ const center=framed?triple.center:0;
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?triple.css:preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
- el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
+ el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?triple.css:preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
  media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
  media.style.setProperty('grid-row','1','important');
  copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
@@ -523,6 +531,34 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   range.oninput=()=>{d[key]=Number(range.value);output.textContent=range.value+unit;commit()};
   row.append(name,range,output);proportion.append(row);return {range,output};
  };
+ // Shared three-column controls: same design schema for new and existing blocks.
+ const threeColumns=document.createElement('div');threeColumns.className='vh-design-three-columns';
+ const threeTitle=document.createElement('h4');threeTitle.textContent='ФОТО · ТЕКСТ · ФОТО';threeColumns.append(threeTitle);
+ const threeHint=document.createElement('small');threeHint.textContent='Ширина колонок і кадрування другого фото';threeColumns.append(threeHint);
+ const addThreeRange=(key,title,min,max,fallback)=>{
+  const row=document.createElement('label');row.className='vh-design-dimension';
+  const name=document.createElement('span');name.textContent=title;
+  const input=document.createElement('input');input.type='range';input.dataset.columnKey=key;input.min=String(min);input.max=String(max);input.step='1';input.value=String(d[key]??fallback);
+  const output=document.createElement('output');output.textContent=input.value+'%';
+  input.oninput=()=>{
+   d[key]=Number(input.value);
+   if(key==='capsuleLeftWidth'||key==='capsuleRightWidth'){
+    const columns=cmsThreeColumnWidths(d);
+    d.capsuleLeftWidth=columns.left;d.capsuleRightWidth=columns.right;
+    threeColumns.querySelectorAll('input[type=range]').forEach(range=>{if(range.dataset.columnKey==='capsuleLeftWidth'||range.dataset.columnKey==='capsuleRightWidth'){range.value=String(d[range.dataset.columnKey]);range.nextElementSibling.textContent=range.value+'%'}});
+   }
+   output.textContent=input.value+'%';commit();
+  };
+  row.append(name,input,output);threeColumns.append(row);
+ };
+ addThreeRange('capsuleLeftWidth','Ліве фото',20,45,38);
+ addThreeRange('capsuleRightWidth','Праве фото',20,45,38);
+ addThreeRange('capsuleRightX','Кадрування правого фото X',0,100,50);
+ addThreeRange('capsuleRightY','Кадрування правого фото Y',0,100,50);
+ const syncThreeColumns=()=>{threeColumns.hidden=d.photoPreset!=='framed'};
+ syncThreeColumns();
+ grid.addEventListener('click',()=>queueMicrotask(syncThreeColumns));
+ photo.append(threeColumns);
  const widthControl=addDimension('photoWidth','Фото / текст',25,75,5,50,'%');
  addDimension('minHeight','Мінімальна висота',120,900,20,320,' px');
  const ratioHints=document.createElement('div');ratioHints.className='vh-design-ratios';
@@ -683,12 +719,29 @@ function cms91Tabs(holder,b){
  for(const [key,panel] of Object.entries(panels)){const h=document.createElement('div');h.className='cms98-panel-heading';h.textContent=headings[key];panel.prepend(h)}
  holder.prepend(bar);holder.append(content,design,motion);switchTo('content');
 }
+// Shared panel mounting for both new blocks and existing page sections.
+// Keep a single tab lifecycle so later layout/media controls can be shared safely.
+// Declarative media slots: one source of truth for newly inserted block types.
+// Existing DOM sections will be mapped to this contract without replacing their content.
+const CMS_BLOCK_MEDIA_SLOTS=Object.freeze({
+ editorial:Object.freeze([['Основне фото','Рекомендовано 1600 × 1200 px · 4:3; для квадратного макета 1200 × 1200 px'],['Друге фото','Для макета «Фото · текст · фото» · 1200 × 1500 px']]),
+ banner:Object.freeze([['Фонове фото банера','Рекомендовано 1920 × 900 px · широкий кадр, текст і градієнт зліва']]),
+ gallery:Object.freeze([['Велике фото','Рекомендовано 1600 × 1200 px · 4:3; розташовується зверху'],['Мале фото ліворуч','Рекомендовано 900 × 900 px · 1:1'],['Мале фото праворуч','Рекомендовано 900 × 900 px · 1:1']]),
+ text:Object.freeze([])
+});
+function cmsMediaSlotsForBlock(block){return CMS_BLOCK_MEDIA_SLOTS[block?.type]||CMS_BLOCK_MEDIA_SLOTS.editorial}
+function cmsMountUnifiedBlockEditor(holder,block){
+ if(!holder||!block)return;
+ cms91Tabs(holder,block);
+ holder.dataset.cmsUnifiedEditor='true';
+ holder.dataset.cmsBlockSource=block.source==='existing'?'existing':'new';
+}
 function renderEditor(){if(pageId==='shared')return;if(selectedExisting)return;const holder=$('editorFields');holder.replaceChildren();const b=current();if(!b){holder.textContent='Додайте або оберіть блок';return}holder.append(field('ЗАГОЛОВОК','input',b.title,v=>{b.title=v;persist();renderList();renderPreview()}));const body=document.createElement('div');body.className='field';body.append(makeRichEditor(b.body||'',v=>{b.body=v;persist();renderPreview()}));holder.append(body);
 if(b.type!=='text'){
  const media=document.createElement('div');media.className='cms93-media';
  const caption=document.createElement('h4');caption.textContent='ФОТОГРАФІЇ БЛОКУ';media.append(caption);
- const slotCount=b.type==='gallery'?3:b.type==='banner'?1:2;
- const descriptions=b.type==='gallery'?[['Велике фото','Рекомендовано 1600 × 1200 px · 4:3; розташовується зверху'],['Мале фото ліворуч','Рекомендовано 900 × 900 px · 1:1'],['Мале фото праворуч','Рекомендовано 900 × 900 px · 1:1']]:b.type==='banner'?[['Фонове фото банера','Рекомендовано 1920 × 900 px · широкий кадр, текст і градієнт зліва'],['Друге фото (не використовується)','Для банера потрібне одне фонове фото']]:[['Основне фото','Рекомендовано 1600 × 1200 px · 4:3; для квадратного макета 1200 × 1200 px'],['Друге фото','Для макета «Фото · текст · фото» · 1200 × 1500 px']];
+ const descriptions=cmsMediaSlotsForBlock(b);
+ const slotCount=descriptions.length;
  for(let i=0;i<slotCount;i++){
   const wrap=document.createElement('div');wrap.className='cms93-media-slot';
   const h=document.createElement('strong');h.textContent=descriptions[i][0];const hint=document.createElement('small');hint.textContent=descriptions[i][1];
@@ -707,7 +760,7 @@ if(b.type!=='text'){
  holder.append(media);
 }
 const typeBox=document.createElement('div');typeBox.className='cms93-type-control cms91-field';const typeLabel=document.createElement('label');typeLabel.textContent='ТИП МАКЕТУ';const typeSelect=document.createElement('select');for(const [value,name] of [['editorial','Фото та текст'],['banner','Hero на всю ширину · градієнт зліва'],['text','Тільки текст'],['gallery','Три фото · 1 велике + 2 менші']])typeSelect.add(new Option(name,value));typeSelect.value=b.type;typeSelect.onchange=()=>{b.type=typeSelect.value;persist();renderEditor();renderPreview()};typeBox.append(typeLabel,typeSelect);holder.append(typeBox);
-addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()},false,b.type,type=>{b.type=type;persist();renderEditor();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cms91Tabs(holder,b);
+addDesignControls(holder,b.id,b.design||{},v=>{b.design=v;persist();renderPreview()},false,b.type,type=>{b.type=type;persist();renderEditor();renderPreview()});holder.append(field('АНІМАЦІЯ','select',b.animation,v=>{b.animation=v;changed()},animationOptions));holder.append(field('ТРИВАЛІСТЬ (мс)','number',b.duration,v=>{b.duration=Math.max(200,Math.min(1500,Number(v)||650));persist();renderPreview()}));cmsMountUnifiedBlockEditor(holder,{...b,source:'new'});
  const removeBlock=document.createElement('button');removeBlock.type='button';removeBlock.className='secondary vh-delete-block';removeBlock.textContent='Видалити блок';
  removeBlock.onclick=()=>{if(!confirm('Видалити новий блок із чернетки?'))return;const id=b.id;blocks=blocks.filter(x=>x.id!==id);saveOrder(mergedOrder().filter(x=>x!==id));selected=null;changed();$('status').textContent='Новий блок видалено з чернетки. Опублікуйте зміни.'};
  holder.append(removeBlock);
@@ -1068,21 +1121,13 @@ function renderExistingEditor(){
   secondFile.onchange=async()=>{const f=secondFile.files?.[0];if(!f)return;secondFile.disabled=true;try{setSecond(await uploadExistingCmsPhoto(f,target.id+'-capsule-right'))}catch(e){alert('Не вдалося завантажити праве фото: '+(e.message||e))}finally{secondFile.disabled=false;secondFile.value=''}};
   const secondRemove=document.createElement('button');secondRemove.type='button';secondRemove.className='cms-photo-x';secondRemove.textContent='×';secondRemove.title='Видалити праве фото';secondRemove.onclick=()=>setSecond('__removed__');secondThumb.append(secondRemove);
   secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);extraFields.append(secondWrap);
-  const settings=document.createElement('div');settings.className='field cms-capsule-widths';
-  const heading=document.createElement('label');heading.textContent='ПРОПОРЦІЇ ТРЬОХ КОЛОНОК · ФОТО / ТЕКСТ / ФОТО';settings.append(heading);
-  const widths={...draft.design};
-  const addSlider=(key,title,min,max,defaultValue)=>{const label=document.createElement('label');label.textContent=title;const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step='1';slider.value=widths[key]??defaultValue;const out=document.createElement('output');out.textContent=slider.value+(key.includes('Width')?'%':'%');slider.oninput=()=>{widths[key]=Number(slider.value);if(key==='capsuleLeftWidth')widths.capsuleRightWidth=Math.min(Number(widths.capsuleRightWidth??38),80-widths[key]);if(key==='capsuleRightWidth')widths.capsuleLeftWidth=Math.min(Number(widths.capsuleLeftWidth??38),80-widths[key]);out.textContent=slider.value+'%';const all=readExisting();all[target.id]={...(all[target.id]||{}),design:{...(all[target.id]?.design||{}),...widths}};saveExisting(all);applyBlockDesign(target.el,all[target.id].design);scheduleLivePreview()};label.append(slider,out);settings.append(label)};
-  addSlider('capsuleLeftWidth','Ширина лівого фото',20,45,38);
-  addSlider('capsuleRightWidth','Ширина правого фото',20,45,38);
-  addSlider('capsuleRightX','Положення правого фото X',0,100,50);
-  addSlider('capsuleRightY','Положення правого фото Y',0,100,50);
-  host.append(extraFields,settings);
-  const syncExtraFields=()=>{const active=readExisting()?.[target.id]?.design?.photoPreset==='framed';extraFields.hidden=!active;settings.hidden=!active};
+  host.append(extraFields);
+  const syncExtraFields=()=>{const active=readExisting()?.[target.id]?.design?.photoPreset==='framed';extraFields.hidden=!active};
   syncExtraFields();
   host.addEventListener('click',event=>{if(event.target.closest('.cms91-preset'))queueMicrotask(syncExtraFields)});
 
  }
- cms91Tabs(host,{type:'editorial'});
+ cmsMountUnifiedBlockEditor(host,{type:'editorial',source:'existing'});
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути зміни цього блоку';reset.onclick=()=>{const d=readExisting();delete d[target.id];saveExisting(d);frame.src=frame.src};host.append(reset);
  const removeBlock=document.createElement('button');removeBlock.type='button';removeBlock.className='secondary vh-delete-block';removeBlock.textContent='Видалити блок';removeBlock.onclick=()=>{if(!confirm('Прибрати блок «'+target.label+'» зі сторінки? Після публікації він буде прихований для покупців.'))return;const all=readExisting();all[target.id]={...(all[target.id]||{}),hidden:true};saveExisting(all);target.el.style.display='none';selectedExisting=null;renderExistingList();renderExistingEditor();scheduleLivePreview();$('status').textContent='Блок приховано в чернетці. Збережіть та опублікуйте зміни.'};host.append(removeBlock);
 }
