@@ -1755,7 +1755,7 @@ function fillOrderModal(o){
  const capsuleLines=o.capsule_id?(o.capsule_items||[]):[];
  let linesHost=$('vhCapsuleOrderLines');
  if(!linesHost){linesHost=document.createElement('div');linesHost.id='vhCapsuleOrderLines';$('odProduct').insertAdjacentElement('afterend',linesHost)}
- linesHost.innerHTML=o.capsule_id?`<div style="margin-top:12px;font-size:13px;line-height:1.8"><b>Склад капсули (${capsuleLines.length}):</b>${capsuleLines.map((x,i)=>`<div>${i+1}. ${escapeHtml(String(x.product_name||''))} — ${money(x.unit_price)}</div>`).join('')}<small>Ціна замовлення з урахуванням знижки: ${money(o.amount)}</small></div>`:'';
+ linesHost.innerHTML=o.capsule_id?`<div style="margin-top:12px;font-size:13px;line-height:1.8"><b>Склад капсули (${capsuleLines.length}):</b>${capsuleLines.map((x,i)=>`<div>${i+1}. ${String(x.product_name||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))} — ${money(x.unit_price)}</div>`).join('')}<small>Ціна замовлення з урахуванням знижки: ${money(o.amount)}</small></div>`:'';
  $('odAmount').textContent=money(o.amount);
  $('odDate').textContent=fmtDateTime(o.created_at);
  $('odStatus').textContent=statusName(o.status);
