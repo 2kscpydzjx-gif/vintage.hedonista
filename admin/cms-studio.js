@@ -119,7 +119,7 @@ function compactContentPanel(editor){
     actions=document.createElement('div');actions.className='vh-media-actions';
     const upload=document.createElement('button');upload.type='button';upload.className='vh-media-action';upload.textContent='Завантажити фото';upload.onclick=()=>file.click();
     const remove=document.createElement('button');remove.type='button';remove.className='vh-media-action';remove.textContent='Видалити фото';
-    remove.onclick=()=>{const original=thumb.querySelector('.cms-photo-x');if(original)original.click()};
+    remove.onclick=()=>{const original=field.querySelector('.cms-thumb-box .cms-photo-x');if(original)original.click()};
     actions.append(upload,remove);field.append(actions);
    }
    // Only offer removal when the CMS field has a real remove handler.
