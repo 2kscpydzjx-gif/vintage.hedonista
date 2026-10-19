@@ -274,6 +274,43 @@ function cmsApplyExistingLayout(el,d,mediaValue){
   }
  }
 }
+function cmsApplyEditorialPreset(el,d,media,copy){
+ const preset=d.photoPreset||'original';
+ const layout=d.layout||'original';
+ const active=preset!=='original'&&preset!=='gradient-hero';
+ const doc=el.ownerDocument;
+ let style=doc.getElementById('vh-cms-editorial-layout-css');
+ if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
+ style.textContent=`
+ .vh-cms-editorial-layout{display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
+ .vh-cms-editorial-layout>.editorial-media{display:block!important;grid-column:var(--vh-cms-media-column,1)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout>.editorial-copy{display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-media{display:none!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-copy{grid-column:1!important}
+ .vh-cms-editorial-layout>.vh-cms-editorial-second-photo{grid-column:3!important;grid-row:1!important;min-width:0!important;background-size:cover!important;background-position:center!important}
+ @media(max-width:760px){.vh-cms-editorial-layout{grid-template-columns:1fr!important}.vh-cms-editorial-layout>.editorial-media{grid-column:1!important;grid-row:1!important}.vh-cms-editorial-layout>.editorial-copy{grid-column:1!important;grid-row:2!important}.vh-cms-editorial-layout>.vh-cms-editorial-second-photo{grid-column:1!important;grid-row:3!important;min-height:260px!important}}
+ `;
+ el.classList.toggle('vh-cms-editorial-layout',active);
+ el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');
+ el.classList.toggle('vh-cms-editorial-text-only',active&&preset==='text-only');
+ let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
+ if(!active||preset!=='framed'){second?.remove();second=null}
+ if(!active){for(const key of ['--vh-cms-editorial-columns','--vh-cms-media-column','--vh-cms-copy-column'])el.style.removeProperty(key);return}
+ const w=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
+ const framed=preset==='framed';
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?'1fr 1.35fr 1fr':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
+ el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
+ if(framed){
+  if(!second){second=doc.createElement('div');second.className='vh-cms-editorial-second-photo';second.setAttribute('aria-label','Друге фото макета (попередній перегляд)');el.append(second)}
+  // Until a separate second-image field is connected, mirror the existing image in preview.
+  const source=media.querySelector('img')?.currentSrc||media.querySelector('img')?.src||'';
+  const bg=doc.defaultView?.getComputedStyle(media)?.backgroundImage||'';
+  second.style.backgroundImage=source?'url('+JSON.stringify(source)+')':bg;
+ }
+}
 function applyBlockDesign(el,d){if(!el||!d)return;
  const currentTarget=sectionTargets.find(t=>t.el===el);
  const currentDraft=currentTarget?readExisting()?.[currentTarget.id]:null;
@@ -336,8 +373,8 @@ function applyBlockDesign(el,d){if(!el||!d)return;
    const layout=d.layout||'original';
    el.dataset.cmsCapsulesLayout=layout;
    el.style.setProperty('--vh-capsules-photo-width',Math.max(25,Math.min(75,Number(d.photoWidth)||50))+'%');
-   el.style.removeProperty('flex-direction');
-   media.style.removeProperty('order');copy.style.removeProperty('order');
+   // Existing editorial sections have their own fixed layout CSS; make presets effective in preview.
+   cmsApplyEditorialPreset(el,d,media,copy);
   }
  }
  if(d.photoPreset&&el.classList.contains('vh-lab-card')){const preset=d.photoPreset;el.style.gridTemplateColumns=preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='framed'?'minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr)':preset==='wide'?'60% 40%':'50% 50%';const ph=el.querySelector('.vh-lab-photo');if(ph){ph.style.aspectRatio=preset==='square'?'1 / 1':'auto';ph.style.height=preset==='square'?'auto':'100%';ph.style.minHeight='0';ph.style.maxWidth='100%';ph.style.margin=preset==='square'?'28px':'0';ph.style.alignSelf='center';ph.style.width='calc(100% - '+(preset==='square'?'56px':'0px')+')';ph.style.boxSizing='border-box';}}
