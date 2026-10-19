@@ -1064,20 +1064,14 @@ function renderExistingEditor(){
    const update=url=>{
     const latest=readExisting(),d={...(latest[target.id]||{})};
     d.images={...(d.images||{}),[key]:url};latest[target.id]=d;saveExisting(latest);
-    cmsSetPhoto(photo,url||photo.url,i);
-    showThumb(url||photo.url);
+    cmsSetPhoto(photo,url==='__removed__'?'__removed__':(url||photo.url),i);
+    showThumb(url==='__removed__'?'':(url||photo.url));
     $('status').textContent='Фото змінено у локальній чернетці · сайт не опубліковано';
    };
    
    const file=cmsPhotoUploadField(async f=>{const url=await uploadExistingCmsPhoto(f,target.id+'-'+key);update(url);input.value=url;$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'},'image/png,image/jpeg,image/webp,image/gif');
    const note=document.createElement('small');note.textContent='Зміни збережуться після натискання «Зберегти чернетку»';
-   const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>{
- const all=readExisting();all[target.id]={...(all[target.id]||{}),images:{...(all[target.id]?.images||{}),[key]:'__removed__'}};saveExisting(all);
- if(photo.kind==='img')photo.node.style.visibility='hidden';
- else if(photo.kind==='poster')photo.node.removeAttribute('poster');
- else photo.node.style.setProperty('background-image','none','important');
- showThumb('');
- };right.append(label,input,file,note);thumbnail.append(remove);wrap.append(thumbnail,right);host.append(wrap);
+   const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>{update('__removed__');input.value='';};right.append(label,input,file,note);thumbnail.append(remove);wrap.append(thumbnail,right);host.append(wrap);
   });
  }
  cmsCustomButtonEditor(host,target,draft);
