@@ -523,6 +523,31 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   range.oninput=()=>{d[key]=Number(range.value);output.textContent=range.value+unit;commit()};
   row.append(name,range,output);proportion.append(row);return {range,output};
  };
+ // Shared three-column controls: same design schema for new and existing blocks.
+ const threeColumns=document.createElement('div');threeColumns.className='vh-design-three-columns';
+ const threeTitle=document.createElement('h4');threeTitle.textContent='ФОТО · ТЕКСТ · ФОТО';threeColumns.append(threeTitle);
+ const threeHint=document.createElement('small');threeHint.textContent='Ширина колонок і кадрування другого фото';threeColumns.append(threeHint);
+ const addThreeRange=(key,title,min,max,fallback)=>{
+  const row=document.createElement('label');row.className='vh-design-dimension';
+  const name=document.createElement('span');name.textContent=title;
+  const input=document.createElement('input');input.type='range';input.min=String(min);input.max=String(max);input.step='1';input.value=String(d[key]??fallback);
+  const output=document.createElement('output');output.textContent=input.value+'%';
+  input.oninput=()=>{
+   d[key]=Number(input.value);
+   if(key==='capsuleLeftWidth')d.capsuleRightWidth=Math.min(Number(d.capsuleRightWidth??38),80-d[key]);
+   if(key==='capsuleRightWidth')d.capsuleLeftWidth=Math.min(Number(d.capsuleLeftWidth??38),80-d[key]);
+   output.textContent=input.value+'%';commit();
+  };
+  row.append(name,input,output);threeColumns.append(row);
+ };
+ addThreeRange('capsuleLeftWidth','Ліве фото',20,45,38);
+ addThreeRange('capsuleRightWidth','Праве фото',20,45,38);
+ addThreeRange('capsuleRightX','Кадрування правого фото X',0,100,50);
+ addThreeRange('capsuleRightY','Кадрування правого фото Y',0,100,50);
+ const syncThreeColumns=()=>{threeColumns.hidden=d.photoPreset!=='framed'};
+ syncThreeColumns();
+ grid.addEventListener('click',()=>queueMicrotask(syncThreeColumns));
+ photo.append(threeColumns);
  const widthControl=addDimension('photoWidth','Фото / текст',25,75,5,50,'%');
  addDimension('minHeight','Мінімальна висота',120,900,20,320,' px');
  const ratioHints=document.createElement('div');ratioHints.className='vh-design-ratios';
@@ -1076,16 +1101,8 @@ function renderExistingEditor(){
   secondFile.onchange=async()=>{const f=secondFile.files?.[0];if(!f)return;secondFile.disabled=true;try{setSecond(await uploadExistingCmsPhoto(f,target.id+'-capsule-right'))}catch(e){alert('Не вдалося завантажити праве фото: '+(e.message||e))}finally{secondFile.disabled=false;secondFile.value=''}};
   const secondRemove=document.createElement('button');secondRemove.type='button';secondRemove.className='cms-photo-x';secondRemove.textContent='×';secondRemove.title='Видалити праве фото';secondRemove.onclick=()=>setSecond('__removed__');secondThumb.append(secondRemove);
   secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);extraFields.append(secondWrap);
-  const settings=document.createElement('div');settings.className='field cms-capsule-widths';
-  const heading=document.createElement('label');heading.textContent='ПРОПОРЦІЇ ТРЬОХ КОЛОНОК · ФОТО / ТЕКСТ / ФОТО';settings.append(heading);
-  const widths={...draft.design};
-  const addSlider=(key,title,min,max,defaultValue)=>{const label=document.createElement('label');label.textContent=title;const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step='1';slider.value=widths[key]??defaultValue;const out=document.createElement('output');out.textContent=slider.value+(key.includes('Width')?'%':'%');slider.oninput=()=>{widths[key]=Number(slider.value);if(key==='capsuleLeftWidth')widths.capsuleRightWidth=Math.min(Number(widths.capsuleRightWidth??38),80-widths[key]);if(key==='capsuleRightWidth')widths.capsuleLeftWidth=Math.min(Number(widths.capsuleLeftWidth??38),80-widths[key]);out.textContent=slider.value+'%';const all=readExisting();all[target.id]={...(all[target.id]||{}),design:{...(all[target.id]?.design||{}),...widths}};saveExisting(all);applyBlockDesign(target.el,all[target.id].design);scheduleLivePreview()};label.append(slider,out);settings.append(label)};
-  addSlider('capsuleLeftWidth','Ширина лівого фото',20,45,38);
-  addSlider('capsuleRightWidth','Ширина правого фото',20,45,38);
-  addSlider('capsuleRightX','Положення правого фото X',0,100,50);
-  addSlider('capsuleRightY','Положення правого фото Y',0,100,50);
-  host.append(extraFields,settings);
-  const syncExtraFields=()=>{const active=readExisting()?.[target.id]?.design?.photoPreset==='framed';extraFields.hidden=!active;settings.hidden=!active};
+  host.append(extraFields);
+  const syncExtraFields=()=>{const active=readExisting()?.[target.id]?.design?.photoPreset==='framed';extraFields.hidden=!active};
   syncExtraFields();
   host.addEventListener('click',event=>{if(event.target.closest('.cms91-preset'))queueMicrotask(syncExtraFields)});
 
