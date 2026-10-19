@@ -1,6 +1,6 @@
 
 /* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
-const VH_STATUS_INLINE_STYLE="display:inline-flex!important;align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
+const VH_STATUS_INLINE_STYLE="align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
 function vhApplyInventoryLabelStyle(node){
  if(!node)return;
  for(const declaration of VH_STATUS_INLINE_STYLE.split(';')){
@@ -1205,7 +1205,7 @@ function renderProduct(){
    let seal=frame.querySelector('.vh-product-status-seal');
    if(!seal){seal=document.createElement('span');seal.className='vh-product-status-seal';frame.appendChild(seal);vhApplyInventoryLabelStyle(seal)}
    seal.textContent=p.status==='sold'?'ПРОДАНО':p.status==='reserved'?'ЗАРЕЗЕРВОВАНО':'';
-   seal.style.display=p.status==='sold'||p.status==='reserved'?'inline-flex':'none';
+   seal.style.setProperty('display',p.status==='sold'||p.status==='reserved'?'inline-flex':'none','important');
  }
  galleryIndex=0;
  renderGallery();
