@@ -165,7 +165,7 @@ if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fi
    const width=Math.max(25,Math.min(75,Number(design.photoWidth)||50));
    el.style.setProperty('height','500px','important');el.style.setProperty('min-height','0','important');el.style.setProperty('max-height','500px','important');el.style.setProperty('overflow','hidden','important');
    media.style.setProperty('height','100%','important');media.style.setProperty('min-height','0','important');
-   copy.style.setProperty('height','100%','important');copy.style.setProperty('min-height','0','important');copy.style.setProperty('box-sizing','border-box','important');copy.style.setProperty('padding','24px clamp(16px,2vw,36px)','important');copy.style.setProperty('overflow','auto','important');
+   copy.style.setProperty('height','100%','important');copy.style.setProperty('min-height','0','important');copy.style.setProperty('box-sizing','border-box','important');copy.style.setProperty('padding','24px clamp(16px,2vw,36px)','important');copy.style.setProperty('overflow','hidden','important');
    if(second){second.style.setProperty('height','100%','important');second.style.setProperty('min-height','0','important')}
    el.style.setProperty('display','grid','important');
    el.style.setProperty('grid-template-columns',stacked||textOnly?'1fr':framed?left+'% '+(100-left-right)+'% '+right+'%':preset==='wide'?'65% 35%':width+'% '+(100-width)+'%','important');
