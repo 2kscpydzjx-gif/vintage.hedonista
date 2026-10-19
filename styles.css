@@ -9371,10 +9371,7 @@ body:has(#accountPageMount) #vhProfileOverlay.vh-auth-overlay{
 
 
 /* V142 — reserved inventory state */
-.catalog-badge.reserved{
-  background:#8a6b49!important;
-  color:#fff7eb!important;
-}
+/* Reserved badge uses the shared inventory seal below. */
 .catalog-card-reserved .catalog-photo-primary{
   filter:saturate(.86) brightness(.94);
 }
