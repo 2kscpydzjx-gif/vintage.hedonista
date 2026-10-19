@@ -33,6 +33,22 @@ for(const address of urls){
    }
   }
  }
+ if(/\/seo-product\//.test(u.pathname)){
+  const inventory=html.match(/<meta\\s+name=["']vh-product-inventory["']\\s+content=["']([^"']*)["']/i)?.[1];
+  const expected={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[inventory];
+  const blocks=[...html.matchAll(/<script\\b(?=[^>]*\\bid=["']vh-static-product-jsonld["'])[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+  if(blocks.length!==1){errors.push('Expected exactly one static Product JSON-LD: '+path);continue}
+  let product;
+  try{product=JSON.parse(blocks[0][1])}catch{errors.push('Invalid Product JSON-LD: '+path);continue}
+  if(product?.['@type']!=='Product'){errors.push('Incorrect Product JSON-LD type: '+path);continue}
+  const priceVisible=/<[^>]+id=["']productPrice["'][^>]*>[\\s\\S]*?\\d[\\s\\S]*?<\\/[^>]+>/i.test(html);
+  if(priceVisible&&!product.offers)errors.push('Missing Offer for priced product: '+path);
+  if(product.offers){
+   if(!product.offers.availability)errors.push('Missing Offer availability: '+path);
+   if(expected&&product.offers.availability!=='https://schema.org/'+expected)errors.push('Availability/status mismatch: '+path);
+   if(!expected)errors.push('Unknown inventory status for Offer: '+path);
+  }
+ }
  if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
   if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
   if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
