@@ -340,6 +340,33 @@ body.capsule-style-live .capsule-product-card h3{font-weight:600!important}
  body.capsule-style-live.vh-preppy-full-hero .capsule-style-hero-copy p{color:#e7d9c8;font-size:14px}
 }
 </style>
+<style id="vh-capsule-status-editorial-v1">
+/* Quiet editorial status labels; keep the existing photo, card and price layout. */
+#capsuleMainVisual{position:relative}
+#capsuleMainVisual .vh-capsule-photo-badge,
+.capsule-product-photo .vh-capsule-item-badge{
+ position:absolute;top:16px;right:16px;left:auto;z-index:3;
+ display:inline-flex;align-items:center;gap:8px;width:max-content;max-width:calc(100% - 28px);
+ padding:9px 13px;border:1px solid rgba(255,255,255,.35);border-radius:3px;
+ background:rgba(34,27,23,.68);color:#f7f0e7;
+ box-shadow:0 3px 16px rgba(0,0,0,.10);
+ -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+ font-family:Arial,sans-serif;font-size:9px;font-weight:600;line-height:1.3;
+ letter-spacing:.13em;text-transform:uppercase;pointer-events:none;
+}
+#capsuleMainVisual .vh-capsule-photo-badge::before,
+.capsule-product-photo .vh-capsule-item-badge::before{
+ content:'';flex:none;width:5px;height:5px;border-radius:50%;background:#e0c3a2;
+}
+.capsule-product-photo{position:relative}
+.capsule-product-photo .vh-capsule-item-badge{
+ top:10px;right:10px;padding:7px 9px;gap:6px;font-size:8px;letter-spacing:.08em;
+}
+@media(max-width:600px){
+ #capsuleMainVisual .vh-capsule-photo-badge{top:12px;right:12px;padding:8px 10px;font-size:8px}
+ .capsule-product-photo .vh-capsule-item-badge{top:7px;right:7px;padding:6px 7px;font-size:7px;letter-spacing:.04em}
+}
+</style>
 </head><body class="capsule-style-live"><header><div class="wrap head">
 <a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
 <nav class="nav">
@@ -433,7 +460,7 @@ body.capsule-style-live .capsule-product-card h3{font-weight:600!important}
       </a>
     </div>
   </div>
-</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="capsules-front.js?v=140"></script><script defer src="site.js?v=267"></script><script id="vh-unified-menu-bound-v230">
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="capsules-front.js?v=141"></script><script defer src="site.js?v=267"></script><script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
   const nav=document.querySelector('header .nav');
