@@ -25,6 +25,8 @@ jobs:
           node --check scripts/audit-seo.mjs
       - name: Generate sitemap and static SEO pages
         run: node scripts/generate-sitemap.mjs
+      - name: Build static Product JSON-LD
+        run: node scripts/build-product-jsonld.cjs
       - name: Audit SEO output
         run: node scripts/audit-seo.mjs
       - name: Show generated page counts
