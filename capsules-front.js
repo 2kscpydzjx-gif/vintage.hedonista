@@ -1,5 +1,5 @@
 
-const VH_CAPSULE_STATUS_STYLE="display:inline-flex!important;align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
+const VH_CAPSULE_STATUS_STYLE="align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
 function vhStyleCapsuleBadge(node){if(!node)return;for(const d of VH_CAPSULE_STATUS_STYLE.split(';')){const i=d.indexOf(':');if(i<0)continue;node.style.setProperty(d.slice(0,i),d.slice(i+1).replace(/!important$/,''),'important')}}
 (()=>{
 'use strict';
@@ -91,7 +91,7 @@ async function detail(){
   let photoBadge=main.querySelector('.vh-capsule-photo-badge');
   if(!photoBadge){photoBadge=document.createElement('span');photoBadge.className='vh-capsule-photo-badge';main.appendChild(photoBadge);vhStyleCapsuleBadge(photoBadge)}
   photoBadge.textContent=unavailable?(sold?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'):'';
-  photoBadge.style.display=unavailable?'block':'none';
+  photoBadge.style.setProperty('display',unavailable?'inline-flex':'none','important');
 
  }
  function renderLooks(){
