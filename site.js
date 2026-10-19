@@ -1189,6 +1189,13 @@ function renderProduct(){
    $('buyBtn').disabled=false
  }
 
+ const frame=$('galleryMain');
+ if(frame){
+   let seal=frame.querySelector('.vh-product-status-seal');
+   if(!seal){seal=document.createElement('span');seal.className='vh-product-status-seal';frame.appendChild(seal)}
+   seal.textContent=p.status==='sold'?'ПРОДАНО':p.status==='reserved'?'ЗАРЕЗЕРВОВАНО':'';
+   seal.style.display=p.status==='sold'||p.status==='reserved'?'inline-flex':'none';
+ }
  galleryIndex=0;
  renderGallery();
  setupSwipe()
