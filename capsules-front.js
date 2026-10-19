@@ -73,8 +73,12 @@ async function detail(){
  }
  function updateActiveLook(){
   const l=looks[lookIdx],products=activeProducts();imageBox(main,l?.image_url||capsules[idx]?.cover_image,'ФОТО ГОЛОВНОГО ОБРАЗУ','КВАДРАТНЕ 1:1');main.setAttribute('role','button');main.setAttribute('tabindex','0');main.setAttribute('aria-label','Відкрити фото образу');renderLooks();renderProducts();
-  const available=products.filter(p=>p.status!=='sold'&&(p.stock==null||Number(p.stock)>0));
-  const sum=available.reduce((s,p)=>s+(Number(p.price)||0),0);$('.capsule-buy-meta b').textContent=money(sum);
+  const available=products.filter(p=>p.status==='published'&&(p.stock==null||Number(p.stock)>0));
+  const sum=available.reduce((s,p)=>s+(Number(p.price)||0),0);
+  const capsule=capsules[idx];
+  const completeMainLook=lookIdx===0&&products.length>0&&available.length===products.length&&Number(capsule?.price)>0;
+  const displayPrice=completeMainLook?Math.min(sum,Number(capsule.price)):sum;
+  $('.capsule-buy-meta b').textContent=money(displayPrice);
   const label=$('.capsule-buy-meta span');if(label)label.textContent=`ОБРАЗ ${String(lookIdx+1).padStart(2,'0')}`;
   const add=$('#capsuleAddAll');if(add)add.textContent=`ДОДАТИ ОБРАЗ У КОШИК`;
  }
