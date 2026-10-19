@@ -2358,8 +2358,7 @@ document.addEventListener('click',e=>{
 
   function isHomePage(){
     const path=(location.pathname||'').replace(/\\/g,'/');
-    const file=path.split('/').pop();
-    return file==='' || file==='index.html'
+    return path==='/' || path==='/index.html' || path==='/vintage.hedonista/' || path==='/vintage.hedonista/index.html'
   }
 
   function navigationType(){
@@ -2462,8 +2461,8 @@ document.addEventListener('click',e=>{
    ========================================================== */
 (function(){
   function isHome(){
-    const file=(location.pathname||'').split('/').pop();
-    return file==='' || file==='index.html'
+    const path=(location.pathname||'').replace(/\\/g,'/');
+    return path==='/' || path==='/index.html' || path==='/vintage.hedonista/' || path==='/vintage.hedonista/index.html'
   }
 
   function initHomeMotion(){
