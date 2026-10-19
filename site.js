@@ -1,3 +1,14 @@
+
+/* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
+const VH_STATUS_INLINE_STYLE="display:inline-flex!important;align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
+function vhApplyInventoryLabelStyle(node){
+ if(!node)return;
+ for(const declaration of VH_STATUS_INLINE_STYLE.split(';')){
+  const i=declaration.indexOf(':');if(i<0)continue;
+  const name=declaration.slice(0,i),value=declaration.slice(i+1).replace(/!important$/,'');
+  node.style.setProperty(name,value,'important');
+ }
+}
 const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-customer-auth'}});
 
 /* V138: public catalog/content client.
@@ -925,7 +936,7 @@ function catalogProductCard(p){
      </div>
 
      <div class="catalog-card-badges">
-       ${sold?'<span class="catalog-badge sold">ПРОДАНО</span>':reserved?'<span class="catalog-badge reserved">ЗАРЕЗЕРВОВАНО</span>':'<span class="catalog-badge one">1 / 1</span>'}
+       ${sold?'<span class="catalog-badge sold" style="'+VH_STATUS_INLINE_STYLE+'">ПРОДАНО</span>':reserved?'<span class="catalog-badge reserved" style="'+VH_STATUS_INLINE_STYLE+'">ЗАРЕЗЕРВОВАНО</span>':'<span class="catalog-badge one">1 / 1</span>'}
      </div>
    </a>
 
@@ -1192,7 +1203,7 @@ function renderProduct(){
  const frame=$('galleryMain');
  if(frame){
    let seal=frame.querySelector('.vh-product-status-seal');
-   if(!seal){seal=document.createElement('span');seal.className='vh-product-status-seal';frame.appendChild(seal)}
+   if(!seal){seal=document.createElement('span');seal.className='vh-product-status-seal';frame.appendChild(seal);vhApplyInventoryLabelStyle(seal)}
    seal.textContent=p.status==='sold'?'ПРОДАНО':p.status==='reserved'?'ЗАРЕЗЕРВОВАНО':'';
    seal.style.display=p.status==='sold'||p.status==='reserved'?'inline-flex':'none';
  }
