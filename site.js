@@ -2248,7 +2248,7 @@ async function submitCartCheckout(){
  const name=$('checkoutName').value.trim(),contact=$('checkoutContact').value.trim();
  const email=$('checkoutEmail').value.trim(),comment=$('checkoutComment').value.trim();
  if(!name||!contact||!email)return toast('Вкажіть ім’я, контакт та email');
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))return toast('Перевірте правильність email');
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return toast('Перевірте правильність email');
  const btn=document.querySelector('[onclick*="submitCartCheckout"]');
  vhCheckoutSubmitting=true;
  if(btn){btn.disabled=true;btn.textContent='ПЕРЕВІРЯЄМО ЗАМОВЛЕННЯ...'}
@@ -2278,7 +2278,7 @@ async function submitCartCheckout(){
    }
   }
   const pricing=vhBundlePricing(checked,vhBundleOffers);
-  const shown=Number(($('checkoutTotal')?.textContent||'').replace(/[^\\d,]/g,'').replace(',','.')||0);
+  const shown=Number(($('checkoutTotal')?.textContent||'').replace(/[^\d,]/g,'').replace(',','.')||0);
   if(Math.abs(pricing.total-shown)>0.009){
    vhSetCart(checked);await initCheckoutPage();
    throw new Error('Ціна змінилася. Перевірте суму та підтвердьте замовлення повторно.');
