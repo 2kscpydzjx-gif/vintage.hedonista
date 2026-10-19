@@ -721,6 +721,15 @@ function cms91Tabs(holder,b){
 }
 // Shared panel mounting for both new blocks and existing page sections.
 // Keep a single tab lifecycle so later layout/media controls can be shared safely.
+// Declarative media slots: one source of truth for newly inserted block types.
+// Existing DOM sections will be mapped to this contract without replacing their content.
+const CMS_BLOCK_MEDIA_SLOTS=Object.freeze({
+ editorial:Object.freeze([['Основне фото','Рекомендовано 1600 × 1200 px · 4:3; для квадратного макета 1200 × 1200 px'],['Друге фото','Для макета «Фото · текст · фото» · 1200 × 1500 px']]),
+ banner:Object.freeze([['Фонове фото банера','Рекомендовано 1920 × 900 px · широкий кадр, текст і градієнт зліва']]),
+ gallery:Object.freeze([['Велике фото','Рекомендовано 1600 × 1200 px · 4:3; розташовується зверху'],['Мале фото ліворуч','Рекомендовано 900 × 900 px · 1:1'],['Мале фото праворуч','Рекомендовано 900 × 900 px · 1:1']]),
+ text:Object.freeze([])
+});
+function cmsMediaSlotsForBlock(block){return CMS_BLOCK_MEDIA_SLOTS[block?.type]||CMS_BLOCK_MEDIA_SLOTS.editorial}
 function cmsMountUnifiedBlockEditor(holder,block){
  if(!holder||!block)return;
  cms91Tabs(holder,block);
@@ -731,8 +740,8 @@ function renderEditor(){if(pageId==='shared')return;if(selectedExisting)return;c
 if(b.type!=='text'){
  const media=document.createElement('div');media.className='cms93-media';
  const caption=document.createElement('h4');caption.textContent='ФОТОГРАФІЇ БЛОКУ';media.append(caption);
- const slotCount=b.type==='gallery'?3:b.type==='banner'?1:2;
- const descriptions=b.type==='gallery'?[['Велике фото','Рекомендовано 1600 × 1200 px · 4:3; розташовується зверху'],['Мале фото ліворуч','Рекомендовано 900 × 900 px · 1:1'],['Мале фото праворуч','Рекомендовано 900 × 900 px · 1:1']]:b.type==='banner'?[['Фонове фото банера','Рекомендовано 1920 × 900 px · широкий кадр, текст і градієнт зліва'],['Друге фото (не використовується)','Для банера потрібне одне фонове фото']]:[['Основне фото','Рекомендовано 1600 × 1200 px · 4:3; для квадратного макета 1200 × 1200 px'],['Друге фото','Для макета «Фото · текст · фото» · 1200 × 1500 px']];
+ const descriptions=cmsMediaSlotsForBlock(b);
+ const slotCount=descriptions.length;
  for(let i=0;i<slotCount;i++){
   const wrap=document.createElement('div');wrap.className='cms93-media-slot';
   const h=document.createElement('strong');h.textContent=descriptions[i][0];const hint=document.createElement('small');hint.textContent=descriptions[i][1];
