@@ -687,7 +687,7 @@ if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeDesktopPreview).
 window.addEventListener('resize',resizeDesktopPreview);
 requestAnimationFrame(resizeDesktopPreview);
 function scheduleLivePreview(){clearTimeout(liveTimer);liveTimer=setTimeout(updateLivePreview,180)}
-function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));frame.src='../'+p.url;}
+function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));if(pageId==='home')frame.style.visibility='hidden';frame.src='../'+p.url;}
 // STEP 58: isolated drafts for text edits to existing rendered sections.
 let selectedExisting=null;
 const existingKey=()=> 'vh-cms-existing-step65-'+pageId;
@@ -1339,8 +1339,8 @@ frame.addEventListener('load',()=>{
  const loadedPage=pageId;
  const start=()=>{
   if(pageId!==loadedPage||frame.contentDocument!==doc)return;
-  try{installPreviewLinks(doc);applySharedPreview(doc);detectSections(doc);reconcileAfterFrameLoad()}
-  catch(e){$('status').textContent='Не вдалося відкрити перегляд: '+e.message}
+  try{installPreviewLinks(doc);applySharedPreview(doc);detectSections(doc);reconcileAfterFrameLoad();if(loadedPage==='home'){updateLivePreview();requestAnimationFrame(()=>{if(pageId===loadedPage&&frame.contentDocument===doc)frame.style.visibility='visible'})}else frame.style.visibility='visible'}
+  catch(e){frame.style.visibility='visible';$('status').textContent='Не вдалося відкрити перегляд: '+e.message}
  };
  if(loadedPage==='about'&&!doc.defaultView?.__VH_PUBLISHED_READY){
   let done=false;
