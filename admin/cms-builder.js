@@ -274,6 +274,13 @@ function cmsApplyExistingLayout(el,d,mediaValue){
   }
  }
 }
+// Single column-ratio contract for every photo/text/photo layout.
+function cmsThreeColumnWidths(design){
+ const clamp=(value,fallback)=>Math.max(20,Math.min(45,Number.isFinite(Number(value))?Number(value):fallback));
+ const left=clamp(design?.capsuleLeftWidth,38);
+ const right=Math.min(clamp(design?.capsuleRightWidth,38),80-left);
+ return {left,right,center:100-left-right,css:left+'% '+(100-left-right)+'% '+right+'%'};
+}
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
@@ -310,9 +317,10 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  if(!active){for(const key of ['--vh-cms-editorial-columns','--vh-cms-media-column','--vh-cms-copy-column'])el.style.removeProperty(key);return}
  const w=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
  const framed=preset==='framed';
- const left=framed?Math.max(20,Math.min(45,Number(d.capsuleLeftWidth)||38)):w;
- const right=framed?Math.max(20,Math.min(45,Number(d.capsuleRightWidth)||38)):100-w;
- const center=100-left-right;
+ const triple=cmsThreeColumnWidths(d);
+ const left=framed?triple.left:w;
+ const right=framed?triple.right:100-w;
+ const center=framed?triple.center:0;
  el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
@@ -530,12 +538,15 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
  const addThreeRange=(key,title,min,max,fallback)=>{
   const row=document.createElement('label');row.className='vh-design-dimension';
   const name=document.createElement('span');name.textContent=title;
-  const input=document.createElement('input');input.type='range';input.min=String(min);input.max=String(max);input.step='1';input.value=String(d[key]??fallback);
+  const input=document.createElement('input');input.type='range';input.dataset.columnKey=key;input.min=String(min);input.max=String(max);input.step='1';input.value=String(d[key]??fallback);
   const output=document.createElement('output');output.textContent=input.value+'%';
   input.oninput=()=>{
    d[key]=Number(input.value);
-   if(key==='capsuleLeftWidth')d.capsuleRightWidth=Math.min(Number(d.capsuleRightWidth??38),80-d[key]);
-   if(key==='capsuleRightWidth')d.capsuleLeftWidth=Math.min(Number(d.capsuleLeftWidth??38),80-d[key]);
+   if(key==='capsuleLeftWidth'||key==='capsuleRightWidth'){
+    const columns=cmsThreeColumnWidths(d);
+    d.capsuleLeftWidth=columns.left;d.capsuleRightWidth=columns.right;
+    threeColumns.querySelectorAll('input[type=range]').forEach(range=>{if(range.dataset.columnKey==='capsuleLeftWidth'||range.dataset.columnKey==='capsuleRightWidth'){range.value=String(d[range.dataset.columnKey]);range.nextElementSibling.textContent=range.value+'%'}});
+   }
    output.textContent=input.value+'%';commit();
   };
   row.append(name,input,output);threeColumns.append(row);
