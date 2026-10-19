@@ -261,12 +261,17 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  const url=raw&&raw!=='__removed__'&&(/^(https?:|data:image\/|blob:|\/|\.\/|\.\.\/)/i.test(raw))?raw:'';
  const image=url?'url('+JSON.stringify(url)+')':'none';
  // Keep the image on a real CSS background layer, independent of storefront image nodes.
- layer.style.setProperty('background-image',url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none','important');
- layer.dataset.cmsImage=url?'set':'empty';
- if(url){
-  const test=new Image();
-  test.onerror=()=>{console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'};
-  test.src=new URL(url,doc.baseURI).href;
+ const nextBackground=url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none';
+ // Preserve the image layer across repeated preview reconciliation passes.
+ if(layer.dataset.cmsSource!==url){
+  layer.style.setProperty('background-image',nextBackground,'important');
+  layer.dataset.cmsSource=url;
+  layer.dataset.cmsImage=url?'set':'empty';
+  if(url){
+   const test=new Image();
+   test.onerror=()=>{if(layer.dataset.cmsSource===url){console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'}};
+   test.src=new URL(url,doc.baseURI).href;
+  }
  }
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
