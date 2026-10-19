@@ -310,20 +310,26 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  if(!active){for(const key of ['--vh-cms-editorial-columns','--vh-cms-media-column','--vh-cms-copy-column'])el.style.removeProperty(key);return}
  const w=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
  const framed=preset==='framed';
- el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?'1fr 1.35fr 1fr':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ const left=framed?Math.max(20,Math.min(45,Number(d.capsuleLeftWidth)||38)):w;
+ const right=framed?Math.max(20,Math.min(45,Number(d.capsuleRightWidth)||38)):100-w;
+ const center=100-left-right;
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
- el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?'1fr 1.35fr 1fr':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
+ el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
  media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
  media.style.setProperty('grid-row','1','important');
  copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
  copy.style.setProperty('grid-row',layout==='stacked'?'2':'1','important');
  if(framed){
   if(!second){second=doc.createElement('div');second.className='vh-cms-editorial-second-photo';second.setAttribute('aria-label','Друге фото макета (попередній перегляд)');el.append(second)}
-  // Until a separate second-image field is connected, mirror the existing image in preview.
-  const source=media.querySelector('img')?.currentSrc||media.querySelector('img')?.src||'';
-  const bg=doc.defaultView?.getComputedStyle(media)?.backgroundImage||'';
-  second.style.backgroundImage=source?'url('+JSON.stringify(source)+')':bg;
+  const target=sectionTargets.find(t=>t.el===el);
+  const secondUrl=target?readExisting()?.[target.id]?.capsuleSecondImage:'';
+  second.style.backgroundImage=secondUrl&&secondUrl!=='__removed__'?'url('+JSON.stringify(secondUrl)+')':'none';
+  second.style.aspectRatio='1 / 1';second.style.height='auto';second.style.minHeight='0';
+  second.style.backgroundSize='cover';
+  second.style.backgroundPosition=(Number(d.capsuleRightX)||50)+'% '+(Number(d.capsuleRightY)||50)+'%';
+  second.style.transform='none';
  }
 }
 function applyBlockDesign(el,d){if(!el||!d)return;
@@ -1051,6 +1057,25 @@ function renderExistingEditor(){
   file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-capsule');update(url);$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
   const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>update('__removed__');
   capsuleThumbBox.append(remove);wrap.append(label,capsuleThumbBox,input,file);host.append(wrap);
+  const secondWrap=document.createElement('div');secondWrap.className='field cms-capsule-field';
+  const secondLabel=document.createElement('label');secondLabel.textContent='ПРАВЕ ФОТО · МАКЕТ «ФОТО — ТЕКСТ — ФОТО»';
+  const {box:secondThumb,show:showSecond}=cmsThumb(draft.capsuleSecondImage==='__removed__'?'':draft.capsuleSecondImage||'',frame.contentDocument.baseURI,'Праве фото капсул');
+  const secondInput=document.createElement('input');secondInput.placeholder='URL правого фото';secondInput.value=draft.capsuleSecondImage&&draft.capsuleSecondImage!=='__removed__'?draft.capsuleSecondImage:'';
+  const secondFile=document.createElement('input');secondFile.type='file';secondFile.accept='image/png,image/jpeg,image/webp';
+  const setSecond=url=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),capsuleSecondImage:url};saveExisting(all);showSecond(url==='__removed__'?'':url);secondInput.value=url==='__removed__'?'':url;applyBlockDesign(target.el,all[target.id].design||{});scheduleLivePreview()};
+  secondInput.onchange=()=>{const url=secondInput.value.trim();if(url&&!/^(https?:\\/\\/|\\/|\\.\\/|\\.\\.\\/)/i.test(url)){alert('Вкажіть коректну адресу фото');return}setSecond(url)};
+  secondFile.onchange=async()=>{const f=secondFile.files?.[0];if(!f)return;secondFile.disabled=true;try{setSecond(await uploadExistingCmsPhoto(f,target.id+'-capsule-right'))}catch(e){alert('Не вдалося завантажити праве фото: '+(e.message||e))}finally{secondFile.disabled=false;secondFile.value=''}};
+  const secondRemove=document.createElement('button');secondRemove.type='button';secondRemove.className='cms-photo-x';secondRemove.textContent='×';secondRemove.title='Видалити праве фото';secondRemove.onclick=()=>setSecond('__removed__');secondThumb.append(secondRemove);
+  secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);host.append(secondWrap);
+  const settings=document.createElement('div');settings.className='field cms-capsule-widths';
+  const heading=document.createElement('label');heading.textContent='ПРОПОРЦІЇ ТРЬОХ КОЛОНОК · ФОТО / ТЕКСТ / ФОТО';settings.append(heading);
+  const widths={...draft.design};
+  const addSlider=(key,title,min,max,defaultValue)=>{const label=document.createElement('label');label.textContent=title;const slider=document.createElement('input');slider.type='range';slider.min=min;slider.max=max;slider.step='1';slider.value=widths[key]??defaultValue;const out=document.createElement('output');out.textContent=slider.value+(key.includes('Width')?'%':'%');slider.oninput=()=>{widths[key]=Number(slider.value);if(key==='capsuleLeftWidth')widths.capsuleRightWidth=Math.min(Number(widths.capsuleRightWidth??38),80-widths[key]);if(key==='capsuleRightWidth')widths.capsuleLeftWidth=Math.min(Number(widths.capsuleLeftWidth??38),80-widths[key]);out.textContent=slider.value+'%';const all=readExisting();all[target.id]={...(all[target.id]||{}),design:{...(all[target.id]?.design||{}),...widths}};saveExisting(all);applyBlockDesign(target.el,all[target.id].design);scheduleLivePreview()};label.append(slider,out);settings.append(label)};
+  addSlider('capsuleLeftWidth','Ширина лівого фото',20,45,38);
+  addSlider('capsuleRightWidth','Ширина правого фото',20,45,38);
+  addSlider('capsuleRightX','Положення правого фото X',0,100,50);
+  addSlider('capsuleRightY','Положення правого фото Y',0,100,50);
+  host.append(settings);
  }
  cms91Tabs(host,{type:'editorial'});
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути зміни цього блоку';reset.onclick=()=>{const d=readExisting();delete d[target.id];saveExisting(d);frame.src=frame.src};host.append(reset);
