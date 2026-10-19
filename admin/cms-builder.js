@@ -688,6 +688,16 @@ const crop=document.createElement('details');crop.className='cms91-crop';crop.in
  if(photoFields.length>=3){photo.replaceChildren(section('МАКЕТ І КОМПОЗИЦІЯ',photoFields.slice(0,2)),section('ТОЧНЕ КАДРУВАННЯ',photoFields.slice(2)))}
  details.append(content,photo);host.append(details);return details;
 }
+function cmsSharedTextFields(host,model){
+ if(model.title!==null){
+  host.append(field('ЗАГОЛОВОК','input',model.title||'',value=>model.onTitle(value)));
+ }
+ if(model.body!==null){
+  const wrap=document.createElement('div');wrap.className='field';
+  const label=document.createElement('label');label.textContent='ОПИС';wrap.append(label);
+  wrap.append(makeRichEditor(model.body||'',value=>model.onBody(value)));host.append(wrap);
+ }
+}
 let cms91ActiveTab='content';
 function cms91Tabs(holder,b){
  const content=document.createElement('div'),design=document.createElement('div'),motion=document.createElement('div');
@@ -706,7 +716,7 @@ function cms91Tabs(holder,b){
  for(const [key,panel] of Object.entries(panels)){const h=document.createElement('div');h.className='cms98-panel-heading';h.textContent=headings[key];panel.prepend(h)}
  holder.prepend(bar);holder.append(content,design,motion);switchTo(cms91ActiveTab);
 }
-function renderEditor(){if(pageId==='shared')return;if(selectedExisting)return;const holder=$('editorFields');holder.replaceChildren();const b=current();if(!b){holder.textContent='Додайте або оберіть блок';return}holder.append(field('ЗАГОЛОВОК','input',b.title,v=>{b.title=v;persist();renderList();renderPreview()}));const body=document.createElement('div');body.className='field';body.append(makeRichEditor(b.body||'',v=>{b.body=v;persist();renderPreview()}));holder.append(body);
+function renderEditor(){if(pageId==='shared')return;if(selectedExisting)return;const holder=$('editorFields');holder.replaceChildren();const b=current();if(!b){holder.textContent='Додайте або оберіть блок';return}cmsSharedTextFields(holder,{title:b.title,body:b.body,onTitle:v=>{b.title=v;persist();renderList();renderPreview()},onBody:v=>{b.body=v;persist();renderPreview()}});
 if(b.type!=='text'){
  const media=document.createElement('div');media.className='cms93-media';
  const caption=document.createElement('h4');caption.textContent='ФОТОГРАФІЇ БЛОКУ';media.append(caption);
@@ -996,16 +1006,23 @@ function renderExistingEditor(){
  const data=readExisting(),draft=data[target.id]||{};
  if(pageId==='catalog'&&target.el.querySelector('#productGrid,.product-grid,[id*=productGrid]')){const note=document.createElement('p');note.className='muted';note.textContent='СІТКА ТОВАРІВ · У перегляді показані справжні картки товарів із каталогу. Назва, ціна, фото й опис кожного товару змінюються в розділі «Товари», а не в конструкторі сторінок.';host.append(note)}
  if(!cmsRenderMappedEditor(host,target,draft)){
-  if(['product','article','account','checkout'].includes(pageId)){const note=document.createElement('p');note.className='muted';note.textContent='Системний вміст і записи товарів/статей редагуються у відповідних розділах адмінки. Тут можна додавати тестові дизайнерські блоки без зміни функціональності.';host.append(note)}else{
- for(const [key,label,selector] of [['title','ЗАГОЛОВОК','h1,h2,h3'],['description','ОПИС','p']]){
-  const el=target.el.querySelector(selector);if(!el)continue;
-  const wrap=document.createElement('div');wrap.className='field';const lab=document.createElement('label');lab.textContent=label;const input=document.createElement('textarea');input.rows=key==='title'?2:4;input.value=draft[key]??el.textContent.trim();
-  input.oninput=()=>{const latest=readExisting();latest[target.id]={...(latest[target.id]||{}),[key]:input.value};saveExisting(latest);el.textContent=input.value;$('status').textContent='Чернетка наявного блоку збережена локально · не опубліковано'};
-  wrap.append(lab);
-  if(key==='description'){const rte=makeRichEditor(draft[key]??el.innerHTML,v=>{const latest=readExisting();latest[target.id]={...(latest[target.id]||{}),[key]:v};saveExisting(latest);el.innerHTML=clean(v);$('status').textContent='Чернетку опису збережено локально · не опубліковано'});wrap.append(rte)}else wrap.append(input);
-  host.append(wrap);
- }
- }
+  if(['product','article','account','checkout'].includes(pageId)){
+   const note=document.createElement('p');note.className='muted';note.textContent='Системний вміст і записи товарів/статей редагуються у відповідних розділах адмінки.';host.append(note);
+  }else{
+   const headingEl=target.el.querySelector('h1,h2,h3');
+   const descriptionEl=target.el.querySelector('p');
+   const update=(key,value,el,rich=false)=>{
+    const latest=readExisting();latest[target.id]={...(latest[target.id]||{}),[key]:value};saveExisting(latest);
+    if(el){if(rich)el.innerHTML=clean(value);else el.textContent=value}
+    $('status').textContent='Чернетку наявного блоку збережено локально · не опубліковано';
+   };
+   cmsSharedTextFields(host,{
+    title:headingEl?(draft.title??headingEl.textContent.trim()):null,
+    body:descriptionEl?(draft.description??descriptionEl.innerHTML):null,
+    onTitle:value=>update('title',value,headingEl),
+    onBody:value=>update('description',value,descriptionEl,true)
+   });
+  }
  }
  const photos=(pageId==='home'&&target.el.matches('.hero'))?[]:cmsSectionPhotos(target.el);
  if(photos.length&&(!cmsFieldsFor(target.el).some(f=>f.type==='image'))&&!(pageId==='home'&&target.el.matches('.homepage-capsules'))&&!(pageId==='home'&&target.el.matches('.hero'))){
