@@ -2078,6 +2078,7 @@ function vhOpenPanel(type){
  }
  if(type==='cart'){
    vhRenderCart();
+   vhRefreshBundleOffers(vhGetCart()).then(vhRenderCart).catch(console.warn);
    $('vhCartBackdrop').classList.remove('hidden');
    $('vhCartDrawer').classList.add('open');
    document.body.classList.add('vh-modal-open')
@@ -2118,10 +2119,46 @@ async function vhRunGlobalSearch(raw){
    </a>`).join(''):'<div class="vh-search-hint">Нічого не знайдено.</div>'
 }
 
+function vhBundlePricing(cart,offers=[]){
+ const amounts=new Map(cart.map(x=>[String(x.id),Number(x.price||0)]));
+ const discounts=[];
+ const groups=new Map();
+ for(const item of cart){
+  const offer=item.capsule_offer;
+  if(!offer?.id||!offer.look_id||!Array.isArray(offer.product_ids))continue;
+  const key=String(offer.id)+':'+String(offer.look_id);
+  if(!groups.has(key))groups.set(key,offer);
+ }
+ for(const offer of groups.values()){
+  const record=offers.find(c=>String(c.id)===String(offer.id));
+  if(!record||record.is_active===false||Number(record.price)<=0)continue;
+  const ids=[...new Set(offer.product_ids.map(String))];
+  if(!ids.length||!ids.every(id=>amounts.has(id)))continue;
+  if(!ids.every(id=>cart.find(x=>String(x.id)===id)?.capsule_offer?.id===offer.id))continue;
+  const original=ids.reduce((n,id)=>n+amounts.get(id),0);
+  const price=Number(record.price);
+  if(price>=original)continue;
+  let remaining=Math.round(price*100);
+  ids.forEach((id,i)=>{
+   const value=i===ids.length-1?remaining:Math.round(price*100*Number(cart.find(x=>String(x.id)===id).price||0)/original);
+   amounts.set(id,value/100);remaining-=value;
+  });
+  discounts.push({title:record.title||offer.title||'Капсула',saving:original-price});
+ }
+ return {amounts,discounts,total:[...amounts.values()].reduce((a,b)=>a+b,0)};
+}
+let vhBundleOffers=[];
+async function vhRefreshBundleOffers(cart){
+ const ids=[...new Set(cart.map(x=>x.capsule_offer?.id).filter(Boolean))];
+ if(!ids.length){vhBundleOffers=[];return}
+ const {data,error}=await publicSb.from('capsules').select('id,title,price,is_active').in('id',ids);
+ if(error)throw error;
+ vhBundleOffers=data||[];
+}
 function vhRenderCart(){
  const cart=vhGetCart();
  const box=$('vhCartItems');
- const total=cart.reduce((s,x)=>s+Number(x.price||0),0);
+ const total=vhBundlePricing(cart,vhBundleOffers).total;
  $('vhCartTotal').textContent=vhMoney(total);
  $('vhCheckoutLink').classList.toggle('disabled',!cart.length);
  box.innerHTML=cart.length?cart.map((item,i)=>`
@@ -2189,7 +2226,8 @@ async function initCheckoutPage(){
      <strong>${vhMoney(x.price)}</strong>
      <button type="button" onclick="checkoutRemoveItem(${i})">×</button>
    </div>`).join(''):'<div class="checkout-empty">Кошик порожній. <a href="catalog.html">Повернутися до каталогу →</a></div>';
- $('checkoutTotal').textContent=vhMoney(cart.reduce((s,x)=>s+Number(x.price||0),0))
+ try{await vhRefreshBundleOffers(cart)}catch(e){console.warn(e)}
+ $('checkoutTotal').textContent=vhMoney(vhBundlePricing(cart,vhBundleOffers).total)
 }
 window.initCheckoutPage=initCheckoutPage;
 window.checkoutRemoveItem=function(i){
@@ -2210,14 +2248,42 @@ async function submitCartCheckout(){
  if(contact.includes('@'))telegram=contact;
  else phone=contact;
 
+ const ids=[...new Set(cart.map(x=>x.id))];
+ const {data:products,error:productError}=await sb.from('products').select('id,name,price,status,stock').in('id',ids);
+ if(productError)return toast('Помилка перевірки товарів: '+productError.message);
+ const live=new Map((products||[]).map(p=>[String(p.id),p]));
+ if(ids.some(id=>!live.has(String(id))||live.get(String(id)).status==='sold'||(live.get(String(id)).stock!=null&&Number(live.get(String(id)).stock)<=0)))return toast('Деякі товари недоступні. Оновіть кошик.');
+ const checked=cart.map(x=>({...x,name:live.get(String(x.id)).name,price:Number(live.get(String(x.id)).price||0)}));
+ try{
+  await vhRefreshBundleOffers(checked);
+  const offers=[...new Set(checked.map(x=>x.capsule_offer?.id).filter(Boolean))];
+  if(offers.length){
+   const {data:links,error:linkError}=await sb.from('capsule_look_products').select('capsule_id,look_id,product_id').in('capsule_id',offers);
+   if(linkError)throw linkError;
+   for(const item of checked){
+    const offer=item.capsule_offer;
+    if(!offer)continue;
+    const actual=(links||[]).filter(x=>String(x.capsule_id)===String(offer.id)&&String(x.look_id)===String(offer.look_id)).map(x=>String(x.product_id)).sort();
+    const expected=[...new Set(offer.product_ids.map(String))].sort();
+    if(JSON.stringify(actual)!==JSON.stringify(expected))delete item.capsule_offer;
+   }
+  }
+ }catch(e){return toast('Не вдалося перевірити комплектну ціну: '+e.message)}
+ const pricing=vhBundlePricing(checked,vhBundleOffers);
+ const shown=vhBundlePricing(cart,vhBundleOffers);
+ if(Math.abs(pricing.total-shown.total)>0.009){
+  vhSetCart(checked);
+  await initCheckoutPage();
+  return toast('Сума замовлення змінилася. Перевірте її та підтвердьте повторно.');
+ }
  const {data:{user}}=await sb.auth.getUser();
- const rows=cart.map(item=>({
+ const rows=checked.map(item=>({
    product_id:item.id,
    product_name:item.name,
    customer_name:name,
    phone,telegram,instagram,email,
-   comment:comment||`Замовлення з кошика (${cart.length} реч.)`,
-   amount:item.price,
+   comment:[comment,`Замовлення з кошика (${cart.length} реч.)`,...pricing.discounts.map(d=>'Комплектна ціна '+d.title+'; економія '+vhMoney(d.saving))].filter(Boolean).join(' | '),
+   amount:pricing.amounts.get(String(item.id)),
    status:'new',
    user_id:user?.id||null
  }));
