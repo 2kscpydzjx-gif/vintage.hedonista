@@ -292,6 +292,16 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  .vh-cms-editorial-layout>.vh-cms-editorial-second-photo{grid-column:3!important;grid-row:1!important;min-width:0!important;background-size:cover!important;background-position:center!important}
  @media(max-width:760px){.vh-cms-editorial-layout{grid-template-columns:1fr!important}.vh-cms-editorial-layout>.editorial-media{grid-column:1!important;grid-row:1!important}.vh-cms-editorial-layout>.editorial-copy{grid-column:1!important;grid-row:2!important}.vh-cms-editorial-layout>.vh-cms-editorial-second-photo{grid-column:1!important;grid-row:3!important;min-height:260px!important}}
  `;
+ // Inline important overrides the storefront's more-specific legacy editorial rules.
+ if(active){
+  el.style.setProperty('display','grid','important');
+  media.style.setProperty('display',preset==='text-only'?'none':'block','important');
+  copy.style.setProperty('display','flex','important');
+  media.style.setProperty('order','0','important');
+  copy.style.setProperty('order','0','important');
+ }else{
+  for(const node of [el,media,copy])for(const key of ['display','grid-template-columns','grid-column','grid-row','order'])node.style.removeProperty(key);
+ }
  el.classList.toggle('vh-cms-editorial-layout',active);
  el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');
  el.classList.toggle('vh-cms-editorial-text-only',active&&preset==='text-only');
@@ -303,6 +313,11 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?'1fr 1.35fr 1fr':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
+ el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?'1fr 1.35fr 1fr':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
+ media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
+ media.style.setProperty('grid-row','1','important');
+ copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
+ copy.style.setProperty('grid-row',layout==='stacked'?'2':'1','important');
  if(framed){
   if(!second){second=doc.createElement('div');second.className='vh-cms-editorial-second-photo';second.setAttribute('aria-label','Друге фото макета (попередній перегляд)');el.append(second)}
   // Until a separate second-image field is connected, mirror the existing image in preview.
