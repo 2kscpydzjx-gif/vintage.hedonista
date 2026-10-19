@@ -122,6 +122,10 @@ function compactContentPanel(editor){
     remove.onclick=()=>{const original=thumb.querySelector('.cms-photo-x');if(original)original.click()};
     actions.append(upload,remove);field.append(actions);
    }
+   // Only offer removal when the CMS field has a real remove handler.
+   const removeButton=actions.querySelector('.vh-media-action:last-child');
+   const nativeRemove=thumb.querySelector('.cms-photo-x');
+   if(removeButton){removeButton.disabled=!nativeRemove;removeButton.title=nativeRemove?'Видалити фото':'Видалення для цього поля недоступне'}
    thumb.querySelectorAll('.cms-photo-x').forEach(el=>el.classList.add('vh-hidden-original-remove'));
    field.querySelectorAll('.studio-replace-image').forEach(el=>el.hidden=true);
   }
