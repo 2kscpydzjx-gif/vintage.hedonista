@@ -1271,8 +1271,16 @@ function watchPreviewDom(doc){
   // Ignore our own inserted CMS blocks; react to changes from the site's scripts.
   const external=mutations.some(m=>{
    const target=m.target?.nodeType===1?m.target:m.target?.parentElement;
-   return target && !target.closest?.('.vh-cms-injected-unit') &&
-    !target.closest?.('#vh-cms-injected');
+   if(!target || target.closest?.('.vh-cms-injected-unit, #vh-cms-injected'))return false;
+   // Reordering CMS-owned nodes must not trigger another repaint.
+   const changed=[...m.addedNodes,...m.removedNodes];
+   if(!changed.length)return false;
+   const cmsOwned=node=>{
+    if(node.nodeType===8)return node.textContent==='CMS preview order';
+    if(node.nodeType!==1)return false;
+    return node.matches?.('.vh-cms-injected-unit, #vh-cms-injected, #vh-cms-injected-style, #vh-cms-scroll-axis')||false;
+   };
+   return changed.some(node=>!cmsOwned(node));
   });
   if(!external)return;
   // Product sliders and delayed site scripts can mutate continuously; avoid repeated full repaints.
