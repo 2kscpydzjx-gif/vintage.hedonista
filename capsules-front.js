@@ -80,12 +80,19 @@ async function detail(){
   const displayPrice=completeMainLook?Math.min(sum,Number(capsule.price)):sum;
   $('.capsule-buy-meta b').textContent=money(displayPrice);
   const label=$('.capsule-buy-meta span');if(label)label.textContent=`ОБРАЗ ${String(lookIdx+1).padStart(2,'0')}`;
-  const add=$('#capsuleAddAll');if(add)add.textContent=`ДОДАТИ ОБРАЗ У КОШИК`;
+  const add=$('#capsuleAddAll');
+  const unavailable=products.some(p=>p.status!=='published'||(p.stock!=null&&Number(p.stock)<=0));
+  const sold=products.some(p=>p.status==='sold');
+  if(add){add.disabled=unavailable||!products.length;add.textContent=unavailable?(sold?'ОБРАЗ ПРОДАНО':'ОБРАЗ ЗАРЕЗЕРВОВАНО'):'ДОДАТИ ОБРАЗ У КОШИК';}
+  let marker=$('#vhCapsuleAvailability');
+  if(!marker){marker=document.createElement('div');marker.id='vhCapsuleAvailability';marker.style.cssText='margin:10px 0;font-size:12px;letter-spacing:.12em;font-weight:700';main.insertAdjacentElement('afterend',marker)}
+  marker.textContent=unavailable?(sold?'ПРОДАНО':'ЗАРЕЗЕРВОВАНО'):'';
+  marker.style.display=unavailable?'block':'none';
  }
  function renderLooks(){
   track.innerHTML='';looks.forEach((l,i)=>{const b=document.createElement('button');b.className=`capsule-look-option${i===lookIdx?' active':''}`;b.type='button';b.innerHTML=`<div class="capsule-look-thumb ${l.image_url?'has-image':''}">${l.image_url?`<img src="${esc(l.image_url)}" alt="${esc(l.title||'')}" loading="lazy">`:ph(`ФОТО ОБРАЗУ ${String(i+1).padStart(2,'0')}`,'1:1')}</div><span>${esc(l.title||`ОБРАЗ ${String(i+1).padStart(2,'0')}`)}</span>`;b.onclick=()=>vh47ChooseLook(i);track.appendChild(b)});$('#capsulePrev').disabled=looks.length<2;$('#capsuleNext').disabled=looks.length<2
  }
- function renderProducts(){const products=activeProducts();grid.innerHTML='';products.forEach(p=>{const a=document.createElement('article');a.className='capsule-product-card';a.innerHTML=`<a class="capsule-product-photo ${p.cover_image?'has-image':''}" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">${p.cover_image?`<img src="${esc(p.cover_image)}" alt="${esc(p.name)}" loading="lazy">`:'ФОТО ТОВАРУ'}</a><h3>${esc(p.name)}</h3>${p.brand?`<div class="capsule-product-brand">${esc(p.brand)}</div>`:''}<p>${money(p.price)}</p><a class="capsule-product-open" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">ПЕРЕГЛЯНУТИ →</a>`;grid.appendChild(a)});if(!products.length)grid.innerHTML='<div class="capsule-front-empty">До цього образу ще не додано товарів.</div>'}
+ function renderProducts(){const products=activeProducts();grid.innerHTML='';products.forEach(p=>{const a=document.createElement('article');a.className='capsule-product-card';a.innerHTML=`${p.status==='sold'?'<div style="font-size:11px;letter-spacing:.1em;margin-bottom:6px">ПРОДАНО</div>':p.status==='reserved'?'<div style="font-size:11px;letter-spacing:.1em;margin-bottom:6px">ЗАРЕЗЕРВОВАНО</div>':''}<a class="capsule-product-photo ${p.cover_image?'has-image':''}" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">${p.cover_image?`<img src="${esc(p.cover_image)}" alt="${esc(p.name)}" loading="lazy">`:'ФОТО ТОВАРУ'}</a><h3>${esc(p.name)}</h3>${p.brand?`<div class="capsule-product-brand">${esc(p.brand)}</div>`:''}<p>${money(p.price)}</p><a class="capsule-product-open" href="seo-product/${encodeURIComponent(p.slug||'')}/index.html">ПЕРЕГЛЯНУТИ →</a>`;grid.appendChild(a)});if(!products.length)grid.innerHTML='<div class="capsule-front-empty">До цього образу ще не додано товарів.</div>'}
  function addActiveLookToCart(){
   const products=activeProducts();
   if(!products.length)return showError('У цьому образі немає товарів');
@@ -93,7 +100,7 @@ async function detail(){
    const cart=typeof vhGetCart==='function'?vhGetCart():JSON.parse(localStorage.getItem('vh_cart_v1')||'[]');
    let added=0,already=0,unavailable=0;
    for(const p of products){
-    if(p.status==='sold'||(p.stock!=null&&Number(p.stock)<=0)){unavailable++;continue}
+    if(p.status!=='published'||(p.stock!=null&&Number(p.stock)<=0)){unavailable++;continue}
     if(cart.some(x=>String(x.id)===String(p.id))){already++;continue}
     cart.push({id:p.id,name:p.name,slug:p.slug,brand:p.brand||'',price:Number(p.price||0),cover_image:p.cover_image||''});
     added++;
