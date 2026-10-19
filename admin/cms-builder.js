@@ -284,7 +284,7 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  style.textContent=`
  .vh-cms-editorial-layout{height:500px!important;min-height:0!important;max-height:500px!important;overflow:hidden!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
  .vh-cms-editorial-layout>.editorial-media{height:100%!important;min-height:0!important;overflow:hidden!important;display:block!important;grid-column:var(--vh-cms-media-column,1)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:auto!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:16px clamp(12px,1.5vw,24px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
  .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
  .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-media{display:none!important}
@@ -670,7 +670,7 @@ function cms91Tabs(holder,b){
  const content=document.createElement('div'),design=document.createElement('div'),motion=document.createElement('div');
  for(const [el,key] of [[content,'content'],[design,'design'],[motion,'animation']]){el.className='cms91-tab-panel';el.dataset.cms91Tab=key}
  for(const el of [...holder.children]){
-  if(el.classList.contains('cms93-type-control')){design.append(el);continue}
+  if(el.classList.contains('cms93-type-control')||el.classList.contains('cms-capsule-widths')){design.append(el);continue}
   if(el.classList.contains('cms91-design')){for(const part of [...el.children])design.append(part);el.remove();continue}
   const t=el.textContent||'';
   if(/АНІМАЦІЯ|ТРИВАЛІСТЬ/.test(t)&&!el.classList.contains('cms-mapped-field'))motion.append(el);
@@ -1076,9 +1076,8 @@ function renderExistingEditor(){
   addSlider('capsuleRightWidth','Ширина правого фото',20,45,38);
   addSlider('capsuleRightX','Положення правого фото X',0,100,50);
   addSlider('capsuleRightY','Положення правого фото Y',0,100,50);
-  extraFields.append(settings);
-  host.append(extraFields);
-  const syncExtraFields=()=>{extraFields.hidden=readExisting()?.[target.id]?.design?.photoPreset!=='framed'};
+  host.append(extraFields,settings);
+  const syncExtraFields=()=>{const active=readExisting()?.[target.id]?.design?.photoPreset==='framed';extraFields.hidden=!active;settings.hidden=!active};
   syncExtraFields();
   host.addEventListener('click',event=>{if(event.target.closest('.cms91-preset'))queueMicrotask(syncExtraFields)});
 
