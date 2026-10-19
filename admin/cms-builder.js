@@ -1063,7 +1063,7 @@ function renderExistingEditor(){
   const secondInput=document.createElement('input');secondInput.placeholder='URL правого фото';secondInput.value=draft.capsuleSecondImage&&draft.capsuleSecondImage!=='__removed__'?draft.capsuleSecondImage:'';
   const secondFile=document.createElement('input');secondFile.type='file';secondFile.accept='image/png,image/jpeg,image/webp';
   const setSecond=url=>{const all=readExisting();all[target.id]={...(all[target.id]||{}),capsuleSecondImage:url};saveExisting(all);showSecond(url==='__removed__'?'':url);secondInput.value=url==='__removed__'?'':url;applyBlockDesign(target.el,all[target.id].design||{});scheduleLivePreview()};
-  secondInput.onchange=()=>{const url=secondInput.value.trim();if(url&&!/^(https?:\\/\\/|\\/|\\.\\/|\\.\\.\\/)/i.test(url)){alert('Вкажіть коректну адресу фото');return}setSecond(url)};
+  secondInput.onchange=()=>{const url=secondInput.value.trim();if(url&&!url.startsWith('https:')&&!url.startsWith('http:')&&!url.startsWith('/')&&!url.startsWith('.')){alert('Вкажіть коректну адресу фото');return}setSecond(url)};
   secondFile.onchange=async()=>{const f=secondFile.files?.[0];if(!f)return;secondFile.disabled=true;try{setSecond(await uploadExistingCmsPhoto(f,target.id+'-capsule-right'))}catch(e){alert('Не вдалося завантажити праве фото: '+(e.message||e))}finally{secondFile.disabled=false;secondFile.value=''}};
   const secondRemove=document.createElement('button');secondRemove.type='button';secondRemove.className='cms-photo-x';secondRemove.textContent='×';secondRemove.title='Видалити праве фото';secondRemove.onclick=()=>setSecond('__removed__');secondThumb.append(secondRemove);
   secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);host.append(secondWrap);
