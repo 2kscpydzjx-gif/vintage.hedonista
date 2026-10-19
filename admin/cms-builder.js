@@ -360,6 +360,15 @@ function applyBlockDesign(el,d){if(!el||!d)return;
  }
  if(d.backgroundMode){el.style.setProperty('background-color',d.backgroundMode==='transparent'?'transparent':'#0d0c09','important')}
  if(d.textTone){el.style.setProperty('color',({light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'})[d.textTone]||'#f2e5d5','important')}
+ // Apply identical typography rules to existing page sections and new CMS cards.
+ const bounded=(value,min,max)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Number(value))):null;
+ const headingSize=bounded(d.headingSize,16,96),bodySize=bounded(d.bodySize,12,32),tracking=bounded(d.letterSpacing,-1,5);
+ const textRoot=el.querySelector('.copy,.editorial-copy,.vh-lab-copy,.hero-copy')||el;
+ if(d.align&&['left','center','right'].includes(d.align))textRoot.style.setProperty('text-align',d.align,'important');
+ for(const heading of textRoot.querySelectorAll('h1,h2,h3,h4'))if(headingSize!==null)heading.style.setProperty('font-size',headingSize+'px','important');
+ for(const copy of textRoot.querySelectorAll('p,.vh-rte-content'))if(bodySize!==null)copy.style.setProperty('font-size',bodySize+'px','important');
+ if(tracking!==null)for(const textEl of textRoot.querySelectorAll('h1,h2,h3,h4,p'))textEl.style.setProperty('letter-spacing',tracking+'px','important');
+
  if(el.matches('.homepage-capsules')){
   if(d.backgroundMode==='transparent'){el.style.setProperty('background-image','none','important')}
   const copy=el.querySelector(':scope > .editorial-copy');
@@ -501,6 +510,19 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
  const presetSelect=[...content.querySelectorAll('select')].find(el=>[...el.options].some(o=>o.value==='compact'));
  if(presetSelect){const prev=presetSelect.onchange;presetSelect.onchange=()=>{const n={compact:12,normal:28,wide:64}[presetSelect.value];d.spacing=presetSelect.value;d.marginTop=n;d.marginBottom=n;topMargin.value=n;bottomMargin.value=n;topMargin.dispatchEvent(new Event('input'));bottomMargin.dispatchEvent(new Event('input'));}};
  select(content,'align','ВИРІВНЮВАННЯ ТЕКСТУ',[['left','Ліворуч'],['center','По центру'],['right','Праворуч']],d.align||'left');
+ // Shared typography controls for native sections and newly created blocks.
+ const typography=document.createElement('div');typography.className='cms91-field';
+ const typographyLabel=document.createElement('label');typographyLabel.textContent='ТИПОГРАФІКА · РОЗМІР ТА ІНТЕРВАЛ';
+ typography.append(typographyLabel);
+ for(const [key,name,min,max,defaultValue,unit] of [['headingSize','Заголовок',16,96,40,'px'],['bodySize','Основний текст',12,32,16,'px'],['letterSpacing','Інтервал між літерами',-1,5,0,'px']]){
+  const row=document.createElement('label');row.className='vh-design-dimension';
+  const title=document.createElement('span');title.textContent=name;
+  const input=document.createElement('input');input.type='range';input.min=min;input.max=max;input.step=key==='letterSpacing'?0.25:1;input.value=d[key]??defaultValue;
+  const output=document.createElement('output');output.textContent=input.value+unit;
+  input.oninput=()=>{d[key]=Number(input.value);output.textContent=input.value+unit;commit()};
+  row.append(title,input,output);typography.append(row);
+ }
+ content.append(typography);
  select(content,'mobileOrder','ПОРЯДОК НА ТЕЛЕФОНІ',[['photo-first','Спочатку фото, потім текст'],['text-first','Спочатку текст, потім фото']],d.mobileOrder||'photo-first');
 
  const photo=document.createElement('div');photo.className='cms91-panel';photo.dataset.tab='design';
