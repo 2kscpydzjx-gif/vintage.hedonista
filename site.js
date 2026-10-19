@@ -1910,7 +1910,9 @@ async function initDeliveryPage(){
  if($('deliveryTitle'))$('deliveryTitle').innerHTML=String(s.delivery_page_title||'ДОСТАВКА\nІ ОПЛАТА').replace(/\\n/g,'\n').replace(/\n/g,'<br>');
  setServiceText('deliveryIntro',s.delivery_page_intro,'Прості умови, щоб покупка вінтажної речі була зрозумілою від замовлення до отримання.');
  setServiceText('deliveryShippingTitle',s.delivery_shipping_title,'ДОСТАВКА');
- setServiceText('deliveryShippingText',s.delivery_shipping_text||s.shipping_text,'Доставка по Україні. Деталі та спосіб відправлення узгоджуємо під час підтвердження замовлення.');
+ const legacyDeliveryShipping='Доставка по Україні. Деталі та спосіб відправлення узгоджуємо під час підтвердження замовлення.';
+ const currentDeliveryShipping=s.delivery_shipping_text||s.shipping_text;
+ setServiceText('deliveryShippingText',currentDeliveryShipping&&currentDeliveryShipping.trim()!==legacyDeliveryShipping?currentDeliveryShipping:'Доставляємо по Україні Новою поштою та Укрпоштою. Доставку оплачує покупець за тарифами обраного перевізника. Деталі узгоджуємо під час підтвердження замовлення.');
  setServiceText('deliveryPaymentTitle',s.delivery_payment_title,'ОПЛАТА');
  setServiceText('deliveryPaymentText',s.delivery_payment_text||s.payment_text,'Умови оплати підтверджуємо перед відправленням, щоб усі деталі були зрозумілі заздалегідь.');
  setServiceText('deliveryExtraTitle',s.delivery_extra_title,'ПЕРЕД ВІДПРАВЛЕННЯМ');
