@@ -111,7 +111,7 @@ function compactContentPanel(editor){
   for(const field of panel.querySelectorAll('.photo-field,.cms-gradient-image-field,.cms-mapped-field,.cms-capsule-field,.field:has(input[type="file"][accept*="image"]),.cms-field:has(input[type="file"][accept*="image"])')){
    const file=field.querySelector('input[type="file"]');
    const thumb=field.querySelector('.cms-thumb-box');
-   if(!file||!thumb)continue;
+   if(!file)continue;
    field.classList.add('vh-compact-media');
    field.querySelectorAll(':scope > label,:scope > h3,:scope > small').forEach(el=>el.hidden=true);
    let actions=field.querySelector(':scope > .vh-media-actions');
@@ -124,9 +124,9 @@ function compactContentPanel(editor){
    }
    // Only offer removal when the CMS field has a real remove handler.
    const removeButton=actions.querySelector('.vh-media-action:last-child');
-   const nativeRemove=thumb.querySelector('.cms-photo-x');
+   const nativeRemove=thumb?.querySelector('.cms-photo-x');
    if(removeButton){removeButton.disabled=!nativeRemove;removeButton.title=nativeRemove?'Видалити фото':'Видалення для цього поля недоступне'}
-   thumb.querySelectorAll('.cms-photo-x').forEach(el=>el.classList.add('vh-hidden-original-remove'));
+   thumb?.querySelectorAll('.cms-photo-x').forEach(el=>el.classList.add('vh-hidden-original-remove'));
    field.querySelectorAll('.studio-replace-image').forEach(el=>el.hidden=true);
   }
   const media=[...panel.children].filter(el=>el.classList.contains('vh-compact-media'));
