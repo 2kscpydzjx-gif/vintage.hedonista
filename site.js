@@ -2122,6 +2122,7 @@ async function vhRunGlobalSearch(raw){
 function vhBundlePricing(cart,offers=[]){
  const amounts=new Map(cart.map(x=>[String(x.id),Number(x.price||0)]));
  const discounts=[];
+ const discountedIds=new Set();
  const groups=new Map();
  for(const item of cart){
   const offer=item.capsule_offer;
@@ -2134,7 +2135,9 @@ function vhBundlePricing(cart,offers=[]){
   if(!record||record.is_active===false||Number(record.price)<=0)continue;
   const ids=[...new Set(offer.product_ids.map(String))];
   if(!ids.length||!ids.every(id=>amounts.has(id)))continue;
-  if(!ids.every(id=>cart.find(x=>String(x.id)===id)?.capsule_offer?.id===offer.id))continue;
+  if(!ids.every(id=>{const linked=cart.find(x=>String(x.id)===id)?.capsule_offer;return String(linked?.id)===String(offer.id)&&String(linked?.look_id)===String(offer.look_id)}))continue;
+  // A product can belong to only one discounted bundle in this cart.
+  if(ids.some(id=>discountedIds.has(id)))continue;
   const original=ids.reduce((n,id)=>n+amounts.get(id),0);
   const price=Number(record.price);
   if(price>=original)continue;
@@ -2143,6 +2146,7 @@ function vhBundlePricing(cart,offers=[]){
    const value=i===ids.length-1?remaining:Math.round(price*100*Number(cart.find(x=>String(x.id)===id).price||0)/original);
    amounts.set(id,value/100);remaining-=value;
   });
+  ids.forEach(id=>discountedIds.add(id));
   discounts.push({title:record.title||offer.title||'Капсула',saving:original-price});
  }
  return {amounts,discounts,total:[...amounts.values()].reduce((a,b)=>a+b,0)};
@@ -2273,6 +2277,13 @@ async function submitCartCheckout(){
  }catch(e){return toast('Не вдалося перевірити комплектну ціну: '+e.message)}
  const pricing=vhBundlePricing(checked,vhBundleOffers);
  const shown=vhBundlePricing(cart,vhBundleOffers);
+ const previousTotal=Number($('checkoutTotal')?.textContent?.replace(/[^\d,]/g,'').replace(',','.')||0);
+ // An offer may have become invalid since checkout was displayed.
+ if(Math.abs(pricing.total-previousTotal)>0.009){
+  vhSetCart(checked);
+  await initCheckoutPage();
+  return toast('Сума замовлення змінилася. Перевірте її та підтвердьте повторно.');
+ }
  // Price changes and offer eligibility require renewed buyer confirmation.
  if(Math.abs(pricing.total-shown.total)>0.009){
   vhSetCart(checked);
