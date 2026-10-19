@@ -366,7 +366,7 @@ function applyBlockDesign(el,d){if(!el||!d)return;
  const textRoot=el.querySelector('.copy,.editorial-copy,.vh-lab-copy,.hero-copy')||el;
  if(d.align&&['left','center','right'].includes(d.align))textRoot.style.setProperty('text-align',d.align,'important');
  for(const heading of textRoot.querySelectorAll('h1,h2,h3,h4'))if(headingSize!==null)heading.style.setProperty('font-size',headingSize+'px','important');
- for(const copy of textRoot.querySelectorAll('p,.vh-rte-content'))if(bodySize!==null)copy.style.setProperty('font-size',bodySize+'px','important');
+ for(const copy of textRoot.querySelectorAll('p,.vh-rte-content,.vh-lab-copy > div,.copy > div'))if(bodySize!==null)copy.style.setProperty('font-size',bodySize+'px','important');
  if(tracking!==null)for(const textEl of textRoot.querySelectorAll('h1,h2,h3,h4,p'))textEl.style.setProperty('letter-spacing',tracking+'px','important');
 
  if(el.matches('.homepage-capsules')){
