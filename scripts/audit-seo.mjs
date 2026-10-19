@@ -5,6 +5,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
 let errors=[];let checked=0;
+const templateMetadata=[];
 for(const address of urls){
  const u=new URL(address);
  if(!/^\/vintage\.hedonista\/seo-(product|article|category|subcategory)\//.test(u.pathname))continue;
@@ -50,6 +51,12 @@ for(const address of urls){
   }
  }
  if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
+  // Informational report only: editorial text can legitimately be customized in Supabase.
+  const seoTitle=html.match(/<title>([^<]*)<\/title>/i)?.[1]||'';
+  const seoDescription=html.match(/<meta name="description" content="([^"]*)"/i)?.[1]||'';
+  const genericTitle=seoTitle.endsWith(' — вінтажний одяг | Vintage Hedonista');
+  const genericDescription=seoDescription.startsWith('Переглядайте ')&&seoDescription.includes(' у Vintage Hedonista:');
+  if(genericTitle||genericDescription)templateMetadata.push({path,title:genericTitle,description:genericDescription});
   if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
   if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
  }
@@ -67,3 +74,7 @@ for(const page of staticPages){
 }
 if(errors.length){console.error(errors.slice(0,30).join('\n'));process.exitCode=1}
 else console.log(`SEO audit OK: ${checked} snapshot HTML files, canonical and H1 verified (${urls.length} sitemap URLs).`);
+
+// Report weak fallback metadata without failing the deployment.
+console.log('Category/subcategory generic SEO metadata: '+templateMetadata.length+' page(s).');
+for(const item of templateMetadata)console.log('  '+item.path+' [generic '+[item.title?'title':null,item.description?'description':null].filter(Boolean).join('+')+']');
