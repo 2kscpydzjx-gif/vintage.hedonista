@@ -1535,6 +1535,21 @@ async function loadOrders(){
    .order('created_at',{ascending:false});
  if(error){console.error(error);toast(error.message);return}
  orders=data||[];
+ // Capsule order lines are loaded separately: ordinary product orders remain unchanged.
+ const capsuleOrders=orders.filter(o=>o.capsule_id);
+ if(capsuleOrders.length){
+   const ids=capsuleOrders.map(o=>o.id);
+   const [{data:lines,error:lineError},{data:covers,error:coverError}]=await Promise.all([
+     sb.from('order_items').select('order_id,product_id,product_name,unit_price').in('order_id',ids),
+     sb.from('capsules').select('id,cover_image').in('id',[...new Set(capsuleOrders.map(o=>o.capsule_id))])
+   ]);
+   if(lineError)console.warn('Capsule order items:',lineError);
+   if(coverError)console.warn('Capsule covers:',coverError);
+   for(const o of capsuleOrders){
+     o.capsule_items=(lines||[]).filter(x=>x.order_id===o.id);
+     o.capsule_cover=(covers||[]).find(x=>x.id===o.capsule_id)?.cover_image||'';
+   }
+ }
  const start=new Date();start.setHours(0,0,0,0);
  const today=orders.filter(o=>new Date(o.created_at)>=start);
  $('statOrders').textContent=today.length;
@@ -1553,7 +1568,7 @@ function renderRecentOrders(){
  const list=orders.slice(0,5);
  $('recentOrders').innerHTML=list.length?list.map(o=>`
  <div class="dashboard-order-row" onclick="openOrderModal('${o.id}')" style="cursor:pointer">
-   ${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="">`:`<div class="no-img"></div>`}
+   ${(o.capsule_cover||o.products?.cover_image)?`<img src="${o.capsule_cover||o.products.cover_image}" alt="">`:`<div class="no-img"></div>`}
    <div><b>#${o.order_number||''} · ${o.customer_name||'Клієнт'}</b><small>${o.product_name||o.products?.name||'Товар'} · ${statusName(o.status)}</small></div>
    <div class="right">${money(o.amount)}<small>${fmtDate(o.created_at)}</small></div>
  </div>`).join(''):'<div class="empty">Замовлень ще немає</div>'
@@ -1563,10 +1578,11 @@ function renderOrders(list){
  $('ordersTable').innerHTML=list.length?`<div class="order-list-v135">${list.map(o=>`
    <article class="order-card-v135" onclick="openOrderModal('${o.id}')">
      <div class="order-product-v135">
-       ${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="">`:`<span class="order-no-photo-v135">◇</span>`}
+       ${(o.capsule_cover||o.products?.cover_image)?`<img src="${o.capsule_cover||o.products.cover_image}" alt="">`:`<span class="order-no-photo-v135">◇</span>`}
        <div>
          <small>#${o.order_number||String(o.id).slice(0,6)} · ${fmtDate(o.created_at)}</small>
          <b>${o.product_name||o.products?.name||'Товар'}</b>
+         ${o.capsule_id?`<small>Комплект · ${o.capsule_items?.length||0} речей</small>`:''}
          <em>${money(o.amount)}</em>
        </div>
      </div>
@@ -1732,10 +1748,14 @@ function fillOrderModal(o){
  if(!o)return;
  $('orderModal').dataset.id=o.id;
  $('orderModalTitle').textContent=`Замовлення #${o.order_number||''}`;
- $('orderModalProduct').innerHTML=o.products?.cover_image?`<img src="${o.products.cover_image}" alt="">`:`<div class="no-img">Немає фото</div>`;
+ $('orderModalProduct').innerHTML=(o.capsule_cover||o.products?.cover_image)?`<img src="${o.capsule_cover||o.products.cover_image}" alt="">`:`<div class="no-img">Немає фото</div>`;
  $('odCustomer').textContent=o.customer_name||'—';
  $('odContact').textContent=o.phone||'—';
  $('odProduct').textContent=o.product_name||o.products?.name||'—';
+ const capsuleLines=o.capsule_id?(o.capsule_items||[]):[];
+ let linesHost=$('vhCapsuleOrderLines');
+ if(!linesHost){linesHost=document.createElement('div');linesHost.id='vhCapsuleOrderLines';$('odProduct').insertAdjacentElement('afterend',linesHost)}
+ linesHost.innerHTML=o.capsule_id?`<div style="margin-top:12px;font-size:13px;line-height:1.8"><b>Склад капсули (${capsuleLines.length}):</b>${capsuleLines.map((x,i)=>`<div>${i+1}. ${escapeHtml(String(x.product_name||''))} — ${money(x.unit_price)}</div>`).join('')}<small>Ціна замовлення з урахуванням знижки: ${money(o.amount)}</small></div>`:'';
  $('odAmount').textContent=money(o.amount);
  $('odDate').textContent=fmtDateTime(o.created_at);
  $('odStatus').textContent=statusName(o.status);
@@ -3461,7 +3481,7 @@ async function openCustomerProfile(id){
  const name=[c.first_name,c.last_name].filter(Boolean).join(' ')||c.full_name||'Без імені';
  const orderRows=(orders||[]).length?(orders||[]).map(o=>`
    <div class="customer-profile-order-v130">
-     <div class="customer-profile-order-img-v130">${o.products?.cover_image?`<img src="${o.products.cover_image}" alt="">`:'<span></span>'}</div>
+     <div class="customer-profile-order-img-v130">${(o.capsule_cover||o.products?.cover_image)?`<img src="${o.capsule_cover||o.products.cover_image}" alt="">`:'<span></span>'}</div>
      <div>
        <small>${fmtDate(o.created_at)}</small>
        <b>${o.product_name||o.products?.name||'Товар'}</b>
