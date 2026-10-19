@@ -277,7 +277,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
- const active=preset!=='original'&&preset!=='gradient-hero';
+ const active=preset==='framed';
  const doc=el.ownerDocument;
  let style=doc.getElementById('vh-cms-editorial-layout-css');
  if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
@@ -326,7 +326,7 @@ function cmsApplyEditorialPreset(el,d,media,copy){
   const target=sectionTargets.find(t=>t.el===el);
   const secondUrl=target?readExisting()?.[target.id]?.capsuleSecondImage:'';
   second.style.backgroundImage=secondUrl&&secondUrl!=='__removed__'?'url('+JSON.stringify(secondUrl)+')':'none';
-  second.style.aspectRatio='1 / 1';second.style.height='auto';second.style.minHeight='0';
+  second.style.aspectRatio='auto';second.style.height='100%';second.style.minHeight='0';
   second.style.backgroundSize='cover';
   second.style.backgroundPosition=(Number(d.capsuleRightX)||50)+'% '+(Number(d.capsuleRightY)||50)+'%';
   second.style.transform='none';
@@ -1057,6 +1057,7 @@ function renderExistingEditor(){
   file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-capsule');update(url);$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
   const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>update('__removed__');
   capsuleThumbBox.append(remove);wrap.append(label,capsuleThumbBox,input,file);host.append(wrap);
+  const extraFields=document.createElement('div');extraFields.className='cms-capsule-framed-fields';
   const secondWrap=document.createElement('div');secondWrap.className='field cms-capsule-field';
   const secondLabel=document.createElement('label');secondLabel.textContent='ПРАВЕ ФОТО · МАКЕТ «ФОТО — ТЕКСТ — ФОТО»';
   const {box:secondThumb,show:showSecond}=cmsThumb(draft.capsuleSecondImage==='__removed__'?'':draft.capsuleSecondImage||'',frame.contentDocument.baseURI,'Праве фото капсул');
@@ -1066,7 +1067,7 @@ function renderExistingEditor(){
   secondInput.onchange=()=>{const url=secondInput.value.trim();if(url&&!url.startsWith('https:')&&!url.startsWith('http:')&&!url.startsWith('/')&&!url.startsWith('.')){alert('Вкажіть коректну адресу фото');return}setSecond(url)};
   secondFile.onchange=async()=>{const f=secondFile.files?.[0];if(!f)return;secondFile.disabled=true;try{setSecond(await uploadExistingCmsPhoto(f,target.id+'-capsule-right'))}catch(e){alert('Не вдалося завантажити праве фото: '+(e.message||e))}finally{secondFile.disabled=false;secondFile.value=''}};
   const secondRemove=document.createElement('button');secondRemove.type='button';secondRemove.className='cms-photo-x';secondRemove.textContent='×';secondRemove.title='Видалити праве фото';secondRemove.onclick=()=>setSecond('__removed__');secondThumb.append(secondRemove);
-  secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);host.append(secondWrap);
+  secondWrap.append(secondLabel,secondThumb,secondInput,secondFile);extraFields.append(secondWrap);
   const settings=document.createElement('div');settings.className='field cms-capsule-widths';
   const heading=document.createElement('label');heading.textContent='ПРОПОРЦІЇ ТРЬОХ КОЛОНОК · ФОТО / ТЕКСТ / ФОТО';settings.append(heading);
   const widths={...draft.design};
@@ -1075,7 +1076,12 @@ function renderExistingEditor(){
   addSlider('capsuleRightWidth','Ширина правого фото',20,45,38);
   addSlider('capsuleRightX','Положення правого фото X',0,100,50);
   addSlider('capsuleRightY','Положення правого фото Y',0,100,50);
-  host.append(settings);
+  extraFields.append(settings);
+  host.append(extraFields);
+  const syncExtraFields=()=>{extraFields.hidden=readExisting()?.[target.id]?.design?.photoPreset!=='framed'};
+  syncExtraFields();
+  host.addEventListener('click',event=>{if(event.target.closest('.cms91-preset'))queueMicrotask(syncExtraFields)});
+
  }
  cms91Tabs(host,{type:'editorial'});
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути зміни цього блоку';reset.onclick=()=>{const d=readExisting();delete d[target.id];saveExisting(d);frame.src=frame.src};host.append(reset);

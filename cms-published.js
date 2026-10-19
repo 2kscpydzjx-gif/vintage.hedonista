@@ -147,7 +147,7 @@ if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fi
   el.style.removeProperty('flex-direction');
   const media=el.querySelector('#homeCapsulesMedia'),copy=el.querySelector('.editorial-copy');
   media?.style.removeProperty('order');copy?.style.removeProperty('order');
-  const preset=design.photoPreset||'original';const active=preset!=='original'&&preset!=='gradient-hero';
+  const preset=design.photoPreset||'original';const active=preset==='framed';
   let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
   if(preset==='framed'&&active){
    if(!second){second=document.createElement('div');second.className='vh-cms-editorial-second-photo';el.append(second)}
@@ -155,7 +155,7 @@ if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fi
    second.style.setProperty('background-image',url&&url!=='__removed__'?'url('+JSON.stringify(url)+')':'none','important');
    second.style.setProperty('background-size','cover','important');
    second.style.setProperty('background-position',(Number(design.capsuleRightX??50))+'% '+(Number(design.capsuleRightY??50))+'%','important');
-   second.style.setProperty('aspect-ratio','1 / 1','important');
+   second.style.setProperty('aspect-ratio','auto','important');
    second.style.setProperty('grid-column','3','important');second.style.setProperty('grid-row','1','important');
   }else second?.remove();
   if(active&&media&&copy){
