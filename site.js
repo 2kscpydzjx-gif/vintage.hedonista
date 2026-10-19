@@ -2375,8 +2375,8 @@ document.addEventListener('click',e=>{
 
     const type=navigationType();
 
-    // Browser refresh on Home: always show.
-    if(type==='reload')return true;
+    // Intro plays once per tab session, including after reloads.
+    if(type==='reload')return !sessionHasSeenIntro();
 
     // Browser Back/Forward cache navigation: don't replay.
     if(type==='back_forward')return false;
