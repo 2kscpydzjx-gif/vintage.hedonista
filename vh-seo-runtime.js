@@ -14,14 +14,14 @@ function productStructuredData(product,images=[]){
  const url=product.slug?new URL('seo-product/'+encodeURIComponent(product.slug)+'/index.html',origin).href:location.href;
  const photos=[...new Set(images.filter(x=>typeof x==='string'&&/^https?:\/\//i.test(x)))].slice(0,12);
  const rawPrice=Number(product.price);
- const available=product.status==='published';
+ const availability={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[product.status]||'OutOfStock';
  const schema={'@context':'https://schema.org','@type':'Product',
   name:cleanText(product.name),url,
   ...(photos.length?{image:photos}:{}),
   ...(product.brand?{brand:{'@type':'Brand',name:cleanText(product.brand)}}:{}),
   ...(product.short_description||product.description?{description:cleanText(product.short_description||product.description).slice(0,1200)}:{}),
   ...(product.sku?{sku:String(product.sku)}:{}),
-  ...(Number.isFinite(rawPrice)&&rawPrice>=0?{offers:{'@type':'Offer',url,priceCurrency:'UAH',price:rawPrice,availability:available?'https://schema.org/InStock':'https://schema.org/OutOfStock',itemCondition:'https://schema.org/UsedCondition'}}:{})
+  ...(Number.isFinite(rawPrice)&&rawPrice>=0?{offers:{'@type':'Offer',url,priceCurrency:'UAH',price:rawPrice,availability:'https://schema.org/'+availability,itemCondition:'https://schema.org/UsedCondition'}}:{})
  };
  // Static SEO snapshots already contain Product JSON-LD. Update that same
  // element after loading live inventory instead of creating a duplicate Product.
