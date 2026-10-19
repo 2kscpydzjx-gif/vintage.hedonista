@@ -175,7 +175,7 @@ if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fi
    copy.style.setProperty('height','100%','important');copy.style.setProperty('min-height','0','important');copy.style.setProperty('box-sizing','border-box','important');copy.style.setProperty('padding','24px clamp(16px,2vw,36px)','important');copy.style.setProperty('overflow','hidden','important');
    if(second){second.style.setProperty('height','100%','important');second.style.setProperty('min-height','0','important')}
    el.style.setProperty('display','grid','important');
-   el.style.setProperty('grid-template-columns',stacked||textOnly?'1fr':framed?left+'% '+(100-left-right)+'% '+right+'%':preset==='wide'?'65% 35%':width+'% '+(100-width)+'%','important');
+   el.style.setProperty('grid-template-columns',stacked||textOnly?'1fr':framed?columns.css:preset==='wide'?'65% 35%':width+'% '+(100-width)+'%','important');
    media.style.setProperty('display',textOnly?'none':'block','important');copy.style.setProperty('display','flex','important');copy.style.setProperty('flex-direction','column','important');copy.style.setProperty('justify-content','center','important');
    media.style.setProperty('grid-column',design.layout==='photo-right'&&!framed?'2':'1','important');media.style.setProperty('grid-row','1','important');
    copy.style.setProperty('grid-column',stacked||textOnly?'1':framed?'2':design.layout==='photo-right'?'1':'2','important');copy.style.setProperty('grid-row',stacked?'2':'1','important');
