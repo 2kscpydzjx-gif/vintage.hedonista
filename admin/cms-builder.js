@@ -702,6 +702,20 @@ function cmsPhotoUrlField(value,onSave,placeholder){
  };
  return input;
 }
+function cmsPhotoUploadField(onUpload,accept){
+ const input=document.createElement('input');input.type='file';
+ input.accept=accept||'image/jpeg,image/png,image/webp';
+ input.onchange=async()=>{
+  const file=input.files?.[0];if(!file)return;
+  input.disabled=true;
+  try{await onUpload(file)}catch(error){
+   const message='Помилка завантаження фото: '+(error?.message||error);
+   const status=document.getElementById('status');if(status)status.textContent=message;
+   alert(message);
+  }finally{input.disabled=false;input.value=''}
+ };
+ return input;
+}
 function cmsSharedTextFields(host,model){
  if(model.title!==null){
   host.append(field('ЗАГОЛОВОК','input',model.title||'',value=>model.onTitle(value)));
@@ -744,9 +758,9 @@ if(b.type!=='text'){
   const preview=document.createElement('div');preview.className='cms93-media-thumb';
   if(url){const img=document.createElement('img');img.src=url;img.alt=descriptions[i][0];preview.append(img)}else preview.textContent='Фото не вибрано';
   const actions=document.createElement('div');actions.className='cms93-media-actions';
-  const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp,image/avif';input.hidden=true;
+  const input=cmsPhotoUploadField(file=>uploadCmsImage(file,b,btn,i),'image/jpeg,image/png,image/webp,image/avif');input.hidden=true;
   const btn=document.createElement('button');btn.type='button';btn.textContent=url?'Замінити фото':'Завантажити фото';btn.onclick=()=>input.click();
-  input.onchange=async()=>{const f=input.files?.[0];if(!f)return;try{await uploadCmsImage(f,b,btn,i)}catch(e){$('status').textContent='Помилка завантаження фото: '+e.message}finally{input.value=''}};
+  
   const del=document.createElement('button');del.type='button';del.className='cms93-remove';del.textContent='× Прибрати';del.disabled=!url;del.onclick=()=>{if(i===0)b.image='';else{b.images={...(b.images||{})};delete b.images[i]}persist();renderEditor();renderPreview()};
   const urlField=cmsPhotoUrlField(url,v=>{if(i===0)b.image=v;else{b.images={...(b.images||{}),[i]:v}}persist();renderEditor();renderPreview()},'Або вставити URL фотографії');
   actions.append(btn,del,input,urlField);row.append(preview,actions);wrap.append(h,hint,row);media.append(wrap);
@@ -1055,8 +1069,7 @@ function renderExistingEditor(){
     $('status').textContent='Фото змінено у локальній чернетці · сайт не опубліковано';
    };
    
-   const file=document.createElement('input');file.type='file';file.accept='image/png,image/jpeg,image/webp,image/gif';
-   file.onchange=async()=>{const f=file.files?.[0];if(!f)return;file.disabled=true;try{const url=await uploadExistingCmsPhoto(f,target.id+'-'+key);update(url);input.value=url;$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'}catch(e){alert('Помилка завантаження фото: '+(e.message||e))}finally{file.disabled=false;file.value=''}};
+   const file=cmsPhotoUploadField(async f=>{const url=await uploadExistingCmsPhoto(f,target.id+'-'+key);update(url);input.value=url;$('status').textContent='Фото завантажено в Supabase Storage. Збережіть чернетку.'},'image/png,image/jpeg,image/webp,image/gif');
    const note=document.createElement('small');note.textContent='Зміни збережуться після натискання «Зберегти чернетку»';
    const remove=document.createElement('button');remove.type='button';remove.className='cms-photo-x';remove.textContent='×';remove.title='Видалити фото';remove.setAttribute('aria-label','Видалити фото');remove.onclick=()=>{
  const all=readExisting();all[target.id]={...(all[target.id]||{}),images:{...(all[target.id]?.images||{}),[key]:'__removed__'}};saveExisting(all);
