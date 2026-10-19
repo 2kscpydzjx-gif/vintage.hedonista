@@ -8,6 +8,13 @@ const safeHtml=html=>{const t=document.createElement('template');t.innerHTML=Str
 const selectors={catalog:['.catalog-heading .kicker','.catalog-heading .page-title','.catalog-intro-label','.catalog-intro'],capsules:['.capsule-hero-copy .capsule-kicker','.capsule-hero-copy h1','.capsule-hero-copy h2','.capsule-hero-copy p','.capsule-hero-photo','.capsule-intro-grid h2','.capsule-intro-grid p']};
 function fields(section){const f=[...section.querySelectorAll('[id]')].filter(el=>page==='about'?/^about(?:Hero|Philosophy|Editorial|P[1-4]|Manifest|Origin|Final)/.test(el.id):page==='delivery'?/^delivery(?:Kicker|Title|Intro|Shipping|Payment|Extra|Process|Step[1-3]|Cta)/.test(el.id):page==='contacts'?/^contacts(?:Kicker|Title|Intro|List|Instagram|Telegram|Email|Phone|Help|Topics|Topic[1-3])/.test(el.id):page==='journal'?/^journal(?:PageTitle|PageSubtitle|NewTitle|GuideTitle|GuideSubtitle|OtherTitle|CtaTitle|CtaText|CtaLink)$/.test(el.id):false).map(el=>({el,id:el.id,type:el.id.endsWith('Image')||/^aboutEditorial[123]$/.test(el.id)?'image':el.tagName==='A'?'link':'text'}));for(const sel of selectors[page]||[]){[...section.querySelectorAll(sel)].forEach((el,i)=>f.push({el,id:'static:'+sel+':'+i,type:el.matches('.capsule-hero-photo')?'image':el.tagName==='A'?'link':'text'}))}return f}
 function sections(){const main=document.querySelector('main')||document.body;let c=(page==='home'?[...document.body.children].filter(e=>e.tagName==='SECTION'):page==='about'?[...main.children].filter(e=>e.tagName==='SECTION'):[...main.children]).filter(e=>!['SCRIPT','STYLE','HEADER','FOOTER'].includes(e.tagName)&&(page==='home'||page==='about'||e.getBoundingClientRect().height>50));if(c.length<2){const ss=[...main.querySelectorAll('section')].filter(e=>e.getBoundingClientRect().height>50);const top=ss.filter(e=>!ss.some(p=>p!==e&&p.contains(e)));if(top.length>1)c=top;else{const cs=[...main.querySelectorAll('article,section,[class*="section"],[class*="hero"],[class*="content"],[class*="editorial"]')].filter(e=>e.getBoundingClientRect().height>90);const top2=cs.filter(e=>!cs.some(p=>p!==e&&p.contains(e)));if(top2.length>1)c=top2}}return c.slice(0,35)}
+// Shared three-column ratio contract; matches the CMS editor's design schema.
+function cmsThreeColumnWidths(design){
+ const clamp=(value,fallback)=>Math.max(20,Math.min(45,Number.isFinite(Number(value))?Number(value):fallback));
+ const left=clamp(design?.capsuleLeftWidth,38);
+ const right=Math.min(clamp(design?.capsuleRightWidth,38),80-left);
+ return {left,right,center:100-left-right,css:left+'% '+(100-left-right)+'% '+right+'%'};
+}
 function cmsApplyExistingLayout(el,d,mediaValue){
  if(!el||!d)return;
  const preset=d.photoPreset||'left',enabled=preset==='gradient-hero';
@@ -160,8 +167,8 @@ if(e.design&&typeof e.design==='object'){const design=e.design;if(!e.mapped||!fi
   }else second?.remove();
   if(active&&media&&copy){
    const framed=preset==='framed',stacked=design.layout==='stacked',textOnly=preset==='text-only';
-   const left=Math.max(20,Math.min(45,Number(design.capsuleLeftWidth)||38));
-   const right=Math.max(20,Math.min(45,Number(design.capsuleRightWidth)||38));
+   const columns=cmsThreeColumnWidths(design);
+   const left=columns.left,right=columns.right;
    const width=Math.max(25,Math.min(75,Number(design.photoWidth)||50));
    el.style.setProperty('height','500px','important');el.style.setProperty('min-height','0','important');el.style.setProperty('max-height','500px','important');el.style.setProperty('overflow','hidden','important');
    media.style.setProperty('height','100%','important');media.style.setProperty('min-height','0','important');
