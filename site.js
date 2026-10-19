@@ -2227,7 +2227,9 @@ async function initCheckoutPage(){
      <button type="button" onclick="checkoutRemoveItem(${i})">×</button>
    </div>`).join(''):'<div class="checkout-empty">Кошик порожній. <a href="catalog.html">Повернутися до каталогу →</a></div>';
  try{await vhRefreshBundleOffers(cart)}catch(e){console.warn(e)}
- $('checkoutTotal').textContent=vhMoney(vhBundlePricing(cart,vhBundleOffers).total)
+ const checkoutPricing=vhBundlePricing(cart,vhBundleOffers);
+ $('checkoutTotal').textContent=vhMoney(checkoutPricing.total);
+ if(checkoutPricing.discounts.length)$('checkoutItems').insertAdjacentHTML('beforeend',checkoutPricing.discounts.map(d=>'<div class="checkout-discount">Комплектна ціна: '+d.title+' · економія '+vhMoney(d.saving)+'</div>').join(''))
 }
 window.initCheckoutPage=initCheckoutPage;
 window.checkoutRemoveItem=function(i){
@@ -2271,6 +2273,7 @@ async function submitCartCheckout(){
  }catch(e){return toast('Не вдалося перевірити комплектну ціну: '+e.message)}
  const pricing=vhBundlePricing(checked,vhBundleOffers);
  const shown=vhBundlePricing(cart,vhBundleOffers);
+ // Price changes and offer eligibility require renewed buyer confirmation.
  if(Math.abs(pricing.total-shown.total)>0.009){
   vhSetCart(checked);
   await initCheckoutPage();
