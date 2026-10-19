@@ -97,7 +97,7 @@ async function detail(){
    if(added){
     const capsule=capsules[idx];
     const completeIds=[...new Set(products.map(p=>String(p.id)))];
-    if(completeIds.length===products.length&&unavailable===0&&Number(capsule.price)>0){
+    if(lookIdx===0&&completeIds.length===products.length&&unavailable===0&&Number(capsule.price)>0){
      for(const item of cart){
       if(completeIds.includes(String(item.id))){
        item.capsule_offer={id:capsule.id,title:capsule.title||'Капсула',look_id:looks[lookIdx]?.id||null,product_ids:completeIds};
