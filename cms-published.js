@@ -155,7 +155,7 @@ if(!e.mapped||!fields(el).some(f=>f.type==='image'))cmsApplyExistingLayout(el,de
   el.style.removeProperty('flex-direction');
   const media=el.querySelector('#homeCapsulesMedia'),copy=el.querySelector('.editorial-copy');
   media?.style.removeProperty('order');copy?.style.removeProperty('order');
-  const preset=design.photoPreset||'original';const active=preset==='framed';
+  const preset=design.photoPreset||'original';const active=['framed','wide','text-only'].includes(preset)||design.layout==='stacked'||design.layout==='photo-right';
   let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
   if(preset==='framed'&&active){
    if(!second){second=document.createElement('div');second.className='vh-cms-editorial-second-photo';el.append(second)}
