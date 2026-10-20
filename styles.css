@@ -18062,3 +18062,20 @@ body.catalog-mobile-page .vh-catalog-seo::before{
     max-height:250px!important;overflow-y:auto!important;
   }
 }
+
+/* V276: collapsed state must win over V275 scroll container sizing */
+#brandFilters.vh-filter-scroll.collapsed,
+#sizeFilters.vh-filter-scroll.collapsed,
+#colorFilters.vh-filter-scroll.collapsed{
+  display:none!important;
+  max-height:0!important;
+  overflow:hidden!important;
+}
+.filter-section .vh-brand-search-wrap.hidden{display:none!important;}
+@media(max-width:768px){
+  body.catalog-mobile-page #brandFilters.vh-filter-scroll.collapsed,
+  body.catalog-mobile-page #sizeFilters.vh-filter-scroll.collapsed,
+  body.catalog-mobile-page #colorFilters.vh-filter-scroll.collapsed{
+    display:none!important;
+  }
+}
