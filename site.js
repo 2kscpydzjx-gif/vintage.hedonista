@@ -335,66 +335,6 @@ const catalogState={
  sort:'new'
 };
 
-const VH_CATALOG_RETURN_KEY='vh_catalog_product_return_v279';
-function vhCatalogCaptureReturn(){
- try{
-  const snapshot={
-   path:location.pathname,query:location.search,
-   grid:catalogState.grid===4?4:3,
-   brands:[...catalogState.brands],sizes:[...catalogState.sizes],
-   seasons:[...catalogState.seasons],colors:[...catalogState.colors],
-   minPrice:catalogState.minPrice,maxPrice:catalogState.maxPrice,
-   availability:catalogState.availability,search:catalogState.query,
-   sort:catalogState.sort,visible:catalogVisibleCount,
-   category:catalogState.category,subcategory:catalogState.subcategory
-  };
-  sessionStorage.setItem(VH_CATALOG_RETURN_KEY,JSON.stringify(snapshot));
- }catch(e){console.warn('Catalog return state:',e)}
-}
-function vhCatalogReadReturn(){
- try{
-  const raw=sessionStorage.getItem(VH_CATALOG_RETURN_KEY);
-  if(!raw)return null;
-  sessionStorage.removeItem(VH_CATALOG_RETURN_KEY);
-  const snap=JSON.parse(raw);
-  const fromProduct=/\\/(?:seo-product\\/[^/]+(?:\\/index\\.html)?|product\\.html)/.test(document.referrer||'');
-  const back=performance.getEntriesByType('navigation')[0]?.type==='back_forward';
-  if(!fromProduct&&!back)return null;
-  if(snap.path!==location.pathname||snap.query!==location.search)return null;
-  return snap;
- }catch{return null}
-}
-function vhCatalogRestoreReturn(snap){
- if(!snap)return;
- catalogState.grid=snap.grid===4?4:3;
- $('catalogProducts')?.classList.toggle('catalog-grid-4',catalogState.grid===4);
- $('catalogView3')?.classList.toggle('active',catalogState.grid===3);
- $('catalogView4')?.classList.toggle('active',catalogState.grid===4);
- for(const key of ['brands','sizes','seasons','colors'])
-  catalogState[key]=new Set(Array.isArray(snap[key])?snap[key]:[]);
- catalogState.minPrice=snap.minPrice??null;
- catalogState.maxPrice=snap.maxPrice??null;
- catalogState.availability=snap.availability||'all';
- catalogState.query=snap.search||'';
- catalogState.sort=snap.sort||'new';
- catalogVisibleCount=Math.max(CATALOG_PAGE_SIZE,Number(snap.visible)||CATALOG_PAGE_SIZE);
- for(const [id,key] of [['brandFilters','brands'],['sizeFilters','sizes'],['seasonFilters','seasons'],['colorFilters','colors']]){
-  document.querySelectorAll('#'+id+' input[type="checkbox"]').forEach(input=>input.checked=catalogState[key].has(input.value));
- }
- document.querySelectorAll('#seasonFilters input:checked,#brandFilters input:checked,#sizeFilters input:checked,#colorFilters input:checked').forEach(input=>{
-  const section=input.closest('.filter-section');
-  const body=section?.querySelector('.filter-section-body');
-  if(body)body.classList.remove('collapsed');
-  section?.querySelector('.vh-brand-search-wrap')?.classList.remove('hidden');
-  const btn=section?.querySelector('[data-filter-toggle]');
-  if(btn){btn.setAttribute('aria-expanded','true');btn.lastElementChild.textContent='−'}
- });
- if($('priceMin'))$('priceMin').value=snap.minPrice??'';
- if($('priceMax'))$('priceMax').value=snap.maxPrice??'';
- if($('catalogSearch'))$('catalogSearch').value=catalogState.query;
- const sort=$('catalogSort');if(sort)sort.value=catalogState.sort;
- document.querySelectorAll('input[name="availability"]').forEach(input=>input.checked=input.value===catalogState.availability);
-}
 function normalizeFilterValue(value){
  return String(value||'').trim().toLocaleLowerCase('uk-UA')
 }
@@ -458,11 +398,9 @@ async function initCatalog(){
    updateCatalogUrl()
  }
 
- const returnSnapshot=vhCatalogReadReturn();
  await applySelectedCategorySEO();
  buildCatalogFilters();
  bindCatalogControls();
- vhCatalogRestoreReturn(returnSnapshot);
  applyCatalog(true)
  void renderCatalogEditorial();
 }
@@ -735,7 +673,7 @@ function bindCatalogControls(){
 
  const setCatalogGrid=(columns)=>{
    catalogState.grid=columns===4?4:3;
-   // Grid is intentionally ephemeral: reset on fresh catalog visits.
+   localStorage.setItem('vh_catalog_grid',String(catalogState.grid));
    $('catalogProducts').classList.toggle('catalog-grid-4',catalogState.grid===4);
    $('catalogView3').classList.toggle('active',catalogState.grid===3);
    $('catalogView4').classList.toggle('active',catalogState.grid===4);
@@ -743,13 +681,6 @@ function bindCatalogControls(){
  $('catalogView3').onclick=()=>setCatalogGrid(3);
  $('catalogView4').onclick=()=>setCatalogGrid(4);
  setCatalogGrid(catalogState.grid);
- // Capture only navigation to a product; any other route starts a fresh catalog visit.
- $('catalogProducts')?.addEventListener('click',e=>{
-  const link=e.target.closest('a[href]');
-  if(!link)return;
-  const url=new URL(link.href,location.href);
-  if(/\\/(?:seo-product\\/|product\\.html)/.test(url.pathname))vhCatalogCaptureReturn();
- });
 
  // V277: keep Categories / All products visible; other filter groups start closed.
  document.querySelectorAll('#catalogSidebar > .filter-section').forEach(section=>{
