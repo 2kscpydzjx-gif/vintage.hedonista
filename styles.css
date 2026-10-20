@@ -18083,3 +18083,16 @@ body.catalog-mobile-page .vh-catalog-seo::before{
 /* V277: collapsed filter sections must truly disappear, including Categories */
 #catalogSidebar .filter-section-body.collapsed{display:none!important;max-height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important;}
 #catalogSidebar .vh-brand-search-wrap.hidden{display:none!important;}
+
+/* V278: show the filters heading above Categories on desktop, retain mobile drawer header */
+@media(min-width:769px){
+  .catalog-sidebar > .catalog-filter-head{
+    display:flex!important;align-items:center;justify-content:space-between;
+    padding:0 0 13px;margin:0 0 16px;
+    border-bottom:1px solid rgba(33,24,15,.16);
+    font-family:'Montserrat',sans-serif;
+    font-size:11px;font-weight:600;letter-spacing:1.2px;
+    color:#33271d;
+  }
+  .catalog-sidebar > .catalog-filter-head #catalogFilterClose{display:none!important;}
+}
