@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-// Isolated editor trial: real storefront preview, browser-local draft, no cloud writes.
+// Isolated editor trial: real storefront preview, browser-local draft, no cloud writes. Preview build trigger 2026-10-20.
 const sandboxMode=new URLSearchParams(location.search).get('sandbox')==='1';
 const cloud=window.supabase&&window.VH_CONFIG?window.supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}}):null;
 let cloudReady=false;
