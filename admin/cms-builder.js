@@ -307,7 +307,8 @@ function cmsApplyEditorialPreset(el,d,media,copy){
   for(const node of [el,media,copy])for(const key of ['display','grid-template-columns','grid-column','grid-row','order'])node.style.removeProperty(key);
  }
  el.classList.toggle('vh-cms-editorial-layout',active);
- el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');\n el.classList.toggle('vh-cms-editorial-text-top',active&&preset==='text-top');
+ el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');
+ el.classList.toggle('vh-cms-editorial-text-top',active&&preset==='text-top');
  el.classList.toggle('vh-cms-editorial-text-only',active&&preset==='text-only');
  let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
  if(!active||preset!=='framed'){second?.remove();second=null}
