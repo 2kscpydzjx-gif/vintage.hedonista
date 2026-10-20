@@ -1729,7 +1729,7 @@ async function deleteOrderV143(id){
  const o=orders.find(x=>x.id===id);
  if(!o)return;
  const label=o.order_number?'#'+o.order_number:'#'+String(id).slice(0,6);
- if(!confirm(`Видалити замовлення ${label}?\n\nТовар автоматично повернеться у статус «В наявності». Цю дію неможливо скасувати.`))return;
+ if(!confirm(`Видалити замовлення ${label}?\n\nПісля видалення перевірте статус товару: автоматичне повернення в наявність поки не підтверджене. Цю дію неможливо скасувати.`))return;
  const {error}=await sb.from('orders').delete().eq('id',id);
  if(error)return toast('Не вдалося видалити замовлення: '+error.message);
  orders=orders.filter(x=>x.id!==id);
@@ -1740,7 +1740,7 @@ async function deleteOrderV143(id){
  updateOrderKpisV135();
  $('statNewOrders').textContent=orders.filter(o=>o.status==='new').length;
  $('ordersBadge').textContent=orders.filter(o=>o.status==='new').length;
- toast('Замовлення видалено. Товар знову в наявності.');
+ toast('Замовлення видалено. Перевірте статуси товарів у каталозі.');
 }
 window.deleteOrderV143=deleteOrderV143;
 
