@@ -682,6 +682,18 @@ function bindCatalogControls(){
  $('catalogView4').onclick=()=>setCatalogGrid(4);
  setCatalogGrid(catalogState.grid);
 
+ // V277: keep Categories / All products visible; other filter groups start closed.
+ document.querySelectorAll('#catalogSidebar > .filter-section').forEach(section=>{
+   const btn=section.querySelector('[data-filter-toggle]');
+   const body=section.querySelector('.filter-section-body');
+   if(!btn||!body)return;
+   const isCategories=body.id==='categoryFilters';
+   body.classList.toggle('collapsed',!isCategories);
+   section.querySelector('.vh-brand-search-wrap')?.classList.toggle('hidden',!isCategories);
+   btn.setAttribute('aria-expanded',String(isCategories));
+   btn.lastElementChild.textContent=isCategories?'−':'+';
+ });
+
  document.querySelectorAll('[data-filter-toggle]').forEach(btn=>btn.onclick=()=>{
    const section=btn.closest('.filter-section');
    const body=section?.querySelector('.filter-section-body');
