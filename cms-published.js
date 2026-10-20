@@ -306,7 +306,7 @@ function renderAboutBlocks(data,original){
    card.querySelectorAll('.vh-cms-live-photo').forEach(photo=>photo.remove());
    card.style.display='block';
    copy.style.width='100%';
-  }else if(b.type!=='gallery'&&b.type!=='text'&&d.photoPreset!=='gradient-hero'){
+  }else if(b.type!=='gallery'&&b.type!=='text'&&d.photoPreset!=='gradient-hero'&&d.photoPreset!=='framed'&&d.photoPreset!=='wide'){
    const width=Math.max(25,Math.min(75,Number(d.photoWidth)||50));
    card.style.gridTemplateColumns=d.layout==='stacked'?'1fr':width+'% '+(100-width)+'%';
    if(d.layout==='photo-right'){const media=card.querySelector('.vh-cms-live-photo');if(media)media.style.order='2';copy.style.order='1'}
