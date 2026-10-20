@@ -281,7 +281,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
- const active=preset==='framed';
+ const active=['framed','wide','text-only'].includes(preset)||layout==='stacked'||layout==='photo-right';
  const doc=el.ownerDocument;
  let style=doc.getElementById('vh-cms-editorial-layout-css');
  if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
