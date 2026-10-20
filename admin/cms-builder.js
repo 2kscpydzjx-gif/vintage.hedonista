@@ -281,16 +281,16 @@ function cmsApplyExistingLayout(el,d,mediaValue){
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
- const active=['left','right','wide','stacked','text-top','text-only','framed'].includes(preset);
+ const active=preset==='framed';
  const doc=el.ownerDocument;
  let style=doc.getElementById('vh-cms-editorial-layout-css');
  if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
  style.textContent=`
- .vh-cms-editorial-layout{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
+ .vh-cms-editorial-layout{height:500px!important;min-height:0!important;max-height:500px!important;overflow:hidden!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
  .vh-cms-editorial-layout>.editorial-media{height:100%!important;min-height:0!important;overflow:hidden!important;display:block!important;grid-column:var(--vh-cms-media-column,1)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout>.editorial-copy{height:auto!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout.vh-cms-editorial-text-top>.editorial-media{grid-column:1!important;grid-row:2!important;height:clamp(180px,24vw,340px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-text-top>.editorial-copy{grid-column:1!important;grid-row:1!important;padding:clamp(18px,3vw,38px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
- .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{height:clamp(180px,24vw,340px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
+ .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-media{display:none!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-copy{grid-column:1!important}
  .vh-cms-editorial-layout>.vh-cms-editorial-second-photo{height:100%!important;min-height:0!important;grid-column:3!important;grid-row:1!important;min-width:0!important;background-size:cover!important;background-position:center!important}
@@ -308,7 +308,6 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  }
  el.classList.toggle('vh-cms-editorial-layout',active);
  el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');
- el.classList.toggle('vh-cms-editorial-text-top',active&&preset==='text-top');
  el.classList.toggle('vh-cms-editorial-text-only',active&&preset==='text-only');
  let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
  if(!active||preset!=='framed'){second?.remove();second=null}
@@ -318,14 +317,14 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  const left=framed?Math.max(20,Math.min(45,Number(d.capsuleLeftWidth)||38)):w;
  const right=framed?Math.max(20,Math.min(45,Number(d.capsuleRightWidth)||38)):100-w;
  const center=100-left-right;
- el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-top'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
  el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
- media.style.setProperty('grid-column',layout==='stacked'||preset==='text-top'?'1':layout==='photo-right'&&!framed?'2':'1','important');
- media.style.setProperty('grid-row',preset==='text-top'?'2':'1','important');
- copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-top'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
- copy.style.setProperty('grid-row',preset==='text-top'?'1':layout==='stacked'?'2':'1','important');
+ media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
+ media.style.setProperty('grid-row','1','important');
+ copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
+ copy.style.setProperty('grid-row',layout==='stacked'?'2':'1','important');
  if(framed){
   if(!second){second=doc.createElement('div');second.className='vh-cms-editorial-second-photo';second.setAttribute('aria-label','Друге фото макета (попередній перегляд)');el.append(second)}
   const target=sectionTargets.find(t=>t.el===el);
@@ -532,7 +531,7 @@ function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=n
   if(!isCapsules){const note=document.createElement('p');note.className='cms96-help';note.textContent='Готові шаблони: «Hero на всю ширину» (1920 × 900 px) та «Три фото» (1600 × 1200 + 900 × 900 + 900 × 900 px) вибираються у полі «ТИП МАКЕТУ» на вкладці «Контент». Підказки під кожним фото змінюються автоматично.';photo.append(note)}
  const title=document.createElement('div');title.className='cms91-caption';title.textContent='МАКЕТ БЛОКУ · виберіть готову композицію';photo.append(title);
  const grid=document.createElement('div');grid.className='cms91-layout-grid';
- const presets=[['left','Фото ліворуч','Фото · текст'],['right','Фото праворуч','Текст · фото'],['stacked','Фото зверху','Фото над текстом'],['text-top','Текст зверху · фото знизу','Компактний редакційний блок'],['text-only','Тільки текст','Без фотографії'],['wide','Акцент на фото','65 / 35'],['framed','Два фото','Фото · текст · фото']];
+ const presets=[['left','Фото ліворуч','Фото · текст'],['right','Фото праворуч','Текст · фото'],['stacked','Фото зверху','Фото над текстом'],['text-only','Тільки текст','Без фотографії'],['wide','Акцент на фото','65 / 35'],['framed','Два фото','Фото · текст · фото']];
  if(onBlockType){
    presets.push(['gradient-hero','Фото з градієнтом','1920 × 900 · на всю ширину'],['three-photos','Три фото','1600 × 1200 + 2 × 900 × 900']);
   }
@@ -1384,13 +1383,6 @@ if(livePage!==pageId){loadLivePage();return}let doc;try{doc=frame.contentDocumen
 .vh-cms-injected-unit .vh-lab-card.cms98-transparent-section>.vh-lab-copy{background:transparent!important;background-color:transparent!important;color:#211a15!important}.vh-cms-injected-unit .vh-lab-card.cms98-transparent-section>.vh-lab-copy *{color:#211a15!important}
 
 `;style.textContent+=`.vh-cms-injected-unit .vh-lab-card.cms98-transparent-section{background:#f2e9de!important;color:#211a15!important}.vh-cms-injected-unit .vh-lab-card.cms98-transparent-section>.vh-lab-copy{background:none!important;background-color:transparent!important;color:#211a15!important}.vh-cms-injected-unit .vh-lab-card.cms98-transparent-section>.vh-lab-copy *{color:#211a15!important}`;style.textContent+=`.vh-cms-injected-unit .vh-lab-card[data-type=banner]{position:relative!important;display:block!important;min-height:500px!important;isolation:isolate}.vh-cms-injected-unit .vh-lab-card[data-type=banner]>.vh-lab-photo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;opacity:1!important;background-size:cover!important}.vh-cms-injected-unit .vh-lab-card[data-type=banner]>.vh-lab-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,9,7,.92),rgba(15,11,9,.78) 26%,rgba(17,12,9,.48) 50%,transparent 100%)}.vh-cms-injected-unit .vh-lab-card[data-type=banner]>.vh-lab-copy{position:relative!important;z-index:1!important;max-width:min(650px,60%)!important;background:transparent!important;color:#f6ebdf!important;padding:70px clamp(28px,5vw,80px)!important}@media(max-width:700px){.vh-cms-injected-unit .vh-lab-card[data-type=banner]>.vh-lab-copy{max-width:100%!important;min-height:420px!important;justify-content:end!important}.vh-cms-injected-unit .vh-lab-card[data-type=banner]>.vh-lab-photo::after{background:linear-gradient(0deg,rgba(12,9,7,.92),rgba(12,9,7,.48) 55%,transparent)}}`;doc.head.append(style);const wrapper=doc.createElement('section');wrapper.id='vh-cms-injected';const label=doc.createElement('p');label.className='vh-lab-label';label.textContent='ТЕСТОВІ БЛОКИ · НЕ ОПУБЛІКОВАНО';wrapper.append(label);for(const b of blocks.filter(x=>x.visible)){const card=doc.createElement('article');card.className='vh-lab-card';card.dataset.type=b.type;card.dataset.mobileOrder=b.design?.mobileOrder||'photo-first';card.classList.toggle('cms98-transparent-section',b.design?.backgroundMode==='transparent');applyBlockDesign(card,b.design);const photo=(slot=0)=>{const e=doc.createElement('div');e.className='vh-lab-photo';const url=slot===0?b.image:b.images?.[slot];if(url&&(/^(https?:\/\/|data:image\/|\.\.?\/|\/)/.test(url)))e.style.backgroundImage='url('+JSON.stringify(url)+')';const crop=b.design?.['crop'+slot];if(crop){e.style.backgroundPosition=`${Math.max(0,Math.min(100,Number(crop.x)||0))}% ${Math.max(0,Math.min(100,Number(crop.y)||0))}%`;e.style.backgroundSize=(Math.max(100,Math.min(200,Number(crop.zoom)||100)))+'% auto'}return e};if(b.type==='gallery'){for(let i=0;i<3;i++)card.append(photo(i))}else if(b.type!=='text')card.append(photo());const copy=doc.createElement('div');copy.className='vh-lab-copy';const h=doc.createElement('h2');h.textContent=b.title;const body=doc.createElement('div');body.innerHTML=clean(b.body||'');copy.append(h,body);card.append(copy);if(b.type==='editorial'&&b.design?.photoPreset==='framed'){const second=photo(1);second.classList.add('cms92-second-photo');second.style.order='2';card.append(second)}applyBlockDesign(card,b.design);applyCmsSpacing(card,b.design);
- if(b.type==='editorial'&&b.design?.photoPreset==='text-top'){
-  const media=card.querySelector(':scope > .vh-lab-photo'),copyPanel=card.querySelector(':scope > .vh-lab-copy');
-  card.style.setProperty('display','grid','important');card.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
-  card.style.setProperty('height','auto','important');card.style.setProperty('min-height','0','important');
-  if(copyPanel){copyPanel.style.setProperty('grid-column','1','important');copyPanel.style.setProperty('grid-row','1','important');copyPanel.style.setProperty('order','0','important');copyPanel.style.setProperty('min-height','0','important');copyPanel.style.setProperty('padding','clamp(18px,3vw,38px)','important')}
-  if(media){media.style.setProperty('grid-column','1','important');media.style.setProperty('grid-row','2','important');media.style.setProperty('order','0','important');media.style.setProperty('height','clamp(180px,24vw,340px)','important');media.style.setProperty('min-height','0','important');media.style.setProperty('background-size',b.design?.photoFit==='contain'?'contain':'cover','important')}
- }
  // Final: copy transparency requires a site-colored backdrop, not a dark parent card.
  if(b.design?.backgroundMode==='transparent'||b.design?.surface==='transparent'){
   card.style.setProperty('background','#f2e9de','important');
