@@ -311,6 +311,13 @@ function renderAboutBlocks(data,original){
    card.style.gridTemplateColumns=d.layout==='stacked'?'1fr':width+'% '+(100-width)+'%';
    if(d.layout==='photo-right'){const media=card.querySelector('.vh-cms-live-photo');if(media)media.style.order='2';copy.style.order='1'}
   }
+  if(b.type==='editorial'&&d.photoPreset==='text-top'){
+   const media=card.querySelector(':scope > .vh-cms-live-photo');
+   card.style.setProperty('display','grid','important');card.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
+   card.style.setProperty('height','auto','important');card.style.setProperty('min-height','0','important');
+   copy.style.setProperty('grid-column','1','important');copy.style.setProperty('grid-row','1','important');copy.style.setProperty('order','0','important');copy.style.setProperty('min-height','0','important');copy.style.setProperty('padding','clamp(18px,3vw,38px)','important');
+   if(media){media.style.setProperty('grid-column','1','important');media.style.setProperty('grid-row','2','important');media.style.setProperty('order','0','important');media.style.setProperty('height','clamp(180px,24vw,340px)','important');media.style.setProperty('min-height','0','important')}
+  }
   section.append(card);const motion=['fade-up','fade-left','fade-right','zoom','fade','none'].includes(b.animation)?b.animation:'fade-up';section.dataset.motion=motion;section.style.setProperty('--vh-cms-duration',limit(b.duration,200,1500,650)+'ms');nodes.set(b.id,section);
  }
  // Animate once when published blocks enter the viewport.
