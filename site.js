@@ -367,6 +367,9 @@ function vhCatalogReadReturn(){
 function vhCatalogRestoreReturn(snap){
  if(!snap)return;
  catalogState.grid=snap.grid===4?4:3;
+ $('catalogProducts')?.classList.toggle('catalog-grid-4',catalogState.grid===4);
+ $('catalogView3')?.classList.toggle('active',catalogState.grid===3);
+ $('catalogView4')?.classList.toggle('active',catalogState.grid===4);
  for(const key of ['brands','sizes','seasons','colors'])
   catalogState[key]=new Set(Array.isArray(snap[key])?snap[key]:[]);
  catalogState.minPrice=snap.minPrice??null;
