@@ -382,10 +382,8 @@ function applyBlockDesign(el,d){if(!el||!d)return;
   }
   const capsuleBtn=el.querySelector('#homeCapsulesBtn');
   if(capsuleBtn){
-   const lightPanel=d.surface==='white'||d.surface==='cream'||d.textTone==='dark';
-   capsuleBtn.style.setProperty('background-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('border-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
+   // Match cms-published.js: use the storefront button theme in preview too.
+   for(const prop of ['background','background-color','border','border-color','color','border-radius','box-shadow'])capsuleBtn.style.removeProperty(prop);
   }
   const media=el.querySelector('#homeCapsulesMedia'),photo=media?.querySelector('img');
   if(media)for(const key of ['desktop','tablet','mobile']){
