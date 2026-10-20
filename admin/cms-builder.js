@@ -1225,8 +1225,9 @@ function cmsCustomButtonEditor(host,target,draft){
 function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){
  if(pageId==='home'&&t.el.matches('.homepage-capsules')){
   const media=t.el.querySelector('#homeCapsulesMedia'),copy=t.el.querySelector('.editorial-copy');
-  // Keep the public site's default composition: copy left, one image right.
-  if(media&&copy){media.style.order='2';copy.style.order='1'}
+  const savedDesign=readExisting()?.[t.id]?.design;
+  // Preserve the original order only when no custom layout has been selected.
+  if(media&&copy&&(!savedDesign||((savedDesign.layout||'original')==='original'&&(savedDesign.photoPreset||'original')==='original'))){media.style.order='2';copy.style.order='1'}
  }
 const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);if(!cmsFieldsFor(t.el).some(f=>f.type==='image')&&!(pageId==='home'&&t.el.matches('.hero')))cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);cmsRenderCustomButtons(t.el,d.customButtons);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'&&!Object.prototype.hasOwnProperty.call(d.mapped||{},'unified:'+key)){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 const cmsPhotoSlots=new WeakMap();
