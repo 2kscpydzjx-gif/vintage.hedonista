@@ -683,9 +683,13 @@ function bindCatalogControls(){
  setCatalogGrid(catalogState.grid);
 
  document.querySelectorAll('[data-filter-toggle]').forEach(btn=>btn.onclick=()=>{
-   const body=btn.nextElementSibling;
+   const section=btn.closest('.filter-section');
+   const body=section?.querySelector('.filter-section-body');
+   if(!body)return;
    const collapsed=body.classList.toggle('collapsed');
-   btn.lastElementChild.textContent=collapsed?'+':'−'
+   section.querySelector('.vh-brand-search-wrap')?.classList.toggle('hidden',collapsed);
+   btn.setAttribute('aria-expanded',String(!collapsed));
+   btn.lastElementChild.textContent=collapsed?'+':'−';
  });
 
  const openFilters=()=>{
