@@ -617,6 +617,17 @@ function bindCatalogControls(){
    applyCatalog(true)
  });
 
+ const brandSearch=$('vhBrandSearch');
+ if(brandSearch){
+   brandSearch.addEventListener('input',()=>{
+     const needle=normalizeFilterValue(brandSearch.value);
+     $('brandFilters').querySelectorAll('.filter-option').forEach(label=>{
+       const name=label.querySelector('input')?.value||'';
+       label.hidden=!!needle&&!normalizeFilterValue(name).includes(needle);
+     });
+   });
+ }
+
  $('brandFilters').addEventListener('change',()=>{
    catalogState.brands=new Set([...$('brandFilters').querySelectorAll('input:checked')].map(x=>x.value));
    applyCatalog(true)
