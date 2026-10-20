@@ -187,10 +187,8 @@ if(!e.mapped||!fields(el).some(f=>f.type==='image'))cmsApplyExistingLayout(el,de
  if(page==='home'&&el.matches('.homepage-capsules')){
   const capsuleBtn=el.querySelector('#homeCapsulesBtn');
   if(capsuleBtn){
-   const lightPanel=design.surface==='white'||design.surface==='cream'||design.textTone==='dark';
-   capsuleBtn.style.setProperty('background-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('border-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
+   // V284: use the published capsule button theme, not the legacy inline preset.
+   for(const prop of ['background','background-color','border','border-color','color','border-radius','box-shadow'])capsuleBtn.style.removeProperty(prop);
   }
   const media=el.querySelector('#homeCapsulesMedia');
   if(media)for(const key of ['desktop','tablet','mobile']){
@@ -229,6 +227,11 @@ if(!e.mapped||!fields(el).some(f=>f.type==='image'))cmsApplyExistingLayout(el,de
   const tone={light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'}[design.textTone];
   copyPanel.style.setProperty('color',tone,'important');
   for(const node of copyPanel.querySelectorAll('h1,h2,h3,p,.eyebrow'))node.style.setProperty('color',tone,'important');
+ }
+ // V284: keep the capsule kicker, heading and copy in their distinct theme colors.
+ if(page==='home'&&el.matches('.homepage-capsules')){
+  const colors={homeCapsulesKicker:'#b99975',homeCapsulesTitle:'#eee3d6',homeCapsulesText:'#ded0bf'};
+  for(const [id,color] of Object.entries(colors)){const node=el.querySelector('#'+id);if(node)node.style.setProperty('color',color,'important');}
  }
  if(['left','center','right'].includes(design.align))el.style.textAlign=design.align;
  if(['light','gold','dark'].includes(design.textTone))el.style.color={light:'#f2e5d5',gold:'#b7956d',dark:'#211a15'}[design.textTone];
