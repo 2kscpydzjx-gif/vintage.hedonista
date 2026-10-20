@@ -18079,3 +18079,7 @@ body.catalog-mobile-page .vh-catalog-seo::before{
     display:none!important;
   }
 }
+
+/* V277: collapsed filter sections must truly disappear, including Categories */
+#catalogSidebar .filter-section-body.collapsed{display:none!important;max-height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important;}
+#catalogSidebar .vh-brand-search-wrap.hidden{display:none!important;}
