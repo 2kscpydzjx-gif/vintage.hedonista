@@ -166,6 +166,12 @@ if(!e.mapped||!fields(el).some(f=>f.type==='image'))cmsApplyExistingLayout(el,de
    second.style.setProperty('aspect-ratio','auto','important');
    second.style.setProperty('grid-column','3','important');second.style.setProperty('grid-row','1','important');
   }else second?.remove();
+  if(!active&&media&&copy){
+   for(const node of [el,media,copy]){
+    for(const prop of ['display','grid-template-columns','grid-column','grid-row','order','height','min-height','max-height','overflow'])node.style.removeProperty(prop);
+   }
+   for(const prop of ['box-sizing','padding','flex-direction','justify-content'])copy.style.removeProperty(prop);
+  }
   if(active&&media&&copy){
    const framed=preset==='framed',stacked=design.layout==='stacked',textOnly=preset==='text-only';
    const left=Math.max(20,Math.min(45,Number(design.capsuleLeftWidth)||38));
