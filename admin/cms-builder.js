@@ -281,16 +281,16 @@ function cmsApplyExistingLayout(el,d,mediaValue){
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
- const active=preset==='framed';
+ const active=['left','right','wide','stacked','text-top','text-only','framed'].includes(preset);
  const doc=el.ownerDocument;
  let style=doc.getElementById('vh-cms-editorial-layout-css');
  if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
  style.textContent=`
- .vh-cms-editorial-layout{height:500px!important;min-height:0!important;max-height:500px!important;overflow:hidden!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
+ .vh-cms-editorial-layout{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
  .vh-cms-editorial-layout>.editorial-media{height:100%!important;min-height:0!important;overflow:hidden!important;display:block!important;grid-column:var(--vh-cms-media-column,1)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
- .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
+ .vh-cms-editorial-layout>.editorial-copy{height:auto!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-text-top>.editorial-media{grid-column:1!important;grid-row:2!important;height:clamp(180px,24vw,340px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-text-top>.editorial-copy{grid-column:1!important;grid-row:1!important;padding:clamp(18px,3vw,38px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
+ .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{height:clamp(180px,24vw,340px)!important}\n .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-media{display:none!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-copy{grid-column:1!important}
  .vh-cms-editorial-layout>.vh-cms-editorial-second-photo{height:100%!important;min-height:0!important;grid-column:3!important;grid-row:1!important;min-width:0!important;background-size:cover!important;background-position:center!important}
@@ -307,7 +307,7 @@ function cmsApplyEditorialPreset(el,d,media,copy){
   for(const node of [el,media,copy])for(const key of ['display','grid-template-columns','grid-column','grid-row','order'])node.style.removeProperty(key);
  }
  el.classList.toggle('vh-cms-editorial-layout',active);
- el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');
+ el.classList.toggle('vh-cms-editorial-stacked',active&&layout==='stacked');\n el.classList.toggle('vh-cms-editorial-text-top',active&&preset==='text-top');
  el.classList.toggle('vh-cms-editorial-text-only',active&&preset==='text-only');
  let second=el.querySelector(':scope > .vh-cms-editorial-second-photo');
  if(!active||preset!=='framed'){second?.remove();second=null}
@@ -317,14 +317,14 @@ function cmsApplyEditorialPreset(el,d,media,copy){
  const left=framed?Math.max(20,Math.min(45,Number(d.capsuleLeftWidth)||38)):w;
  const right=framed?Math.max(20,Math.min(45,Number(d.capsuleRightWidth)||38)):100-w;
  const center=100-left-right;
- el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
+ el.style.setProperty('--vh-cms-editorial-columns',layout==='stacked'||preset==='text-top'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%');
  el.style.setProperty('--vh-cms-media-column',layout==='photo-right'&&!framed?'2':'1');
  el.style.setProperty('--vh-cms-copy-column',framed?'2':layout==='photo-right'?'1':'2');
  el.style.setProperty('grid-template-columns',layout==='stacked'||preset==='text-only'?'1fr':framed?left+'% '+center+'% '+right+'%':preset==='wide'?'65% 35%':w+'% '+(100-w)+'%','important');
- media.style.setProperty('grid-column',layout==='stacked'?'1':layout==='photo-right'&&!framed?'2':'1','important');
- media.style.setProperty('grid-row','1','important');
- copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
- copy.style.setProperty('grid-row',layout==='stacked'?'2':'1','important');
+ media.style.setProperty('grid-column',layout==='stacked'||preset==='text-top'?'1':layout==='photo-right'&&!framed?'2':'1','important');
+ media.style.setProperty('grid-row',preset==='text-top'?'2':'1','important');
+ copy.style.setProperty('grid-column',layout==='stacked'||preset==='text-top'||preset==='text-only'?'1':framed?'2':layout==='photo-right'?'1':'2','important');
+ copy.style.setProperty('grid-row',preset==='text-top'?'1':layout==='stacked'?'2':'1','important');
  if(framed){
   if(!second){second=doc.createElement('div');second.className='vh-cms-editorial-second-photo';second.setAttribute('aria-label','Друге фото макета (попередній перегляд)');el.append(second)}
   const target=sectionTargets.find(t=>t.el===el);
