@@ -17665,7 +17665,7 @@ header .vh-brand-logo-link{
 
 /* V252 — desktop footer regression fix */
 @media (min-width:821px){
-.site-footer-v64 .footer-v64{grid-template-columns:1fr 1.45fr 1fr!important;align-items:center!important;gap:28px!important;min-height:106px!important;padding-top:18px!important;padding-bottom:18px!important}
+.site-footer-v64 .footer-v64{grid-template-columns:1fr 1.45fr 1fr!important;align-items:center!important;gap:28px!important;min-height:82px!important;padding-top:9px!important;padding-bottom:9px!important}
 .site-footer-v64 .footer-v64-brand{justify-self:start!important;text-align:left!important}
 .site-footer-v64 .vh-footer-logo-img{width:118px!important;max-width:118px!important;height:auto!important;display:block!important;margin:0!important}
 .site-footer-v64 .footer-v64-copy{display:block!important;margin-top:7px!important}
