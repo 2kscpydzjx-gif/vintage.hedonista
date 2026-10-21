@@ -269,7 +269,7 @@ function appendProductLinks(html,items){
 {
  const path=new URL('../catalog.html',import.meta.url);
  const catalogHtml=readFileSync(path,'utf8');
- const clean=catalogHtml.replace(/<nav class="vh-static-product-links wrap"[\\s\\S]*?<\\/nav>/g,'');
+ const clean=catalogHtml.replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
  writeFileSync(path,appendProductLinks(clean,products));
 }
 for(const c of categories)if(c.slug){
