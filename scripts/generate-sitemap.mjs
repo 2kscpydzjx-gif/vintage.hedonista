@@ -22,7 +22,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
 const entries=staticPages.map(p=>new URL(p,base).href);
 const [products,news,categories,subcategories]=await Promise.all([
- rows('products','id,slug,name,status,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
+ rows('products','id,slug,name,status,category_id,subcategory_id,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
  rows('news','id,slug,title,excerpt,cover_image,content','status=eq.published'),
  rows('categories','id,name,slug','is_active=eq.true'),
  rows('subcategories','id,category_id,name,slug','id=not.is.null')
@@ -254,6 +254,24 @@ function subcategoryLinksHtml(category){
  const links=children.map(sub=>'<a href="'+htmlEscape(new URL('seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href)+'">'+htmlEscape(sub.name)+'</a>').join(' ');
  return '<nav class="vh-seo-subcategory-links" aria-label="Підкатегорії"><h2>Переглянути підкатегорії</h2><div>'+links+'</div></nav>';
 }
+// Crawlable, user-accessible index: product links exist before JS runs.
+// A compact native disclosure keeps the current product grid and pagination unchanged.
+function productLinksHtml(items){
+ const unique=[...new Map(items.filter(p=>p.slug).map(p=>[p.slug,p])).values()];
+ if(!unique.length)return '';
+ const links=unique.map(p=>'<a href="'+htmlEscape(new URL('seo-product/'+encodeURIComponent(p.slug)+'/index.html',base).href)+'">'+htmlEscape(p.name||p.slug)+'</a>').join(' · ');
+ return '<nav class="vh-static-product-links wrap" aria-label="Посилання на товари"><details><summary>Переглянути всі товари колекції ('+unique.length+')</summary><p>'+links+'</p></details></nav>';
+}
+function appendProductLinks(html,items){
+ return html.replace('</main>',productLinksHtml(items)+'</main>');
+}
+// Main catalog gets a complete link index; category/subcategory pages get relevant items.
+{
+ const path=new URL('../catalog.html',import.meta.url);
+ const catalogHtml=readFileSync(path,'utf8');
+ const clean=catalogHtml.replace(/<nav class="vh-static-product-links wrap"[\\s\\S]*?<\\/nav>/g,'');
+ writeFileSync(path,appendProductLinks(clean,products));
+}
 for(const c of categories)if(c.slug){
  const slug=String(c.slug).normalize('NFC');
  if(slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe category slug: '+slug);
@@ -268,6 +286,7 @@ for(const c of categories)if(c.slug){
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(c.name.toUpperCase())+'</h1>');
  html=embedEditorial(html,editorialFor('category',c.name,slug));
+ html=appendProductLinks(html,products.filter(p=>String(p.category_id)===String(c.id)));
  html=html.replace('</main>','<div class="wrap">'+subcategoryLinksHtml(c)+'</div></main>');
  html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
  const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
@@ -286,6 +305,7 @@ for(const sub of subcategories){
  html=html.replace(/<link rel="canonical"[^>]*>/i,'<link rel="canonical" href="'+htmlEscape(canonical)+'"><meta name="vh-static-canonical" content="'+htmlEscape(canonical)+'">');
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(sub.name.toUpperCase())+'</h1>');
  html=embedEditorial(html,editorialFor('subcategory',sub.name,sub.slug,parent.slug));
+ html=appendProductLinks(html,products.filter(p=>String(p.subcategory_id)===String(sub.id)));
  const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
  mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
 }
