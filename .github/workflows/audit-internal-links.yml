@@ -20,5 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Generate SEO snapshots from public catalog
+        run: node scripts/generate-sitemap.mjs
       - name: Audit static links to products
         run: node scripts/audit-internal-links.mjs
