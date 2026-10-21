@@ -279,7 +279,7 @@ for(const c of categories)if(c.slug){
  const title=strip(meta.seo_title)||categorySeoFallbacks[slug]?.[0]||c.name+' — вінтажний одяг | Vintage Hedonista';
  const desc=strip(meta.meta_description)||categorySeoFallbacks[slug]?.[1]||'Переглядайте '+c.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.';
  const canonical=new URL('seo-category/'+encodeURIComponent(slug)+'/index.html',base).href;
- let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
+ let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8').replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
  html=html.replace(/<head>/i,'<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
  html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
@@ -298,7 +298,7 @@ for(const sub of subcategories){
  const title=strip(meta.seo_title)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[0]||sub.name+' — вінтажний одяг | Vintage Hedonista';
  const desc=strip(meta.meta_description)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[1]||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
  const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
- let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8');
+ let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8').replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
  html=html.replace('<head>','<head><base id="vh-seo-base" href="'+htmlEscape(base)+'">');
  html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
