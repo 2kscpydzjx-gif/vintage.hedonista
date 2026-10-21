@@ -167,7 +167,7 @@ function snapshot(kind,row){
   const facts=details.filter(x=>!brand||!x.startsWith('Бренд '));
   const tail='Перегляньте фото та деталі у Vintage Hedonista.';
   const text=[intro,facts.length?facts.join('; ')+'.':'',tail].filter(Boolean).join(' ');
-  return text.length<=165?text:text.slice(0,162).replace(/\\s+\\S*$/,'').trimEnd()+'…';
+  return text.length<=165?text:text.slice(0,162).replace(/\s+\S*$/,'').trimEnd()+'…';
  };
  const desc=strip(meta.meta_description)||(isProduct?productDescription():strip(row.excerpt)||'Vintage Hedonista');
  const canonical=new URL(dir+'/'+encodeURIComponent(row.slug)+'/index.html',base).href;
