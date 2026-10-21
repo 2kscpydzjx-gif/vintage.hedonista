@@ -51,9 +51,9 @@ async function main(){
   const html=fs.readFileSync(actual,'utf8');
   const readTag=(re)=>html.match(re)?.[1]?.trim()||'';
   metadataRows.push({slug:p.slug,
-   title:readTag(/<title[^>]*>([^<]*)<\\/title>/i),
-   description:readTag(/<meta\\s+name=["']description["']\\s+content=["']([^"']*)/i),
-   canonical:readTag(/<link\\s+rel=["']canonical["']\\s+href=["']([^"']*)/i)
+   title:readTag(/<title[^>]*>([^<]*)<\/title>/i),
+   description:readTag(/<meta\s+name=["']description["']\s+content=["']([^"']*)/i),
+   canonical:readTag(/<link\s+rel=["']canonical["']\s+href=["']([^"']*)/i)
   });
   const name=field(html,'productName');
   if(name===null){invalid.push({id:p.id,slug:p.slug,reason:'No static product title'});continue;}
