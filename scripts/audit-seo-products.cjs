@@ -31,7 +31,8 @@ async function main(){
  }
  const root=path.resolve(__dirname,'..','seo-product');
  const missing=[],outdated=[],invalid=[];
- const normalize=s=>String(s??'').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+ const metadataRows=[];
+ const normalize=s=>String(s??'').replace(/&nbsp;|&#160;|&#xA0;/gi,' ').replace(/&quot;/g,'"').replace(/&#(?:39|x27);/gi,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  const field=(html,id)=>{
   const tag=html.match(new RegExp('<[^>]+\\bid=["\\x27]'+id+'["\\x27][^>]*>([\\s\\S]*?)<\\/[^>]+>','i'));
   return tag?normalize(tag[1]):null;
@@ -48,6 +49,12 @@ async function main(){
   const actual=fs.existsSync(rawFile)?rawFile:fs.existsSync(file)?file:null;
   if(!actual){missing.push({id:p.id,slug:p.slug,status:p.status});continue;}
   const html=fs.readFileSync(actual,'utf8');
+  const readTag=(re)=>html.match(re)?.[1]?.trim()||'';
+  metadataRows.push({slug:p.slug,
+   title:readTag(/<title[^>]*>([^<]*)<\/title>/i),
+   description:readTag(/<meta\s+name=["']description["']\s+content=["']([^"']*)/i),
+   canonical:readTag(/<link\s+rel=["']canonical["']\s+href=["']([^"']*)/i)
+  });
   const name=field(html,'productName');
   if(name===null){invalid.push({id:p.id,slug:p.slug,reason:'No static product title'});continue;}
   if(normalize(p.name)!==name)add(p,'name',normalize(p.name),name);
@@ -70,10 +77,22 @@ async function main(){
    if(p.cover_image&&schema.image?.length&&normalize(schema.image[0])!==normalize(p.cover_image))add(p,'jsonld.image',String(p.cover_image),String(schema.image[0]));
   }catch(e){invalid.push({id:p.id,slug:p.slug,reason:'Invalid Product JSON-LD: '+e.message});}
  }
+ const metadataIssues=[];
+ for(const fieldName of ['title','description','canonical']){
+  const grouped=new Map();
+  for(const row of metadataRows){
+   const value=row[fieldName];
+   if(!value){metadataIssues.push({field:fieldName,reason:'missing',slug:row.slug});continue;}
+   const key=fieldName==='canonical'?value:normalize(value).toLowerCase();
+   if(!grouped.has(key))grouped.set(key,[]);
+   grouped.get(key).push(row.slug);
+  }
+  for(const [value,slugs] of grouped)if(slugs.length>1)metadataIssues.push({field:fieldName,reason:'duplicate',value,slugs});
+ }
  const affected=new Set(outdated.map(x=>x.id)).size;
- const report={checked:all.length,missingCount:missing.length,invalidCount:invalid.length,outdatedCount:affected,outdatedFields:outdated.length,missing,invalid,outdated};
+ const report={checked:all.length,missingCount:missing.length,invalidCount:invalid.length,outdatedCount:affected,outdatedFields:outdated.length,missing,invalid,outdated,metadataIssuesCount:metadataIssues.length,metadataIssues};
  const output=path.resolve(__dirname,'..','seo-audit-report.json');
  fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
- console.log(JSON.stringify({checked:report.checked,missing:missing.length,invalid:invalid.length,outdatedProducts:affected,outdatedFields:outdated.length,report:'seo-audit-report.json'}));
+ console.log(JSON.stringify({checked:report.checked,missing:missing.length,invalid:invalid.length,outdatedProducts:affected,outdatedFields:outdated.length,metadataIssues:metadataIssues.length,report:'seo-audit-report.json'}));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

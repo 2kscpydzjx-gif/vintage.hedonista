@@ -157,13 +157,19 @@ function snapshot(kind,row){
  const meta=seoMap.get((isProduct?'product:':'article:')+row.id)||{};
  const title=strip(meta.seo_title)||titleFallback;
  const productDescription=()=>{
-  const name=strip(row.name);
+  // Fallback only: custom descriptions in vh_seo_metadata always take priority.
+  const name=strip(row.name)||'Вінтажний жіночий одяг';
   const brand=strip(row.brand);
   const material=strip(row.material);
   const condition=strip(row.condition);
-  const details=[brand&&'Бренд: '+brand,material&&'Матеріал: '+material,condition&&'Стан: '+condition].filter(Boolean);
-  const intro=name||'Вінтажний одяг';
-  return [intro+' у Vintage Hedonista.',...details].join(' ')+' Перегляньте фото та характеристики товару.';
+  const opening=name+(brand?' від '+brand:'')+'.';
+  const details=[material&&'Матеріал: '+material+'.',condition&&'Стан: '+condition+'.'].filter(Boolean);
+  // Add whole sentences only: do not truncate in the middle of a word or phrase.
+  const parts=[opening];
+  for(const detail of details)if((parts.join(' ')+' '+detail).length<=160)parts.push(detail);
+  const closing='Vintage Hedonista.';
+  if((parts.join(' ')+' '+closing).length<=165)parts.push(closing);
+  return parts.join(' ');
  };
  const desc=strip(meta.meta_description)||(isProduct?productDescription():strip(row.excerpt)||'Vintage Hedonista');
  const canonical=new URL(dir+'/'+encodeURIComponent(row.slug)+'/index.html',base).href;
