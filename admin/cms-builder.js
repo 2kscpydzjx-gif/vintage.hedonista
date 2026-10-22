@@ -1450,23 +1450,59 @@ function updateLivePreview(){
   try{const doc=frame.contentDocument;if(doc?.readyState!=='loading')watchPreviewDom(doc)}catch{}
  }
 }
+
 function reconcileAfterFrameLoad(){
- const epoch=++previewEpoch;
- disconnectPreviewObserver();clearTimeout(previewReconcileTimer);
- // Apply immediately, then after delayed site initialization (fonts, data, scripts).
- for(const delay of [0,400,1600])setTimeout(()=>{
-  if(epoch!==previewEpoch || livePage!==pageId)return;
-  try{
-   const doc=frame.contentDocument;
-   if(doc?.body&&pageId!=='shared'){
-    // Rebuild the section list only if delayed page scripts replaced its DOM.
-    const stale=!sectionTargets.length||sectionTargets.some(t=>!doc.contains(t.el));
-    if(stale){detectSections(doc)}
-   }
-   updateLivePreview();
-  }catch(e){console.warn('Preview reconcile',e)}
- },delay);
+  const epoch=++previewEpoch;
+  const expectedPage=pageId;
+  const expectedDoc=frame.contentDocument;
+
+  disconnectPreviewObserver();
+  clearTimeout(previewReconcileTimer);
+
+  // Reconcile once immediately, then only when the DOM
+  // has changed after delayed site initialization.
+  let previousSignature='';
+
+  for(const delay of [0,400,1600]){
+    setTimeout(()=>{
+      if(epoch!==previewEpoch || livePage!==expectedPage ||
+         pageId!==expectedPage)return;
+
+      let doc;
+      try{
+        doc=frame.contentDocument;
+      }catch{
+        return;
+      }
+
+      if(doc!==expectedDoc || !doc?.body)return;
+
+      try{
+        if(expectedPage!=='shared'){
+          const stale=!sectionTargets.length ||
+            sectionTargets.some(t=>!doc.contains(t.el));
+
+          if(stale)detectSections(doc);
+        }
+
+        const signature=[
+          expectedPage,
+          sectionTargets.length,
+          sectionTargets.filter(t=>t.el.isConnected).length,
+          doc.querySelectorAll('.vh-cms-injected-unit').length
+        ].join(':');
+
+        if(delay===0 || signature!==previousSignature){
+          previousSignature=signature;
+          updateLivePreview();
+        }
+      }catch(e){
+        console.warn('Preview reconcile',e);
+      }
+    },delay);
+  }
 }
+
 function installPreviewLinks(doc){
  if(doc.__cmsLinksReady)return;doc.__cmsLinksReady=true;
  doc.addEventListener('click',e=>{const a=e.target.closest?.('a[href]');if(!a)return;
