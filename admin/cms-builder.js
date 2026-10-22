@@ -1,5 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
+// Isolated editor trial: real storefront preview, browser-local draft, no cloud writes. Preview build trigger 2026-10-20.
+const sandboxMode=new URLSearchParams(location.search).get('sandbox')==='1';
 const cloud=window.supabase&&window.VH_CONFIG?window.supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}}):null;
 let cloudReady=false;
 const revisionTokens=new Map();
@@ -21,7 +23,7 @@ async function requireAdmin(){
  cloudReady=true;
 }
 async function loadCloudDraft(){
- if(!cloudReady)return;
+ if(sandboxMode||!cloudReady)return;
  const requestedPage=pageId;
  const key=requestedPage==='shared'?'home':requestedPage;
  const {data,error}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
@@ -67,6 +69,7 @@ async function verifyCmsRevision(key,status,expected){
  assertCmsRevision(data,expected,status==='draft'?'Чернетка':'Публікація');
 }
 async function saveCloudDraft(){
+ if(sandboxMode){persist();$('status').textContent='Тестову чернетку збережено лише у цьому браузері. Supabase не змінено.';return}
  if(!cloudReady)throw Error('Немає з’єднання з адмінкою');
  const key=pageId==='shared'?'home':pageId;
  if(!revisionTokens.has(key))throw Error('Дочекайтеся завантаження чернетки з Supabase.');
@@ -91,6 +94,7 @@ async function saveCloudDraft(){
  $('status').textContent='Чернетку збережено в Supabase · сайт не опубліковано';
 }
 async function publishCloudPage(){
+ if(sandboxMode){$('status').textContent='У тестовому режимі публікацію заблоковано.';return}
  if(!cloudReady)throw Error('Немає прав адміністратора');
  if(!confirm('Опублікувати збережену чернетку на основному сайті? Ця дія замінить поточну опубліковану версію.'))return;
  // Never publish unsaved local edits silently.
@@ -137,7 +141,7 @@ const pages=[
 {id:'contacts',name:'Контакти',description:'Контактна інформація та текстові блоки',url:'contacts.html',editor:'contacts'},
 {id:'shared',name:'Шапка та підвал · усі сторінки',description:'Спільне оформлення, навігація, текст підвалу та соцмережі',url:'index.html',editor:'settings'}
 ];
-const sharedStorageKey='vh-cms-shared-shell-step71';
+const sharedStorageKey=sandboxMode?'vh-cms-sandbox-shared':'vh-cms-shared-shell-step71';
 const sharedDefaults={headerLogo:'',footerLogo:'',footerText:'',footerCopyright:'',instagram:'',telegram:'',nav:{}};
 function sharedDraft(){try{return {...sharedDefaults,...JSON.parse(localStorage.getItem(sharedStorageKey)||'{}')}}catch{return {...sharedDefaults}}}
 function saveShared(d){try{localStorage.setItem(sharedStorageKey,JSON.stringify(d));$('status').textContent=''}catch{$('status').textContent='Не вдалося зберегти спільну чернетку'}}
@@ -188,7 +192,7 @@ const defaults=[{id:'demo-1',type:'banner',title:'VINTAGE HEDONISTA',body:'<p>О
 const pageFromUrl=new URLSearchParams(location.search).get('page');
 let pageId=pages.some(p=>p.id===pageFromUrl)?pageFromUrl:(sessionStorage.getItem('vh-cms-active-page')||'home');
 if(!pages.some(p=>p.id===pageId))pageId='home';
-const storageKey=()=>pageId==='home'?'vh-cms-lab-step55-v1':'vh-cms-lab-step56-'+pageId;
+const storageKey=()=>sandboxMode?'vh-cms-sandbox-blocks-'+pageId:(pageId==='home'?'vh-cms-lab-step55-v1':'vh-cms-lab-step56-'+pageId);
 const getBlocks=()=>{try{const x=JSON.parse(localStorage.getItem(storageKey()));return Array.isArray(x)?x:(pageId==='home'?structuredClone(defaults):[])}catch{return pageId==='home'?structuredClone(defaults):[]}};
 let blocks=getBlocks(),selected=blocks[0]?.id||null;
 function renderPages(){const shared=pageId==='shared';document.body.classList.toggle('cms-shared-mode',shared);if(shared)renderSharedEditor();const wrap=$('pageNav');wrap.replaceChildren();pages.forEach(p=>{const btn=document.createElement('button');btn.className='nav'+(p.id===pageId?' active':'');btn.textContent=p.name;btn.onclick=()=>{if(p.id===pageId)return;pageId=p.id;sessionStorage.setItem('vh-cms-active-page',pageId);history.replaceState(null,'','?page='+encodeURIComponent(pageId));blocks=getBlocks();selected=blocks[0]?.id||null;render();void switchCloudPage()};wrap.append(btn)});const p=pages.find(x=>x.id===pageId);$('currentPageName').textContent=p.name;$('currentPageDescription').textContent=p.description;/* Legacy editor link removed: native CMS is the only editor. */$('publicPageLink').href='../'+p.url}
@@ -277,14 +281,14 @@ function cmsApplyExistingLayout(el,d,mediaValue){
 function cmsApplyEditorialPreset(el,d,media,copy){
  const preset=d.photoPreset||'original';
  const layout=d.layout||'original';
- const active=preset==='framed';
+ const active=['framed','wide','text-only'].includes(preset)||layout==='stacked'||layout==='photo-right';
  const doc=el.ownerDocument;
  let style=doc.getElementById('vh-cms-editorial-layout-css');
  if(!style){style=doc.createElement('style');style.id='vh-cms-editorial-layout-css';doc.head.append(style)}
  style.textContent=`
  .vh-cms-editorial-layout{height:500px!important;min-height:0!important;max-height:500px!important;overflow:hidden!important;display:grid!important;grid-template-columns:var(--vh-cms-editorial-columns,1fr 1fr)!important;align-items:stretch!important}
  .vh-cms-editorial-layout>.editorial-media{height:100%!important;min-height:0!important;overflow:hidden!important;display:block!important;grid-column:var(--vh-cms-media-column,1)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
- .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:16px clamp(12px,1.5vw,24px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
+ .vh-cms-editorial-layout>.editorial-copy{height:100%!important;min-height:0!important;box-sizing:border-box!important;padding:24px clamp(16px,2vw,36px)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:center!important;grid-column:var(--vh-cms-copy-column,2)!important;grid-row:1!important;min-width:0!important;width:100%!important;max-width:none!important}
  .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-media{grid-column:1!important;grid-row:1!important}
  .vh-cms-editorial-layout.vh-cms-editorial-stacked>.editorial-copy{grid-column:1!important;grid-row:2!important}
  .vh-cms-editorial-layout.vh-cms-editorial-text-only>.editorial-media{display:none!important}
@@ -382,10 +386,8 @@ function applyBlockDesign(el,d){if(!el||!d)return;
   }
   const capsuleBtn=el.querySelector('#homeCapsulesBtn');
   if(capsuleBtn){
-   const lightPanel=d.surface==='white'||d.surface==='cream'||d.textTone==='dark';
-   capsuleBtn.style.setProperty('background-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('border-color',lightPanel?'#211a15':'#f2e5d5','important');
-   capsuleBtn.style.setProperty('color',lightPanel?'#ffffff':'#211a15','important');
+   // Match cms-published.js: use the storefront button theme in preview too.
+   for(const prop of ['background','background-color','border','border-color','color','border-radius','box-shadow'])capsuleBtn.style.removeProperty(prop);
   }
   const media=el.querySelector('#homeCapsulesMedia'),photo=media?.querySelector('img');
   if(media)for(const key of ['desktop','tablet','mobile']){
@@ -809,8 +811,8 @@ function scheduleLivePreview(){clearTimeout(liveTimer);liveTimer=setTimeout(upda
 function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));if(pageId==='home')frame.style.visibility='hidden';frame.src='../'+p.url;}
 // STEP 58: isolated drafts for text edits to existing rendered sections.
 let selectedExisting=null;
-const existingKey=()=> 'vh-cms-existing-step65-'+pageId;
-const orderKey=()=> 'vh-cms-order-step72-'+pageId;
+const existingKey=()=> (sandboxMode?'vh-cms-sandbox-existing-':'vh-cms-existing-step65-')+pageId;
+const orderKey=()=> (sandboxMode?'vh-cms-sandbox-order-':'vh-cms-order-step72-')+pageId;
 function readOrder(){try{return JSON.parse(localStorage.getItem(orderKey()))||[]}catch{return []}}
 function saveOrder(order){try{localStorage.setItem(orderKey(),JSON.stringify(order))}catch{}}
 function mergedOrder(){
@@ -1225,8 +1227,9 @@ function cmsCustomButtonEditor(host,target,draft){
 function applyExistingDrafts(){const data=readExisting();for(const t of sectionTargets){
  if(pageId==='home'&&t.el.matches('.homepage-capsules')){
   const media=t.el.querySelector('#homeCapsulesMedia'),copy=t.el.querySelector('.editorial-copy');
-  // Keep the public site's default composition: copy left, one image right.
-  if(media&&copy){media.style.order='2';copy.style.order='1'}
+  const savedDesign=readExisting()?.[t.id]?.design;
+  // Preserve the original order only when no custom layout has been selected.
+  if(media&&copy&&(!savedDesign||((savedDesign.layout||'original')==='original'&&(savedDesign.photoPreset||'original')==='original'))){media.style.order='2';copy.style.order='1'}
  }
 const d=data[t.id];if(!d)continue;if(d.hidden)t.el.style.display='none';else t.el.style.removeProperty('display');if(d.mapped)cmsApplyMapped(t.el,d.mapped);if(d.design){applyBlockDesign(t.el,d.design);if(!cmsFieldsFor(t.el).some(f=>f.type==='image')&&!(pageId==='home'&&t.el.matches('.hero')))cmsApplyExistingLayout(t.el,d.design,d.templateImage)}applyExistingAnimation(t.el,d.animation||'system');if(d.capsuleImage)applyCapsulePhoto(t.el,d.capsuleImage);cmsRenderCustomButtons(t.el,d.customButtons);for(const [key,sel] of [['title','h1,h2,h3'],['description','p']]){if(typeof d[key]==='string'&&!Object.prototype.hasOwnProperty.call(d.mapped||{},'unified:'+key)){const el=t.el.querySelector(sel);if(el){if(key==='description')el.innerHTML=clean(d[key]);else el.textContent=d[key]}}}}}
 const cmsPhotoSlots=new WeakMap();
@@ -1495,5 +1498,6 @@ frame.addEventListener('load',()=>{
 $('insertAfter').addEventListener('change',updateLivePreview);$('reloadSite').onclick=()=>{frame.src=frame.src};
 function changed(){persist();render()}function render(){renderPages();renderList();renderExistingList();renderEditor();renderPreview()}
 $('add').onclick=()=>{const type='editorial';const b={id:'demo-'+Date.now(),type,title:({editorial:'Новий Editorial',banner:'Новий банер',text:'Новий текстовий блок',gallery:'Нова галерея'})[type],body:'<p>Відредагуйте текст цього блоку.</p>',image:'',images:{},design:{photoPreset:'left',backgroundMode:'dark',textTone:'light',spacing:'normal'},animation:'system',duration:650,visible:true};blocks.push(b);saveOrder([...mergedOrder().filter(id=>id!==b.id),b.id]);selectedExisting=null;selected=b.id;$('existingEditor').hidden=true;$('editorFields').hidden=false;changed()};$('save').onclick=async()=>{const button=$('save');button.disabled=true;try{await saveCloudDraft()}catch(e){$('status').textContent='Помилка збереження: '+e.message}finally{button.disabled=false}};$('publish').onclick=async()=>{const b=$('publish');b.disabled=true;try{await publishCloudPage()}catch(e){$('status').textContent='Помилка публікації: '+e.message}finally{b.disabled=false}};$('reset').onclick=()=>{if(confirm('Скинути локальну чернетку? Збережена в Supabase версія залишиться без змін.')){localStorage.removeItem(orderKey());localStorage.removeItem(existingKey());blocks=pageId==='home'?structuredClone(defaults):[];selected=blocks[0]?.id||null;changed()}};render();
-requireAdmin().then(switchCloudPage).catch(e=>{$('status').textContent='Доступ до Supabase: '+e.message; $('save').disabled=true});
+if(sandboxMode){$('publish').disabled=true;$('publish').title='Публікацію заблоковано у тестовому режимі';$('status').textContent='ТЕСТ: реальний перегляд, локальні чернетки, публікацію заблоковано.';}
+if(!sandboxMode){requireAdmin().then(switchCloudPage).catch(e=>{$('status').textContent='Доступ до Supabase: '+e.message; $('save').disabled=true});}
 })();
