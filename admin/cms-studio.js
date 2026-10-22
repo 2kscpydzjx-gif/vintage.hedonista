@@ -422,7 +422,38 @@ function attachPreview(){
  },true);
  decorateRows();
 }
-frame.addEventListener('load',()=>{overlay=null;setTimeout(attachPreview,350);setTimeout(decorateRows,1500)});
+let previewGeneration=0;
+
+function bindCurrentPreview(){
+  const generation=++previewGeneration;
+  let currentDoc;
+
+  try {
+    currentDoc=frame.contentDocument;
+  } catch {
+    return;
+  }
+
+  const onlyCurrent=fn=>()=>{
+    if(generation!==previewGeneration)return;
+
+    try {
+      if(frame.contentDocument!==currentDoc)return;
+    } catch {
+      return;
+    }
+
+    fn();
+  };
+
+  setTimeout(onlyCurrent(attachPreview),350);
+  setTimeout(onlyCurrent(decorateRows),1500);
+}
+
+frame.addEventListener('load',()=>{
+  overlay=null;
+  bindCurrentPreview();
+});
 let pending=false;
 if(list)new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;decorateRows()})}).observe(list,{childList:true});
 setTimeout(attachPreview,900);setTimeout(refreshSelectedTitle,1200);
