@@ -1,15 +1,18 @@
-name: V2 editor smoke test
+name: CMS editor and publication regression
 on:
   pull_request:
     paths:
-      - 'admin/v2-editor.html'
-      - 'admin/v2-cms-bridge.js'
-      - 'tests/v2-smoke.cjs'
+      - 'admin/**'
+      - 'cms-model.js'
+      - 'cms-published.js'
+      - 'site.js'
+      - '*.html'
+      - 'tests/**'
       - '.github/workflows/v2-smoke.yml'
   workflow_dispatch:
 jobs:
-  smoke:
-    runs-on: ubuntu-latest
+  cms:
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -17,14 +20,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check bridge syntax
-        run: node --check admin/v2-cms-bridge.js
+      - name: Validate runtime and recovery
+        run: |
+          node --check cms-model.js
+          node --check cms-published.js
+          node --check admin/cms-builder.js
+          node --check admin/cms-studio.js
+          node tests/cms-draft-store.cjs
       - name: Install browser
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Start static server and test
+      - name: Test editor and storefront with isolated data
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v2-server.log 2>&1 &
-          sleep 2
-          node tests/v2-smoke.cjs
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/cms-server.log 2>&1 &
+          node tests/cms-editor.cjs
+          node tests/cms-layouts.cjs
+          node tests/cms-legacy.cjs
+          node tests/cms-shell.cjs
+          node tests/cms-review.cjs
