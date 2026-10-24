@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const cloud=window.supabase&&window.VH_CONFIG?window.supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}}):null;
+const reviewOnly=location.hostname.endsWith('.vercel.app');
 let cloudReady=false;
 const revisionTokens=new Map(),remoteDrafts=new Map();
 const draftStore=window.VHCMSDraftStore.create(localStorage);
@@ -11,7 +12,7 @@ function moveHistory(direction){if(cloudOperation||uploadsInFlight)return;const 
 window.VHCMSHistory={undo:()=>moveHistory('undo'),redo:()=>moveHistory('redo')};
 
 function markDirty(){if(!hydrating){rememberHistory();draftStore.touch(pageId);$('status').textContent='Зміни збережено в цьому браузері · є незбережена серверна чернетка';}syncCloudButtons()}
-function syncCloudButtons(){const blocked=!cloudReady||cloudOperation||uploadsInFlight>0||!revisionTokens.has(pageId==='shared'?'home':pageId)||draftStore.meta(pageId).conflict;$('save').disabled=blocked;$('publish').disabled=blocked;}
+function syncCloudButtons(){const blocked=!cloudReady||cloudOperation||uploadsInFlight>0||!revisionTokens.has(pageId==='shared'?'home':pageId)||draftStore.meta(pageId).conflict;$('save').disabled=blocked;$('publish').disabled=blocked||reviewOnly;if(reviewOnly)$('publish').title='Публікацію вимкнено в тестовій версії';}
 function pageSnapshot(page=pageId){return draftStore.snapshot(page)}
 function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 function restoreVisibleState(){blocks=getBlocks();selected=blocks[0]?.id||null;selectedExisting=null;render();loadLivePage()}
@@ -107,6 +108,7 @@ async function saveCloudDraft(){
  return {page,key,payload};
 }
 async function publishCloudPage(){
+ if(reviewOnly)throw Error('Публікацію вимкнено в тестовій версії. Використовуйте основну адмінку після приймання змін.');
  if(!cloudReady)throw Error('Немає прав адміністратора');
  const requestedPage=pageId;
  if(!confirm('Опублікувати поточні зміни цієї сторінки? Попередню версію буде збережено в резервній копії браузера.'))return;
@@ -1374,6 +1376,6 @@ $('insertAfter').addEventListener('change',updateLivePreview);$('reloadSite').on
 function changed(){persist();render()}function render(){renderPages();renderList();renderExistingList();renderEditor();renderPreview()}
 $('add').onclick=()=>{const type=$('type').value||'editorial';const b={id:'demo-'+Date.now(),type,title:({editorial:'Новий Editorial',banner:'Новий банер',text:'Новий текстовий блок',gallery:'Нова галерея'})[type],body:'<p>Відредагуйте текст цього блоку.</p>',image:'',images:{},design:{layoutVersion:1,photoPreset:({banner:'gradient-hero',gallery:'three-photos',text:'text-only'})[type]||'left',backgroundMode:'dark',textTone:'light',spacing:'normal'},animation:'system',duration:650,visible:true};blocks.push(b);saveOrder([...mergedOrder().filter(id=>id!==b.id),b.id]);selectedExisting=null;selected=b.id;$('existingEditor').hidden=true;$('editorFields').hidden=false;changed()};$('save').onclick=()=>runCloudOperation(saveCloudDraft);$('publish').onclick=()=>runCloudOperation(publishCloudPage);$('reset').onclick=()=>{if(confirm('Скинути локальну чернетку? Збережена в Supabase версія залишиться без змін.')){draftStore.backup(pageId,'before-local-reset');const remote=remoteDrafts.get(pageId);draftStore.useServer(pageId,remote);restoreVisibleState();syncCloudButtons()}};render();
 function runCloudOperation(fn){if(cloudOperation)return;cloudOperation=true;syncCloudButtons();return fn().catch(e=>{$('status').textContent='Помилка: '+e.message}).finally(()=>{cloudOperation=false;syncCloudButtons()})}
-installRecoveryActions();syncCloudButtons();
+installRecoveryActions();if(reviewOnly){const badge=document.createElement('div');badge.className='cms-review-banner';badge.textContent='Тестова версія · чернетки використовують спільну базу · публікацію вимкнено';document.querySelector('.preview').append(badge)}syncCloudButtons();
 requireAdmin().then(()=>{syncCloudButtons();return switchCloudPage()}).catch(e=>{$('status').textContent='Доступ до Supabase: '+e.message; $('save').disabled=true});
 })();
