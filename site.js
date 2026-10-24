@@ -1977,6 +1977,7 @@ async function initDeliveryPage(){
    $('deliveryCtaLink').textContent=s.delivery_cta_link_text||'ЗВ’ЯЗАТИСЯ З НАМИ →';
    $('deliveryCtaLink').href=s.delivery_cta_link_url||'contacts.html';
  }
+ window.dispatchEvent(new Event('vh:service-rendered'));
 }
 
 function normalizeSocialUrl(value,type){
@@ -2021,6 +2022,7 @@ async function initContactsPage(){
      'Допоможемо уточнити умови оплати, резерву та відправлення.'
    ][i-1]);
  });
+ window.dispatchEvent(new Event('vh:service-rendered'));
 }
 
 /* V137: removed obsolete applyUnifiedFooter() call; footer is already rendered by current page code. */
