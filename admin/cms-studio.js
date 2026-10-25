@@ -14,7 +14,7 @@
  function setTab(tab){activeTab=tab;document.querySelectorAll('[data-inspector-tab]').forEach(b=>{const active=b.dataset.inspectorTab===tab;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active)});for(const host of [$('existingEditor'),$('editorFields')]){polishUploads(host);const bar=host.querySelector('.cms91-tabs');bar?.querySelector('[data-tab="'+tab+'"]')?.click();if(bar)bar.hidden=true}}
  document.querySelectorAll('[data-inspector-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.inspectorTab));
  for(const host of [$('existingEditor'),$('editorFields')])new MutationObserver(()=>setTab(activeTab)).observe(host,{childList:true});
- function applyDevice(){window.VHCMSViewport?.setDevice(device);for(const host of [$('existingEditor'),$('editorFields')])host._cmsPhotoEditor?.setDevice(device);document.querySelectorAll('[data-studio-device]').forEach(b=>{const active=b.dataset.studioDevice===device;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active)})}
+ function applyDevice(){window.VHCMSViewport?.setDevice(device);for(const host of [$('existingEditor'),$('editorFields')]){host._cmsPhotoEditor?.setDevice(device);host._cmsButtonEditor?.setDevice(device)}document.querySelectorAll('[data-studio-device]').forEach(b=>{const active=b.dataset.studioDevice===device;b.classList.toggle('active',active);b.setAttribute('aria-pressed',active)})}
  document.querySelectorAll('[data-studio-device]').forEach(b=>b.onclick=()=>{device=b.dataset.studioDevice;applyDevice()});applyDevice();
  $('studioZoom').onclick=()=>{$('studioZoomMenu').hidden=!$('studioZoomMenu').hidden};
  document.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>{window.VHCMSViewport?.setZoom(b.dataset.zoom);$('studioZoomMenu').hidden=true});

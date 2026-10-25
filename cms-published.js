@@ -1,8 +1,8 @@
 (async()=>{'use strict';
 // Cached HTML from before the shared model was introduced can still load this runtime.
-if(!window.VHCMSModel||window.VHCMSModel.version!==2){
+if(!window.VHCMSModel||window.VHCMSModel.version!==3){
  const source=document.currentScript?.src||document.baseURI;
- try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=2',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
+ try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=3',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
  catch(error){console.warn('CMS model could not load',error);document.documentElement.classList.remove('vh-cms-booting');return;}
 }
 
@@ -245,7 +245,7 @@ if(design.photoPreset==='gradient-hero'||!e.mapped||!fields(el).some(f=>f.type==
  }window.VHCMSModel.applyLegacyText(el,e,page)});
  // STEP 87: limited rollout on the static About page only.
  // Never rearrange dynamic catalog, journal, checkout or shared storefront components.
- renderAboutBlocks(d,original);original.forEach((el,i)=>{const edit=edits[window.VHCMSModel.sectionId(el,i)]||{};window.VHCMSModel.applyFieldStyles(el,edit.fieldStyles,page);window.VHCMSModel.applyButtons(el,edit.customButtons);window.VHCMSModel.applyMediaSettings(el,edit,page);window.VHCMSModel.motion(el,edit.animation,edit.duration||700)});
+ renderAboutBlocks(d,original);original.forEach((el,i)=>{const edit=edits[window.VHCMSModel.sectionId(el,i)]||{};window.VHCMSModel.applyFieldStyles(el,edit.fieldStyles,page);window.VHCMSModel.applyButtons(el,edit.customButtons);window.VHCMSModel.applyMediaSettings(el,edit,page);window.VHCMSModel.applyButtonSettings(el,edit.buttonSettings,page);window.VHCMSModel.motion(el,edit.animation,edit.duration||700)});
 
 }
 function renderAboutBlocks(data,original){

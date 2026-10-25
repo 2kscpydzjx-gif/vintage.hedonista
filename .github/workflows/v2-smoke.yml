@@ -27,6 +27,7 @@ jobs:
           node --check admin/cms-builder.js
           node --check admin/cms-studio.js
           node --check admin/cms-photo-editor.js
+          node --check admin/cms-button-editor.js
           node tests/cms-draft-store.cjs
       - name: Install browser
         run: |
@@ -42,3 +43,5 @@ jobs:
           node tests/cms-review.cjs
           node tests/cms-editor-refinements.cjs
           node tests/cms-native-photos.cjs
+          node tests/cms-existing-buttons.cjs
+          node tests/cms-block-isolation.cjs
