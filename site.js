@@ -1,3 +1,13 @@
+/* Queue native motion until the final CMS content is visible, including the intro. */
+function vhWhenPageVisible(job){if(window.VHCMSBoot?.whenVisible)window.VHCMSBoot.whenVisible(job);else job()}
+function vhSystemMotionTarget(element){
+ if(!element)return null;
+ const section=element.closest('[data-cms-section]');
+ if(section?.hasAttribute('data-vh-motion')||section?.classList.contains('cms-animation-none')||section?.style.animationName==='none')return null;
+ const edit=section&&window.__VH_CMS_CURRENT_REVISION?.shared?.cmsPageDraft?.existing?.[section.dataset.cmsLegacy];
+ if(edit?.hidden||(edit?.animation&&edit.animation!=='system'))return null;
+ return section?.hasAttribute('data-vh-layout')?section.querySelector(':scope>.vh-cms-composition'):element;
+}
 
 /* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
 const VH_STATUS_INLINE_STYLE="align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
@@ -2512,55 +2522,13 @@ document.addEventListener('click',e=>{
     const heroMain=document.querySelector('.hero-main');
     const heroSides=[...document.querySelectorAll('.hero-small')];
 
-    if(heroMedia){
-      heroMedia.classList.add('vh-hero-entrance');
-
-      const playHeroEntrance=()=>{
-        if(heroMedia.classList.contains('is-entered'))return;
-        requestAnimationFrame(()=>{
-          requestAnimationFrame(()=>heroMedia.classList.add('is-entered'));
-        });
-      };
-
-      const waitForHeroImages=()=>{
-        const imgs=[heroMain,...heroSides]
-          .filter(Boolean)
-          .map(host=>host.querySelector('img'))
-          .filter(Boolean);
-
-        if(!imgs.length){
-          setTimeout(waitForHeroImages,60);
-          return;
-        }
-
-        const pending=imgs.filter(img=>!img.complete);
-        if(!pending.length){
-          if(document.body.classList.contains('vh-intro-active')){
-            document.addEventListener('vh:intro-finished',playHeroEntrance,{once:true});
-          }else{
-            playHeroEntrance();
-          }
-          return;
-        }
-
-        let left=pending.length;
-        const done=()=>{
-          left--;
-          if(left<=0){
-            if(document.body.classList.contains('vh-intro-active')){
-              document.addEventListener('vh:intro-finished',playHeroEntrance,{once:true});
-            }else{
-              playHeroEntrance();
-            }
-          }
-        };
-        pending.forEach(img=>{
-          img.addEventListener('load',done,{once:true});
-          img.addEventListener('error',done,{once:true});
-        });
-      };
-
-      waitForHeroImages();
+    const heroSection=document.querySelector('.hero');
+    const projectedHero=heroSection?.querySelector(':scope>.vh-cms-composition');
+    const systemHero=vhSystemMotionTarget(heroSection);
+    if(systemHero&&projectedHero){projectedHero.classList.add('vh-cms-system-hero')}
+    else if(systemHero&&!heroSection?.classList.contains('vh-existing-gradient-hero')){
+      heroSection?.querySelector('.hero-copy')?.classList.add('vh-system-hero-copy');
+      if(heroMedia){heroMedia.classList.add('vh-hero-entrance');requestAnimationFrame(()=>requestAnimationFrame(()=>heroMedia.classList.add('is-entered')))}
     }
 
     const revealSelectors=[
@@ -2645,9 +2613,9 @@ document.addEventListener('click',e=>{
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',initHomeMotion,{once:true})
+    document.addEventListener('DOMContentLoaded',()=>vhWhenPageVisible(initHomeMotion),{once:true})
   }else{
-    initHomeMotion()
+    vhWhenPageVisible(initHomeMotion)
   }
 })();
 
@@ -2781,7 +2749,7 @@ document.addEventListener('click',e=>{
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     document.body.classList.add(bodyClass);
 
-    const els=[...document.querySelectorAll(selectors.join(','))];
+    const els=[...new Set([...document.querySelectorAll(selectors.join(','))].map(vhSystemMotionTarget).filter(Boolean))];
     els.forEach((el,i)=>{
       el.classList.add('vh-page-reveal');
       el.style.setProperty('--vh-page-delay',`${Math.min((i%3)*65,130)}ms`)
@@ -2827,10 +2795,10 @@ document.addEventListener('click',e=>{
 
     document.body.classList.add('vh-delivery-motion');
 
-    const hero=document.querySelector('.service-delivery .service-hero-grid');
+    const hero=vhSystemMotionTarget(document.querySelector('.service-delivery .service-hero-grid'));
     if(hero){
-      hero.classList.add('vh-page-hero-enter');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>hero.classList.add('is-entered')))
+      const projected=hero.classList.contains('vh-cms-composition');hero.classList.add(projected?'vh-page-reveal':'vh-page-hero-enter');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>hero.classList.add(projected?'is-visible':'is-entered')))
     }
 
     revealGroup([
@@ -2840,7 +2808,7 @@ document.addEventListener('click',e=>{
     ],'vh-delivery-motion');
 
     /* Individual service cards appear with a tiny stagger. */
-    const cards=[...document.querySelectorAll('.service-delivery .service-card')];
+    const cards=[...document.querySelectorAll('.service-delivery .service-card')].filter(node=>vhSystemMotionTarget(node)===node);
     cards.forEach((card,i)=>{
       card.classList.add('vh-card-stagger');
       card.style.setProperty('--vh-card-delay',`${i*95}ms`)
@@ -2863,10 +2831,10 @@ document.addEventListener('click',e=>{
 
     document.body.classList.add('vh-contacts-motion');
 
-    const hero=document.querySelector('.service-contacts .service-hero-grid');
+    const hero=vhSystemMotionTarget(document.querySelector('.service-contacts .service-hero-grid'));
     if(hero){
-      hero.classList.add('vh-page-hero-enter');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>hero.classList.add('is-entered')))
+      const projected=hero.classList.contains('vh-cms-composition');hero.classList.add(projected?'vh-page-reveal':'vh-page-hero-enter');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>hero.classList.add(projected?'is-visible':'is-entered')))
     }
 
     revealGroup([
@@ -2874,7 +2842,7 @@ document.addEventListener('click',e=>{
       '.service-contacts .contacts-topics .wrap'
     ],'vh-contacts-motion');
 
-    const lines=[...document.querySelectorAll('.service-contacts .contact-line')];
+    const lines=[...document.querySelectorAll('.service-contacts .contact-line')].filter(node=>vhSystemMotionTarget(node)===node);
     lines.forEach((line,i)=>{
       line.classList.add('vh-contact-stagger');
       line.style.setProperty('--vh-contact-delay',`${i*75}ms`)
@@ -2893,15 +2861,16 @@ document.addEventListener('click',e=>{
   }
 
   function init(){
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
     initJournalMotion();
     initDeliveryMotion();
     initContactsMotion()
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',init,{once:true})
+    document.addEventListener('DOMContentLoaded',()=>vhWhenPageVisible(init),{once:true})
   }else{
-    init()
+    vhWhenPageVisible(init)
   }
 })();
 

@@ -14,3 +14,11 @@ body.vh-home-motion .hero-media.vh-hero-entrance.is-entered :is(.hero-main,.hero
 /* Old HERO revisions can carry a whole-section slide. Keep their fade without shifting the page. */
 body.home-page>.hero:is([data-vh-motion=fade-left],[data-vh-motion=fade-right],.cms-animation-fade-left,.cms-animation-fade-right){animation-name:vhHeroEntryFade!important}
 @keyframes vhHeroEntryFade{from{opacity:0}to{opacity:1}}
+
+/* CMS keyframes must not finish behind the startup mask or branded intro. */
+html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status) *,html.vh-intro-active body.vh-intro-active>:not(.vh-intro),html.vh-intro-active body.vh-intro-active>:not(.vh-intro) *{animation-play-state:paused!important}
+.vh-cms-system-hero>.vh-cms-photo{animation:vhReadyHeroPhoto 1.1s ease-out both}
+.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:vhReadyHeroCopy .85s ease-out both}
+@keyframes vhReadyHeroPhoto{from{opacity:.4;filter:brightness(.9)}to{opacity:1;filter:brightness(1)}}
+@keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
