@@ -4,6 +4,8 @@ on:
     paths:
       - 'admin/**'
       - 'cms-model.js'
+      - 'cms-boot.*'
+      - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
       - 'site.js'
       - '*.html'
@@ -23,6 +25,8 @@ jobs:
       - name: Validate runtime and recovery
         run: |
           node --check cms-model.js
+          node --check cms-boot.js
+          node scripts/sync-cms-boot.cjs --check
           node --check cms-published.js
           node --check admin/cms-builder.js
           node --check admin/cms-studio.js
@@ -47,3 +51,4 @@ jobs:
           node tests/cms-block-isolation.cjs
           node tests/cms-text-columns.cjs
           node tests/cms-button-appearance.cjs
+          node tests/cms-first-paint.cjs

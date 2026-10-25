@@ -1,5 +1,27 @@
 <!doctype html><html lang="uk"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><!-- vh-cms-boot:start --><style>html.vh-cms-booting{background:#0d0c09!important}
+html.vh-cms-booting body>:not(#vh-cms-load-status){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+html.vh-cms-booting body::before,html.vh-cms-booting body::after{display:none!important}
+#vh-cms-load-status{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:16px!important;padding:24px!important;background:#0d0c09!important;color:#eee3d6!important;opacity:1!important;visibility:visible!important;font:14px/1.6 Arial,sans-serif!important;text-align:center!important;box-sizing:border-box!important}
+#vh-cms-load-status p{margin:0!important;color:inherit!important}
+#vh-cms-load-status button{padding:12px 20px!important;border:1px solid #b7956d!important;background:transparent!important;color:#eee3d6!important;cursor:pointer!important;font:inherit!important}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
+(()=>{'use strict';
+ const root=document.documentElement;let state='pending',timer,status;
+ const start=()=>{clearTimeout(timer);timer=setTimeout(()=>fail(),25000)};
+ function paint(){
+  if(!document.body)return;
+  if(state==='ready'){status?.remove();status=null;return}
+  if(!status){status=document.createElement('div');status.id='vh-cms-load-status';document.body.append(status)}
+  status.replaceChildren();status.setAttribute('role',state==='error'?'alert':'status');status.setAttribute('aria-live','polite');
+  const message=document.createElement('p');message.textContent=state==='error'?'Не вдалося завантажити сторінку. Спробуйте ще раз.':'Завантаження сторінки…';status.append(message);
+  if(state==='error'){const retry=document.createElement('button');retry.type='button';retry.textContent='Спробувати ще раз';retry.onclick=()=>location.reload();status.append(retry)}
+ }
+ function hold(){state='pending';root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;start();paint()}
+ function ready(){state='ready';clearTimeout(timer);root.dataset.vhCmsLoad=state;paint();root.classList.remove('vh-cms-booting')}
+ function fail(){state='error';clearTimeout(timer);root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;paint()}
+ window.VHCMSBoot={hold,ready,fail,get state(){return state}};
+ hold();document.addEventListener('DOMContentLoaded',paint,{once:true});
+})();</script><!-- vh-cms-boot:end --><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -116,7 +138,7 @@
     </div>
   </div>
 </footer><div id="toast" class="toast"></div>
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=152"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=281"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
 <script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
@@ -132,4 +154,4 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.setAttribute('aria-expanded','false');
   }));
 });
-</script><script defer src="cms-model.js?v=4"></script><script defer src="cms-published.js?v=165"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+</script><script defer src="cms-model.js?v=4"></script><script defer src="cms-published.js?v=166"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>

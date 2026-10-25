@@ -3,15 +3,15 @@
 if(!window.VHCMSModel||window.VHCMSModel.version!==4){
  const source=document.currentScript?.src||document.baseURI;
  try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=4',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
- catch(error){console.warn('CMS model could not load',error);document.documentElement.classList.remove('vh-cms-booting');return;}
+ catch(error){console.warn('CMS model could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 }
 
 const map={'index.html':'home','catalog.html':'catalog','capsule.html':'capsules','about.html':'about','journal.html':'journal','delivery.html':'delivery','contacts.html':'contacts'};
 const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)&&!!document.querySelector('meta[name="vh-static-canonical"]');
 const page=isCatalogSeoSnapshot?'catalog':map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
 const isEditorPreview=window.parent!==window&&new URLSearchParams(location.search).get('cms-preview')==='1';
-const config=window.VH_CONFIG;if(!config||!window.supabase){document.documentElement.classList.remove('vh-cms-booting');return;}
-const db=window.supabase.createClient(config.supabaseUrl,config.supabaseKey);
+const config=window.VH_CONFIG;if(!config||!window.supabase){window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
+const db=window.supabase.createClient(config.supabaseUrl,config.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const safeHtml=html=>window.VHCMSModel.clean(html);
 function fields(section){return window.VHCMSModel.fields(section,page)}
 function sections(){return window.VHCMSModel.sections(document,page)}
@@ -337,32 +337,49 @@ const publishedCacheKey='vh-published-cache-v1-'+page;
 const homeCacheKey='vh-published-cache-v1-home-shell';
 function readPublishedCache(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
 function writePublishedCache(key,value){if(!value)return;try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+const sourceEvents={catalog:['__VH_CATALOG_RENDER_DONE','vh:catalog-rendered'],home:['__VH_HOME_RENDER_DONE','vh:home-rendered'],capsules:['__VH_CAPSULES_RENDER_DONE','vh:capsules-rendered'],journal:['__VH_JOURNAL_RENDER_DONE','vh:journal-rendered'],about:['__VH_ABOUT_SETTINGS_READY','vh:about-settings-ready'],delivery:['__VH_DELIVERY_RENDER_DONE','vh:service-rendered'],contacts:['__VH_CONTACTS_RENDER_DONE','vh:service-rendered']};
+const sourceReady=()=>!sourceEvents[page]||!!window[sourceEvents[page][0]];
+window.__VH_SOURCE_READY=sourceReady;
+function bounded(promise,message,ms=12000){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error(message)),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},error=>{clearTimeout(timer);reject(error)})})}
+function waitForSource(){
+ if(sourceReady())return Promise.resolve();
+ return new Promise((resolve,reject)=>{const event=sourceEvents[page][1];const done=()=>{if(!sourceReady())return;clearTimeout(timer);window.removeEventListener(event,done);resolve()};const timer=setTimeout(()=>{window.removeEventListener(event,done);reject(Error('Source content did not finish loading'))},12000);window.addEventListener(event,done);done()});
+}
+let currentRevision=null,currentShell=null;
+function applyCurrent(){
+ if(!sourceReady())return;
+ try{if(currentRevision&&!isEditorPreview){apply(currentRevision);window.__VH_CMS_CURRENT_REVISION=currentRevision}if(currentShell?.shared)shell(currentShell.shared);if(!isEditorPreview&&window.__VH_PUBLISHED_READY&&!window.__VH_PUBLICATION_ERROR)window.VHCMSBoot?.ready()}
+ catch(error){window.__VH_PUBLICATION_ERROR=true;window.VHCMSBoot?.fail();console.warn('CMS reapply failed',error)}
+}
+for(const event of new Set(['vh:service-rendered',...Object.values(sourceEvents).map(value=>value[1])]))window.addEventListener(event,applyCurrent);
 async function fetchPublished(key){
- const {data,error}=await db.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','published').maybeSingle();
+ const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
  if(error)throw error;return data;
 }
-async function run(){try{
- const [pageResult,homeResult]=await Promise.allSettled([fetchPublished(page),fetchPublished('home')]);
- let data=pageResult.status==='fulfilled'?pageResult.value:null;
- let home=homeResult.status==='fulfilled'?homeResult.value:null;
- if(data)writePublishedCache(publishedCacheKey,data);
- else data=readPublishedCache(publishedCacheKey);
- if(home)writePublishedCache(homeCacheKey,home);
- else home=readPublishedCache(homeCacheKey);
- if(pageResult.status==='rejected')console.warn('CMS using last published page snapshot',pageResult.reason);
- if(homeResult.status==='rejected')console.warn('CMS using last published shared snapshot',homeResult.reason);
-if(page==='capsules'&&!window.__VH_CAPSULES_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:capsules-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='home'&&!window.__VH_HOME_RENDER_DONE){await Promise.race([new Promise(resolve=>window.addEventListener('vh:home-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);}if(page==='journal'&&!window.__VH_JOURNAL_RENDER_DONE){
- await Promise.race([new Promise(resolve=>window.addEventListener('vh:journal-rendered',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,5000))]);
+async function run(){
+ let success=false;
+ try{
+  const pageRequest=fetchPublished(page),homeRequest=page==='home'?pageRequest:fetchPublished('home');
+  const [pageResult,homeResult]=await Promise.allSettled([pageRequest,homeRequest]);
+  // A successful null response means no publication. Cache is only a network-error fallback.
+  const data=pageResult.status==='fulfilled'?pageResult.value:readPublishedCache(publishedCacheKey);
+  const home=page==='home'?data:homeResult.status==='fulfilled'?homeResult.value:readPublishedCache(homeCacheKey);
+  if(pageResult.status==='rejected'&&!data)throw pageResult.reason;
+  if(homeResult.status==='rejected'&&!home)throw homeResult.reason;
+  await waitForSource();
+  if(page==='about'&&!data&&!isEditorPreview)document.documentElement.classList.add('vh-cms-no-publication');
+  currentRevision=data;currentShell=home;
+  if(data&&!isEditorPreview){apply(data);window.__VH_CMS_CURRENT_REVISION=data}
+  if(home?.shared)shell(home.shared);
+  if(pageResult.status==='fulfilled'){if(data)writePublishedCache(publishedCacheKey,data);else try{localStorage.removeItem(publishedCacheKey)}catch{}}
+  if(homeResult.status==='fulfilled'){if(home)writePublishedCache(homeCacheKey,home);else try{localStorage.removeItem(homeCacheKey)}catch{}}
+  success=true;window.__VH_PUBLICATION_ERROR=false;
+ }catch(error){window.__VH_PUBLICATION_ERROR=true;console.warn('CMS published content failed',error);window.VHCMSBoot?.fail()}
+ finally{
+  window.__VH_PUBLISHED_READY=true;window.dispatchEvent(new Event('vh:published-ready'));
+  // The iframe remains masked until the editor has applied its own draft.
+  if(success&&!isEditorPreview){if(window.VHCMSBoot)window.VHCMSBoot.ready();else document.documentElement.classList.remove('vh-cms-booting')}
+ }
 }
-if(page==='about'&&!window.__VH_ABOUT_SETTINGS_READY){await Promise.race([new Promise(resolve=>window.addEventListener('vh:about-settings-ready',resolve,{once:true})),new Promise(resolve=>setTimeout(resolve,8000))]);}
-if(page==='about'&&!data&&!isEditorPreview)document.documentElement.classList.add('vh-cms-no-publication');
-if(data&&!isEditorPreview){apply(data);window.__VH_CMS_CURRENT_REVISION=data;
- // Some storefront scripts replace the original hero markup after CMS runs.
- // Reapply the same published revision when their render completes.
- window.addEventListener('vh:service-rendered',()=>apply(data));
- const eventName=page==='home'?'vh:home-rendered':page==='capsules'?'vh:capsules-rendered':page==='journal'?'vh:journal-rendered':null;
- if(eventName)window.addEventListener(eventName,()=>{try{apply(data)}catch(err){console.warn('CMS hero reapply failed',err)}},{once:true});
- }if(home?.shared)shell(home.shared)}catch(e){console.warn('CMS published content failed',e);if(page==='about')document.documentElement.classList.add('vh-cms-no-publication')}finally{window.__VH_PUBLISHED_READY=true;window.dispatchEvent(new Event('vh:published-ready'));document.documentElement.classList.remove('vh-cms-booting')}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
-

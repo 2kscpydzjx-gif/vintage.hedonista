@@ -402,7 +402,7 @@ async function initCatalog(){
  buildCatalogFilters();
  bindCatalogControls();
  applyCatalog(true)
- void renderCatalogEditorial();
+ await renderCatalogEditorial();
 }
 
 
@@ -3465,4 +3465,13 @@ async function vhSendOrderEmailV211(orderId,type='created'){
   }else{
     initV239DrawerNavigation();
   }
+})();
+
+/* CMS applies the final revision only after each legacy initializer has completed. */
+(()=>{const wrap=(fn,flag,event)=>async function(...args){window[flag]=false;window.VHCMSBoot?.hold();try{const result=await fn.apply(this,args);if(!window[flag]){window[flag]=true;window.dispatchEvent(new Event(event))}return result}catch(error){window.VHCMSBoot?.fail();throw error}};
+ initCatalog=wrap(initCatalog,'__VH_CATALOG_RENDER_DONE','vh:catalog-rendered');
+ initHome=wrap(initHome,'__VH_HOME_RENDER_DONE','vh:home-rendered');
+ initJournal=wrap(initJournal,'__VH_JOURNAL_RENDER_DONE','vh:journal-rendered');
+ initDeliveryPage=wrap(initDeliveryPage,'__VH_DELIVERY_RENDER_DONE','vh:service-rendered');
+ initContactsPage=wrap(initContactsPage,'__VH_CONTACTS_RENDER_DONE','vh:service-rendered');
 })();

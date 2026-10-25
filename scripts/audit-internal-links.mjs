@@ -19,7 +19,7 @@ for(const url of sources){
   const html=readFileSync(file,'utf8');
   for(const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi)){
     try{
-      const target=new URL(match[1],html.match(/<base\b[^>]*href=["']([^"']+)["']/i)?.[1]||url).href;
+      const target=new URL(match[1],new URL(html.match(/<base\b[^>]*href=["']([^"']+)["']/i)?.[1]||url,url)).href;
       if(!links.has(target))links.set(target,new Set());
       links.get(target).add(url);
     }catch{}

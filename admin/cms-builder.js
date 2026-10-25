@@ -625,7 +625,7 @@ window.VHCMSViewport={setDevice:device=>{cmsPreviewDeviceWidth={desktop:1440,tab
 window.addEventListener('resize',resizeDesktopPreview);
 requestAnimationFrame(resizeDesktopPreview);
 function scheduleLivePreview(){clearTimeout(liveTimer);liveTimer=setTimeout(updateLivePreview,180)}
-function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));if(pageId==='home')frame.style.visibility='hidden';frame.src='../'+p.url+'?cms-preview=1';}
+function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));frame.style.visibility='hidden';frame.src='../'+p.url+'?cms-preview=1';}
 // STEP 58: isolated drafts for text edits to existing rendered sections.
 let selectedExisting=null;
 const existingKey=()=> 'vh-cms-existing-step65-'+pageId;
@@ -1077,7 +1077,7 @@ function watchPreviewDom(doc){
 }
 function updateLivePreview(){
  if(frame.contentDocument?.querySelector('[data-vh-button-captured]')){scheduleLivePreview();return}
- let viewState=null;try{const doc=frame.contentDocument,win=doc?.defaultView;if(livePage===pageId&&doc?.readyState!=='loading'){const visible=[...doc.querySelectorAll('[data-cms-section],.vh-cms-injected-unit')].find(node=>{const r=node.getBoundingClientRect();return r.bottom>0&&r.top<win.innerHeight});viewState={doc,y:win.scrollY,x:win.scrollX,key:visible?.dataset.cmsLegacy||visible?.dataset.cmsId,top:visible?.getBoundingClientRect().top};}}catch{}
+ let updateOK=false;let viewState=null;try{const doc=frame.contentDocument,win=doc?.defaultView;if(livePage===pageId&&doc?.readyState!=='loading'){const visible=[...doc.querySelectorAll('[data-cms-section],.vh-cms-injected-unit')].find(node=>{const r=node.getBoundingClientRect();return r.bottom>0&&r.top<win.innerHeight});viewState={doc,y:win.scrollY,x:win.scrollX,key:visible?.dataset.cmsLegacy||visible?.dataset.cmsId,top:visible?.getBoundingClientRect().top};}}catch{}
  disconnectPreviewObserver();
  try{
   const doc=frame.contentDocument;
@@ -1087,8 +1087,9 @@ function updateLivePreview(){
   const drafts=readExisting();for(const target of sectionTargets){const edit=drafts[target.id]||{};window.VHCMSModel.applyFieldStyles(target.el,edit.fieldStyles,pageId);window.VHCMSModel.applyMediaSettings(target.el,edit,pageId);window.VHCMSModel.applyButtonSettings(target.el,edit.buttonSettings,pageId);window.VHCMSModel.motion(target.el,edit.animation,edit.duration)}
   for(const b of blocks){const unit=[...frame.contentDocument.querySelectorAll('.vh-cms-injected-unit')].find(el=>el.dataset.cmsId===b.id);const card=unit?.firstElementChild;if(card){window.VHCMSModel.applyDesign(card,b.design,pageId,{layoutImages:{0:b.image,...b.images},mediaSettings:b.mediaSettings,mediaKeys:['photo:0','photo:1','photo:2']});window.VHCMSModel.motion(card,actualAnimation(b.animation),b.duration)}}
 
+ updateOK=true;
  }finally{
-  try{const doc=frame.contentDocument;if(viewState?.doc===doc){const anchor=[...doc.querySelectorAll('[data-cms-section],.vh-cms-injected-unit')].find(node=>(node.dataset.cmsLegacy||node.dataset.cmsId)===viewState.key);const y=anchor&&viewState.top!=null?doc.defaultView.scrollY+anchor.getBoundingClientRect().top-viewState.top:viewState.y;doc.defaultView.scrollTo(viewState.x,Math.max(0,y));}if(doc?.readyState!=='loading')watchPreviewDom(doc);for(const host of [$('existingEditor'),$('editorFields')]){host._cmsPhotoEditor?.refresh();host._cmsButtonEditor?.refresh()}}catch{}
+  try{const doc=frame.contentDocument;if(updateOK&&doc?.defaultView.__VH_PUBLISHED_READY&&!doc.defaultView.__VH_PUBLICATION_ERROR&&doc.defaultView.__VH_SOURCE_READY?.()&&revisionTokens.has(pageId==='shared'?'home':pageId))doc.defaultView.VHCMSBoot?.ready();if(viewState?.doc===doc){const anchor=[...doc.querySelectorAll('[data-cms-section],.vh-cms-injected-unit')].find(node=>(node.dataset.cmsLegacy||node.dataset.cmsId)===viewState.key);const y=anchor&&viewState.top!=null?doc.defaultView.scrollY+anchor.getBoundingClientRect().top-viewState.top:viewState.y;doc.defaultView.scrollTo(viewState.x,Math.max(0,y));}if(doc?.readyState!=='loading')watchPreviewDom(doc);for(const host of [$('existingEditor'),$('editorFields')]){host._cmsPhotoEditor?.refresh();host._cmsButtonEditor?.refresh()}}catch{}
 
  }
 }
@@ -1124,7 +1125,7 @@ frame.addEventListener('load',()=>{
  const loadedPage=pageId;
  const start=()=>{
   if(pageId!==loadedPage||frame.contentDocument!==doc)return;
-  try{installPreviewLinks(doc);applySharedPreview(doc);if(loadedPage==='shared')renderSharedEditor();detectSections(doc);reconcileAfterFrameLoad();if(loadedPage==='home'){updateLivePreview();requestAnimationFrame(()=>{if(pageId===loadedPage&&frame.contentDocument===doc)frame.style.visibility='visible'})}else frame.style.visibility='visible'}
+  try{installPreviewLinks(doc);applySharedPreview(doc);if(loadedPage==='shared')renderSharedEditor();detectSections(doc);reconcileAfterFrameLoad();updateLivePreview();requestAnimationFrame(()=>{if(pageId===loadedPage&&frame.contentDocument===doc)frame.style.visibility='visible'})}
   catch(e){frame.style.visibility='visible';$('status').textContent='Не вдалося відкрити перегляд: '+e.message}
  };
  if(!doc.defaultView?.__VH_PUBLISHED_READY){
