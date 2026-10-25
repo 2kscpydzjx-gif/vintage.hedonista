@@ -200,11 +200,12 @@
   if(color(value.textColor))set('color',value.textColor);
   if(color(value.borderColor)){set('border-color',value.borderColor);set('border-style','solid')}
   for(const [key,property,min,max] of [['fontSize','font-size',8,48],['radius','border-radius',0,100],['borderWidth','border-width',0,10]])if(value[key]!=null)set(property,clamp(value[key],min,max,min)+'px');
-  if(value.borderWidth!=null) set('border-style','solid');
+  if(value.fontSize!=null)set('line-height','1.2');
+  if(value.borderWidth!=null)set('border-style','solid');
   if(value.paddingX!=null)for(const side of ['left','right'])set('padding-'+side,clamp(value.paddingX,0,80,16)+'px');
   if(value.paddingY!=null)for(const side of ['top','bottom'])set('padding-'+side,clamp(value.paddingY,0,80,10)+'px');
-  if(value.width!=null){set('width',clamp(value.width,40,800,160)+'px');set('min-width','0');set('max-width','100%')}
-  if(value.height!=null){set('height',clamp(value.height,24,200,44)+'px');set('min-height','0')}
+  if(value.width==='auto'){set('width','fit-content');set('min-width','0');set('max-width','100%')}else if(value.width!=null){set('width',clamp(value.width,40,800,160)+'px');set('min-width','0');set('max-width','100%')}
+  if(value.height==='auto'){set('height','auto');set('min-height','0')}else if(value.height!=null){set('height',clamp(value.height,24,200,44)+'px');set('min-height','0')}
   if(palette||['width','height','paddingX','paddingY','fontSize','radius','backgroundColor','textColor','borderColor','borderWidth'].some(key=>value[key]!=null)){
    set('box-sizing','border-box');set('display','inline-flex');set('align-items','center');set('justify-content','center');
   }

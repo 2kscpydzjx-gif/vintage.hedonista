@@ -28,8 +28,8 @@
    row.append(label,range,number);styleFields.append(row);dimensions[key]={row,range,number,fallback,min,max};return row;
   }
   const sizes={};for(const [key,title,min,max,fallback] of [['width','Ширина',40,800,160],['height','Висота',24,200,44]]){
-   const sizeMode=make('select');sizeMode.setAttribute('aria-label',title+' кнопки: режим');sizeMode.append(new Option(title+' · за вмістом','auto'),new Option(title+' · точна','fixed'));styleFields.append(sizeMode);
-   dimension(key,title,min,max,fallback);sizes[key]=sizeMode;sizeMode.onchange=()=>save({[key]:sizeMode.value==='auto'?null:Math.max(min,Math.min(max,Number(dimensions[key].number.value)||fallback))});
+   const sizeMode=make('select');sizeMode.setAttribute('aria-label',title+' кнопки: режим');sizeMode.append(new Option(title+' · як в оригіналі','original'),new Option(title+' · за вмістом','auto'),new Option(title+' · точна','fixed'));styleFields.append(sizeMode);
+   dimension(key,title,min,max,fallback);sizes[key]=sizeMode;sizeMode.onchange=()=>save({[key]:sizeMode.value==='original'?null:sizeMode.value==='auto'?'auto':Math.max(min,Math.min(max,Number(dimensions[key].number.value)||fallback))});
   }
   dimension('fontSize','Текст',8,48,12);dimension('paddingX','Відступи з боків',0,80,16);dimension('paddingY','Відступи згори/знизу',0,80,10);dimension('radius','Заокруглення',0,100,0);dimension('borderWidth','Товщина рамки',0,10,1);
   const colors={};for(const [key,title,fallback] of [['backgroundColor','Тло','#0d0c09'],['textColor','Колір тексту','#eee1ce'],['borderColor','Колір рамки','#b7956d']]){
@@ -40,7 +40,7 @@
   const asHex=(color,fallback)=>{if(/^#[a-f0-9]{6}$/i.test(color||''))return color;const rgb=String(color||'').match(/[\d.]+/g);if(!rgb||rgb.length<3)return fallback;return '#'+rgb.slice(0,3).map(n=>Math.max(0,Math.min(255,Math.round(Number(n)))).toString(16).padStart(2,'0')).join('')};
   function paintStyle(){
    const current=value(),computed=metrics();appearance.value=current.appearance||'original';
-   for(const [key,control] of Object.entries(dimensions)){const v=Math.max(control.min,Math.min(control.max,current[key]??computed[key]??control.fallback));for(const input of [control.range,control.number])if(document.activeElement!==input)input.value=Math.round(v);if(sizes[key]){sizes[key].value=current[key]==null?'auto':'fixed';control.row.hidden=current[key]==null}}
+   for(const [key,control] of Object.entries(dimensions)){const specified=current[key]!=null&&current[key]!=='auto'?current[key]:computed[key]??control.fallback;const v=Math.max(control.min,Math.min(control.max,specified));for(const input of [control.range,control.number])if(document.activeElement!==input)input.value=Math.round(v);if(sizes[key]){sizes[key].value=current[key]==null?'original':current[key]==='auto'?'auto':'fixed';control.row.hidden=current[key]==null||current[key]==='auto'}}
    for(const [key,control] of Object.entries(colors))if(document.activeElement!==control.input)control.input.value=asHex(current[key]??computed[key],control.fallback);transparent.checked=current.backgroundColor==='transparent'||(!current.backgroundColor&&computed.backgroundColor==='rgba(0, 0, 0, 0)');
   }
   const dragButton=make('button','secondary','Перемістити у перегляді'),reset=make('button','secondary','Повернути на початкове місце');dragButton.type=reset.type='button';
