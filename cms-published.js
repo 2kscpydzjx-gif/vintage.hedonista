@@ -1,8 +1,8 @@
 (async()=>{'use strict';
 // Cached HTML from before the shared model was introduced can still load this runtime.
-if(!window.VHCMSModel||window.VHCMSModel.version!==5){
+if(!window.VHCMSModel||window.VHCMSModel.version!==6){
  const source=document.currentScript?.src||document.baseURI;
- try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=5',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
+ try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=6',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
  catch(error){console.warn('CMS model could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 }
 

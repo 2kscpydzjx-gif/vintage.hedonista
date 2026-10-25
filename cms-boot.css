@@ -22,3 +22,8 @@ html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-bo
 @keyframes vhReadyHeroPhoto{from{opacity:.4;filter:brightness(.9)}to{opacity:1;filter:brightness(1)}}
 @keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
+
+/* Entry motion is armed only on visible Journal/service content; base layout is unchanged. */
+body:is(.vh-journal-motion,.vh-delivery-motion,.vh-contacts-motion) [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
+body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
+@media(prefers-reduced-motion:reduce){body [data-vh-page-entry]{opacity:1!important;transform:none!important;filter:none!important}}

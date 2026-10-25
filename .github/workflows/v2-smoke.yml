@@ -54,3 +54,4 @@ jobs:
           node tests/cms-first-paint.cjs
           node tests/cms-entry-experience.cjs
           node tests/cms-visible-motion.cjs
+          node tests/cms-page-choreography.cjs

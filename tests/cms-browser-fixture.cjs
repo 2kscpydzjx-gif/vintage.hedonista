@@ -6,7 +6,7 @@ const sdk=`(()=>{
 })()`;
 async function fixture(){
  const browser=await chromium.launch({headless:true,...(fs.existsSync('/usr/bin/chromium')?{executablePath:'/usr/bin/chromium',args:['--no-sandbox']}: {})});
- const context=await browser.newContext({viewport:{width:1560,height:1000}}),records=new Map(),calls=[],errors=[];
+ const context=await browser.newContext({viewport:{width:1560,height:1000}}),records=new Map(),calls=[],errors=[],tables=new Map();
  const settings={id:1,hero_title:'LEGACY SETTINGS TITLE',contacts_page_title:'LEGACY CONTACTS',delivery_page_title:'LEGACY DELIVERY'};
  let delay=0,failWrite=false,failRead=false,uploadDelay=0,contentDelay=0;
  const set=(page,status,value)=>records.set(page+':'+status,{page_key:page,revision_status:status,blocks:[],shared:{},updated_at:'2026-10-24T12:00:00.000Z',...structuredClone(value)});
@@ -15,7 +15,7 @@ async function fixture(){
   calls.push(structuredClone(input));
   if(input.op==='upload'){if(uploadDelay)await new Promise(r=>setTimeout(r,uploadDelay));return {error:null}}
   if(input.table==='site_settings')return {data:structuredClone(settings),error:null};
-  if(input.table!=='vh_page_revisions'){if(contentDelay)await new Promise(r=>setTimeout(r,contentDelay));return {data:input.single?null:[],error:null,count:0}};
+  if(input.table!=='vh_page_revisions'){if(contentDelay)await new Promise(r=>setTimeout(r,contentDelay));const rows=structuredClone(tables.get(input.table)||[]).filter(row=>(input.filters||[]).every(([key,value])=>row[key]===value));return {data:input.single?rows[0]||null:rows,error:null,count:rows.length}};
   const filters=input.filters||[],matches=row=>filters.every(([k,v])=>row[k]===v);
   if(input.op==='select'){if(failRead)return {data:null,error:{message:'Simulated publication read failure'}};const found=[...records.values()].filter(matches).map(x=>structuredClone(x));if(delay)await new Promise(r=>setTimeout(r,delay));return {data:input.single?found[0]||null:found,error:null}}
   if(failWrite)return {data:null,error:{message:'Simulated server write failure'}};
@@ -35,6 +35,6 @@ async function fixture(){
   return route.abort();
  });
  context.on('page',page=>page.on('pageerror',e=>errors.push(e.message)));
- return {browser,context,records,calls,errors,set,png,settings:value=>Object.assign(settings,value),delay:v=>delay=v,failWrite:v=>failWrite=v,failRead:v=>failRead=v,contentDelay:v=>contentDelay=v,uploadDelay:v=>uploadDelay=v};
+ return {browser,context,records,calls,errors,set,png,data:(table,rows)=>tables.set(table,structuredClone(rows)),settings:value=>Object.assign(settings,value),delay:v=>delay=v,failWrite:v=>failWrite=v,failRead:v=>failRead=v,contentDelay:v=>contentDelay=v,uploadDelay:v=>uploadDelay=v};
 }
 module.exports={fixture};

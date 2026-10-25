@@ -22,7 +22,12 @@ html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-bo
 .vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:vhReadyHeroCopy .85s ease-out both}
 @keyframes vhReadyHeroPhoto{from{opacity:.4;filter:brightness(.9)}to{opacity:1;filter:brightness(1)}}
 @keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-@media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
+@media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
+
+/* Entry motion is armed only on visible Journal/service content; base layout is unchanged. */
+body:is(.vh-journal-motion,.vh-delivery-motion,.vh-contacts-motion) [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
+body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
+@media(prefers-reduced-motion:reduce){body [data-vh-page-entry]{opacity:1!important;transform:none!important;filter:none!important}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
 (()=>{'use strict';
  const root=document.documentElement;let state='pending',timer,status;const visibleJobs=[];
  const start=()=>{clearTimeout(timer);timer=setTimeout(()=>fail(),25000)};
@@ -173,7 +178,7 @@ html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-bo
       </a>
     </div>
   </div>
-</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=283"></script><script>document.addEventListener('DOMContentLoaded',()=>initDeliveryPage())</script><script id="vh-unified-menu-bound-v230">
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=284"></script><script>document.addEventListener('DOMContentLoaded',()=>initDeliveryPage())</script><script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
   const nav=document.querySelector('header .nav');
@@ -188,4 +193,4 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.setAttribute('aria-expanded','false');
   }));
 });
-</script><script defer src="cms-model.js?v=5"></script><script defer src="cms-published.js?v=167"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+</script><script defer src="cms-model.js?v=6"></script><script defer src="cms-published.js?v=168"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
