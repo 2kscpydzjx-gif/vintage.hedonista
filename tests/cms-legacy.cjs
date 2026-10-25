@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const {fixture}=require('./cms-browser-fixture.cjs');
+(async()=>{const f=await fixture();try{
+ const image='http://127.0.0.1:8765/assets/test-upload.png';
+ f.set('home','published',{shared:{headerLogo:'existing-logo.webp',cmsPageDraft:{existing:{'existing-0':{title:'SAVED HERO TITLE',description:'<p>Saved hero description</p>',mapped:{'static:#heroMain:0':image},images:{image0:image},design:{photoPreset:'gradient-hero'},animation:'fade-right'},'existing-2':{title:'SAVED CAPSULE TITLE',description:'<strong>Saved capsule copy</strong>',capsuleImage:image,design:{photoPreset:'right',photoWidth:65,layout:'photo-right',cropDevices:{desktop:{x:35,y:50,zoom:100}}}},'existing-4':{hidden:true}},order:[]}}});
+ f.set('journal','published',{shared:{cmsPageDraft:{existing:{'existing-0':{mapped:{'static:#journalPageTitle:0':'LEGACY JOURNAL ALIAS'}}}}}});
+ const page=await f.context.newPage();await page.goto('http://127.0.0.1:8765/index.html');await page.waitForFunction(()=>window.__VH_PUBLISHED_READY);
+ assert.equal(await page.locator('#heroTitle').textContent(),'SAVED HERO TITLE');assert.match(await page.locator('#heroDescription').textContent(),/Saved hero description/);assert.equal(await page.locator('.hero.vh-existing-gradient-hero').count(),1);assert.equal(await page.locator('#homeCapsulesTitle').textContent(),'SAVED CAPSULE TITLE');assert.equal(await page.locator('[data-cms-legacy="existing-4"]').evaluate(el=>getComputedStyle(el).display),'none');
+ await page.evaluate(({image})=>{const section=document.querySelector('[data-cms-legacy="existing-0"]');window.VHCMSModel.applyDesign(section,{layoutVersion:1,photoPreset:'text-top'},'home',{title:'SAVED HERO TITLE',description:'<p>Saved hero description</p>',mapped:{'static:#heroMain:0':image},customButtons:[{label:'Preserved action',url:'catalog.html'}]})},{image});
+ assert.match(await page.locator('.hero .vh-cms-copy').textContent(),/SAVED HERO TITLE/);assert.match(await page.locator('.hero .vh-cms-copy').textContent(),/Saved hero description/);
+ await page.goto('http://127.0.0.1:8765/journal.html');await page.waitForFunction(()=>window.__VH_PUBLISHED_READY);assert.equal(await page.locator('#journalPageTitle').textContent(),'LEGACY JOURNAL ALIAS');
+ await f.context.route('**/contacts.html?cached=1',route=>route.fulfill({contentType:'text/html',body:require('node:fs').readFileSync(require('node:path').join(__dirname,'../contacts.html'),'utf8').replace('<script defer src="cms-model.js?v=6"></script>','')}));
+ await page.goto('http://127.0.0.1:8765/contacts.html?cached=1');await page.waitForFunction(()=>window.__VH_PUBLISHED_READY);assert.equal(await page.evaluate(()=>!!window.VHCMSModel),true,'Cached HTML must load its shared model automatically');
+ assert.deepEqual(f.errors,[]);console.log('PASS: legacy titles, descriptions, photos, gradient, capsules, hidden blocks and journal field aliases survive without a data migration.');
+}finally{await f.browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

@@ -1,5 +1,54 @@
 <!doctype html><html lang="uk"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><!-- vh-cms-boot:start --><style>html{scrollbar-gutter:stable}
+html,body{overflow-x:clip!important}
+html.vh-cms-booting{background:#090806!important}
+html.vh-cms-booting body>:not(#vh-cms-load-status):not(.vh-intro){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+html.vh-cms-booting body::before,html.vh-cms-booting body::after{display:none!important}
+#vh-cms-load-status{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:16px!important;padding:24px!important;background:#0d0c09!important;color:#eee3d6!important;opacity:1!important;visibility:visible!important;font:14px/1.6 Arial,sans-serif!important;text-align:center!important;box-sizing:border-box!important}
+#vh-cms-load-status p{margin:0!important;color:inherit!important}
+#vh-cms-load-status button{padding:12px 20px!important;border:1px solid #b7956d!important;background:transparent!important;color:#eee3d6!important;cursor:pointer!important;font:inherit!important}
+
+/* Hero entrance stays vertical; translated photos cannot pull the viewport sideways. */
+body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:translate3d(0,10px,0)!important}
+body.vh-home-motion .hero-media.vh-hero-entrance.is-entered :is(.hero-main,.hero-small){transform:translate3d(0,0,0)!important}
+@media(prefers-reduced-motion:reduce){body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:none!important}}
+/* Old HERO revisions can carry a whole-section slide. Keep their fade without shifting the page. */
+body.home-page>.hero:is([data-vh-motion=fade-left],[data-vh-motion=fade-right],.cms-animation-fade-left,.cms-animation-fade-right){animation-name:vhHeroEntryFade!important}
+@keyframes vhHeroEntryFade{from{opacity:0}to{opacity:1}}
+
+/* CMS keyframes must not finish behind the startup mask or branded intro. */
+html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status) *,html.vh-intro-active body.vh-intro-active>:not(.vh-intro),html.vh-intro-active body.vh-intro-active>:not(.vh-intro) *{animation-play-state:paused!important}
+.vh-cms-system-hero>.vh-cms-photo{animation:vhReadyHeroPhoto 1.1s ease-out both}
+.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:vhReadyHeroCopy .85s ease-out both}
+@keyframes vhReadyHeroPhoto{from{opacity:.4;filter:brightness(.9)}to{opacity:1;filter:brightness(1)}}
+@keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
+
+/* Entry motion is armed only on visible Journal/service content; base layout is unchanged. */
+body:is(.vh-journal-motion,.vh-delivery-motion,.vh-contacts-motion) [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
+body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
+@media(prefers-reduced-motion:reduce){body [data-vh-page-entry]{opacity:1!important;transform:none!important;filter:none!important}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
+(()=>{'use strict';
+ const root=document.documentElement;let state='pending',timer,status;const visibleJobs=[];
+ const start=()=>{clearTimeout(timer);timer=setTimeout(()=>fail(),25000)};
+ function paint(){
+  if(!document.body)return;
+  // The branded intro owns normal startup. Only failures need a status message.
+  if(state!=='error'){status?.remove();status=null;return}
+  if(!status){status=document.createElement('div');status.id='vh-cms-load-status';document.body.append(status)}
+  status.replaceChildren();status.setAttribute('role','alert');status.setAttribute('aria-live','polite');
+  const message=document.createElement('p');message.textContent='Не вдалося завантажити сторінку. Спробуйте ще раз.';status.append(message);
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Спробувати ще раз';retry.onclick=()=>location.reload();status.append(retry);
+ }
+ function flushVisible(){if(state!=='ready'||document.body?.classList.contains('vh-intro-active'))return;while(visibleJobs.length){try{visibleJobs.shift()()}catch(error){console.warn('Entry motion failed',error)}}}
+ function whenVisible(job){visibleJobs.push(job);flushVisible()}
+ document.addEventListener('vh:intro-finished',flushVisible);
+ function hold(){state='pending';root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;start();paint()}
+ function ready(){const changed=state!=='ready';state='ready';clearTimeout(timer);root.dataset.vhCmsLoad=state;paint();flushVisible();root.classList.remove('vh-cms-booting');if(changed)window.dispatchEvent(new Event('vh:cms-ready'))}
+ function fail(){state='error';clearTimeout(timer);root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;paint()}
+ window.VHCMSBoot={hold,ready,fail,whenVisible,get state(){return state}};
+ hold();document.addEventListener('DOMContentLoaded',paint,{once:true});
+})();</script><!-- vh-cms-boot:end --><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -35,7 +84,7 @@
 </button>
 </div></div></header>
 <main class="journal-page journal-v37 paper">
-  <section class="journal-v37-head">
+  <section class="journal-v37-head" data-cms-section="journal-journal-v37-head-0" data-cms-legacy="existing-0">
     <div class="wrap">
       <h1 id="journalPageTitle">HEDONISTA JOURNAL</h1>
       <p id="journalPageSubtitle">Історії про вінтаж, стиль та речі поза часом</p>
@@ -53,16 +102,16 @@
     </div>
   </section>
 
-  <section class="wrap journal-v37-feature-section">
+  <section class="wrap journal-v37-feature-section" data-cms-section="journal-wrap-1" data-cms-legacy="existing-1">
     <div id="journalFeatured"></div>
   </section>
 
-  <section class="wrap journal-v37-new-section">
+  <section class="wrap journal-v37-new-section" data-cms-section="journal-wrap-2" data-cms-legacy="existing-2">
     <div class="journal-v37-line-title"><span id="journalNewTitle">НОВЕ НА САЙТІ</span></div>
     <div id="journalNewGrid" class="journal-v37-new-grid"></div>
   </section>
 
-  <section class="wrap journal-v37-guide-wrap">
+  <section class="wrap journal-v37-guide-wrap" data-cms-section="journal-wrap-3" data-cms-legacy="existing-3">
     <div class="journal-v37-guide-strip">
       <div class="journal-v37-guide-intro">
         <div class="journal-v37-guide-name" id="journalGuideTitle">HEDONISTA<br>GUIDE</div>
@@ -78,7 +127,7 @@
     </div>
   </section>
 
-  <section class="wrap journal-v37-other-section">
+  <section class="wrap journal-v37-other-section" data-cms-section="journal-wrap-4" data-cms-legacy="existing-4">
     <div class="journal-v37-line-title"><span id="journalOtherTitle">ІНШІ ПУБЛІКАЦІЇ</span></div>
     <div id="journalOtherGrid" class="journal-v37-other-grid"></div>
     <div class="journal-v37-more">
@@ -86,7 +135,7 @@
     </div>
   </section>
 
-  <section id="journalCtaSection" class="journal-v37-cta">
+  <section id="journalCtaSection" class="journal-v37-cta" data-cms-section="journal-journalCtaSection-5" data-cms-legacy="existing-5">
     <div class="journal-v37-cta-overlay"></div>
     <div class="journal-v37-cta-copy">
       <h2 id="journalCtaTitle">ЗНАЙШЛИ НАТХНЕННЯ?</h2>
@@ -116,7 +165,7 @@
     </div>
   </div>
 </footer><div id="toast" class="toast"></div>
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=152"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=284"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
 <script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
@@ -132,4 +181,4 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.setAttribute('aria-expanded','false');
   }));
 });
-</script><script defer src="cms-published.js?v=161"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+</script><script defer src="cms-model.js?v=6"></script><script defer src="cms-published.js?v=168"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
