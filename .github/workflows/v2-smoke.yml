@@ -45,3 +45,5 @@ jobs:
           node tests/cms-native-photos.cjs
           node tests/cms-existing-buttons.cjs
           node tests/cms-block-isolation.cjs
+          node tests/cms-text-columns.cjs
+          node tests/cms-button-appearance.cjs
