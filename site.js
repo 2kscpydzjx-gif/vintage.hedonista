@@ -2383,7 +2383,7 @@ document.addEventListener('click',e=>{
    No replay when returning to Home from other site pages.
    ========================================================== */
 (function(){
-  const INTRO_SESSION_KEY='vh_intro_seen_v95';
+  const INTRO_SESSION_KEY='vh_intro_seen_v96';
 
   function isHomePage(){
     const path=(location.pathname||'').replace(/\\/g,'/');
@@ -2410,6 +2410,7 @@ document.addEventListener('click',e=>{
   function shouldRunIntro(){
     if(!isHomePage())return false;
     if(location.pathname.includes('/admin/'))return false;
+    if(window.parent!==window&&new URLSearchParams(location.search).get('cms-preview')==='1')return false;
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return false;
 
     const type=navigationType();
@@ -2453,8 +2454,11 @@ document.addEventListener('click',e=>{
 
     requestAnimationFrame(()=>overlay.classList.add('is-running'));
 
+    let finishRequested=false,leaving=false;
     const finish=()=>{
-      if(!overlay.isConnected)return;
+      finishRequested=true;
+      if(!overlay.isConnected||leaving||(window.VHCMSBoot&&window.VHCMSBoot.state!=='ready'))return;
+      leaving=true;window.removeEventListener('vh:cms-ready',onReady);
       overlay.classList.add('is-leaving');
       setTimeout(()=>{
         overlay.remove();
@@ -2464,6 +2468,8 @@ document.addEventListener('click',e=>{
       },500)
     };
 
+    const onReady=()=>{if(finishRequested)finish()};
+    window.addEventListener('vh:cms-ready',onReady);
     setTimeout(finish,2550);
 
     overlay.addEventListener('click',finish,{once:true});

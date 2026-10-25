@@ -1,6 +1,16 @@
-html.vh-cms-booting{background:#0d0c09!important}
-html.vh-cms-booting body>:not(#vh-cms-load-status){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+html{scrollbar-gutter:stable}
+html,body{overflow-x:clip!important}
+html.vh-cms-booting{background:#090806!important}
+html.vh-cms-booting body>:not(#vh-cms-load-status):not(.vh-intro){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 html.vh-cms-booting body::before,html.vh-cms-booting body::after{display:none!important}
 #vh-cms-load-status{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:16px!important;padding:24px!important;background:#0d0c09!important;color:#eee3d6!important;opacity:1!important;visibility:visible!important;font:14px/1.6 Arial,sans-serif!important;text-align:center!important;box-sizing:border-box!important}
 #vh-cms-load-status p{margin:0!important;color:inherit!important}
 #vh-cms-load-status button{padding:12px 20px!important;border:1px solid #b7956d!important;background:transparent!important;color:#eee3d6!important;cursor:pointer!important;font:inherit!important}
+
+/* Hero entrance stays vertical; translated photos cannot pull the viewport sideways. */
+body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:translate3d(0,10px,0)!important}
+body.vh-home-motion .hero-media.vh-hero-entrance.is-entered :is(.hero-main,.hero-small){transform:translate3d(0,0,0)!important}
+@media(prefers-reduced-motion:reduce){body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:none!important}}
+/* Old HERO revisions can carry a whole-section slide. Keep their fade without shifting the page. */
+body.home-page>.hero:is([data-vh-motion=fade-left],[data-vh-motion=fade-right],.cms-animation-fade-left,.cms-animation-fade-right){animation-name:vhHeroEntryFade!important}
+@keyframes vhHeroEntryFade{from{opacity:0}to{opacity:1}}

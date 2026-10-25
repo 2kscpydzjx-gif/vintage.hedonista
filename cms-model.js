@@ -341,6 +341,16 @@
   for(const b of buttons){const a=section.ownerDocument.createElement('a');a.textContent=String(b.label||'Кнопка');a.href=validLink(b.url)?b.url:'#';a.style.cssText='display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;max-width:100%;text-decoration:none;font:12px Arial,sans-serif;width:'+clamp(b.width,70,500,160)+'px;border:1px solid #b99b7c;background:'+(b.style==='light'?'#eee1ce':'#201811')+';color:'+(b.style==='light'?'#231b16':'#fff');if(b.x!=null&&b.y!=null){holder.style.minHeight='200px';a.style.position='absolute';a.style.left=clamp(b.x,0,100,50)+'%';a.style.top=clamp(b.y,0,100,50)+'%';a.style.transform='translate(-50%,-50%)'}else if(b.position==='center')a.style.margin='0 auto';else if(b.position==='right')a.style.marginLeft='auto';holder.append(a)}
   const copy=section.querySelector('.vh-cms-composition>.vh-cms-copy');(copy||section).append(holder);
  }
+ function applyLogo(image,value){
+  if(!image||typeof value!=='string')return;
+  if(!image.dataset.vhLogoDefault)image.dataset.vhLogoDefault=image.getAttribute('src')||'assets/vintage-hedonista-logo-v257.webp';
+  if(value==='__removed__'){image.style.visibility='hidden';return}
+  const source=value.trim()||image.dataset.vhLogoDefault;
+  image.style.removeProperty('visibility');
+  if(image.getAttribute('src')===source)return;
+  image.onerror=()=>{if(image.getAttribute('src')!==source)return;image.onerror=null;image.src=image.dataset.vhLogoDefault;image.style.removeProperty('visibility')};
+  image.src=source;
+ }
  function motion(section,animation,duration){installStyles(section.ownerDocument);if(!animation||animation==='system'){section.style.removeProperty('animation');section.removeAttribute('data-vh-motion');return;}const names={'fade-up':'vhUnifiedUp','fade-left':'vhUnifiedLeft','fade-right':'vhUnifiedRight',fade:'vhUnifiedFade',zoom:'vhUnifiedZoom'};if(animation==='none'){section.style.setProperty('animation','none','important');section.removeAttribute('data-vh-motion')}else if(names[animation]){section.style.removeProperty('animation');section.dataset.vhMotion=animation;section.style.setProperty('--vh-motion-name',names[animation]);section.style.setProperty('--vh-motion-duration',clamp(duration,200,1500,650)+'ms')}}
- window.VHCMSModel={version:4,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
+ window.VHCMSModel={version:5,applyLogo,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
 })();

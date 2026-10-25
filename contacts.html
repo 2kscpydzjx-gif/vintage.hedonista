@@ -1,23 +1,34 @@
 <!doctype html><html lang="uk"><head>
-<meta charset="utf-8"><!-- vh-cms-boot:start --><style>html.vh-cms-booting{background:#0d0c09!important}
-html.vh-cms-booting body>:not(#vh-cms-load-status){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+<meta charset="utf-8"><!-- vh-cms-boot:start --><style>html{scrollbar-gutter:stable}
+html,body{overflow-x:clip!important}
+html.vh-cms-booting{background:#090806!important}
+html.vh-cms-booting body>:not(#vh-cms-load-status):not(.vh-intro){opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 html.vh-cms-booting body::before,html.vh-cms-booting body::after{display:none!important}
 #vh-cms-load-status{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:16px!important;padding:24px!important;background:#0d0c09!important;color:#eee3d6!important;opacity:1!important;visibility:visible!important;font:14px/1.6 Arial,sans-serif!important;text-align:center!important;box-sizing:border-box!important}
 #vh-cms-load-status p{margin:0!important;color:inherit!important}
-#vh-cms-load-status button{padding:12px 20px!important;border:1px solid #b7956d!important;background:transparent!important;color:#eee3d6!important;cursor:pointer!important;font:inherit!important}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
+#vh-cms-load-status button{padding:12px 20px!important;border:1px solid #b7956d!important;background:transparent!important;color:#eee3d6!important;cursor:pointer!important;font:inherit!important}
+
+/* Hero entrance stays vertical; translated photos cannot pull the viewport sideways. */
+body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:translate3d(0,10px,0)!important}
+body.vh-home-motion .hero-media.vh-hero-entrance.is-entered :is(.hero-main,.hero-small){transform:translate3d(0,0,0)!important}
+@media(prefers-reduced-motion:reduce){body.vh-home-motion .hero-media.vh-hero-entrance :is(.hero-main,.hero-small){transform:none!important}}
+/* Old HERO revisions can carry a whole-section slide. Keep their fade without shifting the page. */
+body.home-page>.hero:is([data-vh-motion=fade-left],[data-vh-motion=fade-right],.cms-animation-fade-left,.cms-animation-fade-right){animation-name:vhHeroEntryFade!important}
+@keyframes vhHeroEntryFade{from{opacity:0}to{opacity:1}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
 (()=>{'use strict';
  const root=document.documentElement;let state='pending',timer,status;
  const start=()=>{clearTimeout(timer);timer=setTimeout(()=>fail(),25000)};
  function paint(){
   if(!document.body)return;
-  if(state==='ready'){status?.remove();status=null;return}
+  // The branded intro owns normal startup. Only failures need a status message.
+  if(state!=='error'){status?.remove();status=null;return}
   if(!status){status=document.createElement('div');status.id='vh-cms-load-status';document.body.append(status)}
-  status.replaceChildren();status.setAttribute('role',state==='error'?'alert':'status');status.setAttribute('aria-live','polite');
-  const message=document.createElement('p');message.textContent=state==='error'?'Не вдалося завантажити сторінку. Спробуйте ще раз.':'Завантаження сторінки…';status.append(message);
-  if(state==='error'){const retry=document.createElement('button');retry.type='button';retry.textContent='Спробувати ще раз';retry.onclick=()=>location.reload();status.append(retry)}
+  status.replaceChildren();status.setAttribute('role','alert');status.setAttribute('aria-live','polite');
+  const message=document.createElement('p');message.textContent='Не вдалося завантажити сторінку. Спробуйте ще раз.';status.append(message);
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Спробувати ще раз';retry.onclick=()=>location.reload();status.append(retry);
  }
  function hold(){state='pending';root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;start();paint()}
- function ready(){state='ready';clearTimeout(timer);root.dataset.vhCmsLoad=state;paint();root.classList.remove('vh-cms-booting')}
+ function ready(){const changed=state!=='ready';state='ready';clearTimeout(timer);root.dataset.vhCmsLoad=state;paint();root.classList.remove('vh-cms-booting');if(changed)window.dispatchEvent(new Event('vh:cms-ready'))}
  function fail(){state='error';clearTimeout(timer);root.classList.add('vh-cms-booting');root.dataset.vhCmsLoad=state;paint()}
  window.VHCMSBoot={hold,ready,fail,get state(){return state}};
  hold();document.addEventListener('DOMContentLoaded',paint,{once:true});
@@ -141,7 +152,7 @@ html.vh-cms-booting body::before,html.vh-cms-booting body::after{display:none!im
       </a>
     </div>
   </div>
-</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=281"></script><script>document.addEventListener('DOMContentLoaded',()=>initContactsPage())</script><script id="vh-unified-menu-bound-v230">
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=282"></script><script>document.addEventListener('DOMContentLoaded',()=>initContactsPage())</script><script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
   const nav=document.querySelector('header .nav');
@@ -156,4 +167,4 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.setAttribute('aria-expanded','false');
   }));
 });
-</script><script defer src="cms-model.js?v=4"></script><script defer src="cms-published.js?v=166"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
+</script><script defer src="cms-model.js?v=5"></script><script defer src="cms-published.js?v=167"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="vh-page-seo.js?v=105"></script></body></html>
