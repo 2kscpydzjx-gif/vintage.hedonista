@@ -21,8 +21,8 @@ const wait=async(fn,message)=>{for(let i=0;i<80;i++){if(await fn())return;await 
   const vertical=await frame.locator('[data-cms-legacy="existing-0"]').evaluate(el=>{const copy=el.querySelector('.vh-cms-copy').getBoundingClientRect(),photo=el.querySelector('.vh-cms-photo').getBoundingClientRect();return copy.bottom<=photo.top+1});
   assert.equal(vertical,true,'text-top must place text above the photograph');
   assert.equal(await frame.locator('[data-cms-legacy="existing-0"] .vh-cms-copy').textContent().then(s=>s.includes('MY EDITED TITLE')),true);
-  await page.locator('[data-inspector-tab="content"]').click();
-  const upload=page.locator('#existingEditor .cms-layout-media input[type=file]').first();
+  await page.locator('[data-inspector-tab="media"]').click();
+  const upload=page.locator('#existingEditor .cms-photo-editor input[type=file]');
   f.uploadDelay(400);await upload.setInputFiles({name:'my-photo.png',mimeType:'image/png',buffer:f.png});
   await wait(async()=>await page.locator('#save').isDisabled(),'save should wait for pending uploads');
   await wait(async()=>!await page.locator('#save').isDisabled(),'upload never finished');
