@@ -3276,6 +3276,18 @@ async function vhSendOrderEmailV211(orderId,type='created'){
     const nav=header?.querySelector('.nav');
     if(!header || !btn || !nav) return;
 
+    const compactHeader=window.matchMedia('(max-width:1199px), (max-width:1366px) and (pointer:coarse)');
+    nav.id=nav.id||'vhSiteNavigation';btn.setAttribute('aria-controls',nav.id);
+    function syncDrawer(){
+      const open=compactHeader.matches&&document.body.classList.contains('vh-mobile-menu-open');
+      btn.setAttribute('aria-expanded',String(open));
+      nav.inert=compactHeader.matches&&!open;
+      if(compactHeader.matches)nav.setAttribute('aria-hidden',String(!open));else nav.removeAttribute('aria-hidden');
+    }
+    new MutationObserver(syncDrawer).observe(document.body,{attributes:true,attributeFilter:['class']});
+    compactHeader.addEventListener('change',()=>{if(!compactHeader.matches)closeDrawer();syncDrawer()});
+    syncDrawer();
+
     let backdrop=document.querySelector('.vh-menu-backdrop');
     if(!backdrop){
       backdrop=document.createElement('div');
@@ -3288,6 +3300,7 @@ async function vhSendOrderEmailV211(orderId,type='created'){
       e.preventDefault();
       e.stopPropagation();
       closeDrawer();
+      btn.focus({preventScroll:true});
     });
 
     /* Important: do NOT preventDefault on menu links.
@@ -3301,6 +3314,7 @@ async function vhSendOrderEmailV211(orderId,type='created'){
     document.addEventListener('keydown',(e)=>{
       if(e.key==='Escape' && document.body.classList.contains('vh-mobile-menu-open')){
         closeDrawer();
+        btn.focus({preventScroll:true});
       }
     });
 

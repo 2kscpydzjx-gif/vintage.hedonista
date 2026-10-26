@@ -4,9 +4,9 @@ const sdk=`(()=>{
  const query=table=>{let op='select',values=null,filters=[],single=false,columns=null;const q={};for(const method of ['order','limit','range','in','or','gte','lte','neq','ilike','contains'])q[method]=()=>q;q.select=value=>{columns=value;return q};q.eq=(k,v)=>{filters.push([k,v]);return q};q.maybeSingle=q.single=()=>{single=true;return q};for(const method of ['update','insert','upsert','delete'])q[method]=value=>{op=method;values=value;return q};q.then=(resolve,reject)=>window.__cmsTestQuery({table,op,values,filters,single,columns}).then(resolve,reject);return q};
  window.supabase={createClient:()=>({from:query,rpc:async()=>({data:true,error:null}),auth:{getSession:async()=>({data:{session:{user:{id:'test-admin'}}},error:null}),getUser:async()=>({data:{user:{id:'test-user'}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},storage:{from:()=>({upload:async(path,file)=>{await window.__cmsTestQuery({op:'upload',path,type:file.type,size:file.size});return {error:null}},getPublicUrl:path=>({data:{publicUrl:'http://127.0.0.1:8765/assets/test-upload.png?path='+encodeURIComponent(path)}})})}})};
 })()`;
-async function fixture(){
+async function fixture(options={}){
  const browser=await chromium.launch({headless:true,...(fs.existsSync('/usr/bin/chromium')?{executablePath:'/usr/bin/chromium',args:['--no-sandbox']}: {})});
- const context=await browser.newContext({viewport:{width:1560,height:1000}}),records=new Map(),calls=[],errors=[],tables=new Map();
+ const context=await browser.newContext({viewport:{width:1560,height:1000},...options}),records=new Map(),calls=[],errors=[],tables=new Map();
  const settings={id:1,hero_title:'LEGACY SETTINGS TITLE',contacts_page_title:'LEGACY CONTACTS',delivery_page_title:'LEGACY DELIVERY'};
  let delay=0,failWrite=false,failRead=false,uploadDelay=0,contentDelay=0;
  const set=(page,status,value)=>records.set(page+':'+status,{page_key:page,revision_status:status,blocks:[],shared:{},updated_at:'2026-10-24T12:00:00.000Z',...structuredClone(value)});

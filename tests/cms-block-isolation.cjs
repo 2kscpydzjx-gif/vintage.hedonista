@@ -20,7 +20,15 @@ const base='http://127.0.0.1:8765';
   },{page,base});
   assert.equal(result.snapshotsEqual,true,page+': editing the first section changed sibling styles or dimensions');assert.equal(result.layers,true,page+': duplicate layout containers');assert.equal(result.collectionsOutsideLayout,true,page+': live collection trapped inside layout grid');assert.equal(result.events,result.expectedEvents,page+': collection event handler lost');
   for(const block of result.contentHeights)if(block.text<500)assert.ok(block.height<1250,page+': short content became a giant block ('+block.height+'px)');
-  await p.setViewportSize({width:390,height:844});const overflow=await p.evaluate(()=>[...document.querySelectorAll('.vh-cms-composition')].some(node=>node.getBoundingClientRect().right>innerWidth+2||node.getBoundingClientRect().left< -2));assert.equal(overflow,false,page+': a composition overflows the phone viewport');await p.close();
+  await p.setViewportSize({width:390,height:844});const overflow=[];
+  // content-visibility:auto can retain offscreen desktop geometry after rotation.
+  // Check each composition when it is actually rendered in the phone viewport.
+  for(const node of await p.locator('.vh-cms-composition').all()){
+   await node.scrollIntoViewIfNeeded();
+   const bounds=await node.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,width:innerWidth}));
+   if(bounds.right>bounds.width+2||bounds.left< -2)overflow.push(bounds);
+  }
+  assert.deepEqual(overflow,[],page+': a visible composition overflows the phone viewport');await p.close();
  }
  // A formerly huge section must use compact defaults, preserve explicit heights and restore source nodes.
  const p=await f.context.newPage();await p.goto(base+'/about.html');await p.waitForFunction(()=>window.__VH_PUBLISHED_READY);

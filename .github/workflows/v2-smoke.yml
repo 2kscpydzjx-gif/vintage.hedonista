@@ -8,6 +8,7 @@ on:
       - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
       - 'site.js'
+      - 'styles.css'
       - 'password-recovery.js'
       - '*.html'
       - 'tests/**'
@@ -61,3 +62,4 @@ jobs:
           node tests/password-recovery.cjs
           node tests/storefront-performance.cjs
           node tests/product-card-motion.cjs
+          node tests/responsive-layouts.cjs
