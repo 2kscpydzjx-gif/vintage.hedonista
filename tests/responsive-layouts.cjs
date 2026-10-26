@@ -16,7 +16,8 @@ const fits=el=>{const r=el.getBoundingClientRect();return {width:r.width,height:
    const nav=p.locator('header .nav');assert.equal(await nav.evaluate(el=>el.inert),true);
    await menu.click();await p.waitForFunction(()=>document.querySelector('.vh-mobile-menu-btn').getAttribute('aria-expanded')==='true');
    await nav.waitFor({state:'visible'});assert.equal(await nav.evaluate(el=>el.inert),false);
-   const links=await nav.locator('a').evaluateAll(els=>els.map(el=>({height:el.getBoundingClientRect().height,font:Number.parseFloat(getComputedStyle(el).fontSize)})));assert.ok(links.every(r=>r.height>=44&&r.font>=14));
+   const links=await nav.locator('a').evaluateAll(els=>els.map(el=>({height:el.getBoundingClientRect().height,font:Number.parseFloat(getComputedStyle(el).fontSize)})));assert.ok(links.every(r=>r.height>=(width<=760?43:44)&&r.font>=(width<=760?11:14)));
+   if(width<=760){assert.ok(Math.abs(await nav.evaluate(el=>el.getBoundingClientRect().width)-Math.min(width*.82,330))<1,'phone drawer no longer has its compact width');assert.ok(links.every(r=>r.font===11),'phone menu typography changed')}
    await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('header .nav').inert);assert.equal(await menu.getAttribute('aria-expanded'),'false');
    await menu.click();await p.locator('.vh-menu-backdrop').click({position:{x:4,y:20}});await p.waitForFunction(()=>!document.body.classList.contains('vh-mobile-menu-open'));
   }

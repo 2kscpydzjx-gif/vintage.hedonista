@@ -3276,7 +3276,7 @@ async function vhSendOrderEmailV211(orderId,type='created'){
     const nav=header?.querySelector('.nav');
     if(!header || !btn || !nav) return;
 
-    const compactHeader=window.matchMedia('(max-width:1199px), (max-width:1366px) and (pointer:coarse)');
+    const compactHeader=window.matchMedia('(max-width:1199px), (max-width:1439px) and (pointer:coarse)');
     nav.id=nav.id||'vhSiteNavigation';btn.setAttribute('aria-controls',nav.id);
     function syncDrawer(){
       const open=compactHeader.matches&&document.body.classList.contains('vh-mobile-menu-open');
