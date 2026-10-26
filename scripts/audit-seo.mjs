@@ -51,6 +51,8 @@ for(const address of urls){
   }
  }
  if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
+  const editorial=html.match(/<section\b(?=[^>]*\bid=["']catalogSeoEditorial["'])[^>]*>([\s\S]*?)<\/section>/i);
+  if(!editorial||!/<h2\b[^>]*>[^<]+<\/h2>/i.test(editorial[1])||!/<p\b[^>]*>[^<]+<\/p>/i.test(editorial[1])||/\s+hidden(?:\s|>|=)/i.test(editorial[0].split('>')[0]+'>'))errors.push('Missing visible static SEO editorial: '+path);
   // Informational report only: editorial text can legitimately be customized in Supabase.
   const seoTitle=html.match(/<title>([^<]*)<\/title>/i)?.[1]||'';
   const seoDescription=html.match(/<meta name="description" content="([^"]*)"/i)?.[1]||'';
@@ -71,6 +73,11 @@ for(const page of staticPages){
  if(!title)errors.push('Missing title: '+page);
  if(!description)errors.push('Missing description: '+page);
  if(canonical!==new URL(page,'https://2kscpydzjx-gif.github.io/vintage.hedonista/').href)errors.push('Canonical mismatch: '+page);
+}
+for(const page of ['account.html','checkout.html','admin/index.html','admin/admin.html','admin/cms-builder.html']){
+ const html=readFileSync(join(root,page),'utf8');
+ if(!/<meta\s+name="robots"\s+content="[^"]*\bnoindex\b/i.test(html))errors.push('Missing noindex on utility page: '+page);
+ if(urls.some(url=>new URL(url).pathname.endsWith('/'+page)))errors.push('Utility page is in sitemap: '+page);
 }
 if(errors.length){console.error(errors.slice(0,30).join('\n'));process.exitCode=1}
 else console.log(`SEO audit OK: ${checked} snapshot HTML files, canonical and H1 verified (${urls.length} sitemap URLs).`);

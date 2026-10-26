@@ -2,6 +2,7 @@
 import {readFileSync,writeFileSync,mkdirSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {fillCatalogEditorial} from './seo-editorial.mjs';
 const cfg=readFileSync(new URL('../config.js',import.meta.url),'utf8');
 const url=cfg.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)?.[1];
 const key=cfg.match(/supabaseKey\s*:\s*['"]([^'"]+)/)?.[1];
@@ -134,8 +135,7 @@ function editorialHtml(content){
 }
 function embedEditorial(html,content){
  const markup=editorialHtml(content);
- return html.replace('<section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію" hidden></section>',
-  '<section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію"'+(markup?'':' hidden')+'>'+markup+'</section>');
+ return fillCatalogEditorial(html,markup);
 }
 // Static HTML snapshots: unique titles/descriptions in initial HTML response.
 // Page body remains client-rendered; this is SEO head prerendering, not full SSR.

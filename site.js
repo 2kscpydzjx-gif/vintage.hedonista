@@ -16,6 +16,7 @@ function vhSystemMotionTarget(element){
 const VHPageMotion=(()=>{
  const registered=new WeakSet();let observer;
  const frames={
+  card:[{opacity:0,transform:'translate3d(0,24px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   up:[{opacity:0,transform:'translate3d(0,32px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   left:[{opacity:0,transform:'translate3d(-36px,0,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   right:[{opacity:0,transform:'translate3d(36px,0,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
@@ -31,7 +32,7 @@ const VHPageMotion=(()=>{
    if(!node.animate){node.dataset.vhPagePhase='complete';return}
    const effect=node.dataset.vhPageEntry,small=window.innerWidth<820;
    const keyframes=frames[effect].map(frame=>({...frame,transform:small?frame.transform.replace(/32px/g,'22px').replace(/36px/g,'24px').replace(/28px/g,'20px'):frame.transform}));
-   const animation=node.animate(keyframes,{duration:effect==='title'||effect==='photo'?1150:1000,delay:Number(node.dataset.vhPageDelay)||0,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'});
+   const animation=node.animate(keyframes,{duration:effect==='card'?800:effect==='title'||effect==='photo'?1150:1000,delay:Number(node.dataset.vhPageDelay)||0,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'});
    animation.finished.then(()=>{node.dataset.vhPagePhase='complete';animation.cancel()},()=>{});
   });
  }
@@ -40,7 +41,8 @@ const VHPageMotion=(()=>{
   registered.add(node);node.dataset.vhPageEntry=effect;node.dataset.vhPagePhase='waiting';node.dataset.vhPageDelay=Math.min(440,delay);
   if('IntersectionObserver' in window){if(!observer)observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.target.isConnected){observer.unobserve(entry.target);continue}if(entry.isIntersecting){observer.unobserve(entry.target);start(entry.target)}}},{threshold:0,rootMargin:'0px 0px -8% 0px'});observer.observe(node)}else start(node);
  }
- return {add};
+ function release(root){root?.querySelectorAll('[data-vh-page-phase=waiting]').forEach(node=>observer?.unobserve(node))}
+ return {add,release};
 })();
 
 /* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
@@ -54,6 +56,7 @@ function vhApplyInventoryLabelStyle(node){
  }
 }
 const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-customer-auth'}});
+window.VHPasswordRecovery?.attach(sb);
 
 /* V138: public catalog/content client.
    It NEVER reads the persisted customer session. This prevents an old/deleted
@@ -96,7 +99,13 @@ async function loadSettings(){
 }
 
 async function initHome(){
- const s=await loadSettings();
+ // Start independent content together with settings rather than after that round trip.
+ const [s,[newRes,topRes,catsRes,newsRes]]=await Promise.all([loadSettings(),Promise.all([
+   publicSb.from('products').select('id,name,slug,brand,price,size,cover_image,status,is_new,show_on_home,created_at').eq('status','published').eq('is_new',true).order('created_at',{ascending:false}).limit(12),
+   publicSb.from('homepage_top_items').select('slot,image_url,caption,link_url').order('slot'),
+   publicSb.from('categories').select('id,name,slug,cover_image,sort_order,created_at').eq('is_active',true).eq('show_on_home',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
+   publicSb.from('news').select('id,title,slug,excerpt,cover_image,published_at,created_at').eq('status','published').eq('show_on_home',true).order('published_at',{ascending:false}).limit(3)
+ ])]);
  const heroSection=document.querySelector('.hero');
  if(heroSection){
    const heroBg=s.hero_background_image||'assets/hero-background-clean.webp';
@@ -153,13 +162,6 @@ async function initHome(){
 
  if($('newArrivalsTitle'))$('newArrivalsTitle').textContent=s.homepage_new_title||'НОВІ НАДХОДЖЕННЯ';
 
- // V187 PERFORMANCE: independent homepage requests start together instead of waiting one-by-one.
- const [newRes,topRes,catsRes,newsRes]=await Promise.all([
-   publicSb.from('products').select('id,name,slug,brand,price,size,cover_image,status,is_new,show_on_home,created_at').eq('status','published').eq('is_new',true).order('created_at',{ascending:false}).limit(12),
-   publicSb.from('homepage_top_items').select('slot,image_url,caption,link_url').order('slot'),
-   publicSb.from('categories').select('id,name,slug,cover_image,sort_order,created_at').eq('is_active',true).eq('show_on_home',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
-   publicSb.from('news').select('id,title,slug,excerpt,cover_image,published_at,created_at').eq('status','published').eq('show_on_home',true).order('published_at',{ascending:false}).limit(3)
- ]);
  // V268: keep New Arrivals backward-compatible.
  // The homepage flag must never make the whole section disappear for existing products.
  let rawNewItems=newRes.data||[];
@@ -184,7 +186,9 @@ async function initHome(){
    if(r.error)console.error(r.error);
    newItems=r.data||[];
  }
+ VHPageMotion.release($('newArrivals'));
  $('newArrivals').innerHTML=newItems.length?newItems.map(productCard).join(''):'<div class="empty">Позначте товари як «Новинка» в адмінці</div>';
+ animateProductCards($('newArrivals'));
  initNewArrivalsCarousel();
 
  $('homeCapsulesKicker').textContent=s.homepage_capsules_kicker||'VINTAGE HEDONISTA';
@@ -399,7 +403,7 @@ async function initCatalog(){
  const [, {data:productsData,error:productsError},{data:categoriesData,error:categoriesError},{data:subcategoriesData,error:subcategoriesError}]=await Promise.all([
    loadSettings(),
    publicSb.from('products')
-     .select('*,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(id,image_url,sort_order)')
+     .select('id,name,slug,brand,price,size,color,season,material,short_description,description,cover_image,status,created_at,category_id,subcategory_id,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(image_url,sort_order)')
      .in('status',['published','reserved','sold'])
      .order('created_at',{ascending:false}),
    publicSb.from('categories')
@@ -712,7 +716,7 @@ function bindCatalogControls(){
  $('resetCatalogFilters').onclick=resetCatalogFilters;
  $('catalogLoadMore').onclick=()=>{
    catalogVisibleCount+=CATALOG_PAGE_SIZE;
-   renderCatalogResults()
+   renderCatalogResults(true)
  };
 
  const setCatalogGrid=(columns)=>{
@@ -886,42 +890,12 @@ function productMatchesMultiValue(productValue,selected){
 }
 
 
-let CATALOG_MOTION_RENDER_ID=0;
-
-function animateCatalogCardsV110(){
-  if(((location.pathname||'').split('/').pop())!=='catalog.html')return;
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-
-  const grid=$('catalogProducts');
-  if(!grid)return;
-
-  document.body.classList.add('vh-catalog-motion');
-  const renderId=++CATALOG_MOTION_RENDER_ID;
-  const cards=[...grid.querySelectorAll('.catalog-luxury-card')];
-
-  cards.forEach((card,i)=>{
-    card.classList.remove('vh-catalog-card-enter','is-visible');
-    card.style.setProperty('--vh-catalog-card-delay',`${Math.min(i*48,280)}ms`);
-  });
-
-  requestAnimationFrame(()=>{
-    if(renderId!==CATALOG_MOTION_RENDER_ID)return;
-    grid.classList.add('vh-catalog-grid-ready');
-    cards.forEach(card=>card.classList.add('vh-catalog-card-enter'));
-    requestAnimationFrame(()=>{
-      if(renderId!==CATALOG_MOTION_RENDER_ID)return;
-      cards.forEach(card=>card.classList.add('is-visible'))
-    })
-  })
-}
-
-function pulseCatalogGridV110(){
-  const grid=$('catalogProducts');
-  if(!grid || !document.body.classList.contains('vh-catalog-motion'))return;
-  grid.classList.remove('vh-catalog-filter-pulse');
-  void grid.offsetWidth;
-  grid.classList.add('vh-catalog-filter-pulse');
-  setTimeout(()=>grid.classList.remove('vh-catalog-filter-pulse'),260)
+function animateProductCards(grid){
+ if(!grid)return;
+ vhWhenPageVisible(()=>{
+  const columns=window.innerWidth<820?2:4;
+  grid.querySelectorAll(':scope>.catalog-luxury-card,:scope>.card').forEach((card,i)=>VHPageMotion.add(card,'card',(i%columns)*85));
+ });
 }
 
 function applyCatalog(resetVisible=false){
@@ -959,15 +933,21 @@ function applyCatalog(resetVisible=false){
  renderCatalogResults()
 }
 
-function renderCatalogResults(){
+function renderCatalogResults(append=false){
  const visible=catalogFiltered.slice(0,catalogVisibleCount);
- $('catalogProducts').innerHTML=visible.length
+ const grid=$('catalogProducts'),count=grid.querySelectorAll(':scope>.catalog-luxury-card').length;
+ // Load more retains already visible cards and their event/UI state.
+ if(append&&count&&visible.length>=count)grid.insertAdjacentHTML('beforeend',visible.slice(count).map(p=>catalogProductCard(p)).join(''));
+ else{
+  VHPageMotion.release(grid);
+  grid.innerHTML=visible.length
    ? visible.map(p=>catalogProductCard(p)).join('')
    : `<div class="catalog-no-results">
         <div class="catalog-no-results-title">НІЧОГО НЕ ЗНАЙДЕНО</div>
         <p>Спробуй змінити параметри фільтрації або очистити пошук.</p>
         <button type="button" onclick="resetCatalogFilters()">СКИНУТИ ФІЛЬТРИ</button>
       </div>`;
+ }
 
  const total=catalogFiltered.length;
  const shown=Math.min(visible.length,total);
@@ -980,8 +960,7 @@ function renderCatalogResults(){
  $('catalogLoadMore').classList.toggle('hidden',shown>=total||!total);
 
  renderActiveFilters();
- animateCatalogCardsV110();
- pulseCatalogGridV110()
+ animateProductCards(grid)
 }
 
 function catalogProductCard(p){
@@ -2547,7 +2526,6 @@ document.addEventListener('click',e=>{
 
     const revealSelectors=[
       '.section.paper .section-head:not(.category-head)',
-      '.new-arrivals-carousel',
       '.editorial-media',
       '.editorial-copy',
       '.top-grid',
@@ -2887,7 +2865,8 @@ function vhAuthShell(mode='login'){
        </button>
      </div>
 
-     <div id="vhAuthMessage" class="vh125-auth-message"></div>
+     ${isLogin?'<div class="vh125-auth-switch"><button id="vhAuthReset" type="button" onclick="vhResetPassword()">ЗАБУЛИ ПАРОЛЬ?</button></div>':''}
+     <div id="vhAuthMessage" class="vh125-auth-message" role="status" aria-live="polite"></div>
    </div>`
 }
 window.vhShowAuth=function(mode){const root=$('vh125LoginRoot');if(root)root.innerHTML=vhAuthShell(mode)}
@@ -2921,10 +2900,14 @@ window.vhSignUp=async function(){
 }
 
 window.vhResetPassword=async function(){
- const login=$('vhAuthLogin')?.value.trim(),msg=$('vhAuthMessage');
- if(!login||!login.includes('@')){if(msg)msg.textContent='Для відновлення пароля введіть email.';return}
- const {error}=await sb.auth.resetPasswordForEmail(login,{redirectTo:location.origin+location.pathname});
- if(msg)msg.textContent=error?error.message:'Посилання для відновлення надіслано на email.'
+ const login=$('vhAuthLogin')?.value.trim(),msg=$('vhAuthMessage'),button=$('vhAuthReset');
+ if(!login||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)){if(msg)msg.textContent='Для відновлення пароля введіть коректний email.';return}
+ if(button?.disabled)return;
+ if(button)button.disabled=true;
+ try{
+  const {error}=await sb.auth.resetPasswordForEmail(login,{redirectTo:new URL('account.html',document.baseURI).href});
+  if(msg)msg.textContent=error?'Не вдалося надіслати лист. Спробуйте ще раз трохи пізніше.':'Якщо цей email зареєстрований, ви отримаєте лист із посиланням.';
+ }catch{if(msg)msg.textContent='Не вдалося надіслати лист. Спробуйте ще раз трохи пізніше.'}finally{if(button)button.disabled=false}
 }
 window.vhSignOut=async function(){await sb.auth.signOut();VH_ACCOUNT_USER=null;toast('Ви вийшли з акаунта');await vhRenderAccountPanel()}
 
@@ -2962,6 +2945,8 @@ function vhAccountIcon(name){
 }
 
 async function initAccountPage(){
+  const recoveryMount=$('accountPageMount');
+  if(window.VHPasswordRecovery?.active){vhInitHeaderActions();await window.VHPasswordRecovery.render(recoveryMount);return}
   const accountSettings=await loadSettings();
   vhInitHeaderActions();
 
@@ -2969,10 +2954,12 @@ async function initAccountPage(){
   if(!mount)return;
 
   const user=await vhGetCurrentUser();
+  if(window.VHPasswordRecovery?.active){await window.VHPasswordRecovery.render(mount);return}
   if(!user){location.href='index.html';return}
 
   await vhEnsureCustomerProfile(user);
   const {profile,orders,favorites}=await vhLoadAccountData(user);
+  if(window.VHPasswordRecovery?.active){await window.VHPasswordRecovery.render(mount);return}
   const p=profile||{};
   const first=p.first_name||user.user_metadata?.first_name||String(p.full_name||user.user_metadata?.full_name||'').split(' ')[0]||'';
   const last=p.last_name||user.user_metadata?.last_name||String(p.full_name||user.user_metadata?.full_name||'').split(' ').slice(1).join(' ')||'';
@@ -3244,6 +3231,7 @@ document.addEventListener('click',async e=>{
 sb.auth.onAuthStateChange(()=>{vhUpdateAccountHeaderState()});
 
 async function vhUpdateAccountHeaderState(){
+ if(window.VHPasswordRecovery?.active)return;
  try{
    const user=await vhGetCurrentUser();
    if(user)await vhEnsureCustomerProfile(user);

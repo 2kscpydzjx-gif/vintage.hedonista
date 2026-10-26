@@ -5,6 +5,11 @@ on:
     paths:
       - 'scripts/generate-sitemap.mjs'
       - 'scripts/audit-seo.mjs'
+      - 'scripts/seo-editorial.mjs'
+      - 'tests/seo-editorial.mjs'
+      - 'account.html'
+      - 'checkout.html'
+      - 'admin/*.html'
       - 'site.js'
       - '.github/workflows/seo-category-check.yml'
   workflow_dispatch:
@@ -23,6 +28,7 @@ jobs:
           node --check site.js
           node --check scripts/generate-sitemap.mjs
           node --check scripts/audit-seo.mjs
+          node tests/seo-editorial.mjs
       - name: Generate sitemap and static SEO pages
         run: node scripts/generate-sitemap.mjs
       - name: Build static Product JSON-LD

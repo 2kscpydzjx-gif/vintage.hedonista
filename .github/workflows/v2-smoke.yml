@@ -8,6 +8,7 @@ on:
       - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
       - 'site.js'
+      - 'password-recovery.js'
       - '*.html'
       - 'tests/**'
       - '.github/workflows/v2-smoke.yml'
@@ -25,6 +26,8 @@ jobs:
       - name: Validate runtime and recovery
         run: |
           node --check cms-model.js
+          node --check password-recovery.js
+          node tests/seo-editorial.mjs
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
           node --check cms-published.js
@@ -55,3 +58,6 @@ jobs:
           node tests/cms-entry-experience.cjs
           node tests/cms-visible-motion.cjs
           node tests/cms-page-choreography.cjs
+          node tests/password-recovery.cjs
+          node tests/storefront-performance.cjs
+          node tests/product-card-motion.cjs

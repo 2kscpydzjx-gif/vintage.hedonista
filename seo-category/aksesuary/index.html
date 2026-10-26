@@ -23,8 +23,8 @@ html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-bo
 @keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
 
-/* Entry motion is armed only on visible Journal/service content; base layout is unchanged. */
-body:is(.vh-journal-motion,.vh-delivery-motion,.vh-contacts-motion) [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
+/* Entry motion waits for viewport visibility and final CMS content. */
+body [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
 body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
 @media(prefers-reduced-motion:reduce){body [data-vh-page-entry]{opacity:1!important;transform:none!important;filter:none!important}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
 (()=>{'use strict';
@@ -244,7 +244,7 @@ body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
   </div>
 
   <div class="catalog-filter-overlay" id="catalogFilterOverlay"></div>
-  <section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію" hidden data-cms-section="catalog-catalogSeoEditorial-2" data-cms-legacy="existing-1"></section>
+  <section class="vh-catalog-seo wrap" id="catalogSeoEditorial" aria-label="Про колекцію" data-cms-section="catalog-catalogSeoEditorial-2" data-cms-legacy="existing-1"><div class="vh-catalog-seo-layout"><div class="vh-catalog-seo-copy"><h2>Вінтажні аксесуари у Vintage Hedonista</h2><p>Відкрийте добірку аксесуари у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.</p></div></div></section>
 <nav class="vh-static-product-links wrap" aria-label="Посилання на товари"><details><summary>Переглянути всі товари колекції (7)</summary><p><a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/vovnyana-kepka-v-anhliiskomu-styli/index.html">Вовняна кепка в англійському стилі</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/dvostoronnya-zamsheva-sumka-khobo/index.html">Двостороння замшева сумка хобо</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/vintazhna-sumochka-futlyar-u-firmovomu-prynti-v-styli-burberry/index.html">Вінтажна сумочка-футляр у фірмовому принті в стилі Burberry</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/sumka-shoper/index.html">Сумка-шопер</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/vintazhna-sumka-guess/index.html">Вінтажна сумка Guess</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/dovhi-serezhky-kytytsi-sonyachno-zhovtoho-koloru/index.html">Довгі сережки-китиці сонячно-жовтого кольору</a> · <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-product/vintazhna-kvitasta-lakova-sumochka/index.html">Вінтажна квітаста лакова сумочка</a></p></details></nav><div class="wrap"><nav class="vh-seo-subcategory-links" aria-label="Підкатегорії"><h2>Переглянути підкатегорії</h2><div><a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D0%B3%D0%BE%D0%BB%D0%BE%D0%B2%D0%BD%D1%96-%D1%83%D0%B1%D0%BE%D1%80%D0%B8/index.html">Головні убори</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D0%BF%D0%BE%D1%8F%D1%81%D0%B8/index.html">Пояси</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D1%85%D1%83%D1%81%D1%82%D0%BA%D0%B8/index.html">Хустки</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D1%81%D1%83%D0%BC%D0%BA%D0%B8-%D1%82%D0%B0-%D0%BA%D0%BB%D0%B0%D1%82%D1%87%D1%96/index.html">Сумки та клатчі</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D0%BF%D1%80%D0%B8%D0%BA%D1%80%D0%B0%D1%81%D0%B8/index.html">Прикраси</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D1%80%D1%83%D0%BA%D0%B0%D0%B2%D0%B8%D1%87%D0%BA%D0%B8/index.html">Рукавички</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/%D0%BA%D1%80%D0%B0%D0%B2%D0%B0%D1%82%D0%BA%D0%B8/index.html">Краватки</a> <a href="https://2kscpydzjx-gif.github.io/vintage.hedonista/seo-subcategory/aksesuary/korsety/index.html">Корсети</a></div></nav></div></main><footer class="site-footer-v64">
   <div class="wrap footer-v64">
     <div class="footer-v64-brand">
@@ -265,7 +265,7 @@ body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
       </a>
     </div>
   </div>
-</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="site.js?v=284"></script><script>
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="vh-seo-runtime.js?v=105"></script><script defer src="site.js?v=286"></script><script>
 document.addEventListener('DOMContentLoaded',()=>{
   initCatalog();
   const btn=document.querySelector('.vh-mobile-menu-btn');
