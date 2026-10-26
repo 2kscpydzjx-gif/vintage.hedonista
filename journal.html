@@ -24,8 +24,8 @@ html.vh-cms-booting body>:not(.vh-intro):not(#vh-cms-load-status),html.vh-cms-bo
 @keyframes vhReadyHeroCopy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.vh-cms-system-hero>.vh-cms-photo,.vh-cms-system-hero>.vh-cms-copy,.vh-system-hero-copy{animation:none!important}}
 
-/* Entry motion is armed only on visible Journal/service content; base layout is unchanged. */
-body:is(.vh-journal-motion,.vh-delivery-motion,.vh-contacts-motion) [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
+/* Entry motion waits for viewport visibility and final CMS content. */
+body [data-vh-page-phase=waiting]{opacity:0!important;pointer-events:none}
 body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
 @media(prefers-reduced-motion:reduce){body [data-vh-page-entry]{opacity:1!important;transform:none!important;filter:none!important}}</style><script>/* Inlined in <head> by scripts/sync-cms-boot.cjs, before any source blocks can paint. */
 (()=>{'use strict';
@@ -165,7 +165,7 @@ body.vh-journal-motion .journal-v37-feature-image img{transform:scale(1)}
     </div>
   </div>
 </footer><div id="toast" class="toast"></div>
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=285"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=286"></script><script>document.addEventListener('DOMContentLoaded',()=>initJournal())</script>
 <script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');

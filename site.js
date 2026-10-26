@@ -16,6 +16,7 @@ function vhSystemMotionTarget(element){
 const VHPageMotion=(()=>{
  const registered=new WeakSet();let observer;
  const frames={
+  card:[{opacity:0,transform:'translate3d(0,24px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   up:[{opacity:0,transform:'translate3d(0,32px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   left:[{opacity:0,transform:'translate3d(-36px,0,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
   right:[{opacity:0,transform:'translate3d(36px,0,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
@@ -31,7 +32,7 @@ const VHPageMotion=(()=>{
    if(!node.animate){node.dataset.vhPagePhase='complete';return}
    const effect=node.dataset.vhPageEntry,small=window.innerWidth<820;
    const keyframes=frames[effect].map(frame=>({...frame,transform:small?frame.transform.replace(/32px/g,'22px').replace(/36px/g,'24px').replace(/28px/g,'20px'):frame.transform}));
-   const animation=node.animate(keyframes,{duration:effect==='title'||effect==='photo'?1150:1000,delay:Number(node.dataset.vhPageDelay)||0,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'});
+   const animation=node.animate(keyframes,{duration:effect==='card'?800:effect==='title'||effect==='photo'?1150:1000,delay:Number(node.dataset.vhPageDelay)||0,easing:'cubic-bezier(.22,.61,.36,1)',fill:'both'});
    animation.finished.then(()=>{node.dataset.vhPagePhase='complete';animation.cancel()},()=>{});
   });
  }
@@ -40,7 +41,8 @@ const VHPageMotion=(()=>{
   registered.add(node);node.dataset.vhPageEntry=effect;node.dataset.vhPagePhase='waiting';node.dataset.vhPageDelay=Math.min(440,delay);
   if('IntersectionObserver' in window){if(!observer)observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.target.isConnected){observer.unobserve(entry.target);continue}if(entry.isIntersecting){observer.unobserve(entry.target);start(entry.target)}}},{threshold:0,rootMargin:'0px 0px -8% 0px'});observer.observe(node)}else start(node);
  }
- return {add};
+ function release(root){root?.querySelectorAll('[data-vh-page-phase=waiting]').forEach(node=>observer?.unobserve(node))}
+ return {add,release};
 })();
 
 /* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
@@ -184,7 +186,9 @@ async function initHome(){
    if(r.error)console.error(r.error);
    newItems=r.data||[];
  }
+ VHPageMotion.release($('newArrivals'));
  $('newArrivals').innerHTML=newItems.length?newItems.map(productCard).join(''):'<div class="empty">Позначте товари як «Новинка» в адмінці</div>';
+ animateProductCards($('newArrivals'));
  initNewArrivalsCarousel();
 
  $('homeCapsulesKicker').textContent=s.homepage_capsules_kicker||'VINTAGE HEDONISTA';
@@ -712,7 +716,7 @@ function bindCatalogControls(){
  $('resetCatalogFilters').onclick=resetCatalogFilters;
  $('catalogLoadMore').onclick=()=>{
    catalogVisibleCount+=CATALOG_PAGE_SIZE;
-   renderCatalogResults()
+   renderCatalogResults(true)
  };
 
  const setCatalogGrid=(columns)=>{
@@ -886,42 +890,12 @@ function productMatchesMultiValue(productValue,selected){
 }
 
 
-let CATALOG_MOTION_RENDER_ID=0;
-
-function animateCatalogCardsV110(){
-  if(((location.pathname||'').split('/').pop())!=='catalog.html')return;
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-
-  const grid=$('catalogProducts');
-  if(!grid)return;
-
-  document.body.classList.add('vh-catalog-motion');
-  const renderId=++CATALOG_MOTION_RENDER_ID;
-  const cards=[...grid.querySelectorAll('.catalog-luxury-card')];
-
-  cards.forEach((card,i)=>{
-    card.classList.remove('vh-catalog-card-enter','is-visible');
-    card.style.setProperty('--vh-catalog-card-delay',`${Math.min(i*48,280)}ms`);
-  });
-
-  requestAnimationFrame(()=>{
-    if(renderId!==CATALOG_MOTION_RENDER_ID)return;
-    grid.classList.add('vh-catalog-grid-ready');
-    cards.forEach(card=>card.classList.add('vh-catalog-card-enter'));
-    requestAnimationFrame(()=>{
-      if(renderId!==CATALOG_MOTION_RENDER_ID)return;
-      cards.forEach(card=>card.classList.add('is-visible'))
-    })
-  })
-}
-
-function pulseCatalogGridV110(){
-  const grid=$('catalogProducts');
-  if(!grid || !document.body.classList.contains('vh-catalog-motion'))return;
-  grid.classList.remove('vh-catalog-filter-pulse');
-  void grid.offsetWidth;
-  grid.classList.add('vh-catalog-filter-pulse');
-  setTimeout(()=>grid.classList.remove('vh-catalog-filter-pulse'),260)
+function animateProductCards(grid){
+ if(!grid)return;
+ vhWhenPageVisible(()=>{
+  const columns=window.innerWidth<820?2:4;
+  grid.querySelectorAll(':scope>.catalog-luxury-card,:scope>.card').forEach((card,i)=>VHPageMotion.add(card,'card',(i%columns)*85));
+ });
 }
 
 function applyCatalog(resetVisible=false){
@@ -959,15 +933,21 @@ function applyCatalog(resetVisible=false){
  renderCatalogResults()
 }
 
-function renderCatalogResults(){
+function renderCatalogResults(append=false){
  const visible=catalogFiltered.slice(0,catalogVisibleCount);
- $('catalogProducts').innerHTML=visible.length
+ const grid=$('catalogProducts'),count=grid.querySelectorAll(':scope>.catalog-luxury-card').length;
+ // Load more retains already visible cards and their event/UI state.
+ if(append&&count&&visible.length>=count)grid.insertAdjacentHTML('beforeend',visible.slice(count).map(p=>catalogProductCard(p)).join(''));
+ else{
+  VHPageMotion.release(grid);
+  grid.innerHTML=visible.length
    ? visible.map(p=>catalogProductCard(p)).join('')
    : `<div class="catalog-no-results">
         <div class="catalog-no-results-title">НІЧОГО НЕ ЗНАЙДЕНО</div>
         <p>Спробуй змінити параметри фільтрації або очистити пошук.</p>
         <button type="button" onclick="resetCatalogFilters()">СКИНУТИ ФІЛЬТРИ</button>
       </div>`;
+ }
 
  const total=catalogFiltered.length;
  const shown=Math.min(visible.length,total);
@@ -980,8 +960,7 @@ function renderCatalogResults(){
  $('catalogLoadMore').classList.toggle('hidden',shown>=total||!total);
 
  renderActiveFilters();
- animateCatalogCardsV110();
- pulseCatalogGridV110()
+ animateProductCards(grid)
 }
 
 function catalogProductCard(p){
@@ -2547,7 +2526,6 @@ document.addEventListener('click',e=>{
 
     const revealSelectors=[
       '.section.paper .section-head:not(.category-head)',
-      '.new-arrivals-carousel',
       '.editorial-media',
       '.editorial-copy',
       '.top-grid',
