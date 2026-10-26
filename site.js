@@ -54,6 +54,7 @@ function vhApplyInventoryLabelStyle(node){
  }
 }
 const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-customer-auth'}});
+window.VHPasswordRecovery?.attach(sb);
 
 /* V138: public catalog/content client.
    It NEVER reads the persisted customer session. This prevents an old/deleted
@@ -96,7 +97,13 @@ async function loadSettings(){
 }
 
 async function initHome(){
- const s=await loadSettings();
+ // Start independent content together with settings rather than after that round trip.
+ const [s,[newRes,topRes,catsRes,newsRes]]=await Promise.all([loadSettings(),Promise.all([
+   publicSb.from('products').select('id,name,slug,brand,price,size,cover_image,status,is_new,show_on_home,created_at').eq('status','published').eq('is_new',true).order('created_at',{ascending:false}).limit(12),
+   publicSb.from('homepage_top_items').select('slot,image_url,caption,link_url').order('slot'),
+   publicSb.from('categories').select('id,name,slug,cover_image,sort_order,created_at').eq('is_active',true).eq('show_on_home',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
+   publicSb.from('news').select('id,title,slug,excerpt,cover_image,published_at,created_at').eq('status','published').eq('show_on_home',true).order('published_at',{ascending:false}).limit(3)
+ ])]);
  const heroSection=document.querySelector('.hero');
  if(heroSection){
    const heroBg=s.hero_background_image||'assets/hero-background-clean.webp';
@@ -153,13 +160,6 @@ async function initHome(){
 
  if($('newArrivalsTitle'))$('newArrivalsTitle').textContent=s.homepage_new_title||'НОВІ НАДХОДЖЕННЯ';
 
- // V187 PERFORMANCE: independent homepage requests start together instead of waiting one-by-one.
- const [newRes,topRes,catsRes,newsRes]=await Promise.all([
-   publicSb.from('products').select('id,name,slug,brand,price,size,cover_image,status,is_new,show_on_home,created_at').eq('status','published').eq('is_new',true).order('created_at',{ascending:false}).limit(12),
-   publicSb.from('homepage_top_items').select('slot,image_url,caption,link_url').order('slot'),
-   publicSb.from('categories').select('id,name,slug,cover_image,sort_order,created_at').eq('is_active',true).eq('show_on_home',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
-   publicSb.from('news').select('id,title,slug,excerpt,cover_image,published_at,created_at').eq('status','published').eq('show_on_home',true).order('published_at',{ascending:false}).limit(3)
- ]);
  // V268: keep New Arrivals backward-compatible.
  // The homepage flag must never make the whole section disappear for existing products.
  let rawNewItems=newRes.data||[];
@@ -399,7 +399,7 @@ async function initCatalog(){
  const [, {data:productsData,error:productsError},{data:categoriesData,error:categoriesError},{data:subcategoriesData,error:subcategoriesError}]=await Promise.all([
    loadSettings(),
    publicSb.from('products')
-     .select('*,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(id,image_url,sort_order)')
+     .select('id,name,slug,brand,price,size,color,season,material,short_description,description,cover_image,status,created_at,category_id,subcategory_id,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(image_url,sort_order)')
      .in('status',['published','reserved','sold'])
      .order('created_at',{ascending:false}),
    publicSb.from('categories')
@@ -2887,7 +2887,8 @@ function vhAuthShell(mode='login'){
        </button>
      </div>
 
-     <div id="vhAuthMessage" class="vh125-auth-message"></div>
+     ${isLogin?'<div class="vh125-auth-switch"><button id="vhAuthReset" type="button" onclick="vhResetPassword()">ЗАБУЛИ ПАРОЛЬ?</button></div>':''}
+     <div id="vhAuthMessage" class="vh125-auth-message" role="status" aria-live="polite"></div>
    </div>`
 }
 window.vhShowAuth=function(mode){const root=$('vh125LoginRoot');if(root)root.innerHTML=vhAuthShell(mode)}
@@ -2921,10 +2922,14 @@ window.vhSignUp=async function(){
 }
 
 window.vhResetPassword=async function(){
- const login=$('vhAuthLogin')?.value.trim(),msg=$('vhAuthMessage');
- if(!login||!login.includes('@')){if(msg)msg.textContent='Для відновлення пароля введіть email.';return}
- const {error}=await sb.auth.resetPasswordForEmail(login,{redirectTo:location.origin+location.pathname});
- if(msg)msg.textContent=error?error.message:'Посилання для відновлення надіслано на email.'
+ const login=$('vhAuthLogin')?.value.trim(),msg=$('vhAuthMessage'),button=$('vhAuthReset');
+ if(!login||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(login)){if(msg)msg.textContent='Для відновлення пароля введіть коректний email.';return}
+ if(button?.disabled)return;
+ if(button)button.disabled=true;
+ try{
+  const {error}=await sb.auth.resetPasswordForEmail(login,{redirectTo:new URL('account.html',document.baseURI).href});
+  if(msg)msg.textContent=error?'Не вдалося надіслати лист. Спробуйте ще раз трохи пізніше.':'Якщо цей email зареєстрований, ви отримаєте лист із посиланням.';
+ }catch{if(msg)msg.textContent='Не вдалося надіслати лист. Спробуйте ще раз трохи пізніше.'}finally{if(button)button.disabled=false}
 }
 window.vhSignOut=async function(){await sb.auth.signOut();VH_ACCOUNT_USER=null;toast('Ви вийшли з акаунта');await vhRenderAccountPanel()}
 
@@ -2962,6 +2967,8 @@ function vhAccountIcon(name){
 }
 
 async function initAccountPage(){
+  const recoveryMount=$('accountPageMount');
+  if(window.VHPasswordRecovery?.active){vhInitHeaderActions();await window.VHPasswordRecovery.render(recoveryMount);return}
   const accountSettings=await loadSettings();
   vhInitHeaderActions();
 
@@ -2969,10 +2976,12 @@ async function initAccountPage(){
   if(!mount)return;
 
   const user=await vhGetCurrentUser();
+  if(window.VHPasswordRecovery?.active){await window.VHPasswordRecovery.render(mount);return}
   if(!user){location.href='index.html';return}
 
   await vhEnsureCustomerProfile(user);
   const {profile,orders,favorites}=await vhLoadAccountData(user);
+  if(window.VHPasswordRecovery?.active){await window.VHPasswordRecovery.render(mount);return}
   const p=profile||{};
   const first=p.first_name||user.user_metadata?.first_name||String(p.full_name||user.user_metadata?.full_name||'').split(' ')[0]||'';
   const last=p.last_name||user.user_metadata?.last_name||String(p.full_name||user.user_metadata?.full_name||'').split(' ').slice(1).join(' ')||'';
@@ -3244,6 +3253,7 @@ document.addEventListener('click',async e=>{
 sb.auth.onAuthStateChange(()=>{vhUpdateAccountHeaderState()});
 
 async function vhUpdateAccountHeaderState(){
+ if(window.VHPasswordRecovery?.active)return;
  try{
    const user=await vhGetCurrentUser();
    if(user)await vhEnsureCustomerProfile(user);
