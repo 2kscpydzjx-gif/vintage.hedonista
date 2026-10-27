@@ -57,7 +57,7 @@ async function detail(){
    db.from('capsule_looks').select('*').eq('capsule_id',c.id).order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
    db.from('capsule_look_products').select('look_id,product_id,sort_order').eq('capsule_id',c.id).order('sort_order',{ascending:true})
   ]);
-  if(le)showError(`Образи: ${le.message}`);if(pe)showError(`Товари образів: ${pe.message}`);looks=l||[];lookLinks=links||[];
+  if(le)showError(`Образи: ${le.message}`);if(pe)showError(`Товари образів: ${pe.message}`);looks=(l||[]).sort((a,b)=>Number(b.is_main===true)-Number(a.is_main===true));lookLinks=links||[];
   // Fallback for data created before per-look products existed.
   if(!lookLinks.length&&looks.length){const {data:old}=await db.from('capsule_products').select('product_id,sort_order').eq('capsule_id',c.id).order('sort_order',{ascending:true});lookLinks=(old||[]).map(x=>({...x,look_id:looks[0].id}))}
   const ids=[...new Set(lookLinks.map(x=>x.product_id).filter(Boolean))];allProducts=[];
@@ -79,7 +79,7 @@ async function detail(){
   const available=products.filter(p=>p.status==='published'&&(p.stock==null||Number(p.stock)>0));
   const sum=products.reduce((s,p)=>s+(Number(p.price)||0),0);
   const capsule=capsules[idx];
-  const completeMainLook=lookIdx===0&&products.length>0&&Number(capsule?.price)>0;
+  const completeMainLook=l?.is_main===true&&products.length>0&&Number(capsule?.price)>0;
   const displayPrice=completeMainLook?Math.min(sum,Number(capsule.price)):sum;
   $('.capsule-buy-meta b').textContent=money(displayPrice);
   const label=$('.capsule-buy-meta span');if(label)label.textContent=`ОБРАЗ ${String(lookIdx+1).padStart(2,'0')}`;
@@ -113,7 +113,8 @@ async function detail(){
    if(added||already){
     const capsule=capsules[idx];
     const completeIds=[...new Set(products.map(p=>String(p.id)))];
-    if(lookIdx===0&&completeIds.length===products.length&&unavailable===0&&Number(capsule.price)>0){
+    // Capsule identity is independent of whether it has a special price.
+    if(looks[lookIdx]?.is_main===true&&completeIds.length===products.length&&unavailable===0){
      for(const item of cart){
       if(completeIds.includes(String(item.id))){
        item.capsule_offer={id:capsule.id,title:capsule.title||'Капсула',look_id:looks[lookIdx]?.id||null,product_ids:completeIds};

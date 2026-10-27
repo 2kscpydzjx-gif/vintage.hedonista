@@ -8,6 +8,7 @@ on:
       - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
       - 'site.js'
+      - 'capsules-front.js'
       - 'styles.css'
       - 'password-recovery.js'
       - 'order-delivery.js'
@@ -30,6 +31,7 @@ jobs:
           node --check cms-model.js
           node --check password-recovery.js
           node --check order-delivery.js
+          node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
           node --check cms-boot.js
@@ -68,3 +70,5 @@ jobs:
           node tests/responsive-layouts.cjs
           node tests/tablet-device-profiles.cjs
           node tests/cart-checkout.cjs
+          node tests/capsule-orders.cjs
+          node tests/home-presentation.cjs

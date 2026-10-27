@@ -197,7 +197,7 @@ async function initHome(){
  $('homeCapsulesBtn').textContent=s.homepage_capsules_button_text||'ПЕРЕГЛЯНУТИ КАПСУЛИ';
  $('homeCapsulesBtn').href=s.homepage_capsules_button_url||'capsule.html';
  $('homeCapsulesMedia').innerHTML=s.homepage_capsules_image?`<img src="${s.homepage_capsules_image}" alt="Вінтажні капсули" loading="lazy" decoding="async">`:placeholder('Фото капсул','1600 × 1200 px');
- $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
+ $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
 
  $('topTitle').textContent=s.homepage_top_title||'ЗАРАЗ У ТОПІ';$('topLink').textContent=(s.homepage_top_link_text||'ДИВИТИСЬ ВСІ ТОВАРИ')+' →';
 const {data:topItems,error:topItemsError}=topRes;
@@ -2171,8 +2171,8 @@ async function vhRunGlobalSearch(raw){
 
 function vhBundlePricing(cart,offers=[]){
  const amounts=new Map(cart.map(x=>[String(x.id),Number(x.price||0)]));
- const discounts=[];
- const discountedIds=new Set();
+ const discounts=[],bundles=[];
+ const bundledIds=new Set();
  const groups=new Map();
  for(const item of cart){
   const offer=item.capsule_offer;
@@ -2182,24 +2182,26 @@ function vhBundlePricing(cart,offers=[]){
  }
  for(const offer of groups.values()){
   const record=offers.find(c=>String(c.id)===String(offer.id));
-  if(!record||record.is_active===false||Number(record.price)<=0)continue;
+  if(!record||record.is_active===false)continue;
   const ids=[...new Set(offer.product_ids.map(String))];
   if(!ids.length||!ids.every(id=>amounts.has(id)))continue;
   if(!ids.every(id=>{const linked=cart.find(x=>String(x.id)===id)?.capsule_offer;return String(linked?.id)===String(offer.id)&&String(linked?.look_id)===String(offer.look_id)}))continue;
-  // A product can belong to only one discounted bundle in this cart.
-  if(ids.some(id=>discountedIds.has(id)))continue;
+  // A complete capsule stays one order even when its price equals the sum of
+  // its products or no special price has been configured.
+  if(ids.some(id=>bundledIds.has(id)))continue;
+  ids.forEach(id=>bundledIds.add(id));
+  bundles.push(offer);
   const original=ids.reduce((n,id)=>n+amounts.get(id),0);
   const price=Number(record.price);
-  if(price>=original)continue;
+  if(!Number.isFinite(price)||price<=0||price>=original)continue;
   let remaining=Math.round(price*100);
   ids.forEach((id,i)=>{
    const value=i===ids.length-1?remaining:Math.round(price*100*Number(cart.find(x=>String(x.id)===id).price||0)/original);
    amounts.set(id,value/100);remaining-=value;
   });
-  ids.forEach(id=>discountedIds.add(id));
   discounts.push({title:record.title||offer.title||'Капсула',saving:original-price});
  }
- return {amounts,discounts,total:[...amounts.values()].reduce((a,b)=>a+b,0)};
+ return {amounts,discounts,bundles,total:[...amounts.values()].reduce((a,b)=>a+b,0)};
 }
 let vhBundleOffers=[];
 async function vhRefreshBundleOffers(cart){
@@ -2321,6 +2323,9 @@ async function submitCartCheckout(){
   const live=new Map((products||[]).map(p=>[String(p.id),p]));
   if(ids.some(id=>!live.has(String(id))||live.get(String(id)).status!=='published'||Number(live.get(String(id)).stock)<=0))throw new Error('Деякі товари вже недоступні. Оновіть кошик.');
   const checked=cart.map(x=>({...x,price:Number(live.get(String(x.id)).price)}));
+  if(checked.some(x=>x.capsule_offer&&(!x.capsule_offer.id||!x.capsule_offer.look_id||!Array.isArray(x.capsule_offer.product_ids)||!x.capsule_offer.product_ids.length))){
+   throw new Error('Не вдалося визначити склад капсули. Додайте її в кошик зі сторінки капсули ще раз.');
+  }
   const offers=[...new Set(checked.map(x=>x.capsule_offer?.id).filter(Boolean))];
   if(offers.length){
    const [{data:links,error:linkError},{data:mainLooks,error:lookError}]=await Promise.all([
@@ -2332,22 +2337,22 @@ async function submitCartCheckout(){
     const offer=item.capsule_offer;
     if(!offer)continue;
     const main=(mainLooks||[]).some(x=>String(x.id)===String(offer.look_id)&&String(x.capsule_id)===String(offer.id));
-    const actual=(links||[]).filter(x=>String(x.capsule_id)===String(offer.id)&&String(x.look_id)===String(offer.look_id)).map(x=>String(x.product_id)).sort();
+    const actual=[...new Set((links||[]).filter(x=>String(x.capsule_id)===String(offer.id)&&String(x.look_id)===String(offer.look_id)).map(x=>String(x.product_id)))].sort();
     const expected=[...new Set(offer.product_ids.map(String))].sort();
-    if(!main||JSON.stringify(actual)!==JSON.stringify(expected))delete item.capsule_offer;
+    if(!main||JSON.stringify(actual)!==JSON.stringify(expected))throw new Error('Склад капсули змінився. Додайте її в кошик зі сторінки капсули ще раз.');
    }
   }
   const pricing=vhBundlePricing(checked,vhBundleOffers);
+  if(offers.length&&!pricing.bundles.length)throw new Error('Капсула неповна або недоступна. Додайте її в кошик зі сторінки капсули ще раз.');
+  const bundle=pricing.bundles.length===1?pricing.bundles[0]:null;
+  if(pricing.bundles.length>1||bundle&&checked.length!==new Set(bundle.product_ids.map(String)).size){
+   throw new Error('Оформіть капсулу окремим замовленням. Інші речі тимчасово приберіть із кошика.');
+  }
   const shown=Number(($('checkoutTotal')?.textContent||'').replace(/[^\d,]/g,'').replace(',','.')||0);
   if(Math.abs(pricing.total-shown)>0.009){
    vhSetCart(checked);await initCheckoutPage();
    throw new Error('Ціна змінилася. Перевірте суму та підтвердьте замовлення повторно.');
   }
-  const bundle=pricing.discounts.length===1?checked.find(x=>x.capsule_offer)?.capsule_offer:null;
-  if(pricing.discounts.length>1||bundle&&checked.length!==new Set(bundle.product_ids.map(String)).size){
-   throw new Error('Для комплектної ціни оформіть капсулу окремим замовленням. Інші речі тимчасово приберіть із кошика.');
-  }
-  if(!bundle&&pricing.discounts.length)throw new Error('Не вдалося визначити капсулу для знижки.');
   const {data,error}=await sb.rpc('vh_create_checkout_order',{
    p_product_ids:ids,p_customer_name:name,p_contact:contact,p_email:email,p_comment:VHOrderDelivery.encode(city,delivery,comment),
    p_capsule_id:bundle?.id||null,p_look_id:bundle?.look_id||null
@@ -3401,4 +3406,21 @@ async function vhSendOrderEmailV211(orderId,type='created'){
  initJournal=wrap(initJournal,'__VH_JOURNAL_RENDER_DONE','vh:journal-rendered');
  initDeliveryPage=wrap(initDeliveryPage,'__VH_DELIVERY_RENDER_DONE','vh:service-rendered');
  initContactsPage=wrap(initContactsPage,'__VH_CONTACTS_RENDER_DONE','vh:service-rendered');
+})();
+
+/* Align the displayed Slow Fashion copy without rewriting saved CMS text. */
+(()=>{
+ function init(){
+  if(!document.body.classList.contains('home-page'))return;
+  const section=document.querySelector('[data-cms-legacy="existing-3"]');if(!section)return;
+  const normalize=()=>{
+   for(const el of section.querySelectorAll('#editorialTitle,.editorial-copy>.eyebrow,.vh-cms-copy h2,.vh-cms-copy .eyebrow')){
+    const copy=el.cloneNode(true);copy.querySelectorAll('br').forEach(br=>br.replaceWith(' '));
+    const text=copy.textContent.replace(/[\s\u00a0]+/g,' ').trim();
+    if(el.textContent!==text||el.children.length)el.textContent=text;
+   }
+  };
+  normalize();new MutationObserver(normalize).observe(section,{childList:true,subtree:true,characterData:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
