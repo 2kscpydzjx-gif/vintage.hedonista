@@ -91,3 +91,4 @@ jobs:
           node tests/home-presentation.cjs
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
+          node tests/catalog-footer-spacing.cjs
