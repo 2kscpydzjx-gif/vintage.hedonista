@@ -10,6 +10,7 @@ on:
       - 'site.js'
       - 'styles.css'
       - 'password-recovery.js'
+      - 'order-delivery.js'
       - '*.html'
       - 'tests/**'
       - '.github/workflows/v2-smoke.yml'
@@ -28,6 +29,8 @@ jobs:
         run: |
           node --check cms-model.js
           node --check password-recovery.js
+          node --check order-delivery.js
+          node --check admin/admin.js
           node tests/seo-editorial.mjs
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
@@ -64,3 +67,4 @@ jobs:
           node tests/product-card-motion.cjs
           node tests/responsive-layouts.cjs
           node tests/tablet-device-profiles.cjs
+          node tests/cart-checkout.cjs

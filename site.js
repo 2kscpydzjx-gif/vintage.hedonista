@@ -2256,22 +2256,29 @@ function vhInitHeaderActions(){
 }
 document.addEventListener('DOMContentLoaded',vhInitHeaderActions);
 
+async function vhPrefillCheckout(){
+ // Match the Buy form: only an authenticated customer's details are reused.
+ const {data:{user}}=await sb.auth.getUser();
+ if(!user)return;
+ const {data:p}=await sb.from('customer_profiles').select('*').eq('id',user.id).maybeSingle();
+ const local=vhGetProfile()||{},meta=user.user_metadata||{},full=p?.full_name||meta.full_name||local.name||'';
+ const values={
+  checkoutName:p?.first_name||meta.first_name||String(full).split(' ')[0]||'',
+  checkoutLastName:p?.last_name||meta.last_name||String(full).split(' ').slice(1).join(' ')||'',
+  checkoutContact:p?.phone||meta.phone||user.phone||local.phone||'',
+  checkoutCity:p?.city||local.city||'',checkoutEmail:p?.email||user.email||local.email||'',
+  checkoutDelivery:p?.delivery_address||local.delivery_address||''
+ };
+ for(const [id,value] of Object.entries(values))if(!$(id).value)$(id).value=value;
+ $('checkoutCustomerState').textContent='Дані підставлено з особистого кабінету. За потреби змініть їх перед відправленням.';
+}
 async function initCheckoutPage(){
  await loadSettings();
  vhInitHeaderActions();
  const cart=vhGetCart();
- let profile=vhGetProfile();
- try{
-   const {data:{user}}=await sb.auth.getUser();
-   if(user){
-     const {data:p}=await sb.from('customer_profiles').select('*').eq('id',user.id).maybeSingle();
-     if(p)profile={name:p.full_name||'',email:user.email||'',phone:p.phone||''}
-   }
- }catch(e){console.warn(e)}
- if(profile){
-   $('checkoutName').value=profile.name||'';
-   $('checkoutContact').value=profile.phone||'';
-   if($('checkoutEmail'))$('checkoutEmail').value=profile.email||''
+ if(!$('checkoutForm').dataset.prefilled){
+  $('checkoutForm').dataset.prefilled='1';
+  try{await vhPrefillCheckout()}catch(e){console.warn('Checkout profile',e)}
  }
  $('checkoutItems').innerHTML=cart.length?cart.map((x,i)=>`
    <div class="checkout-item">
@@ -2295,11 +2302,14 @@ async function submitCartCheckout(){
  if(vhCheckoutSubmitting)return;
  const cart=vhGetCart();
  if(!cart.length)return toast('Кошик порожній');
- const name=$('checkoutName').value.trim(),contact=$('checkoutContact').value.trim();
+ const first=$('checkoutName').value.trim(),last=$('checkoutLastName').value.trim(),contact=$('checkoutContact').value.trim();
+ const city=$('checkoutCity').value.trim(),delivery=$('checkoutDelivery').value.trim();
+ const name=[first,last].join(' ');
  const email=$('checkoutEmail').value.trim(),comment=$('checkoutComment').value.trim();
- if(!name||!contact||!email)return toast('Вкажіть ім’я, контакт та email');
+ if(!first||!last||!contact||!email||!city||!delivery)return toast('Заповніть ім’я, прізвище, телефон, email, місто та Нову пошту');
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return toast('Перевірте правильність email');
- const btn=document.querySelector('[onclick*="submitCartCheckout"]');
+ if(!window.VHOrderDelivery)return toast('Не вдалося завантажити форму. Оновіть сторінку та спробуйте ще раз.');
+ const btn=document.querySelector('#checkoutForm .checkout-submit');
  vhCheckoutSubmitting=true;
  if(btn){btn.disabled=true;btn.textContent='ПЕРЕВІРЯЄМО ЗАМОВЛЕННЯ...'}
  try{
@@ -2339,7 +2349,7 @@ async function submitCartCheckout(){
   }
   if(!bundle&&pricing.discounts.length)throw new Error('Не вдалося визначити капсулу для знижки.');
   const {data,error}=await sb.rpc('vh_create_checkout_order',{
-   p_product_ids:ids,p_customer_name:name,p_contact:contact,p_email:email,p_comment:comment,
+   p_product_ids:ids,p_customer_name:name,p_contact:contact,p_email:email,p_comment:VHOrderDelivery.encode(city,delivery,comment),
    p_capsule_id:bundle?.id||null,p_look_id:bundle?.look_id||null
   });
   if(error)throw error;
