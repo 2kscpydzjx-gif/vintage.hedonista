@@ -93,9 +93,10 @@
   .vh-cms-composition>.vh-cms-copy>:not(a):not(button):not(.vh-cms-custom-buttons){width:100%;max-width:100%;overflow-wrap:anywhere}
   .vh-cms-composition>.vh-cms-copy>:is(a,button){display:inline-flex!important;align-items:center;justify-content:center;align-self:var(--vh-copy-align,flex-start)!important;width:fit-content!important;max-width:100%!important;flex:0 0 auto!important;white-space:normal}
   .vh-cms-composition>.vh-cms-copy h1,.vh-cms-composition>.vh-cms-copy h2{font-family:'Bodoni Moda',Georgia,serif;font-weight:400;font-size:var(--vh-heading-size,clamp(28px,4vw,58px));line-height:1.15;margin:0 0 20px}
-  [data-vh-text-layout]>.vh-cms-composition>.vh-cms-copy{display:grid!important;grid-template-columns:minmax(0,var(--vh-heading-fr,40fr)) minmax(0,var(--vh-body-fr,60fr));gap:clamp(16px,3vw,40px);align-content:var(--vh-text-position,center);align-items:start}
+  [data-vh-text-layout]>.vh-cms-composition>.vh-cms-copy{display:grid!important;grid-template-columns:minmax(0,var(--vh-heading-fr,40fr)) minmax(0,var(--vh-body-fr,60fr));gap:var(--vh-text-column-gap,clamp(16px,3vw,40px));align-content:var(--vh-text-position,center);align-items:stretch}
+  [data-vh-column-position]>.vh-cms-composition>.vh-cms-copy{align-content:stretch;grid-template-rows:minmax(min-content,1fr);grid-auto-rows:auto}
   [data-vh-text-layout=heading-right]>.vh-cms-composition>.vh-cms-copy{grid-template-columns:minmax(0,var(--vh-body-fr,60fr)) minmax(0,var(--vh-heading-fr,40fr))}
-  .vh-cms-copy-heading,.vh-cms-copy-body{display:flex;flex-direction:column;align-items:var(--vh-copy-align,flex-start);min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .vh-cms-copy-heading,.vh-cms-copy-body{display:flex;flex-direction:column;align-items:var(--vh-copy-align,flex-start);justify-content:var(--vh-column-position,flex-start);padding:var(--vh-column-top,0px) min(var(--vh-column-right,0px),20%) var(--vh-column-bottom,0px) min(var(--vh-column-left,0px),20%);min-width:0;max-width:100%;overflow-wrap:anywhere}
   [data-vh-text-layout] .vh-cms-copy-heading{grid-row:1;grid-column:1}
   [data-vh-text-layout] .vh-cms-copy-body{grid-row:1;grid-column:2}
   [data-vh-text-layout=heading-right] .vh-cms-copy-heading{grid-column:2}
@@ -139,6 +140,8 @@
   @media(min-width:761px) and (max-width:1024px){:is(.vh-cms-photo,[data-vh-native-photo]){--vh-current-fit:var(--vh-fit-tablet,var(--vh-fit-desktop,cover));--vh-current-x:var(--vh-x-tablet,var(--vh-x-desktop,50%));--vh-current-y:var(--vh-y-tablet,var(--vh-y-desktop,50%));--vh-current-zoom:var(--vh-zoom-tablet,var(--vh-zoom-desktop,1))}}
   @media(max-width:760px){
    [data-vh-text-layout]>.vh-cms-composition>.vh-cms-copy{grid-template-columns:minmax(0,1fr);gap:18px}
+   [data-vh-column-position]>.vh-cms-composition>.vh-cms-copy{grid-template-rows:none;align-content:var(--vh-text-position,center)}
+   .vh-cms-copy-heading,.vh-cms-copy-body{padding:min(var(--vh-column-top,0px),28px) min(var(--vh-column-right,0px),20px) min(var(--vh-column-bottom,0px),28px) min(var(--vh-column-left,0px),20px)}
    [data-vh-text-layout] .vh-cms-copy-heading{grid-column:1;grid-row:1}
    [data-vh-text-layout] .vh-cms-copy-body{grid-column:1;grid-row:2}
    :is(.vh-cms-photo,[data-vh-native-photo]){--vh-current-fit:var(--vh-fit-mobile,var(--vh-fit-desktop,cover));--vh-current-x:var(--vh-x-mobile,var(--vh-x-desktop,50%));--vh-current-y:var(--vh-y-mobile,var(--vh-y-desktop,50%));--vh-current-zoom:var(--vh-zoom-mobile,var(--vh-zoom-desktop,1))}
@@ -179,7 +182,7 @@
   @media(prefers-reduced-motion:reduce){[data-vh-motion]{animation:none!important}}
   `;doc.head.append(style);
  }
- function resetLayout(section){resetButtonPositions(section);const state=layouts.get(section);if(!state)return;for(const {node,anchor} of state.collections){if(anchor.isConnected)anchor.replaceWith(node)}for(const item of state.hidden){if(item.value)item.node.style.setProperty('display',item.value,item.priority);else item.node.style.removeProperty('display')}state.root.remove();state.group?.remove();section.removeAttribute('data-vh-layout');section.removeAttribute('data-vh-height');section.removeAttribute('data-vh-text-layout');layouts.delete(section)}
+ function resetLayout(section){resetButtonPositions(section);const state=layouts.get(section);if(!state)return;for(const {node,anchor} of state.collections){if(anchor.isConnected)anchor.replaceWith(node)}for(const item of state.hidden){if(item.value)item.node.style.setProperty('display',item.value,item.priority);else item.node.style.removeProperty('display')}state.root.remove();state.group?.remove();section.removeAttribute('data-vh-layout');section.removeAttribute('data-vh-height');section.removeAttribute('data-vh-text-layout');section.removeAttribute('data-vh-column-position');layouts.delete(section)}
  // Position settings belong to a section and a stable source field, never a global selector.
  const positionedButtons=new WeakMap(),buttonKeys=new WeakMap();
  function nativeButtons(section,page){
@@ -329,6 +332,17 @@
    const heading=doc.createElement('div'),body=doc.createElement('div');heading.className='vh-cms-copy-heading';body.className='vh-cms-copy-body';
    nodes.forEach((node,index)=>(index<=Math.max(0,headingIndex)?heading:body).append(node));copy.append(heading,body);
    section.dataset.vhTextLayout=d.textLayout;
+   const positions={top:'flex-start',center:'center',bottom:'flex-end'};
+   const positioned=['heading','body'].some(key=>positions[d[key+'Position']]);
+   if(positioned)section.dataset.vhColumnPosition='true';
+   if(d.textColumnGap!=null){const gap=clamp(d.textColumnGap,0,120,40)+'px';copy.style.setProperty('--vh-text-column-gap',gap);copy.style.setProperty('column-gap',gap,'important')}
+   for(const [key,column] of [['heading',heading],['body',body]]){
+    if(positioned)column.style.setProperty('--vh-column-position',positions[d[key+'Position']]||positions[d.textPosition]||'center');
+    for(const side of ['Top','Right','Bottom','Left'])if(d[key+'Inset'+side]!=null)column.style.setProperty('--vh-column-'+side.toLowerCase(),clamp(d[key+'Inset'+side],0,120,0)+'px');
+    const align=d[key+'Align'];
+    // Explicit column alignment wins over legacy block/field rules, on clones only.
+    if(['left','center','right'].includes(align))for(const node of column.querySelectorAll('h1,h2,h3,h4,h5,h6,p,div,li,blockquote,.eyebrow'))node.style.setProperty('text-align',align,'important');
+   }
   }root.append(copy);
   const hidden=[...section.children].map(node=>({node,value:node.style.getPropertyValue('display'),priority:node.style.getPropertyPriority('display')}));for(const item of hidden)item.node.style.setProperty('display','none','important');section.style.setProperty('display','block','important');section.style.setProperty('min-height','0','important');section.style.setProperty('height','auto','important');section.style.setProperty('max-height','none','important');section.style.setProperty('padding','0','important');section.dataset.vhHeight=fixed?'fixed':'auto';section.dataset.vhMobileOrder=d.mobileOrder||'layout';section.dataset.vhLayout=preset;section.append(root);layouts.set(section,{root,collections:[],hidden});
   // Keep live catalog/slider nodes and their handlers in place, outside the new static composition.
@@ -352,5 +366,5 @@
   image.src=source;
  }
  function motion(section,animation,duration){installStyles(section.ownerDocument);if(!animation||animation==='system'){section.style.removeProperty('animation');section.removeAttribute('data-vh-motion');return;}const names={'fade-up':'vhUnifiedUp','fade-left':'vhUnifiedLeft','fade-right':'vhUnifiedRight',fade:'vhUnifiedFade',zoom:'vhUnifiedZoom'};if(animation==='none'){section.style.setProperty('animation','none','important');section.removeAttribute('data-vh-motion')}else if(names[animation]){section.style.removeProperty('animation');section.dataset.vhMotion=animation;section.style.setProperty('--vh-motion-name',names[animation]);section.style.setProperty('--vh-motion-duration',clamp(duration,200,1500,650)+'ms')}}
- window.VHCMSModel={version:6,applyLogo,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
+ window.VHCMSModel={version:7,applyLogo,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
 })();
