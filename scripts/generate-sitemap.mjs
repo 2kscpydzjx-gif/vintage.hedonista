@@ -2,7 +2,7 @@
 import {readFileSync,writeFileSync,mkdirSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {fillCatalogEditorial} from './seo-editorial.mjs';
+import {fillCatalogEditorial,stripStaticProductLinks,staticProductFallback} from './seo-editorial.mjs';
 const cfg=readFileSync(new URL('../config.js',import.meta.url),'utf8');
 const url=cfg.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)?.[1];
 const key=cfg.match(/supabaseKey\s*:\s*['"]([^'"]+)/)?.[1];
@@ -254,14 +254,8 @@ function subcategoryLinksHtml(category){
  const links=children.map(sub=>'<a href="'+htmlEscape(new URL('seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href)+'">'+htmlEscape(sub.name)+'</a>').join(' ');
  return '<nav class="vh-seo-subcategory-links" aria-label="Підкатегорії"><h2>Переглянути підкатегорії</h2><div>'+links+'</div></nav>';
 }
-// Crawlable, user-accessible index: product links exist before JS runs.
-// A compact native disclosure keeps the current product grid and pagination unchanged.
-function productLinksHtml(items){
- const unique=[...new Map(items.filter(p=>p.slug).map(p=>[p.slug,p])).values()];
- if(!unique.length)return '';
- const links=unique.map(p=>'<a href="'+htmlEscape(new URL('seo-product/'+encodeURIComponent(p.slug)+'/index.html',base).href)+'">'+htmlEscape(p.name||p.slug)+'</a>').join(' · ');
- return '<nav class="vh-static-product-links wrap" aria-label="Посилання на товари"><details><summary>Переглянути всі товари колекції ('+unique.length+')</summary><p>'+links+'</p></details></nav>';
-}
+// Keep product links usable without JavaScript, without a second catalog control.
+function productLinksHtml(items){return staticProductFallback(items,base)}
 function appendProductLinks(html,items){
  return html.replace('</main>',productLinksHtml(items)+'</main>');
 }
@@ -269,7 +263,7 @@ function appendProductLinks(html,items){
 {
  const path=new URL('../catalog.html',import.meta.url);
  const catalogHtml=readFileSync(path,'utf8');
- const clean=catalogHtml.replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
+ const clean=stripStaticProductLinks(catalogHtml);
  writeFileSync(path,appendProductLinks(clean,products));
 }
 for(const c of categories)if(c.slug){
@@ -279,7 +273,7 @@ for(const c of categories)if(c.slug){
  const title=strip(meta.seo_title)||categorySeoFallbacks[slug]?.[0]||c.name+' — вінтажний одяг | Vintage Hedonista';
  const desc=strip(meta.meta_description)||categorySeoFallbacks[slug]?.[1]||'Переглядайте '+c.name.toLowerCase()+' у Vintage Hedonista: добірний вінтажний одяг та унікальні речі з характером.';
  const canonical=new URL('seo-category/'+encodeURIComponent(slug)+'/index.html',base).href;
- let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8').replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
+ let html=stripStaticProductLinks(readFileSync(new URL('../catalog.html',import.meta.url),'utf8'));
  html=html.replace(/<head>/i,'<head><base id="vh-seo-base" href="../../">');
  html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');
@@ -298,7 +292,7 @@ for(const sub of subcategories){
  const title=strip(meta.seo_title)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[0]||sub.name+' — вінтажний одяг | Vintage Hedonista';
  const desc=strip(meta.meta_description)||subcategorySeoFallbacks[parent.slug+'/'+sub.slug]?.[1]||'Переглядайте '+sub.name.toLowerCase()+' у Vintage Hedonista: вінтажний одяг та речі з характером.';
  const canonical=new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href;
- let html=readFileSync(new URL('../catalog.html',import.meta.url),'utf8').replace(/<nav class="vh-static-product-links wrap"[\s\S]*?<\/nav>/g,'');
+ let html=stripStaticProductLinks(readFileSync(new URL('../catalog.html',import.meta.url),'utf8'));
  html=html.replace('<head>','<head><base id="vh-seo-base" href="../../../">');
  html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlEscape(title)+'</title>');
  html=html.replace(/<meta name="description"[^>]*>/i,'<meta name="description" content="'+htmlEscape(desc)+'">');

@@ -197,7 +197,7 @@ async function initHome(){
  $('homeCapsulesBtn').textContent=s.homepage_capsules_button_text||'ПЕРЕГЛЯНУТИ КАПСУЛИ';
  $('homeCapsulesBtn').href=s.homepage_capsules_button_url||'capsule.html';
  $('homeCapsulesMedia').innerHTML=s.homepage_capsules_image?`<img src="${s.homepage_capsules_image}" alt="Вінтажні капсули" loading="lazy" decoding="async">`:placeholder('Фото капсул','1600 × 1200 px');
- $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialBtn').textContent=s.homepage_editorial_button_text||'ПРО НАС';$('editorialBtn').href=s.homepage_editorial_button_url||'about.html';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
+ $('editorialKicker').textContent=s.homepage_editorial_kicker||'VINTAGE HEDONISTA';$('editorialTitle').textContent=s.homepage_editorial_title||'РЕЧІ, ЯКІ ПЕРЕЖИЛИ ТРЕНДИ.';$('editorialText').textContent=s.homepage_editorial_text||'';$('editorialMedia').innerHTML=s.homepage_editorial_image?`<img src="${s.homepage_editorial_image}" alt="" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Editorial фото','1600 × 1200 px');
 
  $('topTitle').textContent=s.homepage_top_title||'ЗАРАЗ У ТОПІ';$('topLink').textContent=(s.homepage_top_link_text||'ДИВИТИСЬ ВСІ ТОВАРИ')+' →';
 const {data:topItems,error:topItemsError}=topRes;
@@ -3406,4 +3406,21 @@ async function vhSendOrderEmailV211(orderId,type='created'){
  initJournal=wrap(initJournal,'__VH_JOURNAL_RENDER_DONE','vh:journal-rendered');
  initDeliveryPage=wrap(initDeliveryPage,'__VH_DELIVERY_RENDER_DONE','vh:service-rendered');
  initContactsPage=wrap(initContactsPage,'__VH_CONTACTS_RENDER_DONE','vh:service-rendered');
+})();
+
+/* Align the displayed Slow Fashion copy without rewriting saved CMS text. */
+(()=>{
+ function init(){
+  if(!document.body.classList.contains('home-page'))return;
+  const section=document.querySelector('[data-cms-legacy="existing-3"]');if(!section)return;
+  const normalize=()=>{
+   for(const el of section.querySelectorAll('#editorialTitle,.editorial-copy>.eyebrow,.vh-cms-copy h2,.vh-cms-copy .eyebrow')){
+    const copy=el.cloneNode(true);copy.querySelectorAll('br').forEach(br=>br.replaceWith(' '));
+    const text=copy.textContent.replace(/[\s\u00a0]+/g,' ').trim();
+    if(el.textContent!==text||el.children.length)el.textContent=text;
+   }
+  };
+  normalize();new MutationObserver(normalize).observe(section,{childList:true,subtree:true,characterData:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

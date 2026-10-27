@@ -18239,6 +18239,23 @@ body.home-page .homepage-capsules .editorial-copy .btn{
 /* Responsive corrections share one layer so legacy !important rules cannot
    mix compact and desktop geometry. Saved CMS values remain unchanged. */
 @layer vh-responsive {
+  /* Keep the Hero's Prata face; give its capitals and lines enough space. */
+  .home-page .hero #heroTitle{
+    font-weight:400!important;line-height:1.24!important;letter-spacing:.025em!important;word-spacing:.08em!important;
+    font-kerning:normal!important;font-variant-ligatures:none!important;font-synthesis:none!important;text-wrap:balance;
+  }
+  .home-page .hero #heroTitle :is(span,strong,b,em,i){font:inherit!important;letter-spacing:inherit!important;word-spacing:inherit!important;vertical-align:baseline!important}
+  /* Prata covers both Latin and Ukrainian; Bodoni used a fallback for Cyrillic. */
+  .home-page [data-cms-legacy="existing-3"] :is(#editorialTitle,.vh-cms-copy h2){
+    font-family:Prata,Georgia,serif!important;font-weight:400!important;font-style:normal!important;font-synthesis:none!important;
+    font-size:clamp(23px,2vw,28px)!important;line-height:1.3!important;letter-spacing:.012em!important;word-spacing:.04em!important;text-align:left!important;text-indent:0!important;text-wrap:pretty;
+  }
+  .home-page [data-cms-legacy="existing-3"] :is(#editorialTitle,.vh-cms-copy h2) *{font:inherit!important;vertical-align:baseline!important}
+  .home-page [data-cms-legacy="existing-3"] > .vh-cms-composition > .vh-cms-copy{padding:clamp(24px,2.7vw,40px)!important;column-gap:clamp(24px,4vw,56px)!important}
+  .home-page [data-cms-legacy="existing-3"] .vh-cms-copy .eyebrow{margin:0 0 14px!important}
+  .home-page [data-cms-legacy="existing-3"] .vh-cms-copy h2{margin:0!important}
+  .home-page [data-cms-legacy="existing-3"] .vh-cms-copy-body p{margin:0!important}
+
   @media(max-width:1199px), (max-width:1439px) and (pointer:coarse){
     body > header{position:sticky!important;top:0!important;height:72px!important;min-height:72px!important;z-index:1000!important;overflow:visible!important;transform:none!important}
     body > header .head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:4px!important;align-items:center!important;width:calc(100% - 24px)!important;max-width:1480px!important;height:72px!important;min-height:72px!important;padding:0!important;position:relative!important;overflow:visible!important}

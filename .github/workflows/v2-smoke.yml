@@ -71,3 +71,4 @@ jobs:
           node tests/tablet-device-profiles.cjs
           node tests/cart-checkout.cjs
           node tests/capsule-orders.cjs
+          node tests/home-presentation.cjs
