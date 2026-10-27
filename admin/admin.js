@@ -1534,7 +1534,7 @@ async function loadOrders(){
    .select('*,products(id,name,slug,cover_image)')
    .order('created_at',{ascending:false});
  if(error){console.error(error);toast(error.message);return}
- orders=data||[];
+ orders=(data||[]).map(o=>window.VHOrderDelivery?.read(o)||o);
  // Capsule order lines are loaded separately: ordinary product orders remain unchanged.
  const capsuleOrders=orders.filter(o=>o.capsule_id);
  if(capsuleOrders.length){
@@ -1569,7 +1569,7 @@ function renderRecentOrders(){
  $('recentOrders').innerHTML=list.length?list.map(o=>`
  <div class="dashboard-order-row" onclick="openOrderModal('${o.id}')" style="cursor:pointer">
    ${(o.capsule_cover||o.products?.cover_image)?`<img src="${o.capsule_cover||o.products.cover_image}" alt="">`:`<div class="no-img"></div>`}
-   <div><b>#${o.order_number||''} · ${o.customer_name||'Клієнт'}</b><small>${o.product_name||o.products?.name||'Товар'} · ${statusName(o.status)}</small></div>
+   <div><b>#${o.order_number||''} · ${esc(o.customer_name||'Клієнт')}</b><small>${o.product_name||o.products?.name||'Товар'} · ${statusName(o.status)}</small></div>
    <div class="right">${money(o.amount)}<small>${fmtDate(o.created_at)}</small></div>
  </div>`).join(''):'<div class="empty">Замовлень ще немає</div>'
 }
@@ -1588,13 +1588,13 @@ function renderOrders(list){
      </div>
      <div class="order-client-v135">
        <small>КЛІЄНТ</small>
-       <b>${o.customer_name||'—'}</b>
-       <span>${o.phone||o.email||'Контакт не вказано'}</span>
+       <b>${esc(o.customer_name||'—')}</b>
+       <span>${esc(o.phone||o.email||'Контакт не вказано')}</span>
      </div>
      <div class="order-delivery-v135">
        <small>ДОСТАВКА</small>
-       <b>${o.city||'—'}</b>
-       <span>${o.delivery_address||'Відділення не вказано'}</span>
+       <b>${esc(o.city||'—')}</b>
+       <span>${esc(o.delivery_address||'Відділення не вказано')}</span>
      </div>
      <div class="order-status-wrap-v135" onclick="event.stopPropagation()">
        <select class="order-status-select ${statusClass(o.status)}" onchange="changeOrderStatus('${o.id}',this.value)">

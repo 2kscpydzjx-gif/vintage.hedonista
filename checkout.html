@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
-<title>Оформлення замовлення — Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=263"></head><body><header><div class="wrap head">
+<title>Оформлення замовлення — Vintage Hedonista</title><link rel="stylesheet" href="styles.css?v=289"></head><body><header><div class="wrap head">
 <a class="brand vh-brand-logo-link" href="index.html"><img class="vh-header-logo" src="assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista" loading="eager" decoding="async" fetchpriority="auto"></a>
 <nav class="nav">
 <a href="index.html">ГОЛОВНА</a>
@@ -33,7 +33,7 @@
   <div class="checkout-head">
     <div class="kicker">VINTAGE HEDONISTA · CHECKOUT</div>
     <h1>ОФОРМЛЕННЯ</h1>
-    <p>Перевірте вибрані речі та залиште контактні дані. Ми зв’яжемося з вами для підтвердження.</p>
+    <p>Перевірте вибрані речі та заповніть дані отримувача й доставки Новою поштою.</p>
   </div>
   <div class="checkout-grid">
     <section>
@@ -41,15 +41,21 @@
       <div id="checkoutItems" class="checkout-items"></div>
       <div class="checkout-total"><span>РАЗОМ</span><b id="checkoutTotal">0 грн</b></div>
     </section>
-    <section class="checkout-form-card">
-      <div class="checkout-section-title">КОНТАКТНІ ДАНІ</div>
-      <label>ІМ’Я<input id="checkoutName" type="text" autocomplete="name"></label>
-      <label>ТЕЛЕФОН / TELEGRAM<input id="checkoutContact" type="text" autocomplete="tel"></label>
-      <label>EMAIL ДЛЯ СТАТУСІВ ЗАМОВЛЕННЯ<input id="checkoutEmail" type="email" autocomplete="email" placeholder="name@example.com"></label>
-      <label>КОМЕНТАР<textarea id="checkoutComment" rows="4" placeholder="Наприклад, зручний час для зв’язку"></textarea></label>
-      <button class="checkout-submit" type="button" onclick="submitCartCheckout()">ПІДТВЕРДИТИ ЗАМОВЛЕННЯ</button>
+    <form id="checkoutForm" class="checkout-form-card" onsubmit="event.preventDefault();submitCartCheckout()">
+      <div class="checkout-section-title">КОНТАКТНІ ДАНІ ТА ДОСТАВКА</div>
+      <p id="checkoutCustomerState" class="checkout-customer-state">Заповніть усі поля, крім коментаря.</p>
+      <div class="checkout-fields">
+        <label for="checkoutName">ІМ’Я<input id="checkoutName" name="given-name" type="text" autocomplete="given-name" required></label>
+        <label for="checkoutLastName">ПРІЗВИЩЕ<input id="checkoutLastName" name="family-name" type="text" autocomplete="family-name" required></label>
+        <label for="checkoutContact">НОМЕР ТЕЛЕФОНУ<input id="checkoutContact" name="tel" type="tel" autocomplete="tel" required></label>
+        <label for="checkoutCity">МІСТО<input id="checkoutCity" name="address-level2" type="text" autocomplete="address-level2" required></label>
+        <label for="checkoutEmail" class="checkout-field-wide">EMAIL ДЛЯ СТАТУСІВ ЗАМОВЛЕННЯ<input id="checkoutEmail" name="email" type="email" autocomplete="email" placeholder="name@example.com" required></label>
+        <label for="checkoutDelivery" class="checkout-field-wide">НОВА ПОШТА / ВІДДІЛЕННЯ<input id="checkoutDelivery" name="delivery" type="text" placeholder="Наприклад: Відділення №12" required></label>
+        <label for="checkoutComment" class="checkout-field-wide">КОМЕНТАР ДО ЗАМОВЛЕННЯ · НЕОБОВ’ЯЗКОВО<textarea id="checkoutComment" name="comment" rows="4" placeholder="Наприклад: зателефонуйте після 18:00 або інші побажання"></textarea></label>
+      </div>
+      <button class="checkout-submit" type="submit">ПІДТВЕРДИТИ ЗАМОВЛЕННЯ</button>
       <small>Оплата не списується на сайті. Після заявки ми підтвердимо наявність та деталі.</small>
-    </section>
+    </form>
   </div>
 </div>
 </main><footer class="site-footer-v64">
@@ -72,7 +78,7 @@
       </a>
     </div>
   </div>
-</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="site.js?v=286"></script><script>document.addEventListener('DOMContentLoaded',()=>initCheckoutPage())</script><script id="vh-unified-menu-bound-v230">
+</footer><div id="toast" class="toast"></div><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="order-delivery.js?v=289"></script><script defer src="site.js?v=289"></script><script>document.addEventListener('DOMContentLoaded',()=>initCheckoutPage())</script><script id="vh-unified-menu-bound-v230">
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=document.querySelector('.vh-mobile-menu-btn');
   const nav=document.querySelector('header .nav');
