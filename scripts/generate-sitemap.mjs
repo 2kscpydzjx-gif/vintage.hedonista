@@ -3,11 +3,13 @@ import {readFileSync,writeFileSync,mkdirSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {fillCatalogEditorial,stripStaticProductLinks,staticProductFallback} from './seo-editorial.mjs';
+import {renderProductRoutes} from './product-routes.mjs';
+import {sharingHead} from './seo-head.mjs';
 const cfg=readFileSync(new URL('../config.js',import.meta.url),'utf8');
 const url=cfg.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)?.[1];
 const key=cfg.match(/supabaseKey\s*:\s*['"]([^'"]+)/)?.[1];
 if(!url||!key)throw Error('Missing public Supabase config');
-const base=process.env.SITE_BASE_URL||'https://2kscpydzjx-gif.github.io/vintage.hedonista/';
+const base=process.env.SITE_BASE_URL||cfg.match(/siteUrl\s*:\s*['"]([^'"]+)/)?.[1]||'https://2kscpydzjx-gif.github.io/vintage.hedonista/';
 if(!base.endsWith('/'))throw Error('SITE_BASE_URL must end with /');
 if(!/^https:\/\//.test(base))throw Error('SITE_BASE_URL must be https');
 async function rows(table,select,filter){
@@ -202,7 +204,7 @@ function snapshot(kind,row){
  const slug=String(row.slug||'').normalize('NFC');
  if(!slug||slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe slug for '+dir+': '+slug);
  const target=join(root,dir,slug);mkdirSync(target,{recursive:true});
- writeFileSync(join(target,'index.html'),html);
+ writeFileSync(join(target,'index.html'),sharingHead(html,{title,description:desc,canonical,image:typeof row!=='undefined'?row.cover_image:''}));
 }
 // Do not delete existing snapshots until all Supabase requests succeeded.
 for(const dir of ['seo-product','seo-article','seo-category','seo-subcategory'])rmSync(join(root,dir),{recursive:true,force:true});
@@ -283,7 +285,7 @@ for(const c of categories)if(c.slug){
  html=appendProductLinks(html,products.filter(p=>String(p.category_id)===String(c.id)));
  html=html.replace('</main>','<div class="wrap">'+subcategoryLinksHtml(c)+'</div></main>');
  html=html.replace('</head>','<meta name="vh-category-slug" content="'+htmlEscape(slug)+'"></head>');
- const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
+ const target=join(root,'seo-category',slug);mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),sharingHead(html,{title,description:desc,canonical}));
 }
 for(const sub of subcategories){
  const parent=activeCategories.get(String(sub.category_id));
@@ -301,7 +303,9 @@ for(const sub of subcategories){
  html=embedEditorial(html,editorialFor('subcategory',sub.name,sub.slug,parent.slug));
  html=appendProductLinks(html,products.filter(p=>String(p.subcategory_id)===String(sub.id)));
  const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
- mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),html);
+ mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),sharingHead(html,{title,description:desc,canonical}));
 }
 writeFileSync(new URL('../sitemap.xml',import.meta.url),xml);
+writeFileSync(new URL('../robots.txt',import.meta.url),'User-agent: *\nAllow: '+new URL(base).pathname+'\nDisallow: '+new URL('admin/',base).pathname+'\nSitemap: '+new URL('sitemap.xml',base).href+'\n');
+writeFileSync(new URL('../product-routes.js',import.meta.url),renderProductRoutes(products.map(product=>product.slug)));
 console.log(`Sitemap + SEO HTML: ${unique.length} URLs (${products.length} products, ${news.length} articles, ${categories.length} categories)`);

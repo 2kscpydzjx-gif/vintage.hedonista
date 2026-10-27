@@ -18328,3 +18328,38 @@ body.home-page .homepage-capsules .editorial-copy .btn{
     body > header .nav,body > header .vh-mobile-menu-btn span,.vh-menu-backdrop{transition:none!important}
   }
 }
+
+/* Touch controls and dialog stacking, shared with the established responsive layer. */
+@layer vh-responsive {
+  #orderModal.order-modal,#vhSearchOverlay,#vh125LoginOverlay,#vhCartDrawer{z-index:2000!important}
+  #vhCartBackdrop{z-index:1990!important}
+  #productLightbox,.capsule-photo-lightbox{z-index:2400!important}
+  #orderModal.order-modal{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important}
+  #orderModal .order-card-v126{max-height:calc(100dvh - max(8px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-bottom)))!important;scroll-padding-block:12px}
+  #orderModal .order-v126-actions .btn{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  @media(max-width:480px){#orderModal .order-v126-actions{grid-template-columns:minmax(0,1fr)!important}}
+  #orderModal .order-v126-close{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;margin:0 0 4px 8px!important;top:0!important;font-size:24px!important}
+  :is(#orderModal,#vhSearchOverlay,#vh125LoginOverlay,#vhCartDrawer,#productLightbox) :focus-visible{outline:2px solid #a77b4f!important;outline-offset:3px!important}
+  @media(max-width:1199px),(pointer:coarse){
+    :is(#orderModal,#vhSearchOverlay,#vh125LoginOverlay,.checkout-fields,.vh-account-view) :is(input:not([type=checkbox]):not([type=radio]),textarea,select),#catalogSearch,.journal-v37-sort select{font-size:16px!important;line-height:1.4!important;min-height:44px!important}
+    .vh-close,.vh125-login-close,.lightbox-close,.capsule-photo-lightbox>button,#catalogFilterClose{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+    .footer-social-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+    .card .heart{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;flex:0 0 44px!important;padding:0!important;font-size:22px!important}
+    .journal-v37-categories{gap:6px 12px!important}
+    .journal-v37-categories button{min-width:44px!important;min-height:44px!important;padding:10px 6px!important;font-size:11px!important;white-space:normal!important}
+    .journal-v37-sort{max-width:100%!important}
+    .journal-v37-sort select{width:auto!important;max-width:100%!important;padding:8px 24px 8px 8px!important}
+    .journal-v37-read,.journal-v37-feature-read,.journal-v37-guide-all{display:inline-flex!important;align-items:center!important;min-height:44px!important;font-size:11px!important;line-height:1.4!important}
+    #newArrivalsPrev,#newArrivalsNext,#journalGuidePrev,#journalGuideNext,#recommendedPrev,#recommendedNext{min-width:44px!important;min-height:44px!important}
+    .home-page :is(.hero .btn,#homeCapsulesBtn),.checkout-submit,#orderModal .order-v126-actions .btn{font-size:11px!important;line-height:1.4!important}
+    .checkout-item button{width:44px!important;min-width:44px!important;height:44px!important}
+    .checkout-item{grid-template-columns:64px minmax(0,1fr) auto 44px!important}
+  }
+  @media(max-width:600px){
+    .checkout-item{grid-template-columns:56px minmax(0,1fr) 44px!important;gap:8px 10px!important}
+    .checkout-item img,.checkout-placeholder{width:56px!important;height:56px!important;grid-row:1/3}
+    .checkout-item>div{grid-column:2;grid-row:1}
+    .checkout-item>strong{grid-column:2;grid-row:2}
+    .checkout-item>button{grid-column:3;grid-row:1/3}
+  }
+}

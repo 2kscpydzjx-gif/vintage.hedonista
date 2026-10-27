@@ -1,8 +1,8 @@
 (async()=>{'use strict';
 // Cached HTML from before the shared model was introduced can still load this runtime.
-if(!window.VHCMSModel||window.VHCMSModel.version!==7){
+if(!window.VHCMSModel||window.VHCMSModel.version!==8){
  const source=document.currentScript?.src||document.baseURI;
- try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=7',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
+ try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=8',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
  catch(error){console.warn('CMS model could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 }
 
@@ -45,14 +45,14 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
  const raw=typeof mediaValue==='string'?mediaValue.trim():'';
  const url=raw&&raw!=='__removed__'&&['https://','http://','/','./','../'].some(prefix=>raw.startsWith(prefix))?raw:'';
- const image=url?'url('+JSON.stringify(url)+')':'none';
+ const image=url?(doc.defaultView.VHImageVariants?.background(url)||'url('+JSON.stringify(url)+')'):'none';
  // Keep the image on a real CSS background layer, independent of storefront image nodes.
  layer.style.setProperty('background-image',url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none','important');
  layer.dataset.cmsImage=url?'set':'empty';
  if(url){
   const test=new Image();
-  test.onerror=()=>{console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'};
-  test.src=new URL(url,doc.baseURI).href;
+  test.onerror=()=>{const original=new URL(url,doc.baseURI).href,optimized=new URL(doc.defaultView.VHImageVariants?.preview(url)||url,doc.baseURI).href;if(optimized!==original&&test.src===optimized){layer.style.setProperty('background-image',layer.style.backgroundImage.replace(optimized,original),'important');test.src=original;return}console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'};
+  test.src=new URL(doc.defaultView.VHImageVariants?.preview(url)||url,doc.baseURI).href;
  }
 }
 function resolvePublishedBannerImage(e,el){

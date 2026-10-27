@@ -10,6 +10,14 @@ on:
       - 'site.js'
       - 'capsules-front.js'
       - 'styles.css'
+      - 'storefront-ui.js'
+      - 'image-variants.js'
+      - 'product-routes.js'
+      - 'vh-seo-runtime.js'
+      - 'config.js'
+      - 'assets/optimized/**'
+      - 'scripts/product-routes.mjs'
+      - 'scripts/seo-head.mjs'
       - 'password-recovery.js'
       - 'order-delivery.js'
       - '*.html'
@@ -29,6 +37,11 @@ jobs:
       - name: Validate runtime and recovery
         run: |
           node --check cms-model.js
+          node --check storefront-ui.js
+          node --check image-variants.js
+          node --check product-routes.js
+          node --check vh-seo-runtime.js
+          node tests/prelaunch-unit.mjs
           node --check password-recovery.js
           node --check order-delivery.js
           node --check capsules-front.js
@@ -74,3 +87,4 @@ jobs:
           node tests/cart-checkout.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
+          node tests/mobile-storefront.cjs
