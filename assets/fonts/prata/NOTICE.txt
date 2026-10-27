@@ -1,0 +1,11 @@
+Prata: Copyright 2011 The Prata Project Authors (https://github.com/cyrealtype/Prata).
+Licensed under the SIL Open Font License 1.1; see OFL.txt.
+
+VH Prata Aligned is a modified version for the homepage Hero only.
+Optical overshoots in the current title's capital contours are normalized to
+the original 800-unit cap height and baseline. The intentional Ц descender is
+preserved. Horizontal outlines, advances and kerning are unchanged.
+Original hinting is removed because it refers to the original contours.
+Build script: scripts/align-prata.py. Original source: scripts/font-sources/Prata-Regular.ttf.
+Source URL: https://fonts.gstatic.com/s/prata/v22/6xKhdSpbNNCT-vWI.ttf
+Source SHA256: 6bab61b8b8df3f5a24df69c742f6495060b36aec686f37e534ff91a3bffe40ad

@@ -18238,11 +18238,14 @@ body.home-page .homepage-capsules .editorial-copy .btn{
 
 /* Responsive corrections share one layer so legacy !important rules cannot
    mix compact and desktop geometry. Saved CMS values remain unchanged. */
+@font-face{
+  font-family:"VH Prata Aligned";font-style:normal;font-weight:400;font-display:swap;
+  src:url("assets/fonts/prata/hero-aligned.woff2") format("woff2");
+}
 @layer vh-responsive {
-  /* Keep the Hero's Prata face; give its capitals and lines enough space. */
+  /* Same Prata widths and original wrapping; only cap contours are levelled. */
   .home-page .hero #heroTitle{
-    font-weight:400!important;line-height:1.24!important;letter-spacing:.025em!important;word-spacing:.08em!important;
-    font-kerning:normal!important;font-variant-ligatures:none!important;font-synthesis:none!important;text-wrap:balance;
+    font-family:"VH Prata Aligned",Prata,Georgia,serif!important;font-weight:400!important;font-synthesis:none!important;
   }
   .home-page .hero #heroTitle :is(span,strong,b,em,i){font:inherit!important;letter-spacing:inherit!important;word-spacing:inherit!important;vertical-align:baseline!important}
   /* Prata covers both Latin and Ukrainian; Bodoni used a fallback for Cyrillic. */
