@@ -14,6 +14,7 @@ on:
       - 'image-variants.js'
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
+      - 'vh-page-seo.js'
       - 'config.js'
       - 'assets/optimized/**'
       - 'scripts/product-routes.mjs'
@@ -41,6 +42,7 @@ jobs:
           node --check image-variants.js
           node --check product-routes.js
           node --check vh-seo-runtime.js
+          node --check vh-page-seo.js
           node tests/prelaunch-unit.mjs
           node --check password-recovery.js
           node --check order-delivery.js
@@ -88,3 +90,4 @@ jobs:
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
           node tests/mobile-storefront.cjs
+          node tests/storefront-shell.cjs

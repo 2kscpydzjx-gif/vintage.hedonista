@@ -62,9 +62,9 @@ window.VHPasswordRecovery?.attach(sb);
 /* V138: public catalog/content client.
    It NEVER reads the persisted customer session. This prevents an old/deleted
    account token from turning otherwise-public SELECT requests into 401 errors. */
-const publicSb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{
-  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
-});
+const publicSb=window.VHPublicClient||(window.VHPublicClient=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{
+  auth:{storageKey:'vintage-hedonista-public-content',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+}));
 const $=id=>document.getElementById(id);
 let SITE_SETTINGS={};
 

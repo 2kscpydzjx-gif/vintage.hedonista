@@ -11,7 +11,7 @@ const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.path
 const page=isCatalogSeoSnapshot?'catalog':map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
 const isEditorPreview=window.parent!==window&&new URLSearchParams(location.search).get('cms-preview')==='1';
 const config=window.VH_CONFIG;if(!config||!window.supabase){window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
-const db=window.supabase.createClient(config.supabaseUrl,config.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const db=window.VHPublicClient||(window.VHPublicClient=window.supabase.createClient(config.supabaseUrl,config.supabaseKey,{auth:{storageKey:'vintage-hedonista-public-content',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}));
 const safeHtml=html=>window.VHCMSModel.clean(html);
 function fields(section){return window.VHCMSModel.fields(section,page)}
 function sections(){return window.VHCMSModel.sections(document,page)}

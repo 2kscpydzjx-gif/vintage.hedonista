@@ -4,7 +4,7 @@ function vhStyleCapsuleBadge(node){if(!node)return;for(const d of VH_CAPSULE_STA
 (()=>{
 'use strict';
 const cfg=window.VH_CONFIG||{};
-const sb=()=>window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey):null;
+const sb=()=>window.VHPublicClient||(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?(window.VHPublicClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{storageKey:'vintage-hedonista-public-content',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})):null);
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const money=v=>`${new Intl.NumberFormat('uk-UA',{maximumFractionDigits:0}).format(Number(v)||0)} ₴`;
 const ph=(label,size)=>`<span>${esc(label)}<br><small>${esc(size)}</small></span>`;

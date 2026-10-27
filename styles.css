@@ -18260,7 +18260,8 @@ body.home-page .homepage-capsules .editorial-copy .btn{
   .home-page [data-cms-legacy="existing-3"] .vh-cms-copy-body p{margin:0!important}
 
   @media(max-width:1199px), (max-width:1439px) and (pointer:coarse){
-    body > header{position:sticky!important;top:0!important;height:72px!important;min-height:72px!important;z-index:1000!important;overflow:visible!important;transform:none!important}
+    body{padding-top:72px!important}
+    body > header{position:fixed!important;inset:0 0 auto!important;width:100%!important;margin:0!important;height:72px!important;min-height:72px!important;z-index:1000!important;overflow:visible!important;transform:none!important}
     body > header .head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;gap:4px!important;align-items:center!important;width:calc(100% - 24px)!important;max-width:1480px!important;height:72px!important;min-height:72px!important;padding:0!important;position:relative!important;overflow:visible!important}
     body > header .brand{grid-column:1!important;grid-row:1!important;order:1!important;position:static!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;width:min(128px,100%)!important;min-width:0!important;max-width:100%!important;height:64px!important;margin:0!important;padding:0!important;overflow:hidden!important;transform:none!important}
     body > header .vh-header-logo{display:block!important;width:100%!important;height:64px!important;max-width:100%!important;max-height:64px!important;object-fit:contain!important;object-position:center!important;transform:none!important;margin:0!important}
@@ -18307,6 +18308,7 @@ body.home-page .homepage-capsules .editorial-copy .btn{
   }
   @media(max-width:760px){
     /* Restore the established compact phone drawer; tablet controls remain larger. */
+    body{padding-top:64px!important}
     body > header,body > header .head{height:64px!important;min-height:64px!important}
     body > header .nav{inset:64px 0 0 auto!important;width:min(82vw,330px)!important;height:calc(100dvh - 64px)!important;padding:22px 22px 28px!important}
     body > header .nav a{display:block!important;min-height:0!important;padding:15px 2px!important;font-size:11px!important;line-height:1.2!important;letter-spacing:.08em!important}
