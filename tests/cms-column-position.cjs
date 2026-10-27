@@ -21,6 +21,7 @@ const geometry=el=>{
  const set=async(key,value)=>{await number(key).fill(String(value));await number(key).blur();await p.waitForTimeout(180)};
  const select=async(key,value)=>{await choose(key).selectOption(value);await p.waitForTimeout(180)};
  await section.locator('.vh-cms-copy-heading').waitFor();
+ assert.equal(Number(await number('textColumnGap').inputValue()),Math.round((await section.evaluate(geometry)).gap),'control reflects the existing gap before editing');
  const heroBefore=await p.frameLocator('#siteFrame').locator('#heroTitle').evaluate(el=>({text:el.textContent,style:el.getAttribute('style')}));
  const imageBefore=await section.locator('.vh-cms-photo img').getAttribute('src');
  await select('headingAlign','right');await select('bodyAlign','left');
