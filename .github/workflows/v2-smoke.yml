@@ -59,6 +59,7 @@ jobs:
           node tests/cms-existing-buttons.cjs
           node tests/cms-block-isolation.cjs
           node tests/cms-text-columns.cjs
+          node tests/cms-column-position.cjs
           node tests/cms-button-appearance.cjs
           node tests/cms-first-paint.cjs
           node tests/cms-entry-experience.cjs
