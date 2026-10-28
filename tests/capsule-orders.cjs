@@ -52,7 +52,7 @@ const fill=async p=>{for(const [id,value] of Object.entries({checkoutName:'Ол�
  await checkout();
  const assertBlocked=async(message)=>{
   const before=f.rpcCalls.filter(x=>x.name==='vh_create_checkout_order').length;
-  await p.evaluate(()=>submitCartCheckout());assert.equal(f.rpcCalls.filter(x=>x.name==='vh_create_checkout_order').length,before,'invalid capsule fell back to individual checkout');assert.match(await p.locator('#toast').textContent(),message);
+  await p.evaluate(()=>submitCartCheckout());assert.equal(f.rpcCalls.filter(x=>x.name==='vh_create_checkout_order').length,before,'invalid capsule fell back to individual checkout');assert.match(await p.locator('.vh-checkout-feedback').textContent(),message);
  };
  // Membership changes, removed lines and inactive capsules must fail before RPC, never split silently.
  f.data('capsule_look_products',allLinks.filter(l=>l.product_id!==ids[0]));await assertBlocked(/Склад капсули змінився/);

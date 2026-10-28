@@ -69,7 +69,8 @@ const $=id=>document.getElementById(id);
 let SITE_SETTINGS={};
 
 function money(v){return Number(v||0).toLocaleString('uk-UA')+' грн'}
-function toast(msg){const el=$('toast');if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
+let vhToastTimer;
+function toast(msg){const el=$('toast');if(!el)return;clearTimeout(vhToastTimer);el.setAttribute('role','status');el.setAttribute('aria-live','polite');el.setAttribute('aria-atomic','true');el.textContent=msg;el.classList.add('show');vhToastTimer=setTimeout(()=>el.classList.remove('show'),5000)}
 function placeholder(label,size){return `<div class="placeholder"><div><b>${label}</b>${size}<br>Додайте фото в адмінці</div></div>`}
 function productCard(p){const href=`${vhProductHref(p)}`;return `<article class="card"><a class="photo" href="${href}">${p.cover_image?`<img src="${p.cover_image}"${window.VHImageVariants?.attributes(p.cover_image)||''} alt="${p.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Фото товару','1200 × 1500 px')}</a><div class="meta"><div><a class="name" href="${href}">${p.name}</a><div class="price">${money(p.price)}</div></div><button class="heart" type="button" aria-label="Додати до вподобань">♡</button></div></article>`}
 document.addEventListener('click',e=>{if(e.target.classList.contains('heart'))e.target.textContent=e.target.textContent==='♡'?'♥':'♡'});
@@ -1469,10 +1470,12 @@ document.addEventListener('click',e=>{
 });
 
 async function openOrder(){
+ if(vhOrderSubmitting)return;
  if(!currentProduct)return;
  if(currentProduct.status==='reserved')return toast('Цей товар уже зарезервовано');
  if(currentProduct.status==='sold')return toast('Цей товар уже продано');
  if(currentProduct.status!=='published')return toast('Цей товар зараз недоступний для замовлення');
+ window.VHCheckoutFeedback?.reset('order');
  $('orderProduct').textContent=currentProduct.name+' · '+money(currentProduct.price);
 
  const {data:{user}}=await sb.auth.getUser();
@@ -1525,6 +1528,8 @@ window.closeOrder=closeOrder;
 let vhOrderSubmitting=false;
 async function submitOrder(){
  if(vhOrderSubmitting||!currentProduct)return;
+ if(!window.VHCheckoutFeedback)return toast('Не вдалося завантажити форму. Оновіть сторінку та спробуйте ще раз.');
+ if(window.VHCheckoutFeedback&&!VHCheckoutFeedback.validate('order'))return;
  const product=currentProduct;
  const first_name=$('oFirstName').value.trim(),last_name=$('oLastName').value.trim();
  const phone=$('oPhone').value.trim(),city=$('oCity').value.trim(),email=$('oEmail').value.trim();
@@ -1532,30 +1537,31 @@ async function submitOrder(){
  if(!first_name||!last_name||!phone||!city||!email||!delivery_address)return toast('Заповніть ім’я, прізвище, телефон, email, місто та Нову пошту');
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return toast('Перевірте правильність email');
  if(!window.VHOrderDelivery)return toast('Не вдалося завантажити форму. Оновіть сторінку та спробуйте ще раз.');
- const btn=$('orderSubmitBtn');vhOrderSubmitting=true;
+ const btn=$('orderSubmitBtn');vhOrderSubmitting=true;let submitted=false;
+ window.VHCheckoutFeedback?.busy('order',true);
  if(btn){btn.disabled=true;btn.textContent='ПЕРЕВІРЯЄМО...'}
  try{
    const {data:live,error:availabilityError}=await publicSb.from('products').select('id,price,status,stock').eq('id',product.id).maybeSingle();
    if(availabilityError)throw availabilityError;
-   if(!live||live.status!=='published'||!(Number(live.stock)>0))throw Error(live?.status==='reserved'?'Товар щойно зарезервував інший покупець':live?.status==='sold'?'Товар уже продано':'Товар зараз недоступний');
-   if(!Number.isFinite(Number(live.price))||Number(live.price)<0)throw Error('Не вдалося підтвердити ціну товару. Спробуйте пізніше.');
+   if(!live||live.status!=='published'||!(Number(live.stock)>0))throw VHCheckoutFeedback.problem(live?.status==='reserved'?'Товар щойно зарезервував інший покупець':live?.status==='sold'?'Товар уже продано':'Товар зараз недоступний');
+   if(!Number.isFinite(Number(live.price))||Number(live.price)<0)throw VHCheckoutFeedback.problem('Не вдалося підтвердити ціну товару. Спробуйте пізніше.');
    if(Math.abs(Number(live.price)-Number(product.price))>.009){
      product.price=Number(live.price);$('productPrice').textContent=money(product.price);$('orderProduct').textContent=product.name+' · '+money(product.price);
-     throw Error('Ціна змінилася на '+money(product.price)+'. Перевірте суму та підтвердьте замовлення повторно.');
+     throw VHCheckoutFeedback.problem('Ціна змінилася на '+money(product.price)+'. Перевірте суму та підтвердьте замовлення повторно.');
    }
    if(btn)btn.textContent='НАДСИЛАЄМО...';
    const customer_name=[first_name,last_name].join(' ');
    const {data:{user}}=await sb.auth.getUser();
    // Use the same existing server-side pricing/reservation contract as the cart.
+   submitted=true;
    const {data,error}=await sb.rpc('vh_create_checkout_order',{
      p_product_ids:[product.id],p_customer_name:customer_name,p_contact:phone,p_email:email,
      p_comment:VHOrderDelivery.encode(city,delivery_address,comment),p_capsule_id:null,p_look_id:null
    });
    if(error)throw error;
    if(!data?.success||!Array.isArray(data.order_ids)||!data.order_ids.length)throw Error('Сервер не підтвердив створення замовлення');
-   closeOrder();
+   window.VHCheckoutFeedback.success('order',{items:[product],total:data.total!=null&&Number.isFinite(Number(data.total))?Number(data.total):Number(live.price),orderNumber:data.order_number});
    try{vhSetCart(vhGetCart().filter(item=>String(item.id)!==String(product.id)));vhRenderCart()}catch(error){console.warn('Order accepted; cart could not be refreshed',error)}
-   toast('Замовлення надіслано');
    // A failed notification or profile refresh cannot turn an accepted order into a failed purchase.
    for(const id of data.order_ids)void vhSendOrderEmailV211(id,'created');
    void (async()=>{try{
@@ -1567,10 +1573,8 @@ async function submitOrder(){
      localStorage.setItem(VH_PROFILE_KEY,JSON.stringify({name:customer_name,email:email||user.email||'',phone,city,delivery_address}));
    }catch(error){console.warn('Order accepted; profile could not be refreshed',error)}})();
  }catch(error){
-   const message=String(error?.message||'');
-   if(message.includes('PRODUCT_NOT_AVAILABLE'))toast('На жаль, цей товар уже зарезервовано або продано');
-   else toast(message||'Не вдалося надіслати замовлення');
- }finally{vhOrderSubmitting=false;if(btn){btn.disabled=false;btn.textContent='НАДІСЛАТИ ЗАМОВЛЕННЯ'}}
+   window.VHCheckoutFeedback?.error('order',error,{submitted});
+ }finally{vhOrderSubmitting=false;window.VHCheckoutFeedback?.busy('order',false);if(btn){btn.disabled=false;btn.textContent='НАДІСЛАТИ ЗАМОВЛЕННЯ'}}
 }
 window.submitOrder=submitOrder;
 
@@ -2192,10 +2196,10 @@ function vhRenderCart(){
  $('vhCheckoutLink').classList.toggle('disabled',!cart.length);
  box.innerHTML=cart.length?cart.map((item,i)=>`
    <div class="vh-cart-item">
-     <a href="${vhProductHref(item)}">${item.cover_image?`<img src="${item.cover_image}"${window.VHImageVariants?.attributes(item.cover_image)||''} alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-cart-placeholder"></span>'}</a>
+     <a href="${vhProductHref(item)}">${item.cover_image?`<img src="${escapeArticleHtml(item.cover_image)}"${window.VHImageVariants?.attributes(item.cover_image)||''} alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="vh-cart-placeholder"></span>'}</a>
      <div class="vh-cart-item-copy">
-       <small>${item.brand||'VINTAGE HEDONISTA'}</small>
-       <a href="${vhProductHref(item)}"><b>${item.name}</b></a>
+       <small>${escapeArticleHtml(item.brand||'VINTAGE HEDONISTA')}</small>
+       <a href="${vhProductHref(item)}"><b>${escapeArticleHtml(item.name)}</b></a>
        <strong>${vhMoney(item.price)}</strong>
      </div>
      <button type="button" onclick="vhRemoveCartItem(${i})" aria-label="Видалити">×</button>
@@ -2257,15 +2261,15 @@ async function initCheckoutPage(){
  }
  $('checkoutItems').innerHTML=cart.length?cart.map((x,i)=>`
    <div class="checkout-item">
-     ${x.cover_image?`<img src="${x.cover_image}"${window.VHImageVariants?.attributes(x.cover_image)||''} alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="checkout-placeholder"></span>'}
-     <div><small>${x.brand||'VINTAGE HEDONISTA'}</small><b>${x.name}</b></div>
+     ${x.cover_image?`<img src="${escapeArticleHtml(x.cover_image)}"${window.VHImageVariants?.attributes(x.cover_image)||''} alt="" loading="lazy" decoding="async" fetchpriority="low">`:'<span class="checkout-placeholder"></span>'}
+     <div><small>${escapeArticleHtml(x.brand||'VINTAGE HEDONISTA')}</small><b>${escapeArticleHtml(x.name)}</b></div>
      <strong>${vhMoney(x.price)}</strong>
      <button type="button" onclick="checkoutRemoveItem(${i})">×</button>
    </div>`).join(''):'<div class="checkout-empty">Кошик порожній. <a href="catalog.html">Повернутися до каталогу →</a></div>';
  try{await vhRefreshBundleOffers(cart)}catch(e){console.warn(e)}
  const checkoutPricing=vhBundlePricing(cart,vhBundleOffers);
  $('checkoutTotal').textContent=vhMoney(checkoutPricing.total);
- if(checkoutPricing.discounts.length)$('checkoutItems').insertAdjacentHTML('beforeend',checkoutPricing.discounts.map(d=>'<div class="checkout-discount">Комплектна ціна: '+d.title+' · економія '+vhMoney(d.saving)+'</div>').join(''))
+ if(checkoutPricing.discounts.length)$('checkoutItems').insertAdjacentHTML('beforeend',checkoutPricing.discounts.map(d=>'<div class="checkout-discount">Комплектна ціна: '+escapeArticleHtml(d.title)+' · економія '+vhMoney(d.saving)+'</div>').join(''))
 }
 window.initCheckoutPage=initCheckoutPage;
 window.checkoutRemoveItem=function(i){
@@ -2275,8 +2279,10 @@ window.checkoutRemoveItem=function(i){
 let vhCheckoutSubmitting=false;
 async function submitCartCheckout(){
  if(vhCheckoutSubmitting)return;
+ if(!window.VHCheckoutFeedback)return toast('Не вдалося завантажити форму. Оновіть сторінку та спробуйте ще раз.');
  const cart=vhGetCart();
- if(!cart.length)return toast('Кошик порожній');
+ if(!cart.length)return window.VHCheckoutFeedback?.feedback('cart','Кошик порожній. Додайте речі з каталогу.');
+ if(window.VHCheckoutFeedback&&!VHCheckoutFeedback.validate('cart'))return;
  const first=$('checkoutName').value.trim(),last=$('checkoutLastName').value.trim(),contact=$('checkoutContact').value.trim();
  const city=$('checkoutCity').value.trim(),delivery=$('checkoutDelivery').value.trim();
  const name=[first,last].join(' ');
@@ -2285,19 +2291,21 @@ async function submitCartCheckout(){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return toast('Перевірте правильність email');
  if(!window.VHOrderDelivery)return toast('Не вдалося завантажити форму. Оновіть сторінку та спробуйте ще раз.');
  const btn=document.querySelector('#checkoutForm .checkout-submit');
- vhCheckoutSubmitting=true;
+ vhCheckoutSubmitting=true;let submitted=false;
+ window.VHCheckoutFeedback?.busy('cart',true);
  if(btn){btn.disabled=true;btn.textContent='ПЕРЕВІРЯЄМО ЗАМОВЛЕННЯ...'}
  try{
   await vhRefreshBundleOffers(cart);
   const ids=cart.map(item=>item.id);
-  if(new Set(ids.map(String)).size!==ids.length)throw new Error('У кошику повторюються товари');
+  if(new Set(ids.map(String)).size!==ids.length)throw VHCheckoutFeedback.problem('У кошику повторюються товари');
   const {data:products,error:productError}=await sb.from('products').select('id,price,status,stock').in('id',ids);
   if(productError)throw productError;
   const live=new Map((products||[]).map(p=>[String(p.id),p]));
-  if(ids.some(id=>!live.has(String(id))||live.get(String(id)).status!=='published'||!(Number(live.get(String(id)).stock)>0)))throw new Error('Деякі товари вже недоступні. Оновіть кошик.');
+  if(ids.some(id=>!live.has(String(id))||live.get(String(id)).status!=='published'||!(Number(live.get(String(id)).stock)>0)))throw VHCheckoutFeedback.problem('Деякі товари вже недоступні. Оновіть кошик.');
   const checked=cart.map(x=>({...x,price:Number(live.get(String(x.id)).price)}));
+  if(checked.some(x=>!Number.isFinite(x.price)||x.price<0))throw VHCheckoutFeedback.problem('Не вдалося підтвердити ціну товару. Спробуйте пізніше.');
   if(checked.some(x=>x.capsule_offer&&(!x.capsule_offer.id||!x.capsule_offer.look_id||!Array.isArray(x.capsule_offer.product_ids)||!x.capsule_offer.product_ids.length))){
-   throw new Error('Не вдалося визначити склад капсули. Додайте її в кошик зі сторінки капсули ще раз.');
+   throw VHCheckoutFeedback.problem('Не вдалося визначити склад капсули. Додайте її в кошик зі сторінки капсули ще раз.');
   }
   const offers=[...new Set(checked.map(x=>x.capsule_offer?.id).filter(Boolean))];
   if(offers.length){
@@ -2312,43 +2320,41 @@ async function submitCartCheckout(){
     const main=(mainLooks||[]).some(x=>String(x.id)===String(offer.look_id)&&String(x.capsule_id)===String(offer.id));
     const actual=[...new Set((links||[]).filter(x=>String(x.capsule_id)===String(offer.id)&&String(x.look_id)===String(offer.look_id)).map(x=>String(x.product_id)))].sort();
     const expected=[...new Set(offer.product_ids.map(String))].sort();
-    if(!main||JSON.stringify(actual)!==JSON.stringify(expected))throw new Error('Склад капсули змінився. Додайте її в кошик зі сторінки капсули ще раз.');
+    if(!main||JSON.stringify(actual)!==JSON.stringify(expected))throw VHCheckoutFeedback.problem('Склад капсули змінився. Додайте її в кошик зі сторінки капсули ще раз.');
    }
   }
   const pricing=vhBundlePricing(checked,vhBundleOffers);
-  if(offers.length&&!pricing.bundles.length)throw new Error('Капсула неповна або недоступна. Додайте її в кошик зі сторінки капсули ще раз.');
+  if(offers.length&&!pricing.bundles.length)throw VHCheckoutFeedback.problem('Капсула неповна або недоступна. Додайте її в кошик зі сторінки капсули ще раз.');
   const bundle=pricing.bundles.length===1?pricing.bundles[0]:null;
   if(pricing.bundles.length>1||bundle&&checked.length!==new Set(bundle.product_ids.map(String)).size){
-   throw new Error('Оформіть капсулу окремим замовленням. Інші речі тимчасово приберіть із кошика.');
+   throw VHCheckoutFeedback.problem('Оформіть капсулу окремим замовленням. Інші речі тимчасово приберіть із кошика.');
   }
   const shown=Number(($('checkoutTotal')?.textContent||'').replace(/[^\d,]/g,'').replace(',','.')||0);
   if(Math.abs(pricing.total-shown)>0.009){
    const updated=new Map(checked.map(item=>[String(item.id),item]));
    vhSetCart(vhGetCart().map(item=>updated.get(String(item.id))||item));await initCheckoutPage();
-   throw new Error('Ціна змінилася. Перевірте суму та підтвердьте замовлення повторно.');
+   throw VHCheckoutFeedback.problem('Ціна змінилася. Перевірте суму та підтвердьте замовлення повторно.');
   }
+  submitted=true;
   const {data,error}=await sb.rpc('vh_create_checkout_order',{
    p_product_ids:ids,p_customer_name:name,p_contact:contact,p_email:email,p_comment:VHOrderDelivery.encode(city,delivery,comment),
    p_capsule_id:bundle?.id||null,p_look_id:bundle?.look_id||null
   });
   if(error)throw error;
-  if(!data?.success)throw new Error('Сервер не підтвердив створення замовлення');
+  if(!data?.success||!Array.isArray(data.order_ids)||!data.order_ids.length)throw new Error('Сервер не підтвердив створення замовлення');
   if(Math.abs(Number(data.total)-pricing.total)>0.009){
    console.warn('Server pricing differs',data.total,pricing.total);
   }
   try{const ordered=new Set(ids.map(String));vhSetCart(vhGetCart().filter(item=>!ordered.has(String(item.id))));vhRenderCart()}catch(error){console.warn('Order accepted; cart could not be refreshed',error)}
-  const successGrid=document.querySelector('.checkout-grid');if(successGrid)successGrid.innerHTML='<div class="checkout-success"><div class="kicker">VINTAGE HEDONISTA</div><h2>ЗАМОВЛЕННЯ ПРИЙНЯТО</h2><p>Дякуємо. Ми зв’яжемося з вами для підтвердження деталей.</p><a href="catalog.html">ПОВЕРНУТИСЯ ДО КАТАЛОГУ →</a></div>';
-  toast('Замовлення надіслано');
+  window.VHCheckoutFeedback.success('cart',{items:checked,total:data.total!=null&&Number.isFinite(Number(data.total))?Number(data.total):pricing.total,orderNumber:data.order_number});
   for(const orderId of (data.order_ids||[])){
    vhSendOrderEmailV211(orderId,'created').catch(console.warn);
   }
  }catch(e){
-  console.error('Checkout RPC',e);
-  const msg=String(e?.message||'');
-  if(msg.includes('PRODUCT_NOT_AVAILABLE'))toast('Одна з речей уже зарезервована або продана');
-  else toast(msg||'Не вдалося створити замовлення');
+  window.VHCheckoutFeedback?.error('cart',e,{submitted});
  }finally{
   vhCheckoutSubmitting=false;
+  window.VHCheckoutFeedback?.busy('cart',false);
   if(btn?.isConnected){btn.disabled=false;btn.textContent='ПІДТВЕРДИТИ ЗАМОВЛЕННЯ'}
  }
 }

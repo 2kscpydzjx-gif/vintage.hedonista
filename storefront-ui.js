@@ -55,6 +55,9 @@
   else if(!event.shiftKey&&(!top.root.contains(document.activeElement)||document.activeElement===last)){event.preventDefault();focus(first)}
  },true);
  document.addEventListener('focusin',event=>{const top=stack.at(-1);if(top&&!top.root.contains(event.target))focus(focusable(top.root)[0]||top.box)});
- function start(){discover();new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(()=>{queued=false;discover()})}}).observe(document.body,{childList:true,subtree:true})}
+ function start(){
+  const status=document.getElementById('toast');if(status){status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true')}
+  discover();new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(()=>{queued=false;discover()})}}).observe(document.body,{childList:true,subtree:true});
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

@@ -12,6 +12,11 @@ on:
       - 'capsules-front.js'
       - 'styles.css'
       - 'storefront-ui.js'
+      - 'checkout-feedback.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vercel.json'
+      - 'scripts/build-hosting.mjs'
       - 'image-variants.js'
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
@@ -42,6 +47,7 @@ jobs:
         run: |
           node --check cms-model.js
           node --check storefront-ui.js
+          node --check checkout-feedback.js
           node --check image-variants.js
           node --check product-routes.js
           node --check vh-seo-runtime.js
@@ -65,10 +71,13 @@ jobs:
           node tests/cms-draft-store.cjs
       - name: Install browser
         run: |
-          npm install --no-save playwright@1.56.1
+          npm ci --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
+      - name: Verify deployable assets and preview indexing
+        run: node tests/hosting-build.mjs
       - name: Test editor and storefront with isolated data
         run: |
+          export VH_TEST_BUILT=1
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/cms-server.log 2>&1 &
           node tests/cms-editor.cjs
           node tests/cms-layouts.cjs
@@ -99,4 +108,12 @@ jobs:
           node tests/storefront-shell.cjs
           node tests/catalog-footer-spacing.cjs
           node tests/direct-order.cjs
+          node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
+      - name: Save isolated checkout screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prelaunch-checkout-screenshots
+          path: test-results/prelaunch-feedback/
+          if-no-files-found: ignore

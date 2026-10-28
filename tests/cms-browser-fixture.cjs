@@ -34,7 +34,15 @@ async function fixture(options={}){
   const url=route.request().url();
   if(url.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js'))return route.fulfill({contentType:'text/javascript',body:sdk});
   if(url.includes('/assets/test-upload.png'))return route.fulfill({contentType:'image/png',body:png});
-  if(url.startsWith('http://127.0.0.1:8765/'))return route.continue();
+  if(url.startsWith('http://127.0.0.1:8765/')){
+   if(process.env.VH_TEST_BUILT==='1'){
+    const path=require('node:path'),file=path.resolve(__dirname,'../dist','.'+decodeURIComponent(new URL(url).pathname)),dist=path.resolve(__dirname,'../dist');
+    if(!file.startsWith(dist+path.sep))return route.abort();
+    const ext=path.extname(file),mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.ico':'image/x-icon','.txt':'text/plain','.xml':'application/xml'};
+    try{return route.fulfill({contentType:mime[ext]||'application/octet-stream',body:fs.readFileSync(file)})}catch{return route.fulfill({status:404,body:'Not found in hosting build'})}
+   }
+   return route.continue();
+  }
   if(url.includes('.supabase.co/rest/v1/site_settings'))return route.fulfill({contentType:'application/json',body:JSON.stringify([settings])});
   return route.abort();
  });

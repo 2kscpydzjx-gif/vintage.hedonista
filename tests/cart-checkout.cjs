@@ -32,9 +32,9 @@ const formValues=p=>p.locator('#checkoutForm input,#checkoutForm textarea').eval
  }
  await p.locator('#checkoutEmail').fill('broken-email');await p.evaluate(()=>submitCartCheckout());assert.equal(created.length,0);await p.locator('#checkoutEmail').fill(values.checkoutEmail);
  // Repricing and removal rerender the order summary, preserving everything already entered.
- f.data('products',[{...product,price:1300}]);await p.evaluate(()=>submitCartCheckout());assert.match(await p.locator('#toast').textContent(),/Ціна змінилася/);assert.deepEqual(await formValues(p),values);assert.equal(created.length,0);
+ f.data('products',[{...product,price:1300}]);await p.evaluate(()=>submitCartCheckout());assert.match(await p.locator('.vh-checkout-feedback').textContent(),/Ціна змінилася/);assert.deepEqual(await formValues(p),values);assert.equal(created.length,0);
  f.data('products',[product]);await cart(p,[product,{...product,id:'remove-me'}]);await p.evaluate(()=>initCheckoutPage());await p.locator('.checkout-item button').last().click();await p.waitForFunction(()=>document.querySelectorAll('.checkout-item').length===1);assert.deepEqual(await formValues(p),values);
- fail=true;await p.locator('.checkout-submit').click();await p.waitForFunction(()=>document.querySelector('#toast').textContent.includes('Тестова помилка'));assert.deepEqual(await formValues(p),values);assert.equal(await p.locator('.checkout-submit').isEnabled(),true);assert.equal(f.functionCalls.length,0);assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('vh_cart_v1')).length),1);
+ fail=true;await p.locator('.checkout-submit').click();await p.waitForFunction(()=>document.querySelector('.vh-checkout-feedback')?.textContent.includes('Не вдалося оформити'));assert.doesNotMatch(await p.locator('.vh-checkout-feedback').textContent(),/Тестова помилка/);assert.deepEqual(await formValues(p),values);assert.equal(await p.locator('.checkout-submit').isEnabled(),true);assert.equal(f.functionCalls.length,0);assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem('vh_cart_v1')).length),1);
  fail=false;let release;gate=new Promise(resolve=>release=resolve);
  const before=f.rpcCalls.filter(x=>x.name==='vh_create_checkout_order').length;
  await p.evaluate(()=>{submitCartCheckout();submitCartCheckout()});
@@ -57,8 +57,8 @@ const formValues=p=>p.locator('#checkoutForm input,#checkoutForm textarea').eval
  await checkout(p);assert.equal(await p.locator('#checkoutLastName').inputValue(),'Бондар');assert.equal(await p.locator('#checkoutCity').inputValue(),'Львів');assert.equal(await p.locator('#checkoutDelivery').inputValue(),'Відділення №5');assert.equal(await p.locator('#checkoutEmail').inputValue(),'profile@example.test');
  await fill(p);await p.evaluate(()=>initCheckoutPage());assert.deepEqual(await formValues(p),values);
  // Unavailable and empty carts cannot create orders.
- f.data('products',[{...product,status:'reserved'}]);let count=created.length;await p.evaluate(()=>submitCartCheckout());assert.equal(created.length,count);assert.match(await p.locator('#toast').textContent(),/недоступні/);
- await cart(p,[]);await p.evaluate(()=>submitCartCheckout());assert.equal(created.length,count);assert.match(await p.locator('#toast').textContent(),/Кошик порожній/);
+ f.data('products',[{...product,status:'reserved'}]);let count=created.length;await p.evaluate(()=>submitCartCheckout());assert.equal(created.length,count);assert.match(await p.locator('.vh-checkout-feedback').textContent(),/недоступні/);
+ await cart(p,[]);await p.evaluate(()=>submitCartCheckout());assert.equal(created.length,count);assert.match(await p.locator('.vh-checkout-feedback').textContent(),/Кошик порожній/);
  // Capsule bundles retain the same pricing, main-look and product validation path.
  const second={...product,id:'second-product',price:700},offer={id:'capsule',look_id:'main-look',product_ids:[product.id,second.id],title:'Капсула'};
  f.data('products',[product,second]);f.data('capsules',[{id:'capsule',price:1500,is_active:true,title:'Капсула'}]);f.data('capsule_looks',[{id:'main-look',capsule_id:'capsule',is_main:true}]);f.data('capsule_look_products',[product,second].map(x=>({capsule_id:'capsule',look_id:'main-look',product_id:x.id})));
