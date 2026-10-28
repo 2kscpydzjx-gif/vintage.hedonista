@@ -1,3 +1,8 @@
-
+# JWTs are verified by auth.getUser inside the shared handler. Trusted database
+# webhooks authenticate with ORDER_EMAIL_WEBHOOK_SECRET, not an end-user JWT.
+# Configure the webhook and test project before deploying these changes.
 [functions.order-email]
+verify_jwt = false
+
+[functions.resend-email]
 verify_jwt = false

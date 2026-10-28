@@ -1,6 +1,10 @@
 -- Vintage Hedonista V250 — orders RLS
 -- Fixes guest checkout while keeping guest PII private.
 -- Run once in Supabase > SQL Editor. Safe to re-run.
+-- LEGACY: this supports the former browser INSERT path. The current test branch
+-- uses vh_create_checkout_order for both Buy and cart checkout. Do not treat
+-- these broad guest INSERT/SELECT(id) grants as a new production hardening step;
+-- audit the deployed RPC and policies with supabase/audits/prelaunch-readonly.sql.
 
 BEGIN;
 

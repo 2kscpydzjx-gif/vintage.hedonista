@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'admin/**'
+      - 'supabase/**'
       - 'cms-model.js'
       - 'cms-boot.*'
       - 'scripts/sync-cms-boot.cjs'
@@ -10,6 +11,20 @@ on:
       - 'site.js'
       - 'capsules-front.js'
       - 'styles.css'
+      - 'storefront-ui.js'
+      - 'checkout-feedback.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vercel.json'
+      - 'scripts/build-hosting.mjs'
+      - 'image-variants.js'
+      - 'product-routes.js'
+      - 'vh-seo-runtime.js'
+      - 'vh-page-seo.js'
+      - 'config.js'
+      - 'assets/optimized/**'
+      - 'scripts/product-routes.mjs'
+      - 'scripts/seo-head.mjs'
       - 'password-recovery.js'
       - 'order-delivery.js'
       - '*.html'
@@ -26,11 +41,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install isolated PostgreSQL test runtime
+        run: npm ci --prefix tests --ignore-scripts --no-audit --no-fund
       - name: Validate runtime and recovery
         run: |
           node --check cms-model.js
+          node --check storefront-ui.js
+          node --check checkout-feedback.js
+          node --check image-variants.js
+          node --check product-routes.js
+          node --check vh-seo-runtime.js
+          node --check vh-page-seo.js
+          node tests/prelaunch-unit.mjs
           node --check password-recovery.js
           node --check order-delivery.js
+          node --check admin/cms-image-upload.js
+          node tests/order-email-security.mjs
+          node tests/order-email-version.mjs
           node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
@@ -44,10 +71,13 @@ jobs:
           node tests/cms-draft-store.cjs
       - name: Install browser
         run: |
-          npm install --no-save playwright@1.56.1
+          npm ci --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
+      - name: Verify deployable assets and preview indexing
+        run: node tests/hosting-build.mjs
       - name: Test editor and storefront with isolated data
         run: |
+          export VH_TEST_BUILT=1
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/cms-server.log 2>&1 &
           node tests/cms-editor.cjs
           node tests/cms-layouts.cjs
@@ -74,3 +104,16 @@ jobs:
           node tests/cart-checkout.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
+          node tests/mobile-storefront.cjs
+          node tests/storefront-shell.cjs
+          node tests/catalog-footer-spacing.cjs
+          node tests/direct-order.cjs
+          node tests/checkout-feedback.cjs
+          node tests/cms-image-upload.cjs
+      - name: Save isolated checkout screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prelaunch-checkout-screenshots
+          path: test-results/prelaunch-feedback/
+          if-no-files-found: ignore

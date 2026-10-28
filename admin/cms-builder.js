@@ -278,7 +278,7 @@ function cmsApplyExistingLayout(el,d,mediaValue){
  // Only use the photo assigned to THIS layout. Never inherit stale native hero slots.
  const raw=typeof mediaValue==='string'?mediaValue.trim():'';
  const url=raw&&raw!=='__removed__'&&(/^(https?:|data:image\/|blob:|\/|\.\/|\.\.\/)/i.test(raw))?raw:'';
- const image=url?'url('+JSON.stringify(url)+')':'none';
+ const image=url?(doc.defaultView.VHImageVariants?.background(url)||'url('+JSON.stringify(url)+')'):'none';
  // Keep the image on a real CSS background layer, independent of storefront image nodes.
  const nextBackground=url?'linear-gradient(90deg,rgba(12,8,6,.90),rgba(12,8,6,.65) 38%,rgba(12,8,6,.10)),'+image:'none';
  // Preserve the image layer across repeated preview reconciliation passes.
@@ -288,8 +288,8 @@ function cmsApplyExistingLayout(el,d,mediaValue){
   layer.dataset.cmsImage=url?'set':'empty';
   if(url){
    const test=new Image();
-   test.onerror=()=>{if(layer.dataset.cmsSource===url){console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'}};
-   test.src=new URL(url,doc.baseURI).href;
+   test.onerror=()=>{const original=new URL(url,doc.baseURI).href,optimized=new URL(doc.defaultView.VHImageVariants?.preview(url)||url,doc.baseURI).href;if(optimized!==original&&test.src===optimized){layer.style.setProperty('background-image',layer.style.backgroundImage.replace(optimized,original),'important');test.src=original;return}if(layer.dataset.cmsSource===url){console.warn('[Vintage CMS] Banner photo failed to load:',url);layer.dataset.cmsImage='error'}};
+   test.src=new URL(doc.defaultView.VHImageVariants?.preview(url)||url,doc.baseURI).href;
   }
  }
 }
@@ -507,19 +507,23 @@ async function uploadExistingCmsPhoto(file,photoKey){
  if(!file)return '';
  if(!cloudReady||!cloud)throw Error('Увійдіть в адмінку, щоб завантажити фото в Supabase');
  const types={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif','image/gif':'gif'};
- const ext=types[file.type];
- if(!ext)throw Error('Підтримуються JPG, PNG, WEBP, AVIF та GIF');
+ if(!types[file.type])throw Error('Підтримуються JPG, PNG, WEBP, AVIF та GIF');
  if(file.size>25*1024*1024)throw Error('Фото понад 25 МБ. Стисніть файл перед завантаженням');
- const bucket=window.VH_CONFIG?.storageBucket;
- if(!bucket)throw Error('Не налаштовано Supabase Storage bucket');
+ const bucket=window.VH_CONFIG?.storageBucket;if(!bucket)throw Error('Не налаштовано Supabase Storage bucket');
  const safe=String(photoKey||'photo').replace(/[^a-z0-9_-]/gi,'-').slice(0,90);
- const path='cms/'+pageId+'/existing-'+safe+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,9)+'.'+ext;
+ const stem='cms/'+pageId+'/existing-'+safe+'/'+Date.now()+'-'+crypto.randomUUID();
  uploadsInFlight++;syncCloudButtons();
- let error;try{({error}=await cloud.storage.from(bucket).upload(path,file,{contentType:file.type,upsert:false,cacheControl:'31536000'}))}finally{uploadsInFlight--;syncCloudButtons()}
- if(error)throw error;
- const url=cloud.storage.from(bucket).getPublicUrl(path).data?.publicUrl;
- if(!url)throw Error('Не вдалося отримати URL завантаженого фото');
- return url;
+ try{
+  if(!window.VHCMSImageUpload)throw Error('Не завантажено інструмент фото. Оновіть сторінку редактора.');
+  const prepared=await VHCMSImageUpload.prepare(file,{preserve:['headerLogo','footerLogo'].includes(photoKey)});
+  const storage=cloud.storage.from(bucket),sourcePath=stem+(prepared.optimized?'-original':'')+'.'+types[file.type];
+  const source=await storage.upload(sourcePath,file,{contentType:file.type,upsert:false,cacheControl:'31536000'});if(source.error)throw source.error;
+  const originalUrl=storage.getPublicUrl(sourcePath).data?.publicUrl;if(!originalUrl)throw Error('Не вдалося отримати URL фотографії');
+  if(!prepared.optimized)return {url:originalUrl,originalUrl,optimized:false};
+  const path=stem+'.webp',variant=await storage.upload(path,prepared.file,{contentType:'image/webp',upsert:false,cacheControl:'31536000',metadata:{originalPath:sourcePath,width:prepared.width,height:prepared.height}});if(variant.error)throw variant.error;
+  const url=storage.getPublicUrl(path).data?.publicUrl;if(!url)throw Error('Не вдалося отримати URL фотографії');
+  return {url,originalUrl,optimized:true};
+ }finally{uploadsInFlight--;syncCloudButtons()}
 }
 function addDesignControls(host,id,initial,onChange,isCapsules=false,blockType=null,onBlockType=null){
  const d=structuredClone(initial),details=document.createElement('div');details.className='cms-design cms91-design';
@@ -572,7 +576,7 @@ function cmsMediaItems(target,block){
  const active=preset==='text-only'?0:preset==='framed'?2:preset==='three-photos'?3:preset==='original'?fields.length:1;
  const usedIndices=target?Object.keys(edit.layoutImages||{}):Object.keys(block.images||{});
  const count=Math.max(active,fields.length,...usedIndices.map(key=>Number(key)+1).filter(Number.isFinite),...urls.map((value,i)=>value&&value!=='__removed__'?i+1:0));
- return Array.from({length:Math.min(60,count)},(_,slot)=>({key:target?fields[slot]?.id||'layout:'+slot:'photo:'+slot,slot,field:fields[slot],title:(slot===0?'Основне фото':'Фото '+(slot+1)),url:urls[slot]||'',used:slot<active}));
+ return Array.from({length:Math.min(60,count)},(_,slot)=>({key:target?fields[slot]?.id||'layout:'+slot:'photo:'+slot,slot,field:fields[slot],title:(slot===0?'Основне фото':'Фото '+(slot+1)),url:urls[slot]||'',originalUrl:edit.photoOriginals?.[urls[slot]],used:slot<active}));
 }
 function mountMediaEditor(host,target,block){
  const currentEdit=()=>target?readExisting()[target.id]||{}:block;
@@ -581,7 +585,7 @@ function mountMediaEditor(host,target,block){
   getItems:()=>cmsMediaItems(target,block),
   getCrop:(item,device)=>window.VHCMSModel.photoCrop(currentEdit(),currentEdit().design||{},item?.key,item?.slot||0,device),
   setCrop:(item,device,value)=>{const edit=currentEdit();const settings={...edit.mediaSettings?.[item.key],[device]:value};edit.mediaSettings={...edit.mediaSettings,[item.key]:settings,...(target?{['layout:'+item.slot]:settings}:{})};if(target){const all=readExisting();all[target.id]=edit;saveExisting(all)}else persist();scheduleLivePreview()},
-  setSource:(item,url)=>{if(target){const all=readExisting(),edit=all[target.id]||{};edit.layoutImages={...edit.layoutImages,[item.slot]:url};if(item.field)edit.mapped={...edit.mapped,[item.field.id]:url};if(item.slot===0&&(edit.templateImage!==undefined||edit.design?.photoPreset==='gradient-hero')){edit.templateImage=url;if(edit.images)edit.images={...edit.images,image0:url}}if(item.slot===0&&(edit.capsuleImage!==undefined||target.el.matches('.homepage-capsules')))edit.capsuleImage=url;all[target.id]=edit;saveExisting(all);if(item.field)window.VHCMSModel.applyMapped(target.el,edit.mapped,pageId);}else{if(item.slot===0)block.image=url==='__removed__'?'':url;else block.images={...block.images,[item.slot]:url==='__removed__'?'':url};persist()}scheduleLivePreview()},
+  setSource:(item,url,originalUrl)=>{if(target){const all=readExisting(),edit=all[target.id]||{};if(originalUrl&&originalUrl!==url)edit.photoOriginals={...edit.photoOriginals,[url]:originalUrl};edit.layoutImages={...edit.layoutImages,[item.slot]:url};if(item.field)edit.mapped={...edit.mapped,[item.field.id]:url};if(item.slot===0&&(edit.templateImage!==undefined||edit.design?.photoPreset==='gradient-hero')){edit.templateImage=url;if(edit.images)edit.images={...edit.images,image0:url}}if(item.slot===0&&(edit.capsuleImage!==undefined||target.el.matches('.homepage-capsules')))edit.capsuleImage=url;all[target.id]=edit;saveExisting(all);if(item.field)window.VHCMSModel.applyMapped(target.el,edit.mapped,pageId);}else{if(originalUrl&&originalUrl!==url)block.photoOriginals={...block.photoOriginals,[url]:originalUrl};if(item.slot===0)block.image=url==='__removed__'?'':url;else block.images={...block.images,[item.slot]:url==='__removed__'?'':url};persist()}scheduleLivePreview()},
   upload:(file,item)=>uploadExistingCmsPhoto(file,(target?.id||block.id)+'-'+item.key),
   onError:error=>{$('status').textContent='Помилка фото: '+error.message},
   onDevice:device=>document.querySelector('[data-studio-device="'+device+'"]')?.click(),
