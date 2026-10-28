@@ -67,6 +67,7 @@ export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.
    if(!statuses.has(order.status))return reply(400,{ok:false,error:'Unsupported order status'});
    if(!Number.isSafeInteger(order.vh_email_version)||order.vh_email_version<0)return reply(503,{ok:false,error:'Email service unavailable'});
    if(webhook&&(order.status!==body.record.status||order.vh_email_version!==body.record.vh_email_version))return reply(200,{ok:true,skipped:true});
+   if(order.status==='shipped'&&!String(order.ttn||'').trim())return reply(200,{ok:true,skipped:true});
    if(!order.email)return reply(200,{ok:true,skipped:true});
    const testMode=env('TEST_MODE')==='true';
    const recipient=testMode?env('TEST_EMAIL'):order.email;
