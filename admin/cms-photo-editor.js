@@ -25,7 +25,7 @@
   const cropActions=make('div','cms-photo-actions'),center=make('button','secondary','Центрувати'),reset=make('button','secondary','Скинути кадрування'),inherit=make('button','secondary','Як на комп’ютері');
   for(const button of [center,reset,inherit])button.type='button';cropActions.append(center,reset,inherit);
   const linkDetails=make('details','cms-photo-url'),linkSummary=make('summary',null,'Посилання на фотографію'),url=make('input');
-  url.type='text';url.placeholder='https://… або шлях до фото';url.setAttribute('aria-label','Посилання на фотографію');linkDetails.append(linkSummary,url);
+  url.type='text';url.placeholder='https://… або шлях до фото';url.setAttribute('aria-label','Посилання на фотографію');const original=make('a','cms-photo-original','Відкрити оригінал');original.target='_blank';original.rel='noopener';original.hidden=true;linkDetails.append(linkSummary,url,original);
   const hint=make('p','cms-photo-hint','Перетягуйте фото у рамці. Для кожного фото можна окремо налаштувати комп’ютер, планшет і телефон.');
   controls.append(actions,deviceBar,stage,status,fitLabel,cropFields,cropActions,linkDetails,hint);root.append(heading,select,count,empty,controls);
   let activeKey=null,device=options.initialDevice||'desktop',busy=false,drag=null,lastSource='',signature='';
@@ -51,7 +51,7 @@
    const current=item(),source=current?.url&&current.url!=='__removed__'?current.url:'';
    if(source!==lastSource){lastSource=source;status.textContent='';if(source){image.src=source;image.hidden=false;placeholder.hidden=true}else{image.removeAttribute('src');image.hidden=true;placeholder.hidden=false}}
    if(!source){image.hidden=true;placeholder.hidden=false}
-   if(document.activeElement!==url)url.value=source;
+   if(document.activeElement!==url)url.value=source;original.hidden=!/^https?:\/\//i.test(current?.originalUrl||'')||current.originalUrl===source;if(!original.hidden)original.href=current.originalUrl;else original.removeAttribute('href');
    remove.disabled=busy||!source;upload.disabled=busy;select.disabled=busy;
    for(const input of [fit,...Object.values(inputs).flatMap(value=>Object.values(value)),center,reset,inherit])input.disabled=busy||!source;
    const aspect=options.getAspect?.(current,device);const ratio=aspect>0?Math.max(.01,aspect):4/3;stage.style.aspectRatio=String(ratio);stage.style.maxWidth=280*ratio+'px';
@@ -65,7 +65,7 @@
   url.onchange=()=>{const value=url.value.trim();if(value&&!window.VHCMSModel.validImage(value)){status.textContent='Вкажіть коректне посилання на фотографію.';return}if(item()){options.setSource(item(),value||'__removed__');refresh()}};
   file.onchange=async()=>{
    const chosen=file.files?.[0],target=item();if(!chosen||!target)return;busy=true;refresh();status.textContent='Завантаження фотографії…';
-   try{const value=await options.upload(chosen,target);options.setSource(target,value);status.textContent='Фото завантажено. Збережіть чернетку.'}catch(error){status.textContent='Не вдалося завантажити фото: '+error.message;options.onError?.(error)}finally{file.value='';busy=false;refresh()}
+   try{const value=await options.upload(chosen,target);options.setSource(target,typeof value==='string'?value:value.url,typeof value==='string'?undefined:value.originalUrl);status.textContent='Фото завантажено. Збережіть чернетку.'}catch(error){status.textContent='Не вдалося завантажити фото: '+error.message;options.onError?.(error)}finally{file.value='';busy=false;refresh()}
   };
   image.onload=()=>{if(image.src&&image.naturalWidth)status.textContent=image.naturalWidth+' × '+image.naturalHeight+' px'};
   image.onerror=()=>{status.textContent='Фото не завантажилось. Замініть файл або перевірте посилання.'};

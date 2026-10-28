@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'admin/**'
+      - 'supabase/**'
       - 'cms-model.js'
       - 'cms-boot.*'
       - 'scripts/sync-cms-boot.cjs'
@@ -35,6 +36,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install isolated PostgreSQL test runtime
+        run: npm ci --prefix tests --ignore-scripts --no-audit --no-fund
       - name: Validate runtime and recovery
         run: |
           node --check cms-model.js
@@ -46,6 +49,9 @@ jobs:
           node tests/prelaunch-unit.mjs
           node --check password-recovery.js
           node --check order-delivery.js
+          node --check admin/cms-image-upload.js
+          node tests/order-email-security.mjs
+          node tests/order-email-version.mjs
           node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
@@ -92,3 +98,5 @@ jobs:
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
           node tests/catalog-footer-spacing.cjs
+          node tests/direct-order.cjs
+          node tests/cms-image-upload.cjs

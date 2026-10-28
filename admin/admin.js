@@ -11,6 +11,7 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 /* V211 — send order email from the server-side Edge Function */
 async function sendOrderEmailV211(orderId,type){
  if(!orderId)return {ok:false};
+ if(window.VH_CONFIG?.orderEmailTransport==='webhook')return {ok:true,queued:true};
  try{
    const {data,error}=await sb.functions.invoke('resend-email',{body:{order_id:orderId,type}});
    if(error)throw error;
@@ -1703,7 +1704,8 @@ async function changeOrderStatus(id,status){
 
  if(savedOrder?.email || o?.email){
    const emailResult=await sendOrderEmailV211(id,'status_changed');
-   if(emailResult?.ok){
+   if(emailResult?.queued){toast('Статус оновлено · сповіщення обробляється')}
+   else if(emailResult?.ok){
      toast(status==='shipped'
        ? 'Відправлено · ТТН збережено · лист надіслано'
        : 'Статус оновлено · лист надіслано');

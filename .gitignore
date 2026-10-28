@@ -2,3 +2,11 @@ work/
 node_modules/
 test-results/
 playwright-report/
+.env
+.env.*
+!.env.example
+.vercel/
+.supabase/
+backups/
+*.dump
+*.sql.gz
