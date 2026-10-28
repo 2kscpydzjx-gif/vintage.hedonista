@@ -56,6 +56,9 @@ jobs:
           node --check password-recovery.js
           node --check order-delivery.js
           node --check admin/cms-image-upload.js
+          node --check admin/mobile.js
+          node --check admin/cms-mobile.js
+          node --check admin/viewport.js
           node tests/order-email-security.mjs
           node tests/order-email-version.mjs
           node --check capsules-front.js
@@ -110,10 +113,20 @@ jobs:
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
+          node tests/admin-mobile.cjs
+          node tests/admin-login-mobile.cjs
+          node tests/cms-mobile.cjs
       - name: Save isolated checkout screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: prelaunch-checkout-screenshots
           path: test-results/prelaunch-feedback/
+          if-no-files-found: ignore
+      - name: Save isolated admin screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-mobile-screenshots
+          path: test-results/admin-mobile/
           if-no-files-found: ignore
