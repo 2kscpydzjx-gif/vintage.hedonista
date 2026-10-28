@@ -17718,8 +17718,7 @@ header .vh-brand-logo-link{
   .home-page .editorial,
   .home-page .category-section,
   .home-page .journal-section,
-  .home-page .brand-statement,
-  .home-page .site-footer-v64{content-visibility:auto;contain-intrinsic-size:auto 700px}
+  .home-page .brand-statement{content-visibility:auto;contain-intrinsic-size:auto 700px}
 }
 
 
