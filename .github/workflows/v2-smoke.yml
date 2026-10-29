@@ -87,6 +87,7 @@ jobs:
           node tests/cms-legacy.cjs
           node tests/cms-contact-fields.cjs
           node tests/cms-shell.cjs
+          node tests/cms-shared-editing.cjs
           node tests/cms-review.cjs
           node tests/cms-editor-refinements.cjs
           node tests/cms-native-photos.cjs

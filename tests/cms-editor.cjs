@@ -40,8 +40,11 @@ const wait=async(fn,message)=>{for(let i=0;i<80;i++){if(await fn())return;await 
   await page.locator('#save').click();await wait(async()=>f.records.get('about:draft').shared.cmsPageDraft.order[0]==='existing-1','order did not save');await wait(async()=>!await page.locator('#save').isDisabled(),'save remained locked');
   await page.reload();await page.waitForFunction(()=>document.querySelectorAll('.existing-row').length===8&&!document.querySelector('#save').disabled);frame=page.frameLocator('#siteFrame');await frame.locator('[data-cms-legacy="existing-0"] .vh-cms-copy').filter({hasText:'MY EDITED TITLE'}).waitFor();
   // A change made after the page loaded must not silently overwrite another administrator.
+  await page.locator('.existing-row[data-cms-id="existing-0"] .existing-select').click();
+  await page.locator('#existingEditor .vh-rte-content').first().fill('MY CONCURRENT CHANGE');
   f.records.get('about:draft').updated_at='concurrent-token';
-  await page.locator('#save').click();await page.locator('#status').filter({hasText:'Інший адміністратор'}).waitFor();assert.equal(f.records.get('about:draft').updated_at,'concurrent-token');
+  f.records.get('about:draft').shared.cmsPageDraft.existing['existing-0'].mapped.aboutHeroTitle='OTHER ADMIN CHANGE';
+  await page.locator('#save').click();await page.locator('#cmsConflict').waitFor();assert.equal(f.records.get('about:draft').updated_at,'concurrent-token');assert.equal(f.records.get('about:draft').shared.cmsPageDraft.existing['existing-0'].mapped.aboutHeroTitle,'OTHER ADMIN CHANGE');
   // A failed write leaves a recoverable local draft and reports failure.
   await page.locator('[data-side-tab="pages"]').click();await page.locator('.studio-pages-list button').filter({hasText:'Контакти'}).click();await page.waitForFunction(()=>new URLSearchParams(location.search).get('page')==='contacts'&&!document.querySelector('#save').disabled);
   await page.locator('.existing-row[data-cms-id="existing-0"] .existing-select').click();await page.locator('#existingEditor .vh-rte-content').first().fill('CONTACT LOCAL');f.failWrite(true);await page.locator('#save').click();await page.locator('#status').filter({hasText:'Simulated server write failure'}).waitFor();assert.match(await page.evaluate(()=>localStorage.getItem('vh-cms-existing-step65-contacts')),/CONTACT LOCAL/);f.failWrite(false);

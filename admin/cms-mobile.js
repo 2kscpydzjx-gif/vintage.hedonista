@@ -3,7 +3,7 @@
  const compact=matchMedia('(max-width:1199px)'),main=document.querySelector('body>main'),frame=document.getElementById('siteFrame');
  const panels={blocks:document.querySelector('.layout>div:first-child'),preview:document.querySelector('.preview'),inspector:document.querySelector('.editor')};if(!main||Object.values(panels).some(p=>!p))return;
  const nav=document.createElement('div');nav.className='cms-mobile-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Робочі панелі редактора');
- let current='blocks',autoDevice=false;
+ let current=document.body.classList.contains('cms-shared-mode')?'inspector':'blocks',autoDevice=false;
  function show(name,focusPanel=false){
   if(!panels[name])return;current=name;document.body.dataset.cmsPane=name;
   const frameHidden=compact.matches&&name!=='preview';frame.inert=frameHidden;panels.preview.setAttribute('aria-hidden',String(frameHidden));

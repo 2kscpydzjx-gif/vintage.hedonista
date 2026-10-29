@@ -25,3 +25,36 @@ test('page caches and shared shell are isolated; exports exclude auth and custom
 test('choosing server keeps recoverable local content and clears the conflict',()=>{
  const local=storage(),store=create(local);store.hydrate('delivery',revision('before'));const mine=store.snapshot('delivery');mine.blocks.push({id:'my-block',title:'mine'});store.restore('delivery',mine);store.touch('delivery');store.useServer('delivery',revision('new','v2'));assert.equal(store.meta('delivery').dirty,false);assert.equal(store.snapshot('delivery').existing['existing-0'].mapped.title,'new');assert.equal(JSON.parse(local.getItem('vh-cms-recovery-v1-delivery')).at(-1).local.blocks[0].id,'my-block');
 });
+test('shared snapshots exclude homepage content and unrelated metadata',()=>{
+ const local=storage(),store=create(local);store.hydrate('shared',{...revision('home'),shared:{...revision('home').shared,footerText:'Footer',unknownMeta:'keep on server'}});
+ assert.deepEqual(store.snapshot('shared'),{shared:{headerLogo:'keep.webp',footerText:'Footer'}});
+});
+test('shared edits rebase over homepage saves and merge independent shell fields',()=>{
+ const local=storage(),store=create(local);const first={...revision('before'),shared:{...revision('before').shared,footerText:'Before',nav:{0:{label:'Home',href:'index.html'}}}};
+ store.hydrate('shared',first);store.restore('shared',{shared:{...store.snapshot('shared').shared,footerText:'My footer'}});store.touch('shared');
+ const remote={...revision('new home','v2'),shared:{...first.shared,nav:{0:{label:'Start',href:'index.html'}}}};
+ const result=store.hydrate('shared',remote);assert.equal(result.conflict,false);assert.equal(result.token,'v2');assert.equal(store.snapshot('shared').shared.footerText,'My footer');assert.equal(store.snapshot('shared').shared.nav[0].label,'Start');
+ assert.equal(store.meta('shared').dirty,true);
+});
+test('same shell field edited by two administrators remains a recoverable conflict',()=>{
+ const local=storage(),store=create(local);store.hydrate('shared',{...revision('home'),shared:{footerText:'Before'}});store.restore('shared',{shared:{footerText:'Mine'}});store.touch('shared');
+ const result=store.hydrate('shared',{...revision('home','v2'),shared:{footerText:'Theirs'}});
+ assert.equal(result.conflict,true);assert.equal(store.snapshot('shared').shared.footerText,'Mine');
+});
+test('old shared metadata can recover its baseline from the recovery journal',()=>{
+ const local=storage(),store=create(local);const first={...revision('before'),shared:{footerText:'Before'}};
+ store.hydrate('shared',first);store.restore('shared',{shared:{footerText:'Mine'}});store.touch('shared');store.backup('shared','before-server-load',first);
+ const meta=store.meta('shared');delete meta.baseValue;local.setItem(keys('shared').meta,JSON.stringify(meta));
+ const result=store.hydrate('shared',{...revision('new home','v2'),shared:{footerText:'Before'}});
+ assert.equal(result.conflict,false);assert.equal(result.token,'v2');assert.equal(store.snapshot('shared').shared.footerText,'Mine');
+});
+test('a page draft rebases over changes confined to the shared shell',()=>{
+ const local=storage(),store=create(local);store.hydrate('home',revision('before'));const mine=store.snapshot('home');mine.existing['existing-0'].mapped.title='Mine';store.restore('home',mine);store.touch('home');
+ const remote=revision('before','v2');remote.shared.footerText='New footer';const result=store.hydrate('home',remote);
+ assert.equal(result.conflict,false);assert.equal(result.token,'v2');assert.equal(store.snapshot('home').existing['existing-0'].mapped.title,'Mine');
+});
+test('legacy local shell edits retain independent server settings on first load',()=>{
+ const local=storage(),store=create(local);local.setItem('vh-cms-shared-shell-step71',JSON.stringify({footerText:'Mine',cmsPageDraft:{existing:{stale:true}}}));
+ store.hydrate('shared',{...revision('home'),shared:{footerText:'Server',telegram:'https://t.me/server'}});
+ assert.deepEqual(store.snapshot('shared'),{shared:{footerText:'Mine',telegram:'https://t.me/server'}});
+});
