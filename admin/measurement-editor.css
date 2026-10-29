@@ -1,15 +1,36 @@
-#measurementEditor{margin-bottom:22px;min-width:0}
+#measurementEditor{margin-bottom:20px;min-width:0}
 #measurementEditor p{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
-#measurementEditor .measurement-mode{padding:12px;border:1px solid #9e7b50;background:#302318;color:#eed5b2}
-#measurementEditor .measurement-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:16px 0}
-#measurementEditor .measurement-input{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:12px}
+#measurementEditor .measurement-mode{margin:0 0 10px;color:#ceb18b;font-size:11px}
+#measurementEditor .measurement-help{margin:12px 0;color:#b8a896}
+#measurementEditor .measurement-toolbar,#measurementEditor .measurement-actions,#measurementEditor .measurement-choice{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#measurementEditor .measurement-view-tabs,#measurementEditor .measurement-part-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+#measurementEditor .measurement-view-tabs{border-bottom:1px solid #67503b;padding-bottom:10px}
+#measurementEditor button{min-height:44px;padding:10px 12px;border:1px solid #795b3f;background:#30241a;color:#eee1cf;border-radius:4px;white-space:normal;max-width:100%;overflow-wrap:anywhere}
+#measurementEditor button.active{background:#d2b38b;color:#21170f;border-color:#d2b38b}
+#measurementEditor .measurement-input,#measurementEditor .measurement-value{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:12px}
 #measurementEditor input,#measurementEditor select{width:100%;min-width:0;box-sizing:border-box}
-#measurementEditor .measurement-part{padding:16px;margin:18px 0;border:1px solid #68513c;border-radius:5px;min-width:0}
-#measurementEditor .measurement-part>.measurement-input{margin:0 0 14px}
-#measurementEditor .measurement-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-#measurementEditor button{min-height:44px;padding:10px 12px;border:1px solid #795b3f;background:#30241a;color:#eee1cf;border-radius:4px;white-space:normal}
-#measurementEditor .measurement-field-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:10px;margin:14px 0}
-#measurementEditor .measurement-check{display:flex;gap:10px;align-items:center;line-height:1.6}
+#measurementEditor .measurement-setup,#measurementEditor .measurement-part{padding:16px;margin:16px 0;border:1px solid #68513c;border-radius:5px;min-width:0}
+#measurementEditor .measurement-part>h4,#measurementEditor .measurement-setup>h4{margin:0 0 12px;font-size:15px;color:#eddbc3}
+#measurementEditor .measurement-setup-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+#measurementEditor .measurement-part-settings{margin:0 0 12px;color:#bba98e}
+#measurementEditor .measurement-part-settings>.measurement-input{margin:12px 0}
+#measurementEditor summary,#measurementLegacy>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:12px;line-height:1.5;color:#cbb18e}
+#measurementEditor .measurement-field-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:end;gap:8px;margin:12px 0;position:relative}
+#measurementEditor .measurement-field-row>.measurement-input{grid-column:1/-1;grid-row:1}
+#measurementEditor .measurement-field-menu{position:relative}
+#measurementEditor .measurement-field-menu>summary{justify-content:center;border:1px solid #69523d;border-radius:4px;font-size:23px;list-style:none}
+#measurementEditor .measurement-field-menu>summary::-webkit-details-marker{display:none}
+#measurementEditor .measurement-field-menu[open]{grid-column:1/-1;padding:12px;border:1px solid #6a523a;background:#241c15}
+#measurementEditor .measurement-field-menu[open]>summary{width:44px;margin-left:auto}
+#measurementEditor .measurement-field-menu[open]>.measurement-input{margin:10px 0}
+#measurementEditor .measurement-check{display:flex;gap:10px;align-items:center;min-height:44px;line-height:1.6}
 #measurementEditor .measurement-check input{width:22px;height:22px;flex:0 0 22px}
+#measurementEditor .measurement-advanced,#measurementLegacy{padding:10px 0;border-top:1px solid #5a4633;margin:16px 0;min-width:0}
 #measurementEditor .error,#measurementEditor .measurement-error{color:#f2ab92}
-@media(max-width:767px){#measurementEditor .measurement-tools,#measurementEditor .measurement-field-row{grid-template-columns:minmax(0,1fr)}#measurementEditor .measurement-part{padding:12px}#measurementEditor input,#measurementEditor select{font-size:16px;min-height:44px}#measurementEditor .measurement-actions button{flex:1 1 140px}}
+#measurementEditor .measurement-site-frame{padding:20px;background:#f2e9dd;color:#2b211a;border:1px solid #cbbca8;border-radius:4px;min-width:0}
+#measurementEditor .measurement-site-frame>h3{font:500 13px/1.4 Montserrat,Arial,sans-serif;letter-spacing:.3px;margin:0 0 18px;color:#2b211a}
+#measurementEditorStatus:empty{display:none}
+@media(max-width:767px){#measurementEditor .measurement-setup-controls{grid-template-columns:minmax(0,1fr)}#measurementEditor .measurement-part,#measurementEditor .measurement-setup{padding:12px}#measurementEditor input,#measurementEditor select{font-size:16px;min-height:44px}#measurementEditor .measurement-toolbar button{flex:1 1 140px}#measurementEditor .measurement-site-frame{padding:14px}}
+
+#measurementEditor .measurement-tabs-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+#measurementEditor .measurement-tabs-row .measurement-part-tabs{margin:0;flex:1 1 180px}

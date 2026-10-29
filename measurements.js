@@ -18,7 +18,7 @@
  const draftKey=id=>'vh-measurements-preview-v1:'+String(id||'new');
  function render(host,product,fallback){const doc=host.ownerDocument;let data=product.measurements_v2,old=legacy(product),preview=false;const win=doc.defaultView;
   if(new URLSearchParams(win.location.search).get('vh-measurements-preview')===String(product.id)){try{const local=JSON.parse(win.localStorage.getItem(draftKey(product.id))||'null');if(local){data=local.data;old=legacy({...product,...local.legacy});preview=true}}catch{}}
-  host.replaceChildren();host.classList.remove('vh-measurements-grouped');const note=text=>{const p=doc.createElement('p');p.className='vh-measurements-note';p.textContent=text;host.append(p)};
+  host.replaceChildren();host.classList.add('vh-product-measurements');host.classList.remove('vh-measurements-grouped');const note=text=>{const p=doc.createElement('p');p.className='vh-measurements-note';p.textContent=text;host.append(p)};
   const rows=(parent,items)=>{for(const [label,value] of items){const row=doc.createElement('div'),name=doc.createElement('span'),number=doc.createElement('b');row.className='vh-measurement-row';name.textContent=label;number.textContent=value==null||value===''?'—':String(value);row.append(name,number);parent.append(row)}};
   if(preview)note('Тестовий перегляд замірів із локальної чернетки. Робочий товар не змінено.');
   if(!data){rows(host,preview?old.filter(f=>f.value.trim()).map(f=>[f.label,f.value]):fallback);return}

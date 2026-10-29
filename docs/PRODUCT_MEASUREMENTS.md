@@ -20,3 +20,9 @@ Browser drafts use `vh-measurements-preview-v1:<product-id>` and preserve incomp
 6. Transfer desired test groups with per-product export/import. Never automatically assign old flat length/waist values to components. The show-legacy checkbox controls display only and does not delete old columns.
 
 No production database change, activation flag or legacy data migration is included in this frontend test release. The nullable field does not require creating separate products or changing capsule/cart/order behavior.
+
+## Compact editor
+
+Start with one garment or a preset outfit. Component tabs show one garment at a time; values in other components remain intact. Normal rows contain only the field label and value. Rename/template/reorder/removal controls, per-field changes and import/recovery are collapsed under their own details. Existing flat fields stay in a separate collapsible section.
+
+The “Як на сайті” view uses the same renderer and stylesheet as the public product accordion; it shows the current unsaved draft without leaving the form. “Відкрити картку товару” opens the explicit local-draft preview in its original “ЗАМІРИ” accordion. Filled groups follow one another in document flow, so the accordion height expands and later sections move down. Empty rows and wholly empty groups are omitted.
