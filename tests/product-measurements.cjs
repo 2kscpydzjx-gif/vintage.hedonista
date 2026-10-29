@@ -11,7 +11,7 @@ const add=async(p,label,number)=>{await p.getByRole('button',{name:'+ Додат
 (async()=>{
  for(const database of [false,true]){const f=await fixture({persistTables:true,reducedMotion:'reduce'});try{
   await seedAdmin(f);const old={...product,measurement_chest:' 54 см ',measurement_length:'72 см',measurement_waist:'35–40 см',measurement_height:0,shoulders:'46 см',description:'Опис товару',product_images:[]};f.data('products',[old]);
-  if(database)await f.context.route('**/admin/config.js',route=>route.fulfill({contentType:'text/javascript',body:fs.readFileSync(require('node:path').join(__dirname,'../admin/config.js'),'utf8')+'\nwindow.VH_CONFIG.measurementsStorage="database";'}));
+  await f.context.route('**/admin/config.js*',route=>route.fulfill({contentType:'text/javascript',body:fs.readFileSync(require('node:path').join(__dirname,'../admin/config.js'),'utf8')+'\nwindow.VH_CONFIG.measurementsStorage='+JSON.stringify(database?'database':'local')+';window.VH_CONFIG.measurementsSaveOnly=false;'}));
   const p=await f.context.newPage();p.on('dialog',d=>d.accept());await open(p);const editor=p.locator('#measurementEditor');
   assert.equal(await editor.locator('select,[role=tablist]').count(),0,'Measurement setup still clutters the editor');assert.equal(await p.locator('#measurementFieldsV148').isVisible(),false,'Old editor is duplicated');
   assert.equal(await value(p,'Талія / пояс'),'35–40 см');assert.equal(await value(p,'Груди'),' 54 см ');assert.equal(await value(p,'Висота'),'0','Zero was lost while loading old values');

@@ -122,6 +122,7 @@ jobs:
           node tests/cms-image-upload.cjs
           node tests/admin-mobile.cjs
           node tests/product-measurements.cjs
+          node tests/measurement-persistence.cjs
           node tests/admin-login-mobile.cjs
           node tests/cms-mobile.cjs
       - name: Save isolated checkout screenshots

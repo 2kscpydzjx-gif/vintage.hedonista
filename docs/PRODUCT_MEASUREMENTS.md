@@ -12,19 +12,22 @@ The optional `products.measurements_v2` JSONB field accepts both the previous gr
 
 Unsupported formats remain read-only for measurements while unrelated product fields remain editable. Values are strings, including units and ranges. Incomplete typed rows remain recoverable in browser drafts; a filled value needs a name before saving to the server or opening a product preview. DOM rendering uses textContent.
 
-## Current test behavior
+## Database persistence and test isolation
 
-The migration is prepared but has **not** been applied to the shared live Supabase. Vercel review deployments always save changed measurements only in the browser. Without explicit `VH_CONFIG.measurementsStorage: "database"`, other hosts also use this behavior. General product Save stops before product/gallery/SEO writes when measurements are being saved locally and reports this. Ordinary admin actions outside this workflow still use the shared backend.
+Admin config enables `measurementsStorage: "database"`. Vercel test hosts additionally set `measurementsSaveOnly:true`. Their existing product Save action calls the admin-only `vh_save_product_measurements` RPC and returns before the general product/gallery/cover/related-product/SEO pipeline. Even with no measurement edits, this test mode does not write other product fields or create a new product. The visible note explains that only measurements are saved. Other unsaved form fields remain on screen and retain their dirty indicator.
 
-Browser drafts use the unchanged `vh-measurements-preview-v1:<product-id>` key, restoring both older grouped drafts and new lists. The collapsed preview renders the current rows with the shared product renderer and stylesheet; it updates as the fields change. “Відкрити картку товару” opens `product.html?slug=...&vh-measurements-preview=<id>` with an explicit local preview. Normal public navigation ignores browser drafts. Drafts belong to their browser and origin; export/import transfers measurements for the same product. Import never rewrites the original flat inputs. Conflicting local/server baselines require an explicit recovery choice.
+The RPC updates only `products.measurements_v2` and compares its previous JSONB value atomically. The receipt must confirm the product ID and exact saved measurements before the browser draft is cleared. Edits typed while a save is pending remain in a draft against the newly saved baseline. Failed setup, permission checks, network requests and stale writes preserve local recovery. Without database mode, the previous local-only workflow remains available.
 
-## Activate database persistence later
+The migration `supabase/migrations/202610290001_product_measurements.sql` adds the nullable field, server validation, a guard on changes to the new column and the save RPC. It changes no existing product policies or grants and does no UPDATE/backfill of existing rows. The RPC is SECURITY INVOKER, checks the existing `is_admin()` function, is executable only by authenticated users and still respects product RLS. A column guard also rejects non-admin direct writes even if old update policies are broad. Null inserts and unchanged measurement data do not affect older product editing. Unsupported changed payloads are rejected on the server.
 
-1. Back up products/schema and verify a restore in an isolated database. Preserve local exports separately.
-2. Review the actual products RLS/table/column privileges. Only administrators may update measurements; public reads remain product information. The migration changes no policies or grants.
-3. Apply `supabase/migrations/202610290001_product_measurements.sql` to an isolated Supabase first. It adds nullable JSONB and reloads PostgREST, with no UPDATE/backfill. Repeated application preserves rows.
-4. Verify Save/reload and anonymous rendering for legacy products, old grouped data, edited lists, deletion, ranges, failed writes and concurrent editors.
-5. Enable `measurementsStorage: "database"` only after schema and privileges are ready. Vercel stays local-only. JSONB compare-and-set prevents stale overwrites. Unchanged structured and flat columns remain omitted from unrelated saves.
-6. Transfer selected test drafts with per-product export/import. Existing flat values are never removed by the new list.
+On production hosts, the general product save may include structured measurements under the original compare-and-set filter; the same column guard validates them. Production source is not changed until this branch is explicitly merged. Older production rendering continues using legacy columns, which remain unchanged by test measurement saves.
 
-No production database change, activation flag or live migration is included in this test release. Product, capsule, cart and order identities remain unchanged.
+## Activation status
+
+The live public-schema probe on 2026-10-29 returned `42703: column products.measurements_v2 does not exist`. This environment has public API access but no Supabase management/database credentials. The SQL has been tested in isolated PostgreSQL, not applied to the shared live project. A project administrator must run the exact migration in Supabase SQL Editor to complete real activation; see [setup instructions](PRODUCT_MEASUREMENTS_SETUP_UK.md). The UI reports the missing RPC and preserves drafts until then.
+
+Browser drafts use the unchanged `vh-measurements-preview-v1:<product-id>` key, restoring both older grouped drafts and new lists. The collapsed preview renders the current rows with the shared renderer and stylesheet. The explicit `vh-measurements-preview=<id>` URL can use browser drafts; ordinary public navigation reads server product data. Drafts belong to their browser/origin. Same-product export/import does not change the original flat columns.
+
+## Verification
+
+Isolated PostgreSQL tests cover repeatable setup, incompatible-column rollback, unchanged rows and existing policies, server payload validation, admin-only RPC and direct-write protection, stale JSONB writes and anonymous product reads. Browser tests cover save/reopen without local storage, retained prices/photos/SEO/legacy values, incomplete drafts, concurrent administrators, input entered during a save, setup/permission errors, old grouped drafts and mobile layout. No test sends real orders or writes live product data.

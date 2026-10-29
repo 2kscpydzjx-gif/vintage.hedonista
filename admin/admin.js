@@ -1480,6 +1480,12 @@ $('saveProductBtn').onclick=async()=>{
 
    const measurementSave=await window.VHMeasurementEditor?.prepareSave(payload,sb);
    if(measurementSave?.localOnly){toast('Заміри збережено локально. Робочий товар не змінено.');return}
+   if(measurementSave?.measurementsOnlySaved){
+     const cached=products.find(p=>String(p.id)===String(measurementSave.productId));
+     if(cached&&Object.prototype.hasOwnProperty.call(measurementSave,'measurements'))cached.measurements_v2=measurementSave.measurements;
+     productEditorRecheck();
+     toast(measurementSave.unchanged?'Заміри не змінювалися. Інші поля у тестовій версії не зберігаються.':'Заміри збережено в базі. Інші поля товару не змінено.');return
+   }
    let productId=editingProductId;
 
    if(editingProductId){
@@ -2929,20 +2935,21 @@ function updateProductEditorState(dirty){
 
 // Compare actual form values against the last successfully saved/loaded state.
 // Programmatic input/change events must not create a false unsaved warning.
-let productSavedFingerprint=null;
-function productFormFingerprint(){
+let productSavedFingerprint=null,productSavedOtherFingerprint=null;
+function productFormFingerprint(excludeMeasurements=false){
  const form=$('productForm');if(!form)return null;
  return JSON.stringify([...form.querySelectorAll('input,select,textarea')]
-  .filter(el=>!['file','button','submit'].includes(el.type))
+  .filter(el=>!['file','button','submit'].includes(el.type)&&(!excludeMeasurements||!el.closest('#productMeasurementsSection')))
   .map(el=>[el.id||el.name,el.type==='checkbox'||el.type==='radio'?el.checked:el.value]));
 }
 function productEditorMarkClean(){
  productSavedFingerprint=productFormFingerprint();
- updateProductEditorState(false);
+ productSavedOtherFingerprint=productFormFingerprint(true);
+ updateProductEditorState(!!window.VHMeasurementEditor?.isDirty());
 }
 function productEditorRecheck(){
  if(productSavedFingerprint===null)return updateProductEditorState(true);
- updateProductEditorState(productFormFingerprint()!==productSavedFingerprint);
+ updateProductEditorState(window.VHMeasurementEditor?.isDirty?productFormFingerprint(true)!==productSavedOtherFingerprint||window.VHMeasurementEditor.isDirty():productFormFingerprint()!==productSavedFingerprint);
 }
 document.addEventListener('input',e=>{
  if(e.target.closest('#productForm'))productEditorRecheck();
