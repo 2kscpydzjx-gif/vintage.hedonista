@@ -54,8 +54,7 @@ BEGIN
   IF NEW.measurements_v2 IS NOT DISTINCT FROM OLD.measurements_v2 THEN RETURN NEW; END IF;
  ELSIF NEW.measurements_v2 IS NULL THEN RETURN NEW;
  END IF;
- IF current_user NOT IN ('postgres','supabase_admin')
-  AND coalesce(auth.role(),'') <> 'service_role'
+ IF current_user NOT IN ('postgres','supabase_admin','service_role')
   AND NOT coalesce(public.is_admin(),false) THEN
   RAISE EXCEPTION USING ERRCODE='42501', MESSAGE='Only administrators can change product measurements';
  END IF;

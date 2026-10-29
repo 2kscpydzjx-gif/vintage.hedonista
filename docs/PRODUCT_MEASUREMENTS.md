@@ -24,7 +24,11 @@ On production hosts, the general product save may include structured measurement
 
 ## Activation status
 
-The live public-schema probe on 2026-10-29 returned `42703: column products.measurements_v2 does not exist`. This environment has public API access but no Supabase management/database credentials. The SQL has been tested in isolated PostgreSQL, not applied to the shared live project. A project administrator must run the exact migration in Supabase SQL Editor to complete real activation; see [setup instructions](PRODUCT_MEASUREMENTS_SETUP_UK.md). The UI reports the missing RPC and preserves drafts until then.
+The Supabase connector is available and authenticated for the active `vintage-hedonista` project (`yffwjgwwkapdrpwyjwfp`). Read-only SQL confirms RLS on products, admin authorization through `public.admin_users`/`is_admin()`, and that the new column/RPC are absent. The existing product update trigger only updates timestamps.
+
+Live migration remains **not applied**. Automatic approval review rejected the attempt because the existing authorization covered test-branch work and connection checking, while the shared project's schema/security mutation requires explicit user approval. Do not retry through execute_sql or another path without that approval. The reviewed migration is in `supabase/migrations/202610290001_product_measurements.sql`. The database-role guard avoids deprecated auth.role() checks. Isolated PostgreSQL validation still passes.
+
+The connection itself is working; missing credentials are no longer the blocker. Once the user explicitly approves this exact shared-database migration, apply the reviewed SQL and verify schema, role enforcement and unchanged product data. Production frontend remains on its existing code until a separate release.
 
 Browser drafts use the unchanged `vh-measurements-preview-v1:<product-id>` key, restoring both older grouped drafts and new lists. The collapsed preview renders the current rows with the shared renderer and stylesheet. The explicit `vh-measurements-preview=<id>` URL can use browser drafts; ordinary public navigation reads server product data. Drafts belong to their browser/origin. Same-product export/import does not change the original flat columns.
 
