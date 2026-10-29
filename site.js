@@ -1190,6 +1190,7 @@ function renderProductMeasurementsV148(p){
  const host=$('productMeasurementsV148');
  if(!host)return;
  const rows=productMeasurementProfileV148(p);
+ if(window.VHMeasurements){window.VHMeasurements.render(host,p,rows);return}
  host.innerHTML=rows.map(([label,value])=>`
    <div><span>${label}</span><b>${value||'—'}</b></div>
  `).join('')

@@ -1,0 +1,7 @@
+#productMeasurementsV148.vh-measurements-grouped{display:block!important}
+#productMeasurementsV148 .vh-measurement-group{margin:0 0 24px;padding:0;border:0;min-width:0}
+#productMeasurementsV148 .vh-measurement-group h3{margin:0 0 12px;font:500 15px/1.4 Montserrat,Arial,sans-serif;color:inherit}
+#productMeasurementsV148 .vh-measurement-row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:10px 0;border-bottom:1px solid rgba(70,50,35,.15);min-width:0}
+#productMeasurementsV148 .vh-measurement-row span{flex:1;min-width:0;overflow-wrap:anywhere}
+#productMeasurementsV148 .vh-measurement-row b{max-width:55%;text-align:right;overflow-wrap:anywhere;font-weight:500}
+#productMeasurementsV148 .vh-measurements-note{grid-column:1/-1;font-size:12px;line-height:1.6;margin:0 0 16px;overflow-wrap:anywhere}

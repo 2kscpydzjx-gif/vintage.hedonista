@@ -1092,11 +1092,12 @@ function currentProductSubcategoryV263(){
 function updateMeasurementFieldsV148(){
  const category=currentProductCategoryV148();
  const subcategory=currentProductSubcategoryV263();
+ window.VHMeasurementEditor?.suggest(category,subcategory);
  const profile=MEASUREMENT_PROFILES_V148[measurementProfileKeyV148(category,subcategory)]||MEASUREMENT_PROFILES_V148.upper;
  const active=new Set(profile.keys);
 
  document.querySelectorAll('#measurementFieldsV148 [data-measure-key]').forEach(field=>{
-   field.classList.toggle('hidden',!active.has(field.dataset.measureKey))
+   field.classList.toggle('hidden',!active.has(field.dataset.measureKey)&&!field.querySelector('input')?.value)
  });
 
  const hint=$('measurementHintV148');
@@ -1271,6 +1272,7 @@ function resetProductForm(){
  productField('pMeasureHeight');
  productField('pMeasureDepth');
  productField('pDetailsText');
+ window.VHMeasurementEditor?.load(null);
 
  productCheck('pNew',false);
  productCheck('pHome',true);
@@ -1327,6 +1329,7 @@ async function editProduct(id){
  productField('pMeasureHeight',p.measurement_height);
  productField('pMeasureDepth',p.measurement_depth);
  productField('pDetailsText',p.details_text);
+ window.VHMeasurementEditor?.load(p);
 
  productCheck('pNew',p.is_new);
  productCheck('pHome',p.show_on_home!==false);
@@ -1475,12 +1478,16 @@ $('saveProductBtn').onclick=async()=>{
      show_on_home:$('pHome').checked
    };
 
+   const measurementSave=await window.VHMeasurementEditor?.prepareSave(payload,sb);
+   if(measurementSave?.localOnly){toast('Заміри збережено локально. Робочий товар не змінено.');return}
    let productId=editingProductId;
 
    if(editingProductId){
-     const {data,error}=await sb.from('products').update(payload).eq('id',editingProductId).select('id').maybeSingle();
+     let query=sb.from('products').update(payload).eq('id',editingProductId);
+     query=window.VHMeasurementEditor?.protectUpdate(query,payload)||query;
+     const {data,error}=await query.select('id').maybeSingle();
      if(error)throw error;
-     if(!data)throw new Error('Не вдалося оновити товар. Перевір права Supabase.');
+     if(!data)throw new Error(Object.prototype.hasOwnProperty.call(payload,'measurements_v2')?'Товар або заміри змінилися паралельно. Локальну чернетку збережено; перевір актуальні дані перед повторним збереженням.':'Не вдалося оновити товар. Перевір права Supabase.');
    }else{
      const {data,error}=await sb.from('products').insert(payload).select('id').single();
      if(error)throw error;
@@ -1495,6 +1502,7 @@ $('saveProductBtn').onclick=async()=>{
 
    await saveRelatedProductsV197(productId);
    await window.VHSEO.save(sb,'product',productId);
+   window.VHMeasurementEditor?.saved(productId);
 
    const wasEditing=Boolean(editingProductId);
    await loadProducts();

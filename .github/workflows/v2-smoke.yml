@@ -59,6 +59,10 @@ jobs:
           node --check admin/mobile.js
           node --check admin/cms-mobile.js
           node --check admin/viewport.js
+          node --check measurements.js
+          node --check admin/measurement-editor.js
+          node tests/measurements-unit.cjs
+          node tests/measurements-schema.mjs
           node tests/order-email-security.mjs
           node tests/order-email-version.mjs
           node --check capsules-front.js
@@ -117,6 +121,7 @@ jobs:
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
           node tests/admin-mobile.cjs
+          node tests/product-measurements.cjs
           node tests/admin-login-mobile.cjs
           node tests/cms-mobile.cjs
       - name: Save isolated checkout screenshots
