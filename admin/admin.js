@@ -1092,7 +1092,6 @@ function currentProductSubcategoryV263(){
 function updateMeasurementFieldsV148(){
  const category=currentProductCategoryV148();
  const subcategory=currentProductSubcategoryV263();
- window.VHMeasurementEditor?.suggest(category,subcategory);
  const profile=MEASUREMENT_PROFILES_V148[measurementProfileKeyV148(category,subcategory)]||MEASUREMENT_PROFILES_V148.upper;
  const active=new Set(profile.keys);
 
@@ -1106,6 +1105,7 @@ function updateMeasurementFieldsV148(){
        ? 'Для головних уборів вкажіть об’єм / обхват голови в сантиметрах.'
        : profile.hint)
    : 'Оберіть категорію — набір замірів автоматично підлаштується під тип товару.';
+ window.VHMeasurementEditor?.suggest(category,subcategory);
 }
 window.updateMeasurementFieldsV148=updateMeasurementFieldsV148;
 

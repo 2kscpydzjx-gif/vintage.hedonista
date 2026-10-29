@@ -26,3 +26,7 @@ test('incomplete typed drafts remain recoverable while server validation rejects
 test('switching templates retains custom or renamed labels even before entering values',()=>{
  const part=M.group('upper');part.fields.push({id:'custom',label:'Ширина манжети',value:''});part.fields.find(f=>f.id==='sleeve').label='Рукав від горловини';const next=M.changeTemplate(part,'skirt');assert.ok(next.fields.some(f=>f.id==='custom'&&f.label==='Ширина манжети'&&f.value===''));assert.ok(next.fields.some(f=>f.id==='sleeve'&&f.label==='Рукав від горловини'&&f.value===''));
 });
+test('simple lists allow all previous rows and reject unknown layouts or oversized input',()=>{
+ const fields=Array.from({length:492},(_,i)=>({id:'row-'+i,label:'Замір '+i,value:' 35–40 см '}));const data={version:1,layout:'list',showLegacy:false,groups:[{id:'list',title:'Заміри',fields}]};assert.deepEqual(M.validate(data),data);data.groups[0].fields[0].label='Ж'.repeat(120)+' — '+'Д'.repeat(120);assert.deepEqual(M.validate(data),data);
+ assert.throws(()=>M.validate({...data,layout:'unknown'}));assert.throws(()=>M.validate({...data,groups:[...data.groups,{...data.groups[0],id:'other'}]}));assert.throws(()=>M.validate({...data,groups:[{...data.groups[0],fields:Array.from({length:501},(_,i)=>({id:'row-'+i,label:'Замір',value:''}))}]}));
+});
