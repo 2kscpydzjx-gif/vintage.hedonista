@@ -14,7 +14,7 @@ function moveHistory(direction){if(cloudOperation||uploadsInFlight)return;const 
 window.VHCMSHistory={undo:()=>moveHistory('undo'),redo:()=>moveHistory('redo')};
 
 function markDirty(){if(!hydrating){rememberHistory();draftStore.touch(pageId);$('status').textContent='Зміни збережено в цьому браузері · є незбережена серверна чернетка';}syncCloudButtons()}
-function syncCloudButtons(){const blocked=!cloudReady||cloudOperation||uploadsInFlight>0||!revisionTokens.has(pageId==='shared'?'home':pageId)||draftStore.meta(pageId).conflict;$('save').disabled=blocked;$('publish').disabled=blocked||reviewOnly;if(reviewOnly)$('publish').title='Публікацію вимкнено в тестовій версії';}
+function syncCloudButtons(){const conflict=!!draftStore.meta(pageId).conflict,blocked=!cloudReady||cloudOperation||uploadsInFlight>0||!revisionTokens.has(pageId==='shared'?'home':pageId)||conflict;$('save').disabled=blocked;$('publish').disabled=blocked||reviewOnly;$('save').title=conflict?'Узгодьте версії у повідомленні над налаштуваннями':'';$('publish').title=reviewOnly?'Публікацію вимкнено в тестовій версії':$('save').title;const panel=$('cmsConflict');if(panel){const reveal=conflict&&panel.hidden;panel.hidden=!conflict;if(reveal){const tab=$('cms-mobile-tab-inspector');if(tab?.getClientRects().length)tab.click();requestAnimationFrame(()=>panel.scrollIntoView({block:'start'}))}panel.querySelectorAll('button').forEach(button=>button.disabled=cloudOperation||uploadsInFlight>0);}}
 function pageSnapshot(page=pageId){return draftStore.snapshot(page)}
 function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 function restoreVisibleState(){blocks=getBlocks();selected=blocks[0]?.id||null;selectedExisting=null;render();loadLivePage()}
@@ -25,7 +25,11 @@ function installRecoveryActions(){
  const server=document.createElement('button');server.type='button';server.className='secondary';server.textContent='Завантажити серверну чернетку';server.id='cmsUseServer';
  server.onclick=async()=>{if(!cloudReady||cloudOperation||uploadsInFlight)return;const page=pageId,key=page==='shared'?'home':page;try{const result=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();if(result.error)throw result.error;if(pageId!==page)return;if(!confirm('Завантажити серверну версію? Поточні локальні зміни залишаться в резервній копії цього браузера.'))return;draftStore.useServer(page,result.data);revisionTokens.set(key,result.data?.updated_at||null);restoreVisibleState();syncCloudButtons();$('status').textContent='Серверну чернетку завантажено. Попередні локальні зміни збережено в резервній копії.'}catch(e){$('status').textContent=e.message}};
  const local=document.createElement('button');local.type='button';local.className='secondary';local.textContent='Працювати з локальною версією';local.id='cmsKeepLocal';
- local.onclick=async()=>{if(!cloudReady||cloudOperation||uploadsInFlight)return;const page=pageId,key=page==='shared'?'home':page;try{const result=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();if(result.error)throw result.error;if(page!==pageId)return;draftStore.backup(page,'keep-local-version',result.data);localStorage.setItem(window.VHCMSDraftStore.keys(page).meta,JSON.stringify({loaded:true,dirty:true,base:result.data?.updated_at||null,conflict:false}));revisionTokens.set(key,result.data?.updated_at||null);remoteDrafts.set(page,result.data);syncCloudButtons();$('status').textContent='Вибрано локальні зміни. Серверну версію збережено в резервній копії. Натисніть «Зберегти чернетку», щоб замінити її.'}catch(e){$('status').textContent=e.message}};
+ local.onclick=async()=>{if(!cloudReady||cloudOperation||uploadsInFlight)return;const page=pageId,key=page==='shared'?'home':page;try{const result=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();if(result.error)throw result.error;if(page!==pageId)return;draftStore.keepLocal(page,result.data);revisionTokens.set(key,result.data?.updated_at||null);remoteDrafts.set(page,result.data);restoreVisibleState();syncCloudButtons();$('status').textContent='Вибрано ваші зміни. Обидві версії збережено в резервній копії. Тепер можна зберегти чернетку.'}catch(e){$('status').textContent=e.message}};
+ const conflict=document.createElement('section');conflict.id='cmsConflict';conflict.hidden=true;conflict.setAttribute('role','alert');
+ const conflictTitle=document.createElement('strong');conflictTitle.textContent='Потрібно узгодити дві версії';const conflictText=document.createElement('p');conflictText.textContent='На сервері є інша версія цих самих налаштувань. Ваші правки збережено в цьому браузері. Виберіть, які залишити; обидві версії будуть у резервній копії.';conflict.append(conflictTitle,conflictText);
+ for(const [label,target] of [['Залишити мої правки',local],['Взяти серверну версію',server],['Завантажити резервну копію',backup]]){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>target.click();conflict.append(button)}
+ document.querySelector('.cms-editor-scroll').prepend(conflict);
  const recovery=document.createElement('details');recovery.className='cms-recovery-history';const summary=document.createElement('summary');summary.textContent='Відновлення змін';recovery.append(summary,server,local);
  const versions=document.createElement('select');versions.setAttribute('aria-label','Попередні локальні версії');
  const refreshVersions=()=>{versions.replaceChildren();const entries=JSON.parse(localStorage.getItem('vh-cms-recovery-v1-'+pageId)||'[]');entries.forEach((entry,i)=>versions.add(new Option(new Date(entry.at).toLocaleString('uk-UA')+' · '+({'before-server-load':'Перед завантаженням','before-server-save':'Перед збереженням','before-publish':'Перед публікацією','before-page-switch':'Перед зміною сторінки','before-import':'Перед імпортом','before-recovery':'Перед відновленням','use-server-version':'Перед вибором серверної версії','keep-local-version':'Перед вибором локальної версії','concurrent-server-change':'Зміна іншого адміністратора'}[entry.reason]||'Локальна копія'),String(i))));};
@@ -91,23 +95,25 @@ async function saveCloudDraft(){
  const page=pageId,key=page==='shared'?'home':page;
  if(!revisionTokens.has(key))throw Error('Дочекайтеся завантаження чернетки з Supabase.');
  if(draftStore.meta(page).conflict)throw Error('Спочатку узгодьте локальну й серверну версії.');
- const expected=revisionTokens.get(key),snapshot=structuredClone(pageSnapshot(page));
+ let expected=revisionTokens.get(key),snapshot=structuredClone(pageSnapshot(page));
+ if(page==='shared')validateShared(snapshot.shared);
  // Capture the page and all inputs BEFORE awaiting. Navigation cannot change this write.
  const {data:old,error:readError}=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','draft').maybeSingle();
  if(readError)throw readError;
- if((old?.updated_at||null)!==expected){draftStore.backup(page,'concurrent-server-change',old);throw Error('Інший адміністратор змінив чернетку. Ваші зміни збережено локально. Завантажте серверну версію або резервну копію.');}
+ if((old?.updated_at||null)!==expected){const rebased=draftStore.rebase(page,snapshot,old);if(rebased.conflict){draftStore.hydrate(page,old);syncCloudButtons();throw Error('Серверна версія цих налаштувань змінилася. Узгодьте версії у повідомленні над налаштуваннями.')}snapshot=structuredClone(rebased.value);const pending=draftStore.rebase(page,pageSnapshot(page),old);draftStore.restore(page,pending.value);expected=old?.updated_at||null;}
  draftStore.backup(page,'before-server-save',old);
  const base=old||remoteDrafts.get(page)||{};
  const {cmsPageDraft:ignoredPageDraft,...shellValues}=snapshot.shared||{};void ignoredPageDraft;
- const savedShared=page==='shared'?{...(base.shared||{}),...shellValues}:{...(base.shared||{}),cmsPageDraft:{...(base.shared?.cmsPageDraft||{}),existing:snapshot.existing,order:snapshot.order}};
+ const savedShared=page==='shared'?window.VHCMSDraftStore.withShell(base.shared,shellValues):{...(base.shared||{}),cmsPageDraft:{...(base.shared?.cmsPageDraft||{}),existing:snapshot.existing,order:snapshot.order}};
  const payload={page_key:key,revision_status:'draft',blocks:page==='shared'?(base.blocks||[]):snapshot.blocks,shared:savedShared,updated_at:new Date().toISOString()};
  let token;
  if(old){const result=await cloud.from('vh_page_revisions').update(payload).eq('page_key',key).eq('revision_status','draft').eq('updated_at',expected).select('updated_at');if(result.error)throw result.error;if(!result.data?.length)throw Error('Чернетку змінено паралельно. Локальні зміни збережено.');token=result.data[0].updated_at;}
  else{const result=await cloud.from('vh_page_revisions').insert(payload).select('updated_at');if(result.error)throw result.error;token=result.data?.[0]?.updated_at||payload.updated_at;}
  await verifyCmsRevision(key,'draft',payload);
  remoteDrafts.set(page,payload);revisionTokens.set(key,token);const dirty=draftStore.saved(page,snapshot,token);
+ if(pageId===page&&page==='shared'){refreshSharedControls();scheduleLivePreview()}
  if(pageId===page)$('status').textContent=dirty?'Серверну чернетку збережено · є нові локальні зміни':'Чернетку збережено й перевірено на сервері · сайт не опубліковано';
- return {page,key,payload};
+ return {page,key,payload,snapshot};
 }
 async function publishCloudPage(){
  if(reviewOnly)throw Error('Публікацію вимкнено в тестовій версії. Використовуйте основну адмінку після приймання змін.');
@@ -119,7 +125,7 @@ async function publishCloudPage(){
  const previous=await cloud.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',saved.key).eq('revision_status','published').maybeSingle();
  if(previous.error)throw previous.error;
  draftStore.backup(saved.page,'before-publish',previous.data);
- const published={...saved.payload,revision_status:'published',updated_at:new Date().toISOString(),published_at:new Date().toISOString()};
+ const published={...saved.payload,...(saved.page==='shared'?{blocks:previous.data?.blocks||[],shared:window.VHCMSDraftStore.withShell(previous.data?.shared,saved.snapshot.shared)}:{}),revision_status:'published',updated_at:new Date().toISOString(),published_at:new Date().toISOString()};
  let result;if(previous.data){result=await cloud.from('vh_page_revisions').update(published).eq('page_key',saved.key).eq('revision_status','published').eq('updated_at',previous.data.updated_at).select('updated_at');if(!result.error&&!result.data?.length)throw Error('Публікація змінилася паралельно. Повторіть після перевірки серверної версії.');}else result=await cloud.from('vh_page_revisions').insert(published);if(result.error)throw result.error;
  await verifyCmsRevision(saved.key,'published',published);
  if(pageId===saved.page)$('status').textContent='Публікацію перевірено на сервері · сторінку оновлено';
@@ -158,32 +164,34 @@ const pages=[
 {id:'shared',name:'Шапка та підвал · усі сторінки',description:'Спільне оформлення, навігація, текст підвалу та соцмережі',url:'index.html',editor:'settings'}
 ];
 const sharedStorageKey='vh-cms-shared-shell-step71';
-function sharedDraft(){try{return {...JSON.parse(localStorage.getItem(sharedStorageKey)||'{}')}}catch{return {}}}
+function sharedDraft(){return draftStore.snapshot('shared').shared}
 function saveShared(d){localStorage.setItem(sharedStorageKey,JSON.stringify(d));markDirty()}
+function refreshSharedControls(){const d=sharedDraft(),host=$('sharedEditor');for(const key of ['footerText','footerCopyright','instagram','telegram']){const input=$('cmsShared-'+key);if(input&&input!==document.activeElement&&typeof d[key]==='string')input.value=d[key]}for(const row of host.querySelectorAll('[data-shared-nav-index]')){const value=d.nav?.[row.dataset.sharedNavIndex];if(!value)continue;const [name,link]=row.querySelectorAll('input');if(name!==document.activeElement)name.value=value.label;if(link!==document.activeElement)link.value=value.href}host._cmsPhotoEditor?.refresh()}
 function applySharedPreview(doc){
  const d=sharedDraft();
  const header=doc.querySelector('body > header'),footer=doc.querySelector('footer.site-footer-v64,body > footer');
  if(header){const logo=header.querySelector('.vh-header-logo,.brand img');window.VHCMSModel.applyLogo(logo,d.headerLogo);
- const nav=header.querySelector('nav.nav,nav');if(nav){[...nav.querySelectorAll('a')].forEach((a,i)=>{const n=d.nav?.[String(i)];if(!n)return;if(n.label)a.textContent=n.label;if(n.href)a.href=n.href})}}
+ const nav=header.querySelector('nav.nav,nav');if(nav){[...nav.querySelectorAll('a')].forEach((a,i)=>{const n=d.nav?.[String(i)];if(!n)return;if(n.label&&a.textContent!==n.label)a.textContent=n.label;if(n.href&&window.VHCMSModel.validLink(n.href))a.setAttribute('href',n.href)})}}
  if(footer){const logo=footer.querySelector('.vh-footer-logo-img,.footer-v64-logo img');window.VHCMSModel.applyLogo(logo,d.footerLogo);
- const text=footer.querySelector('.footer-v64-center p,.footer-v64-center');if(text&&typeof d.footerText==='string')text.textContent=d.footerText;
- const copyright=footer.querySelector('.footer-v64-copy');if(copyright&&typeof d.footerCopyright==='string')copyright.textContent=d.footerCopyright;
+ const text=footer.querySelector('.footer-v64-center p,.footer-v64-center');if(text&&typeof d.footerText==='string'&&text.textContent!==d.footerText)text.textContent=d.footerText;
+ const copyright=footer.querySelector('.footer-v64-copy');if(copyright&&typeof d.footerCopyright==='string'&&copyright.textContent!==d.footerCopyright)copyright.textContent=d.footerCopyright;
  const ig=footer.querySelector('[data-footer-instagram]'),tg=footer.querySelector('[data-footer-telegram]');
- if(ig&&d.instagram)ig.href=d.instagram;if(tg&&d.telegram)tg.href=d.telegram;
+ if(ig&&d.instagram&&safeLink(d.instagram,false))ig.href=d.instagram;if(tg&&d.telegram&&safeLink(d.telegram,false))tg.href=d.telegram;
  }
 }
 function renderSharedEditor(){
  let previewDoc;try{previewDoc=frame.contentDocument}catch{}
- const display={headerLogo:previewDoc?.querySelector('.vh-header-logo')?.src||'',footerLogo:previewDoc?.querySelector('.vh-footer-logo-img')?.src||'',footerText:previewDoc?.querySelector('.footer-v64-center p,.footer-v64-center')?.textContent||'',footerCopyright:previewDoc?.querySelector('.footer-v64-copy')?.textContent||''};
+ const display={headerLogo:previewDoc?.querySelector('.vh-header-logo')?.src||'',footerLogo:previewDoc?.querySelector('.vh-footer-logo-img')?.src||'',footerText:previewDoc?.querySelector('.footer-v64-center p,.footer-v64-center')?.textContent||'',footerCopyright:previewDoc?.querySelector('.footer-v64-copy')?.textContent||'',instagram:previewDoc?.querySelector('[data-footer-instagram]')?.getAttribute('href')||'',telegram:previewDoc?.querySelector('[data-footer-telegram]')?.getAttribute('href')||''};
  const host=$('sharedEditor');if(!host)return;const inspector=$('existingEditor')?.parentElement;if(inspector&&host.parentElement!==inspector)inspector.append(host);host.replaceChildren();const d=sharedDraft();
  const title=document.createElement('h3');title.textContent='ШАПКА ТА ПІДВАЛ';host.append(title);
  const note=document.createElement('p');note.className='muted';note.textContent='Один набір налаштувань для всіх сторінок. Зміни видно в прев’ю одразу; на сайті — після «Зберегти чернетку» та «Опублікувати».';host.append(note);
- const add=(label,key,placeholder,kind='text')=>{const box=document.createElement('div');box.className='field';const lab=document.createElement('label');lab.textContent=label;const inp=document.createElement(kind==='textarea'?'textarea':'input');inp.value=d[key]??display[key]??'';inp.placeholder=placeholder||'';inp.addEventListener('input',()=>{const next=sharedDraft();next[key]=inp.value;saveShared(next);updateLivePreview()});inp.addEventListener('change',()=>{if((key==='instagram'||key==='telegram')&&inp.value&&!safeLink(inp.value,false)){inp.setCustomValidity('Вкажіть повне посилання https://');inp.reportValidity();return}inp.setCustomValidity('')});box.append(lab,inp);host.append(box);return inp};
+ const add=(label,key,placeholder,kind='text')=>{const box=document.createElement('div');box.className='field';const lab=document.createElement('label');lab.textContent=label;const inp=document.createElement(kind==='textarea'?'textarea':'input');inp.id='cmsShared-'+key;lab.htmlFor=inp.id;inp.value=d[key]??display[key]??'';inp.placeholder=placeholder||'';inp.addEventListener('input',()=>{inp.setCustomValidity('');const next=sharedDraft();next[key]=inp.value;saveShared(next);updateLivePreview()});inp.addEventListener('change',()=>{if((key==='instagram'||key==='telegram')&&inp.value&&!safeLink(inp.value,false)){inp.setCustomValidity('Вкажіть повне посилання https://');inp.reportValidity();return}inp.setCustomValidity('')});box.append(lab,inp);host.append(box);return inp};
  const sub=document.createElement('h3');sub.textContent='ВЕРХНЯ ШАПКА';host.append(sub);
  const logos=window.VHCMSPhotoEditor.create({allowCrop:false,getItems:()=>['headerLogo','footerLogo'].map((key,i)=>({key,slot:i,title:i?'Логотип підвалу':'Логотип шапки',url:sharedDraft()[key]||display[key],used:true})),setSource:(item,url)=>{const latest=sharedDraft();latest[item.key]=url;saveShared(latest);updateLivePreview()},upload:(file,item)=>uploadExistingCmsPhoto(file,item.key)});host._cmsPhotoEditor=logos;host.append(logos.element);
  const navTitle=document.createElement('p');navTitle.className='muted';navTitle.textContent='Пункти меню (назва і адреса)';host.append(navTitle);
- const navDefaults=[['ГОЛОВНА','index.html'],['КАТАЛОГ','catalog.html'],['ПРО НАС','about.html'],['ЖУРНАЛ','journal.html'],['ДОСТАВКА І ОПЛАТА','delivery.html'],['КОНТАКТИ','contacts.html']];
- navDefaults.forEach(([label,url],i)=>{const row=document.createElement('div');row.className='cms-nav-edit';const name=document.createElement('input');name.value=d.nav?.[String(i)]?.label||label;name.setAttribute('aria-label','Назва '+label);const link=document.createElement('input');link.value=d.nav?.[String(i)]?.href||url;link.setAttribute('aria-label','Адреса '+label);const change=()=>{link.setCustomValidity('');const next=sharedDraft();next.nav={...(next.nav||{}),[String(i)]:{label:name.value,href:link.value}};saveShared(next);updateLivePreview()};name.addEventListener('input',change);link.addEventListener('input',change);row.append(name,link);host.append(row)});
+ const renderedNav=[...(previewDoc?.querySelector('header nav.nav,header nav')?.querySelectorAll('a')||[])];
+ const navDefaults=renderedNav.length?renderedNav.map(a=>[a.textContent.trim(),a.getAttribute('href')]):[['ГОЛОВНА','index.html'],['КАТАЛОГ','catalog.html'],['ПРО НАС','about.html'],['HEDONISTA JOURNAL','journal.html'],['ДОСТАВКА І ОПЛАТА','delivery.html'],['КОНТАКТИ','contacts.html']];
+ navDefaults.forEach(([label,url],i)=>{const row=document.createElement('div');row.className='cms-nav-edit';row.dataset.sharedNavIndex=String(i);const name=document.createElement('input');name.value=d.nav?.[String(i)]?.label||label;name.setAttribute('aria-label','Назва '+label);const link=document.createElement('input');link.value=d.nav?.[String(i)]?.href||url;link.setAttribute('aria-label','Адреса '+label);const change=()=>{link.setCustomValidity('');const next=sharedDraft();next.nav={...(next.nav||{}),[String(i)]:{label:name.value,href:link.value}};saveShared(next);updateLivePreview()};name.addEventListener('input',change);link.addEventListener('input',change);row.append(name,link);host.append(row)});
  const foot=document.createElement('h3');foot.textContent='ПІДВАЛ САЙТУ';host.append(foot);
 
  add('ОПИС БРЕНДУ','footerText','Вінтажний одяг з історією, відібраний зі смаком.','textarea');
@@ -195,13 +203,14 @@ function renderSharedEditor(){
  const previewActions=document.createElement('div');previewActions.className='vh-shared-preview-actions';
  for(const [label,selector] of [['Переглянути шапку','body > header'],['Переглянути підвал','footer.site-footer-v64,body > footer']]){
   const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=label;
-  button.onclick=()=>{try{const target=frame.contentDocument?.querySelector(selector);target?.scrollIntoView({behavior:'smooth',block:'start'})}catch{}};
+  button.onclick=()=>{try{const tab=$('cms-mobile-tab-preview');if(tab?.getClientRects().length)tab.click();const target=frame.contentDocument?.querySelector(selector);target?.scrollIntoView({behavior:'smooth',block:'start'})}catch{}};
   previewActions.append(button);
  }
  host.append(previewActions);
  const reset=document.createElement('button');reset.className='secondary';reset.textContent='Скинути спільні налаштування';reset.onclick=()=>{if(confirm('Скинути спільну локальну чернетку шапки й підвалу?')){draftStore.backup(pageId,'before-shell-reset');localStorage.removeItem(sharedStorageKey);markDirty();renderSharedEditor();frame.src=frame.src}};host.append(reset);
 }
 function safeLink(v,relative){if(!v)return true;return relative?/^(https?:\/\/|\/|\.\.?\/|[a-z0-9_-]+\.html(?:[?#].*)?|#)/i.test(v):/^https:\/\/[^\s]+$/i.test(v)}
+function validateShared(value){for(const [key,name] of [['instagram','Instagram'],['telegram','Telegram']])if(value[key]&&!safeLink(value[key],false))throw Error(name+': вкажіть повне посилання https://');for(const entry of Object.values(value.nav||{}))if(entry.href&&!window.VHCMSModel.validLink(entry.href))throw Error('Адреса пункту меню має бути посиланням на сторінку або https://');}
 const animationOptions=[['system','СИСТЕМНИЙ · як на сайті'],['fade-up','Плавна поява знизу'],['fade-left','Поява зліва'],['fade-right','Поява справа'],['zoom','Легкий зум'],['fade','Плавна поява'],['none','Без анімації']];
 const systemAnimation='fade-up';
 function actualAnimation(v){return !v||v==='system'?systemAnimation:v}
@@ -209,7 +218,7 @@ const pageFromUrl=new URLSearchParams(location.search).get('page');
 let pageId=pages.some(p=>p.id===pageFromUrl)?pageFromUrl:(sessionStorage.getItem('vh-cms-active-page')||'home');
 if(!pages.some(p=>p.id===pageId))pageId='home';
 const storageKey=()=>pageId==='home'?'vh-cms-lab-step55-v1':'vh-cms-lab-step56-'+pageId;
-const getBlocks=()=>{try{const x=JSON.parse(localStorage.getItem(storageKey()));return Array.isArray(x)?x:(pageId==='home'?structuredClone(defaults):[])}catch{return pageId==='home'?structuredClone(defaults):[]}};
+const getBlocks=()=>{if(pageId==='shared')return [];try{const x=JSON.parse(localStorage.getItem(storageKey()));return Array.isArray(x)?x:(pageId==='home'?structuredClone(defaults):[])}catch{return pageId==='home'?structuredClone(defaults):[]}};
 const defaults=[];
 let blocks=getBlocks(),selected=blocks[0]?.id||null;
 function renderPages(){const shared=pageId==='shared';document.body.classList.toggle('cms-shared-mode',shared);if(shared)renderSharedEditor();const wrap=$('pageNav');wrap.replaceChildren();pages.forEach(p=>{const btn=document.createElement('button');btn.className='nav'+(p.id===pageId?' active':'');btn.textContent=p.name;btn.onclick=()=>{if(p.id===pageId)return;if(uploadsInFlight||cloudOperation){$('status').textContent='Дочекайтеся завершення збереження або завантаження фото';return;}draftStore.backup(pageId,'before-page-switch');selectedExisting=null;sectionTargets=[];$('existingEditor').hidden=true;$('editorFields').hidden=false;pageId=p.id;sessionStorage.setItem('vh-cms-active-page',pageId);history.replaceState(null,'','?page='+encodeURIComponent(pageId));blocks=getBlocks();selected=blocks[0]?.id||null;render();void switchCloudPage()};wrap.append(btn)});const p=pages.find(x=>x.id===pageId);$('currentPageName').textContent=p.name;$('currentPageDescription').textContent=p.description;/* Legacy editor link removed: native CMS is the only editor. */$('publicPageLink').href='../'+p.url}
@@ -667,7 +676,7 @@ window.VHCMSViewport={setDevice:device=>{cmsPreviewDeviceWidth={desktop:1440,tab
 window.addEventListener('resize',resizeDesktopPreview);
 requestAnimationFrame(resizeDesktopPreview);
 function scheduleLivePreview(){clearTimeout(liveTimer);liveTimer=setTimeout(updateLivePreview,180)}
-function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));frame.style.visibility='hidden';frame.src='../'+p.url+'?cms-preview=1';}
+function loadLivePage(){++previewEpoch;disconnectPreviewObserver();clearTimeout(previewReconcileTimer);selectedExisting=null;$('existingEditor').hidden=true;$('editorFields').hidden=false;const p=pages.find(x=>x.id===pageId);if(!p)return;livePage=pageId;sectionTargets=[];$('insertAfter').replaceChildren(new Option('Після основного вмісту','__end'));frame.style.visibility='hidden';frame.src='../'+p.url+'?cms-preview=1'+(pageId==='shared'?'&cms-shell-preview=1':'');}
 // STEP 58: isolated drafts for text edits to existing rendered sections.
 let selectedExisting=null;
 const existingKey=()=> 'vh-cms-existing-step65-'+pageId;
@@ -1171,7 +1180,7 @@ function installPreviewLinks(doc){
  if(doc.__cmsLinksReady)return;doc.__cmsLinksReady=true;
  doc.addEventListener('click',e=>{const a=e.target.closest?.('a[href]');if(!a)return;if(a.hasAttribute('data-vh-button-drag')){e.preventDefault();e.stopImmediatePropagation();return}
   const href=a.getAttribute('href');if(!href||href.startsWith('#'))return;
-  if(a.closest('.vh-cms-injected-unit')||sectionTargets.some(t=>t.el.contains(a))||a.closest('[data-cms-link-preview]')||a.matches('[data-footer-instagram],[data-footer-telegram]')){
+  if(a.closest('.vh-cms-injected-unit')||sectionTargets.some(t=>t.el.contains(a))||a.closest('[data-cms-link-preview],header nav')||a.matches('[data-footer-instagram],[data-footer-telegram]')){
    e.preventDefault();e.stopImmediatePropagation();
    try{const u=new URL(href,doc.baseURI);if(['http:','https:'].includes(u.protocol))window.open(u.href,'_blank','noopener')}catch{}
   }

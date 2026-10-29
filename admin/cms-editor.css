@@ -1,4 +1,6 @@
 /* Canonical editor stylesheet. Archived CMS skins are not loaded by this editor. */
+#cmsConflict{padding:14px;margin:0 0 16px;border:1px solid #b99b70;border-radius:5px;background:#392a1d;min-width:0;overflow-wrap:anywhere}
+#cmsConflict strong{color:#f4d6ac}#cmsConflict p{font-size:12px;line-height:1.6}#cmsConflict button{display:block;width:100%;min-height:44px;margin-top:8px;white-space:normal}
 .cms-column-controls{display:grid;gap:12px;min-width:0}
 .cms-column-position{padding:12px;border:1px solid var(--line);border-radius:5px;min-width:0}
 .cms-column-position summary{cursor:pointer;font-weight:600;color:var(--gold)}

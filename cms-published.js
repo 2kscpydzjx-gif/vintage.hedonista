@@ -9,7 +9,8 @@ if(!window.VHCMSModel||window.VHCMSModel.version!==9){
 const map={'index.html':'home','catalog.html':'catalog','capsule.html':'capsules','about.html':'about','journal.html':'journal','delivery.html':'delivery','contacts.html':'contacts'};
 const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)&&!!document.querySelector('meta[name="vh-static-canonical"]');
 const page=isCatalogSeoSnapshot?'catalog':map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
-const isEditorPreview=window.parent!==window&&new URLSearchParams(location.search).get('cms-preview')==='1';
+const previewParams=new URLSearchParams(location.search);
+const isEditorPreview=window.parent!==window&&previewParams.get('cms-preview')==='1'&&previewParams.get('cms-shell-preview')!=='1';
 const config=window.VH_CONFIG;if(!config||!window.supabase){window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 const db=window.VHPublicClient||(window.VHPublicClient=window.supabase.createClient(config.supabaseUrl,config.supabaseKey,{auth:{storageKey:'vintage-hedonista-public-content',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}));
 const safeHtml=html=>window.VHCMSModel.clean(html);
