@@ -11,6 +11,7 @@ const open=async p=>{await p.goto(base+'/admin/admin.html?page=products');await 
  const p=await f.context.newPage();p.on('dialog',d=>d.accept());await open(p);
  assert.equal(await p.locator('#pMeasureWaist').isVisible(),true,'An existing hidden-category measurement disappeared');
  const editor=p.locator('#measurementEditor');await editor.getByLabel('Готовий комплект',{exact:true}).selectOption('jacket_skirt');await editor.getByRole('button',{name:'Додати комплект',exact:true}).click();
+ assert.equal(await editor.getByLabel('Готовий комплект',{exact:true}).inputValue(),'jacket_skirt','Selected set changed after adding its components');
  let parts=editor.locator('.measurement-part');assert.equal(await parts.count(),2);
  await parts.nth(0).getByLabel('Значення: Довжина виробу',{exact:true}).fill('62 см');await parts.nth(1).getByLabel('Значення: Довжина виробу',{exact:true}).fill('74 см');
  await parts.nth(1).getByLabel('Значення: Напівобхват талії',{exact:true}).fill('35–40 см');

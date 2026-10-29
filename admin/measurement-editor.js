@@ -4,7 +4,7 @@
  const $=id=>document.getElementById(id),grid=$('measurementFieldsV148'),panel=document.createElement('div');panel.id='measurementEditor';section.insertBefore(panel,grid);
  const legacyIds=['pMeasureShoulders','pMeasureChest','pMeasureWaist','pMeasureHips','pMeasureLength','pMeasureSleeve','pMeasureInseam','pMeasureInsole','pMeasureHead','pMeasureWidth','pMeasureHeight','pMeasureDepth'];
  const review=location.hostname.endsWith('.vercel.app')||window.VH_CONFIG?.measurementsStorage!=='database';
- let product=null,data={version:1,showLegacy:true,groups:[]},original=null,initialLegacy={},active=false,unsupported=false,history=[],localConflict=null,selectedTemplate=null;
+ let product=null,data={version:1,showLegacy:true,groups:[]},original=null,initialLegacy={},active=false,unsupported=false,history=[],localConflict=null,selectedTemplate=null,selectedSet='jacket_pants';
  const element=(tag,text,cls)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(cls)node.className=cls;return node};
  const legacyValues=()=>Object.fromEntries(M.legacyKeys.map((key,i)=>['measurement_'+key,$(legacyIds[i])?.value||'']));
  const legacyChanged=()=>legacyIds.some(id=>($(id)?.value||'')!==initialLegacy[id]);
@@ -14,7 +14,7 @@
  function changed(){active=true;try{persist();status(review?'Чернетку замірів збережено в цьому браузері.':'Є незбережені зміни замірів.')}catch{status('Браузер не зберіг чернетку. Завантажте резервну копію.',true)}}
  function button(text,fn,parent){const node=element('button',text);node.type='button';node.onclick=fn;parent.append(node);return node}
  function input(label,value,fn,parent,placeholder=''){const box=element('label',label,'measurement-input'),node=document.createElement('input');node.className='input';node.value=value;node.placeholder=placeholder;node.setAttribute('aria-label',label);node.oninput=()=>fn(node.value);box.append(node);parent.append(box);return node}
- function select(label,options,value,fn,parent){const box=element('label',label,'measurement-input'),node=document.createElement('select');node.setAttribute('aria-label',label);for(const [key,title] of options)node.add(new Option(title,key));node.value=value;node.onchange=()=>fn(node.value);box.append(node);parent.append(box);return node}
+ function select(label,options,value,fn,parent){const box=element('label',label,'measurement-input'),node=document.createElement('select');node.className='input';node.setAttribute('aria-label',label);for(const [key,title] of options)node.add(new Option(title,key));node.value=value;node.onchange=()=>fn(node.value);box.append(node);parent.append(box);return node}
  function backup(){const blob=new Blob([JSON.stringify({format:'vh-product-measurements',version:1,productId:product?.id||null,original,legacy:legacyValues(),pending:localConflict,data},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='product-measurements-'+(product?.id||'new')+'.json';a.hidden=true;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
  function render(){
   panel.replaceChildren();const note=element('p',review?'Тестові заміри: чернетка цього розділу зберігається тільки у вашому браузері. Зміни замірів через загальну кнопку «Зберегти» також не записуються в робочу базу.':'Шаблон замірів можна вибирати незалежно від категорії. Комплект залишається одним товаром.','measurement-mode');panel.append(note);
@@ -25,7 +25,7 @@
   const template=select('Шаблон нового виробу',Object.entries(M.templates).map(([key,t])=>[key,t.title]),selectedTemplate||M.guess({name:$('pCategory')?.selectedOptions[0]?.textContent},{name:$('pSubcategory')?.selectedOptions[0]?.textContent}),()=>{},controls);template.id='measurementNewTemplate';
   template.onchange=()=>{selectedTemplate=template.value;template.dataset.manual='true'};
   button('Додати виріб / складову',()=>{if(data.groups.length>=12)return status('Можна додати до 12 складових.',true);remember();data.groups.push(M.group(template.value));changed();render()},controls);
-  const preset=select('Готовий комплект',Object.entries(M.sets).map(([key,set])=>[key,set.title]),'jacket_pants',()=>{},controls);
+  const preset=select('Готовий комплект',Object.entries(M.sets).map(([key,set])=>[key,set.title]),selectedSet,value=>selectedSet=value,controls);
   button('Додати комплект',()=>{const set=M.sets[preset.value];if(data.groups.length+set.parts.length>12)return status('Забагато складових.',true);remember();data.groups.push(...set.parts.map(([key,title])=>M.group(key,title)));changed();render()},controls);
   const groups=element('div',null,'measurement-groups');panel.append(groups);
   for(const [index,part] of data.groups.entries()){
@@ -51,7 +51,7 @@
   button('Скасувати останню зміну структури',()=>{if(!history.length)return;data=history.pop();changed();render()},actions).disabled=!history.length;
   const message=element('p',null);message.id='measurementEditorStatus';message.setAttribute('role','status');panel.append(message);
  }
- function load(row){product=row||null;original=row?.measurements_v2==null?null:M.clone(row.measurements_v2);initialLegacy=Object.fromEntries(legacyIds.map(id=>[id,$(id)?.value||'']));history=[];active=original!=null;unsupported=false;localConflict=null;selectedTemplate=null;data={version:1,showLegacy:true,groups:[]};legacyIds.forEach(id=>$(id).disabled=false);
+ function load(row){product=row||null;original=row?.measurements_v2==null?null:M.clone(row.measurements_v2);initialLegacy=Object.fromEntries(legacyIds.map(id=>[id,$(id)?.value||'']));history=[];active=original!=null;unsupported=false;localConflict=null;selectedTemplate=null;selectedSet='jacket_pants';data={version:1,showLegacy:true,groups:[]};legacyIds.forEach(id=>$(id).disabled=false);
   try{if(original)data=M.validate(original)}catch{unsupported=true}
   let restored=false;try{const local=JSON.parse(localStorage.getItem(M.draftKey(row?.id))||'null');if(local&&!unsupported){const legacyConflict=M.legacyKeys.some((key,i)=>Object.prototype.hasOwnProperty.call(local.legacy||{},'measurement_'+key)&&local.legacyBase?.['measurement_'+key]!==initialLegacy[legacyIds[i]]&&local.legacy['measurement_'+key]!==initialLegacy[legacyIds[i]]);if(M.stable(local.base)!==M.stable(original)&&M.stable(local.data)!==M.stable(original)||legacyConflict)localConflict=local;else{if(local.data){data=M.validate(local.data,true);active=true}for(const [i,key] of M.legacyKeys.entries())if(Object.prototype.hasOwnProperty.call(local.legacy||{},'measurement_'+key))$(legacyIds[i]).value=local.legacy['measurement_'+key];restored=true}}}catch{}
   if(unsupported||localConflict)legacyIds.forEach(id=>$(id).disabled=true);
