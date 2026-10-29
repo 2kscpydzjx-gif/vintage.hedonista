@@ -29,6 +29,11 @@ async function intact(page,expected){
   assert.ok(await p.locator('#contactsPhoneLink .contact-icon').evaluate(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0}));
   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Contact fields overflow viewport');
  }
+ await p.evaluate(()=>{const section=document.querySelector('[data-cms-legacy="existing-1"]');window.VHCMSModel.applyDesign(section,{layoutVersion:1,photoPreset:'text-only'},'contacts',{})});
+ const composition=p.locator('.vh-cms-copy');
+ assert.equal(await composition.locator('.contact-line > .contact-icon svg').count(),4,'Changing layout lost contact icons');
+ assert.equal(await composition.locator('.contact-line').last().getAttribute('href'),'tel:+380671112233');
+ assert.equal(await composition.locator('.contact-line').last().locator('strong').textContent(),numbers);
  const editor=await f.context.newPage();editor.on('dialog',d=>d.accept());
  await editor.goto(base+'/admin/cms-builder.html?page=contacts');
  await editor.waitForFunction(()=>document.querySelectorAll('.existing-row').length>=3&&!document.querySelector('#save').disabled);
