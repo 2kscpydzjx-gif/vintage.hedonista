@@ -23,3 +23,6 @@ test('unknown versions and invalid/duplicate structures fail instead of replacin
 test('incomplete typed drafts remain recoverable while server validation rejects them',()=>{
  const part=M.group();part.title='';part.fields[0].label='';part.fields[0].value='46 см';const data={version:1,showLegacy:true,groups:[part]};assert.throws(()=>M.validate(data));assert.deepEqual(M.validate(data,true),data);
 });
+test('switching templates retains custom or renamed labels even before entering values',()=>{
+ const part=M.group('upper');part.fields.push({id:'custom',label:'Ширина манжети',value:''});part.fields.find(f=>f.id==='sleeve').label='Рукав від горловини';const next=M.changeTemplate(part,'skirt');assert.ok(next.fields.some(f=>f.id==='custom'&&f.label==='Ширина манжети'&&f.value===''));assert.ok(next.fields.some(f=>f.id==='sleeve'&&f.label==='Рукав від горловини'&&f.value===''));
+});
