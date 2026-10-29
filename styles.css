@@ -18421,3 +18421,34 @@ body.home-page .homepage-capsules .editorial-copy .btn{
 .vh-order-success p{line-height:1.7}
 .vh-order-success a{display:inline-flex;align-items:center;min-height:44px;margin-top:16px;max-width:100%;line-height:1.6}
 .vh-order-success-total{font-weight:600}
+
+/* Homepage copy stacks independently of the saved desktop column insets. */
+@layer vh-responsive {
+  @media(max-width:760px){
+    .home-page .editorial:not([data-vh-layout]) > .editorial-copy,
+    .home-page :is(.homepage-capsules,[data-cms-legacy="existing-3"]) > .vh-cms-composition > .vh-cms-copy{
+      padding-inline:clamp(20px,6vw,28px)!important;
+    }
+    .home-page .hero-copy > .hero-live-text{
+      width:100%!important;max-width:100%!important;margin-inline:auto!important;
+    }
+    .home-page .hero :is(#heroEyebrow,#heroTitle),
+    .home-page .homepage-capsules :is(.eyebrow,h2),
+    .home-page [data-cms-legacy="existing-3"] :is(.eyebrow,#editorialTitle,.vh-cms-copy h2){
+      text-align:center!important;
+    }
+    .home-page .hero #heroDescription,
+    .home-page .hero #heroDescription > p,
+    .home-page :is(.homepage-capsules,[data-cms-legacy="existing-3"]) :is(.editorial-copy,.vh-cms-copy) > p,
+    .home-page [data-cms-legacy="existing-3"] .vh-cms-copy-body > p{
+      width:100%!important;max-width:40rem!important;margin-inline:auto!important;text-align:left!important;
+    }
+    .home-page .homepage-capsules :is(.editorial-copy,.vh-cms-copy) > :is(.eyebrow,h2),
+    .home-page [data-cms-legacy="existing-3"] .editorial-copy > :is(.eyebrow,h2){
+      width:100%!important;max-width:40rem!important;margin-inline:auto!important;
+    }
+    .home-page [data-cms-legacy="existing-3"] :is(.vh-cms-copy-heading,.vh-cms-copy-body){
+      width:100%!important;max-width:40rem!important;margin-inline:auto!important;padding-inline:0!important;
+    }
+  }
+}
