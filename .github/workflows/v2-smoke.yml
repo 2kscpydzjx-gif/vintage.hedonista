@@ -85,6 +85,7 @@ jobs:
           node tests/cms-editor.cjs
           node tests/cms-layouts.cjs
           node tests/cms-legacy.cjs
+          node tests/cms-contact-fields.cjs
           node tests/cms-shell.cjs
           node tests/cms-review.cjs
           node tests/cms-editor-refinements.cjs

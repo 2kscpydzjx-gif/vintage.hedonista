@@ -50,7 +50,7 @@
   for(const el of section.querySelectorAll(textSelector)){
    if(el.closest(dynamicSelector+',.vh-cms-composition,.vh-cms-custom-buttons,button,select,svg,script,style,.placeholder,.about-placeholder,.capsule-hero-photo,.hero-main,.hero-small,[aria-hidden="true"]'))continue;
    if(!el.textContent.trim())continue;
-   if(el.tagName==='A'){add({el,id:'link:'+path(section,el),type:'link'});add({el,id:'label:'+path(section,el),type:'text'});continue}
+   if(el.tagName==='A'){add({el,id:'link:'+path(section,el),type:'link'});/* Contact rows own icons, labels and arrows; only their value is rich text. */if(!el.matches('.contact-line')||!el.querySelector(':scope > strong'))add({el,id:'label:'+path(section,el),type:'text'});continue}
    // A parent rich-text field owns its inline children, avoiding overlapping writes.
    if(result.some(f=>f.type==='text'&&f.el!==el&&f.el.contains(el)))continue;
    if(el.querySelector('h1,h2,h3,h4,p,ul,ol,a,input,select,button,img'))continue;
@@ -71,7 +71,7 @@
   else if(kind==='bg'){installStyles(doc);const child=!f.photo?.kind&&node.querySelector(':scope>img');if(child){if(removed)child.style.visibility='hidden';else{child.removeAttribute('srcset');child.ownerDocument.defaultView.VHImageVariants?.apply(child,value);child.src=value;child.style.removeProperty('visibility');child.style.removeProperty('display')}node.style.setProperty('background-image','none','important')}else{node.style.setProperty('background-image',removed?'none':'url('+JSON.stringify(value)+')','important');node.querySelectorAll('img').forEach(img=>img.style.display='none')}if(removed)delete node.dataset.vhPhotoAssigned;else node.dataset.vhPhotoAssigned='true'}
   else{const key='vh-photo-'+(node.closest('[data-cms-section]')?.dataset.cmsSection||'block')+'-'+f.id.replace(/[^a-z0-9]/gi,'-');node.setAttribute('data-'+key,'');let css=node.ownerDocument.getElementById(key);if(!css){css=node.ownerDocument.createElement('style');css.id=key;node.ownerDocument.head.append(css)}css.textContent='[data-'+key+']'+kind+'{background-image:'+(removed?'none':'url('+JSON.stringify(value)+')')+'!important}'}
  }
- function mappedValue(f,mapped){if(Object.prototype.hasOwnProperty.call(mapped||{},f.id))return mapped[f.id];const aliases=f.el.id?['static:#'+f.el.id+':0',f.el.id]:[];for(const id of aliases)if(Object.prototype.hasOwnProperty.call(mapped||{},id))return mapped[id];return undefined}
+ function mappedValue(f,mapped){if(Object.prototype.hasOwnProperty.call(mapped||{},f.id))return mapped[f.id];const aliases=f.el.id?['static:#'+f.el.id+':0',f.el.id]:[];const contact=f.el.closest('a.contact-line');if(contact?.querySelector(':scope > strong')===f.el){const section=contact.closest('[data-cms-section]');if(section)aliases.push('label:'+path(section,contact))}for(const id of aliases)if(Object.prototype.hasOwnProperty.call(mapped||{},id))return mapped[id];return undefined}
  function applyMapped(section,mapped,page){for(const f of fields(section,page)){const value=mappedValue(f,mapped);if(typeof value!=='string')continue;if(f.type==='text'){const html=clean(value,section.ownerDocument);if(f.el.innerHTML!==html)f.el.innerHTML=html}else if(f.type==='link'){if(value===''||validLink(value))f.el.setAttribute('href',value)}else setImage(f,value)}}
  function installStyles(doc){
   if(doc.getElementById('vh-cms-model-css'))return;
@@ -366,5 +366,5 @@
   image.src=source;
  }
  function motion(section,animation,duration){installStyles(section.ownerDocument);if(!animation||animation==='system'){section.style.removeProperty('animation');section.removeAttribute('data-vh-motion');return;}const names={'fade-up':'vhUnifiedUp','fade-left':'vhUnifiedLeft','fade-right':'vhUnifiedRight',fade:'vhUnifiedFade',zoom:'vhUnifiedZoom'};if(animation==='none'){section.style.setProperty('animation','none','important');section.removeAttribute('data-vh-motion')}else if(names[animation]){section.style.removeProperty('animation');section.dataset.vhMotion=animation;section.style.setProperty('--vh-motion-name',names[animation]);section.style.setProperty('--vh-motion-duration',clamp(duration,200,1500,650)+'ms')}}
- window.VHCMSModel={version:8,applyLogo,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
+ window.VHCMSModel={version:9,applyLogo,nativeButtons,buttonPosition,applyButtonSettings,applyLegacyText,mediaKey,photoCrop,applyMediaSettings,sourceTheme,imageSources,applyButtons,mappedValue,clean,fields,sections,sectionId,applyMapped,applyDesign,applyFieldStyles,photos,motion,validImage,validLink,resetLayout};
 })();
