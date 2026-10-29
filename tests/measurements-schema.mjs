@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
-const sql=readFileSync(new URL('../supabase/migrations/202610290001_product_measurements.sql',import.meta.url),'utf8');
+const sql=readFileSync(new URL('../supabase/migrations/20261029184416_product_measurements_guarded_storage.sql',import.meta.url),'utf8');
 const db=new PGlite();try{
  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
  CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT current_setting('request.jwt.claim.role',true) $$;
