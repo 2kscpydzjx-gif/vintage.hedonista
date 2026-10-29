@@ -4,8 +4,8 @@
 <link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
-<title>Vintage Hedonista Admin — Вхід</title><link rel="stylesheet" href="styles.css"></head><body>
-<div class="login-wrap"><div class="login-card"><div class="login-brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista"></div><div class="login-sub">Адміністративна панель</div><input class="input" id="email" type="email" placeholder="Email"><input class="input" id="password" type="password" placeholder="Пароль"><button class="btn primary block" id="loginBtn">УВІЙТИ</button><div class="error" id="error"></div></div></div>
+<title>Vintage Hedonista Admin — Вхід</title><link rel="stylesheet" href="styles.css?v=78"><link rel="stylesheet" href="mobile.css?v=1"><script defer src="viewport.js?v=1"></script></head><body class="vh-admin-login">
+<div class="login-wrap"><form class="login-card" id="loginForm"><div class="login-brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista"></div><div class="login-sub">Адміністративна панель</div><label for="email">Email</label><input class="input" id="email" type="email" inputmode="email" autocomplete="username" placeholder="Email" required><label for="password">Пароль</label><input class="input" id="password" type="password" autocomplete="current-password" placeholder="Пароль" required><button class="btn primary block" id="loginBtn" type="submit">УВІЙТИ</button><div class="error" id="error" role="alert" aria-atomic="true"></div></form></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script>
 <script>
 const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}});
@@ -28,5 +28,20 @@ const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth
  console.warn(error||'Stored session is not admin');
  await sb.auth.signOut().catch(()=>{});
 })();
-loginBtn.onclick=async()=>{error.textContent='';const emailV=email.value.trim(),passwordV=password.value;if(!emailV||!passwordV){error.textContent='Введи email і пароль';return}const {data,error:e}=await sb.auth.signInWithPassword({email:emailV,password:passwordV});if(e){error.textContent=e.message;return}const {data:isAdmin,error:aerr}=await sb.rpc('is_admin');if(aerr||isAdmin!==true){console.error(aerr);await sb.auth.signOut();error.textContent='Цей акаунт не має прав адміністратора';return}location.href='admin.html'};
+let signingIn=false;
+loginForm.addEventListener('submit',async event=>{
+ event.preventDefault();if(signingIn)return;
+ const message=document.getElementById('error'),button=document.getElementById('loginBtn');
+ message.textContent='';const emailV=email.value.trim(),passwordV=password.value;
+ if(!emailV||!passwordV){message.textContent='Введіть email і пароль';return}
+ signingIn=true;button.disabled=true;button.textContent='ВХОДИМО…';
+ try{
+  const {error:authError}=await sb.auth.signInWithPassword({email:emailV,password:passwordV});
+  if(authError){message.textContent=authError.code==='invalid_credentials'||authError.code==='invalid_login_credentials'?'Неправильний email або пароль.':'Не вдалося увійти. Перевірте дані й повторіть спробу.';return}
+  const {data:isAdmin,error:roleError}=await sb.rpc('is_admin');
+  if(roleError||isAdmin!==true){await sb.auth.signOut();message.textContent='Цей акаунт не має прав адміністратора';return}
+  location.href='admin.html';
+ }catch{message.textContent='Не вдалося підключитися. Перевірте інтернет і повторіть спробу.'}
+ finally{signingIn=false;button.disabled=false;button.textContent='УВІЙТИ'}
+});
 </script></body></html>

@@ -1,0 +1,53 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {fixture}=require('./cms-browser-fixture.cjs'),{seedAdmin,base,product,order}=require('./admin-fixture.cjs');
+const pages=['dashboard','products','productForm','categories','orders','customers','capsules','capsuleStyleForm','capsuleForm','news','newsForm','media','settings'];
+const settle=p=>p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+const expand=p=>p.evaluate(()=>{const page=document.querySelector('.page.active');for(const group of page.querySelectorAll('.constructor-collapsed,.article-step-collapsed,.capsule-builder-card.is-collapsed'))group.querySelector('.constructor-section-toggle,.article-step-toggle,.capsule-builder-head')?.click();for(const summary of page.querySelectorAll('details:not([open])>summary'))summary.click();scrollTo(0,0)});
+const open=async(p,id)=>{await p.evaluate(id=>{if(id==='productForm')openProductForm();else if(id==='newsForm')openNewsForm();else if(id==='capsuleStyleForm')openStyleEditor();else if(id==='capsuleForm')openCapsuleEditor();else goPage(id);scrollTo(0,0)},id);await settle(p);await expand(p);await settle(p)};
+const within=async(locator,width)=>{const r=await locator.boundingBox();assert.ok(r&&r.x>=-.5&&r.x+r.width<=width+.5,'control outside viewport '+JSON.stringify(r))};
+(async()=>{const f=await fixture({hasTouch:true,isMobile:true,reducedMotion:'reduce'});try{
+ await seedAdmin(f);fs.mkdirSync('test-results/admin-mobile',{recursive:true});const p=await f.context.newPage();
+ for(const width of [320,360,390,430,600,768,820,1024,1180,1440]){
+  await p.setViewportSize({width,height:900});await p.goto(base+'/admin/admin.html');await p.waitForFunction(()=>typeof VH_ADMIN_HISTORY_READY!=='undefined'&&VH_ADMIN_HISTORY_READY);
+  for(const id of pages){
+   await open(p,id);
+   const geometry=await p.locator('.page.active').evaluate(root=>({scroll:document.documentElement.scrollWidth,controls:[...root.querySelectorAll('button,input:not([type=hidden]),select,textarea,[contenteditable=true]')].filter(el=>el.getClientRects().length&&!el.closest('[hidden]')&&getComputedStyle(el).visibility!=='hidden'&&!el.closest('.vh-rte-source')).map(el=>{const r=el.getBoundingClientRect();return {id:el.id,tag:el.tagName,cls:typeof el.className==='string'?el.className:'',x:r.x,right:r.right,height:r.height,font:parseFloat(getComputedStyle(el).fontSize),type:el.type}})}));
+   assert.ok(geometry.scroll<=width,'page overflow '+id+' '+width);
+   const outside=geometry.controls.filter(r=>r.x<-.5||r.right>width+.5);assert.deepEqual(outside,[],'clipped controls '+id+' '+width);
+   if(width<=1199){const small=geometry.controls.filter(r=>!['checkbox','radio','color','range','file'].includes(r.type)&&r.height>0&&r.height<43.5);assert.deepEqual(small,[],'small touch targets '+id+' '+width);const fonts=geometry.controls.filter(r=>['INPUT','SELECT','TEXTAREA'].includes(r.tag)&&!['checkbox','radio','color','range'].includes(r.type)&&r.font<16);assert.deepEqual(fonts,[],'zoom-prone inputs '+id+' '+width)}
+   if(width===390&&['products','productForm','orders','newsForm'].includes(id))await p.screenshot({path:'test-results/admin-mobile/'+id+'.png'});
+  }
+  await open(p,'products');const edit=p.locator('#productsTable button.small-action').first();await within(edit,width);await edit.click();await p.locator('#productForm.active').waitFor();assert.equal(await p.locator('#pName').inputValue(),product.name);
+  await p.waitForFunction(()=>document.querySelectorAll('#productGallery .admin-product-photo').length===3);
+  await settle(p);await expand(p);
+  for(const button of await p.locator('#productGallery button').all())await within(button,width);
+  if(width===390){await p.locator('#productGallery button[onclick="makeProductImageMain(1)"]').click();assert.match(await p.locator('#productGallery .admin-product-photo img').first().getAttribute('src'),/gallery=1/)}
+  if(width<=1199){
+   const menu=p.locator('#menuBtn');await menu.click();await p.waitForFunction(()=>document.querySelector('#menuBtn').getAttribute('aria-expanded')==='true');assert.equal(await p.locator('.main').evaluate(el=>el.inert),true);await within(p.locator('.admin-mobile-close'),width);await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#menuBtn').getAttribute('aria-expanded')==='false');assert.equal(await menu.evaluate(el=>el===document.activeElement),true);
+   await menu.click();await p.locator('#sidebar [data-page=orders]').click();await p.locator('#orders.active').waitFor();await p.waitForFunction(()=>!document.querySelector('#sidebar').classList.contains('open'));
+   assert.equal(await p.locator('.main').evaluate(el=>el.inert),false);
+   await p.locator('.order-card-v135').first().click();await p.locator('#orderModal').waitFor({state:'visible'});await p.waitForFunction(()=>document.querySelector('#orderModal .order-modal-card').getAttribute('role')==='dialog');
+   const close=p.locator('#orderModal button.close');await within(close,width);const c=await close.boundingBox();assert.ok(c.height>=44&&c.width>=44);
+   await p.setViewportSize({width,height:430});await p.locator('#odTtn').fill('20450000001234');await p.locator('#odAdminNote').fill('Мобільна примітка');await p.locator('#saveOrderMetaV145').click();await p.waitForFunction(()=>document.querySelector('#toast').textContent.includes('збережено'));
+   assert.ok(f.calls.some(c=>c.table==='orders'&&c.op==='update'&&c.values.ttn==='20450000001234'&&c.values.admin_note==='Мобільна примітка'));await within(close,width);await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#orderModal').classList.contains('hidden')&&!document.querySelector('#app').inert);assert.equal(await p.locator('#app').evaluate(el=>el.inert),false);
+   await p.setViewportSize({width,height:900});await open(p,'productForm');const bar=p.locator('.admin-mobile-actions');await bar.waitFor({state:'visible'});await within(bar,width);
+   await p.evaluate(()=>{window.proxySaveClicks=0;document.getElementById('saveProductBtn').onclick=()=>window.proxySaveClicks++});await bar.locator('.primary').click();assert.equal(await p.evaluate(()=>window.proxySaveClicks),1,'mobile Save bypassed/duplicated original action');
+   await p.evaluate(()=>document.getElementById('saveProductBtn').disabled=true);await p.waitForFunction(()=>document.querySelector('.admin-mobile-actions .primary').disabled);await p.evaluate(()=>document.getElementById('saveProductBtn').disabled=false);
+   await p.locator('#menuBtn').click();await p.setViewportSize({width:1440,height:900});await p.waitForFunction(()=>!document.querySelector('#sidebar').inert&&!document.querySelector('#app').inert&&!document.querySelector('.main').inert);assert.equal(await p.locator('.admin-mobile-backdrop').isVisible(),false);
+  }
+ }
+ // Library selection uses the original handler and returns the chosen URL to the form.
+ await p.setViewportSize({width:390,height:900});await open(p,'productForm');await p.evaluate(()=>openMediaPickerV132(document.getElementById('pCoverUrl')||document.getElementById('sInstagram')));await p.locator('#mediaPickerV132').waitFor({state:'visible'});await p.locator('#mediaPickerGrid button').first().click();await p.waitForFunction(()=>document.querySelector('#mediaPickerV132').classList.contains('hidden'));
+ // iOS-style keyboard: visual viewport shrinks while layout viewport stays tall.
+ await p.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:430});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:40});visualViewport.dispatchEvent(new Event('resize'))});
+ await p.waitForFunction(()=>document.querySelector('.admin-mobile-actions').getBoundingClientRect().bottom<=470.5);
+ await p.evaluate(()=>openOrderModal('admin-order'));await p.locator('#orderModal').waitFor({state:'visible'});await p.waitForFunction(()=>document.querySelector('#orderModal .order-modal-footer').getBoundingClientRect().bottom<=470.5);const footer=await p.locator('#orderModal .order-modal-footer').boundingBox();assert.ok(footer.y>=40&&footer.y+footer.height<=470.5);await p.keyboard.press('Escape');await p.waitForFunction(()=>!document.querySelector('#app').inert);
+ await p.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;visualViewport.dispatchEvent(new Event('resize'))});await settle(p);
+ await open(p,'customers');await p.locator('.customer-view-btn').first().click();await p.locator('#customerProfileModalV130').waitFor({state:'visible'});await p.locator('#customerProfileContentV130 h2').waitFor();
+ const profile=p.locator('.customer-profile-panel-v130');assert.ok(await profile.evaluate(el=>el.scrollWidth<=el.clientWidth),'customer profile overflow');await profile.evaluate(el=>el.scrollTop=el.scrollHeight);await within(p.locator('.customer-profile-close-v130'),390);await p.locator('.customer-profile-close-v130').click();await p.waitForFunction(()=>!document.querySelector('#app').inert);
+ await open(p,'newsForm');await p.evaluate(()=>openJournalCategoryModal());await p.locator('#journalCategoryModal').waitFor({state:'visible'});await within(p.locator('#newJournalCategoryName'),390);await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#journalCategoryModal').hidden&&!document.querySelector('#app').inert);
+ await p.evaluate(()=>editNews('admin-article'));await settle(p);await expand(p);await p.locator('#newsForm .vh-image-controls').waitFor();for(const control of await p.locator('#newsForm .vh-image-controls button,#newsForm .vh-image-controls select').all())await within(control,390);assert.equal(await p.locator('#newsForm figure.vh-inline-figure').getAttribute('data-vh-width'),'25','mobile view rewrote article image width');
+ // Accessibility observers must become idle after settling; no continuous render loop.
+ const changes=await p.evaluate(async()=>{let n=0;const observer=new MutationObserver(records=>n+=records.length);observer.observe(document.body,{attributes:true,childList:true,subtree:true});await new Promise(resolve=>setTimeout(resolve,500));observer.disconnect();return n});assert.ok(changes<20,'admin observer render loop '+changes);
+ assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(c=>c.table==='vh_page_revisions'&&c.op!=='select').length,0);console.log('PASS: 13 admin sections on 10 widths; unclipped touch controls, readable inputs, editable product cards, menu/Escape/rotation, order metadata with a short viewport, original Save forwarding and media selection. All data isolated.');
+}finally{await f.browser.close()}})().catch(e=>{console.error(e);process.exit(1)});
