@@ -62,6 +62,11 @@ const save=async p=>{await p.locator('#save').click();await p.locator('#status')
  assert.equal(await p.getByLabel('ПОСИЛАННЯ TELEGRAM',{exact:true}).inputValue(),'https://t.me/new-server-channel','Conflict resolution discarded an independent server change');await save(p);
  assert.equal(f.records.get('home:draft').shared.footerText,'My conflicting footer');assert.equal(f.records.get('home:published').shared.footerText,'My new footer');
  const backup=await p.evaluate(()=>JSON.parse(localStorage.getItem('vh-cms-recovery-v1-shared')));assert.ok(backup.some(entry=>entry.reason==='keep-local-version'));
+ await p.setViewportSize({width:1560,height:1000});await p.locator('#studioPage').selectOption({label:'Головна сторінка'});
+ await p.waitForFunction(()=>document.querySelectorAll('.existing-row').length>=8&&!document.querySelector('#save').disabled);
+ await p.locator('#studioPage').selectOption({label:'Шапка та підвал · усі сторінки'});await p.waitForFunction(()=>!document.querySelector('#save').disabled);
+ assert.equal(await p.locator('.existing-row').count(),0,'Homepage rows leaked into the shared inspector');
+ assert.equal(await p.locator('.studio-selected-title').textContent(),'Шапка та підвал');
  // Narrow screens can open the shared inspector directly and jump to its preview.
  await p.setViewportSize({width:390,height:844});await p.reload();await p.waitForFunction(()=>!document.querySelector('#save').disabled);
  assert.equal(await p.locator('body').getAttribute('data-cms-pane'),'inspector');

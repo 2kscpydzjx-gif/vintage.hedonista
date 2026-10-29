@@ -704,7 +704,7 @@ function saveExisting(data){localStorage.setItem(existingKey(),JSON.stringify(da
 let draggedBlockId=null;
 function clearDragHighlights(){document.querySelectorAll('.cms-dragover,.cms-dragging').forEach(el=>el.classList.remove('cms-dragover','cms-dragging'))}
 function placeBlock(from,to,after){const order=mergedOrder().filter(x=>x!==from);const i=order.indexOf(to);if(i<0)return;order.splice(i+(after?1:0),0,from);saveOrder(order);renderExistingList();renderList();scheduleLivePreview()}
-function renderExistingList(){if(pageId==='shared')return;
+function renderExistingList(){if(pageId==='shared'){$('existingBlocks').replaceChildren();return;}
  const host=$('existingBlocks');host.replaceChildren();
  const caption=document.createElement('p');caption.className='muted';caption.textContent='ВСІ БЛОКИ · ПЕРЕТЯГУЙТЕ ЗА ⠿ АБО КОРИСТУЙТЕСЬ СТРІЛКАМИ';host.append(caption);
  const order=mergedOrder();
