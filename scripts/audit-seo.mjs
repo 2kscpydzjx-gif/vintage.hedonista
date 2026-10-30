@@ -1,20 +1,26 @@
 import {readFileSync,existsSync} from 'node:fs';
-import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
-const root=fileURLToPath(new URL('../',import.meta.url));
+import {join,resolve} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {configuredSite,pageAddress} from './seo-deployment.mjs';
+const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.find(arg=>arg.startsWith('--root='))?.slice(7)||'.');
+const base=configuredSite(pathToFileURL(root+'/'));
+function localPath(address){const url=new URL(address);if(url.origin!==new URL(base).origin||!url.pathname.startsWith(new URL(base).pathname))throw Error('URL outside configured site: '+address);return decodeURIComponent(url.pathname.slice(new URL(base).pathname.length))||'index.html'}
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
 let errors=[];let checked=0;
 const templateMetadata=[];
 for(const address of urls){
  const u=new URL(address);
- if(!/^\/vintage\.hedonista\/seo-(product|article|category|subcategory)\//.test(u.pathname))continue;
- const path=decodeURIComponent(u.pathname.replace(/^\/vintage\.hedonista\//,'')); // URL is encoded, disk folder is Unicode
+ const path=localPath(address); // URL is encoded, disk folder is Unicode
+ if(!/^seo-(product|article|category|subcategory)\//.test(path))continue;
  const file=join(root,path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
  const html=readFileSync(file,'utf8');
+ const documentBase=new URL(html.match(/<base\b[^>]*href="([^"]+)"/i)?.[1]||address,address);
  const canonical=html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
  if(canonical!==address)errors.push('Canonical mismatch: '+path);
+ const ogUrl=html.match(/<meta\s+property="og:url"\s+content="([^"]+)"/i)?.[1];
+ if(ogUrl!==canonical)errors.push('Open Graph URL mismatch: '+path);
  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Missing H1: '+path);
  if(/<img\b[^>]*\balt="[^"]*"[^>]*\balt=/i.test(html))errors.push('Duplicate ALT: '+path);
  if(!/<base\b[^>]*id="vh-seo-base"/i.test(html))errors.push('Missing root base: '+path);
@@ -25,11 +31,11 @@ for(const address of urls){
    if(!hrefs.length)errors.push('Empty subcategory navigation: '+path);
    for(const href of hrefs){
     let target;
-    try{target=new URL(href,address)}catch{errors.push('Invalid subcategory URL: '+href);continue}
+    try{target=new URL(href,documentBase)}catch{errors.push('Invalid subcategory URL: '+href);continue}
     if(target.origin!==u.origin||!target.pathname.startsWith(u.pathname.replace(/seo-category\/[^/]+\/index\.html$/,'seo-subcategory/'))){
      errors.push('Unexpected subcategory link: '+href);continue
     }
-    const targetPath=decodeURIComponent(target.pathname.replace(/^\/vintage\.hedonista\//,''));
+    const targetPath=localPath(target.href);
     if(!existsSync(join(root,targetPath)))errors.push('Broken subcategory link: '+href);
    }
   }
@@ -42,6 +48,7 @@ for(const address of urls){
   let product;
   try{product=JSON.parse(blocks[0][1])}catch{errors.push('Invalid Product JSON-LD: '+path);continue}
   if(product?.['@type']!=='Product'){errors.push('Incorrect Product JSON-LD type: '+path);continue}
+  if(product.url!==canonical||product.offers&&product.offers.url!==canonical)errors.push('Product JSON-LD URL mismatch: '+path);
   const priceVisible=/<[^>]+id=["']productPrice["'][^>]*>[\s\S]*?\d[\s\S]*?<\/[^>]+>/i.test(html);
   if(priceVisible&&!product.offers)errors.push('Missing Offer for priced product: '+path);
   if(product.offers){
@@ -72,7 +79,8 @@ for(const page of staticPages){
  const canonical=head.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1];
  if(!title)errors.push('Missing title: '+page);
  if(!description)errors.push('Missing description: '+page);
- if(canonical!==new URL(page,'https://2kscpydzjx-gif.github.io/vintage.hedonista/').href)errors.push('Canonical mismatch: '+page);
+ if(canonical!==pageAddress(page,base))errors.push('Canonical mismatch: '+page);
+ if(!urls.includes(canonical))errors.push('Static page missing from sitemap: '+page);
 }
 for(const page of ['account.html','checkout.html','admin/index.html','admin/admin.html','admin/cms-builder.html']){
  const html=readFileSync(join(root,page),'utf8');

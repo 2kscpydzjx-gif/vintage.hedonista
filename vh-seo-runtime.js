@@ -3,7 +3,7 @@ function setMeta(name,content,attr='name'){let e=document.head.querySelector(`me
 function canonical(url){let e=document.head.querySelector('link[rel="canonical"]');if(!e){e=document.createElement('link');e.rel='canonical';document.head.append(e)}e.href=url}
 const sourceRoot=new URL('.',document.currentScript?.src||document.baseURI);
 function siteBase(){try{const value=new URL(window.VH_CONFIG?.siteUrl||'https://2kscpydzjx-gif.github.io/vintage.hedonista/');if(!value.pathname.endsWith('/'))value.pathname+='/';return value.href}catch{return 'https://2kscpydzjx-gif.github.io/vintage.hedonista/'}}
-function publicLocation(){const live=new URL(location.href),path=live.pathname.startsWith(sourceRoot.pathname)?live.pathname.slice(sourceRoot.pathname.length):live.pathname.replace(/^\//,'');return new URL(path+live.search,siteBase()).href}
+function publicLocation(){const live=new URL(location.href),path=live.pathname.startsWith(sourceRoot.pathname)?live.pathname.slice(sourceRoot.pathname.length):live.pathname.replace(/^\//,''),base=siteBase();const current=document.querySelector('link[rel="canonical"]')?.href;if(current&&current.startsWith(base))return current;return new URL(path==='index.html'&&new URL(base).pathname==='/'?'':path+live.search,base).href}
 function socialImage(image){const value=image||document.querySelector('meta[property="og:image"]')?.content||window.VH_CONFIG?.shareImageUrl;if(value){setMeta('og:image',value,'property');setMeta('twitter:image',value)}setMeta('twitter:card','summary_large_image')}
 async function apply(sb,kind,id,fallback={}){const {data,error}=await sb.from('vh_seo_metadata').select('seo_title,meta_description').eq('entity_type',kind).eq('entity_id',String(id)).maybeSingle();if(error)console.warn('SEO metadata',error);const title=data?.seo_title||fallback.title||'Vintage Hedonista',desc=data?.meta_description||fallback.description||'';set({title,description:desc,image:fallback.image,canonicalUrl:document.querySelector('meta[name="vh-static-canonical"]')?.content||fallback.canonicalUrl||publicLocation()})}
 function set({title,description,canonicalUrl,image}={}){
@@ -14,7 +14,7 @@ function productStructuredData(product,images=[]){
  if(!product||!product.name)return;
  const cleanText=value=>String(value||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  const origin=siteBase();
- const url=product.slug?new URL('seo-product/'+encodeURIComponent(product.slug)+'/index.html',origin).href:location.href;
+ const url=product.slug?new URL('seo-product/'+encodeURIComponent(product.slug)+'/index.html',origin).href:publicLocation();
  const photos=[...new Set(images.filter(x=>typeof x==='string'&&/^https?:\/\//i.test(x)))].slice(0,12);
  if(photos[0])socialImage(photos[0]);
  const rawPrice=Number(product.price);
@@ -42,7 +42,7 @@ function productStructuredData(product,images=[]){
  const category=product.categories?.slug&&product.categories?.name?product.categories:null;
  const subcategory=category&&product.subcategories?.slug&&product.subcategories?.name?product.subcategories:null;
  const entries=[
-  {name:'Головна',url:new URL('index.html',origin).href},
+  {name:'Головна',url:new URL(new URL(origin).pathname==='/'?'':'index.html',origin).href},
   {name:'Каталог',url:new URL('catalog.html',origin).href}
  ];
  if(category)entries.push({name:cleanText(category.name),url:new URL('seo-category/'+encodeURIComponent(category.slug)+'/index.html',origin).href});

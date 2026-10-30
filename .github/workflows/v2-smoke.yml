@@ -17,6 +17,8 @@ on:
       - 'package-lock.json'
       - 'vercel.json'
       - 'scripts/build-hosting.mjs'
+      - 'scripts/seo-deployment.mjs'
+      - 'launch-site.json'
       - 'image-variants.js'
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
@@ -81,7 +83,9 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Verify deployable assets and preview indexing
-        run: node tests/hosting-build.mjs
+        run: |
+          node tests/hosting-build.mjs
+          node tests/seo-domain.cjs
       - name: Test editor and storefront with isolated data
         run: |
           export VH_TEST_BUILT=1

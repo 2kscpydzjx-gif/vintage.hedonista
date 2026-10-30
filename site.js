@@ -782,7 +782,7 @@ function updateCategoryCanonical(){
    ?'seo-subcategory/'+category+'/'+encodeURIComponent(catalogState.subcategory)+'/index.html'
    :'seo-category/'+category+'/index.html';
  }
- link.href=new URL(path,document.baseURI).href;
+ link.href=new URL(path,window.VH_CONFIG?.siteUrl||document.baseURI).href;
  if(!link.parentNode)document.head.appendChild(link);
 }
 let vhEditorialConfig=null;
