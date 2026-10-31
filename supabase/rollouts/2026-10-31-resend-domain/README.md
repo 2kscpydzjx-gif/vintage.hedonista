@@ -37,3 +37,12 @@ dependencies and covers sender selection, all statuses, test recipient routing,
 invalid configuration, empty email, and provider/query failures. It sends no mail.
 Production deployment must be read back and compared with this source; an
 unauthenticated request must still be rejected by the JWT gateway.
+
+## Deployment verification — 2026-10-31
+
+Deployed to project yffwjgwwkapdrpwyjwfp as resend-email version 13, ACTIVE,
+with verify_jwt=true. Read-back source exactly matched the tested deployment
+file (SHA-256 5a68c0cd141fe6a0b2d3f4258d399177a0d0291f4dccabf40693bd8682ef9e2e).
+Live OPTIONS returned 200; POST without Authorization returned 401 before the
+handler. These checks sent no mail. Actual provider delivery remains to be
+verified using an owner-controlled test order while TEST_MODE=true.
