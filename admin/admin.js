@@ -1096,7 +1096,7 @@ function updateMeasurementFieldsV148(){
  const active=new Set(profile.keys);
 
  document.querySelectorAll('#measurementFieldsV148 [data-measure-key]').forEach(field=>{
-   field.classList.toggle('hidden',!active.has(field.dataset.measureKey))
+   field.classList.toggle('hidden',!active.has(field.dataset.measureKey)&&!field.querySelector('input')?.value)
  });
 
  const hint=$('measurementHintV148');
@@ -1105,6 +1105,7 @@ function updateMeasurementFieldsV148(){
        ? 'Для головних уборів вкажіть об’єм / обхват голови в сантиметрах.'
        : profile.hint)
    : 'Оберіть категорію — набір замірів автоматично підлаштується під тип товару.';
+ window.VHMeasurementEditor?.suggest(category,subcategory);
 }
 window.updateMeasurementFieldsV148=updateMeasurementFieldsV148;
 
@@ -1271,6 +1272,7 @@ function resetProductForm(){
  productField('pMeasureHeight');
  productField('pMeasureDepth');
  productField('pDetailsText');
+ window.VHMeasurementEditor?.load(null);
 
  productCheck('pNew',false);
  productCheck('pHome',true);
@@ -1327,6 +1329,7 @@ async function editProduct(id){
  productField('pMeasureHeight',p.measurement_height);
  productField('pMeasureDepth',p.measurement_depth);
  productField('pDetailsText',p.details_text);
+ window.VHMeasurementEditor?.load(p);
 
  productCheck('pNew',p.is_new);
  productCheck('pHome',p.show_on_home!==false);
@@ -1475,12 +1478,22 @@ $('saveProductBtn').onclick=async()=>{
      show_on_home:$('pHome').checked
    };
 
+   const measurementSave=await window.VHMeasurementEditor?.prepareSave(payload,sb);
+   if(measurementSave?.localOnly){toast('Заміри збережено локально. Робочий товар не змінено.');return}
+   if(measurementSave?.measurementsOnlySaved){
+     const cached=products.find(p=>String(p.id)===String(measurementSave.productId));
+     if(cached&&Object.prototype.hasOwnProperty.call(measurementSave,'measurements'))cached.measurements_v2=measurementSave.measurements;
+     productEditorRecheck();
+     toast(measurementSave.unchanged?'Заміри не змінювалися. Інші поля у тестовій версії не зберігаються.':'Заміри збережено в базі. Інші поля товару не змінено.');return
+   }
    let productId=editingProductId;
 
    if(editingProductId){
-     const {data,error}=await sb.from('products').update(payload).eq('id',editingProductId).select('id').maybeSingle();
+     let query=sb.from('products').update(payload).eq('id',editingProductId);
+     query=window.VHMeasurementEditor?.protectUpdate(query,payload)||query;
+     const {data,error}=await query.select('id').maybeSingle();
      if(error)throw error;
-     if(!data)throw new Error('Не вдалося оновити товар. Перевір права Supabase.');
+     if(!data)throw new Error(Object.prototype.hasOwnProperty.call(payload,'measurements_v2')?'Товар або заміри змінилися паралельно. Локальну чернетку збережено; перевір актуальні дані перед повторним збереженням.':'Не вдалося оновити товар. Перевір права Supabase.');
    }else{
      const {data,error}=await sb.from('products').insert(payload).select('id').single();
      if(error)throw error;
@@ -1495,6 +1508,7 @@ $('saveProductBtn').onclick=async()=>{
 
    await saveRelatedProductsV197(productId);
    await window.VHSEO.save(sb,'product',productId);
+   window.VHMeasurementEditor?.saved(productId);
 
    const wasEditing=Boolean(editingProductId);
    await loadProducts();
@@ -2921,20 +2935,21 @@ function updateProductEditorState(dirty){
 
 // Compare actual form values against the last successfully saved/loaded state.
 // Programmatic input/change events must not create a false unsaved warning.
-let productSavedFingerprint=null;
-function productFormFingerprint(){
+let productSavedFingerprint=null,productSavedOtherFingerprint=null;
+function productFormFingerprint(excludeMeasurements=false){
  const form=$('productForm');if(!form)return null;
  return JSON.stringify([...form.querySelectorAll('input,select,textarea')]
-  .filter(el=>!['file','button','submit'].includes(el.type))
+  .filter(el=>!['file','button','submit'].includes(el.type)&&(!excludeMeasurements||!el.closest('#productMeasurementsSection')))
   .map(el=>[el.id||el.name,el.type==='checkbox'||el.type==='radio'?el.checked:el.value]));
 }
 function productEditorMarkClean(){
  productSavedFingerprint=productFormFingerprint();
- updateProductEditorState(false);
+ productSavedOtherFingerprint=productFormFingerprint(true);
+ updateProductEditorState(!!window.VHMeasurementEditor?.isDirty());
 }
 function productEditorRecheck(){
  if(productSavedFingerprint===null)return updateProductEditorState(true);
- updateProductEditorState(productFormFingerprint()!==productSavedFingerprint);
+ updateProductEditorState(window.VHMeasurementEditor?.isDirty?productFormFingerprint(true)!==productSavedOtherFingerprint||window.VHMeasurementEditor.isDirty():productFormFingerprint()!==productSavedFingerprint);
 }
 document.addEventListener('input',e=>{
  if(e.target.closest('#productForm'))productEditorRecheck();

@@ -3,6 +3,9 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-hosting.mjs",
+    "build:domain": "node scripts/build-hosting.mjs --launch-domain",
+    "build:cloudflare:test": "node scripts/build-hosting.mjs --launch-domain --cloudflare-test",
+    "audit:domain": "node scripts/audit-seo.mjs --root=dist && node scripts/audit-internal-links.mjs --root=dist",
     "test:hosting": "node tests/hosting-build.mjs"
   },
   "devDependencies": {

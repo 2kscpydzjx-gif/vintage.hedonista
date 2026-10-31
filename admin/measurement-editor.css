@@ -1,0 +1,19 @@
+#measurementEditor{margin-bottom:20px;min-width:0}
+#measurementEditor p{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#measurementEditor .measurement-mode{margin:0 0 14px;color:#ceb18b;font-size:11px}
+#measurementEditor .measurement-help{color:#b8a896}
+#measurementEditor .measurement-field-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 44px;align-items:end;gap:12px;margin:12px 0;padding-bottom:14px;border-bottom:1px solid #48392b}
+#measurementEditor .measurement-input{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:12px}
+#measurementEditor input{width:100%;min-width:0;box-sizing:border-box}
+#measurementEditor button{min-height:44px;padding:10px 12px;border:1px solid #795b3f;background:#30241a;color:#eee1cf;border-radius:4px;white-space:normal;max-width:100%;overflow-wrap:anywhere}
+#measurementEditor .measurement-remove{font-size:23px;width:44px;padding:0}
+#measurementEditor .measurement-actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+#measurementEditor summary{cursor:pointer;min-height:44px;font-size:12px;line-height:1.5;color:#cbb18e;padding:12px 0;box-sizing:border-box}
+#measurementEditor .measurement-preview,#measurementEditor .measurement-recovery{border-top:1px solid #5a4633;margin:10px 0;min-width:0}
+#measurementEditor details>button{margin:10px 8px 10px 0}
+#measurementEditor .measurement-site-frame{padding:16px;background:#f2e9dd;color:#2b211a;border:1px solid #cbbca8;border-radius:4px;min-width:0}
+#measurementEditor .error,#measurementEditor .measurement-error{color:#f2ab92}
+#measurementEditorStatus:empty{display:none}
+@media(max-width:767px){#measurementEditor input{font-size:16px;min-height:44px}}
+@media(max-width:360px){#measurementEditor .measurement-field-row{grid-template-columns:minmax(0,1fr) 44px;gap:8px}#measurementEditor .measurement-input:first-child{grid-column:1/-1}#measurementEditor .measurement-site-frame{padding:12px}}
+#measurementFieldsV148[hidden],#measurementHintV148[hidden]{display:none!important}

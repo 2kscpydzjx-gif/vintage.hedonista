@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/generate-sitemap.mjs'
       - 'scripts/audit-seo.mjs'
+      - 'scripts/seo-deployment.mjs'
       - 'scripts/seo-editorial.mjs'
       - 'tests/seo-editorial.mjs'
       - 'account.html'

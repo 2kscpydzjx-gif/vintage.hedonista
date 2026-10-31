@@ -12,7 +12,7 @@ const edit={mapped,design:{layoutVersion:1,photoPreset:'text-top',textLayout:'he
   await p.waitForFunction(expected=>document.querySelector('[data-cms-legacy="existing-3"] .vh-cms-copy h2')?.textContent===expected,heading);
   await section.scrollIntoViewIfNeeded();
   const s=await title.evaluate(el=>{const s=getComputedStyle(el);return {font:s.fontFamily,weight:s.fontWeight,align:s.textAlign,scroll:el.scrollWidth,client:el.clientWidth,breaks:el.querySelectorAll('br').length}});
-  assert.match(s.font,/Prata/);assert.equal(s.weight,'400');assert.equal(s.align,'left');assert.ok(s.scroll<=s.client+2,'editorial overflow '+width);assert.equal(s.breaks,0);
+  assert.match(s.font,/Prata/);assert.equal(s.weight,'400');assert.equal(s.align,width<=760?'center':'left');assert.ok(s.scroll<=s.client+2,'editorial overflow '+width);assert.equal(s.breaks,0);
   assert.equal(await p.locator('#editorialBtn').count(),0);
   await p.locator('.hero').scrollIntoViewIfNeeded();assert.equal(await p.locator('#heroAboutBtn').isVisible(),true,'Hero about CTA removed');
   const h=await p.locator('#heroTitle').evaluate(el=>{const s=getComputedStyle(el);return {font:s.fontFamily,size:parseFloat(s.fontSize),line:parseFloat(s.lineHeight),spacing:parseFloat(s.letterSpacing),word:parseFloat(s.wordSpacing),scroll:el.scrollWidth,client:el.clientWidth}});

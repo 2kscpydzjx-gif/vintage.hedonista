@@ -4,7 +4,7 @@
 
 ## Що перевіряє автоматизація
 
-`npm ci --ignore-scripts`, `npm ci --prefix tests --ignore-scripts`, `node tests/hosting-build.mjs` готують і перевіряють артефакт для хостингу. У production-режимі зберігаються вихідні canonical/robots; у preview/test — індексація вимкнена. Публічні посилання на скрипти/стилі перевіряються на існування, внутрішні SQL/тести/документація у dist відсутні.
+`npm ci --ignore-scripts`, `npm ci --prefix tests --ignore-scripts`, `node tests/hosting-build.mjs` готують і перевіряють артефакт для хостингу. Звичайна production-збірка зберігає поточний домен; `npm run build:domain` готує `https://vintazhka.com.ua/`. У preview/test індексація вимкнена. Публічні посилання на скрипти/стилі перевіряються на існування, внутрішні SQL/тести/документація у dist відсутні. Інструкція перенесення: [DOMAIN_LAUNCH_UK.md](DOMAIN_LAUNCH_UK.md).
 
 GitHub Actions виконує 31 браузерний набір на готових файлах. Дані, замовлення та повідомлення ізольовані у fixture. Скріншоти оформлення доступні в артефакті `prelaunch-checkout-screenshots`. Перевірки доступності діалогів, клавіатурного фокуса, капсул, конструктора, адаптації й анімацій залишаються увімкненими.
 

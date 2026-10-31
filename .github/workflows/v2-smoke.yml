@@ -8,6 +8,7 @@ on:
       - 'cms-boot.*'
       - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
+      - 'cms-shell.js'
       - 'site.js'
       - 'capsules-front.js'
       - 'styles.css'
@@ -17,6 +18,11 @@ on:
       - 'package-lock.json'
       - 'vercel.json'
       - 'scripts/build-hosting.mjs'
+      - 'scripts/seo-deployment.mjs'
+      - 'scripts/published-navigation.mjs'
+      - 'scripts/published-navigation.json'
+      - 'launch-site.json'
+      - 'preview-readonly.js'
       - 'image-variants.js'
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
@@ -59,6 +65,10 @@ jobs:
           node --check admin/mobile.js
           node --check admin/cms-mobile.js
           node --check admin/viewport.js
+          node --check measurements.js
+          node --check admin/measurement-editor.js
+          node tests/measurements-unit.cjs
+          node tests/measurements-schema.mjs
           node tests/order-email-security.mjs
           node tests/order-email-version.mjs
           node --check capsules-front.js
@@ -67,6 +77,7 @@ jobs:
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
           node --check cms-published.js
+          node --check cms-shell.js
           node --check admin/cms-builder.js
           node --check admin/cms-studio.js
           node --check admin/cms-photo-editor.js
@@ -77,7 +88,10 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Verify deployable assets and preview indexing
-        run: node tests/hosting-build.mjs
+        run: |
+          node tests/hosting-build.mjs
+          node tests/seo-domain.cjs
+          node tests/cloudflare-pages.cjs
       - name: Test editor and storefront with isolated data
         run: |
           export VH_TEST_BUILT=1
@@ -109,13 +123,18 @@ jobs:
           node tests/cart-checkout.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
+          node tests/home-mobile-copy.cjs
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
+          node tests/cms-public-shell.cjs
+          node tests/navigation-first-paint.cjs
           node tests/catalog-footer-spacing.cjs
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
           node tests/admin-mobile.cjs
+          node tests/product-measurements.cjs
+          node tests/measurement-persistence.cjs
           node tests/admin-login-mobile.cjs
           node tests/cms-mobile.cjs
       - name: Save isolated checkout screenshots

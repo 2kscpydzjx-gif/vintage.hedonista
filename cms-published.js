@@ -1,14 +1,20 @@
 (async()=>{'use strict';
+const runtimeSource=document.currentScript?.src||document.baseURI;
+if(!window.VHCMSShell){
+ try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-shell.js?v=2',runtimeSource).href;script.onload=resolve;script.onerror=reject;document.head.append(script)})}
+ catch(error){console.warn('Published header/footer runtime could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
+}
 // Cached HTML from before the shared model was introduced can still load this runtime.
 if(!window.VHCMSModel||window.VHCMSModel.version!==9){
- const source=document.currentScript?.src||document.baseURI;
+ const source=runtimeSource;
  try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-model.js?v=9',source).href;script.onload=resolve;script.onerror=reject;document.head.append(script)});}
  catch(error){console.warn('CMS model could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 }
 
 const map={'index.html':'home','catalog.html':'catalog','capsule.html':'capsules','about.html':'about','journal.html':'journal','delivery.html':'delivery','contacts.html':'contacts'};
 const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)&&!!document.querySelector('meta[name="vh-static-canonical"]');
-const page=isCatalogSeoSnapshot?'catalog':map[location.pathname.split('/').pop()||'index.html'];if(!page)return;
+const file=location.pathname.split('/').pop()||'index.html';
+const page=isCatalogSeoSnapshot?'catalog':map[file.includes('.')?file:file+'.html'];if(!page)return;
 const previewParams=new URLSearchParams(location.search);
 const isEditorPreview=window.parent!==window&&previewParams.get('cms-preview')==='1'&&previewParams.get('cms-shell-preview')!=='1';
 const config=window.VH_CONFIG;if(!config||!window.supabase){window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
@@ -333,7 +339,7 @@ function renderAboutBlocks(data,original){
  if(canReorder){const anchor=document.createComment('VH CMS published blocks');main.insertBefore(anchor,original[0]);let cursor=anchor;for(const id of ids){const el=nodes.get(id);if(!el)continue;cursor.after(el);cursor=el}anchor.remove()}
  else{for(const b of newBlocks){const node=nodes.get(b.id);if(node){const footer=document.querySelector('body > footer');if(footer&&main===document.body)footer.before(node);else main.append(node)}}}
 }
-function shell(s){if(!s)return;const header=document.querySelector('body > header'),footer=document.querySelector('footer.site-footer-v64,body > footer');if(header){const logo=header.querySelector('.vh-header-logo,.brand img');window.VHCMSModel.applyLogo(logo,s.headerLogo);const nav=header.querySelector('nav.nav,nav');if(nav)[...nav.querySelectorAll('a')].forEach((a,i)=>{const n=s.nav?.[String(i)];if(n?.label)a.textContent=n.label;if(n?.href&&/^(https?:|\/|\.\/|\.\.\/|[\w-]+\.html|#)/i.test(n.href))a.setAttribute('href',n.href)})}if(footer){const logo=footer.querySelector('.vh-footer-logo-img,.footer-v64-logo img');window.VHCMSModel.applyLogo(logo,s.footerLogo);const p=footer.querySelector('.footer-v64-center p,.footer-v64-center');if(p&&typeof s.footerText==='string')p.textContent=s.footerText;const copyright=footer.querySelector('.footer-v64-copy');if(copyright&&typeof s.footerCopyright==='string')copyright.textContent=s.footerCopyright;for(const [key,sel] of [['instagram','[data-footer-instagram]'],['telegram','[data-footer-telegram]']]){const a=footer.querySelector(sel);if(a&&/^https:\/\//i.test(s[key]||''))a.href=s[key]}}}
+function shell(shared){window.VHCMSShell.apply(shared)}
 const publishedCacheKey='vh-published-cache-v1-'+page;
 const homeCacheKey='vh-published-cache-v1-home-shell';
 function readPublishedCache(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
@@ -354,7 +360,7 @@ function applyCurrent(){
 }
 for(const event of new Set(['vh:service-rendered',...Object.values(sourceEvents).map(value=>value[1])]))window.addEventListener(event,applyCurrent);
 async function fetchPublished(key){
- const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
+ const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
  if(error)throw error;return data;
 }
 async function run(){
@@ -371,7 +377,7 @@ async function run(){
   if(page==='about'&&!data&&!isEditorPreview)document.documentElement.classList.add('vh-cms-no-publication');
   currentRevision=data;currentShell=home;
   if(data&&!isEditorPreview){apply(data);window.__VH_CMS_CURRENT_REVISION=data}
-  if(home?.shared)shell(home.shared);
+  shell(home?.shared||{});
   if(pageResult.status==='fulfilled'){if(data)writePublishedCache(publishedCacheKey,data);else try{localStorage.removeItem(publishedCacheKey)}catch{}}
   if(homeResult.status==='fulfilled'){if(home)writePublishedCache(homeCacheKey,home);else try{localStorage.removeItem(homeCacheKey)}catch{}}
   success=true;window.__VH_PUBLICATION_ERROR=false;

@@ -1,0 +1,15 @@
+:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-grouped{display:block!important;border:0!important;width:100%!important;min-width:0!important;max-width:800px!important;background:transparent!important}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-group{margin:0 0 24px;padding:0;border:0;min-width:0}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-group h3{margin:0 0 12px;font:600 14px/1.4 Montserrat,Arial,sans-serif!important;letter-spacing:0!important;color:#2b211a!important}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:10px 0;border-bottom:1px solid rgba(70,50,35,.15);min-width:0}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row span{flex:1;min-width:0;overflow-wrap:anywhere}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row b{max-width:55%;text-align:right;overflow-wrap:anywhere;font-weight:500}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurements-note{grid-column:1/-1;font-size:12px;line-height:1.6;margin:0 0 16px;overflow-wrap:anywhere}
+
+:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-grouped .vh-measurement-row span{font:400 12px/1.55 Montserrat,Arial,sans-serif!important;letter-spacing:0!important;color:#796653!important;white-space:normal!important}
+:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-grouped .vh-measurement-row b{font:500 14px/1.55 Montserrat,Arial,sans-serif!important;letter-spacing:0!important;color:#2b211a!important;margin:0!important;white-space:normal!important}
+:is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-group h3{overflow-wrap:anywhere}
+
+:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-list{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;column-gap:28px!important;row-gap:0!important}
+:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-list .vh-measurement-group{display:contents}
+@media(max-width:600px){:is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-list{grid-template-columns:minmax(0,1fr)!important}}
