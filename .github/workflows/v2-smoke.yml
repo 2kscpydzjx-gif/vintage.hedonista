@@ -8,6 +8,7 @@ on:
       - 'cms-boot.*'
       - 'scripts/sync-cms-boot.cjs'
       - 'cms-published.js'
+      - 'cms-shell.js'
       - 'site.js'
       - 'capsules-front.js'
       - 'styles.css'
@@ -74,6 +75,7 @@ jobs:
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
           node --check cms-published.js
+          node --check cms-shell.js
           node --check admin/cms-builder.js
           node --check admin/cms-studio.js
           node --check admin/cms-photo-editor.js
@@ -122,6 +124,7 @@ jobs:
           node tests/home-mobile-copy.cjs
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
+          node tests/cms-public-shell.cjs
           node tests/catalog-footer-spacing.cjs
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
