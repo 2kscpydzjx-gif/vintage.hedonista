@@ -1979,12 +1979,12 @@ async function initContactsPage(){
 
  const igText=s.contacts_instagram_text||s.instagram||'@vintage_hedonista';
  const tgText=s.contacts_telegram_text||s.telegram||'Vintage Hedonista';
- const email=s.contacts_email_text||s.email||'vintagedenis@gmail.com';
+ const email=s.contacts_email_text||s.email||'vintazhka.shop@gmail.com';
  const phone=s.contacts_phone_text||s.phone||'+380 99 999 99 99';
 
  setServiceText('contactsInstagramText',igText,'@vintage_hedonista');
  setServiceText('contactsTelegramText',tgText,'Vintage Hedonista');
- setServiceText('contactsEmailText',email,'vintagedenis@gmail.com');
+ setServiceText('contactsEmailText',email,'vintazhka.shop@gmail.com');
  setServiceText('contactsPhoneText',phone,'+380 99 999 99 99');
 
  if($('contactsInstagramLink'))$('contactsInstagramLink').href=s.contacts_instagram_url||normalizeSocialUrl(igText,'instagram');

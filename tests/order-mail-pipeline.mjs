@@ -32,7 +32,7 @@ try{
    from:table=>{assert.equal(table,'orders');let orderId;const q={select:()=>q,eq:(name,value)=>{assert.equal(name,'id');orderId=value;return q},maybeSingle:async()=>({data:(await db.query('SELECT * FROM public.orders WHERE id=$1',[orderId])).rows[0]||null,error:null})};return q}
   };
  };
- const variables={SUPABASE_URL:'https://example.invalid',SUPABASE_SERVICE_ROLE_KEY:'service',RESEND_API_KEY:'mock',TEST_MODE:'true',TEST_EMAIL:'sink@example.test',ORDER_EMAIL_FROM:'Vintazhka <orders@vintazhka.com.ua>'};
+ const variables={SUPABASE_URL:'https://example.invalid',SUPABASE_SERVICE_ROLE_KEY:'service',RESEND_API_KEY:'mock',TEST_MODE:'true',TEST_EMAIL:'sink@example.test',ORDER_EMAIL_FROM:'Vintazhka <orders@vintazhka.com.ua>',ORDER_EMAIL_REPLY_TO:'support@example.test'};
  const handler=createOrderEmailHandler({createClient,env:key=>variables[key],log:{info:(...args)=>logs.push(args),warn:(...args)=>logs.push(args)},fetch:async(url,options)=>{
   assert.equal(url,'https://api.resend.com/emails');const key=options.headers['Idempotency-Key'];
   if(!ids.has(key)){ids.set(key,'mail-'+ids.size);deliveries.push(JSON.parse(options.body))}
@@ -51,7 +51,7 @@ try{
  await db.exec('RESET ROLE');
  let queued=await requests();assert.equal(queued.length,1);assert.equal(queued[0].body.type,'INSERT');
  assert.equal((await dispatch(queued[0])).status,200);
- assert.equal(deliveries.length,1);assert.deepEqual(deliveries[0].to,['sink@example.test']);assert.match(deliveries[0].subject,/прийнято — Vintazhka$/);
+ assert.equal(deliveries.length,1);assert.deepEqual(deliveries[0].to,['sink@example.test']);assert.equal(deliveries[0].reply_to,'support@example.test');assert.match(deliveries[0].subject,/прийнято — Vintazhka$/);
  assert.equal((await dispatch(queued[0])).status,200);assert.equal(deliveries.length,1,'provider idempotency identity changed on a duplicate event');
  await db.query("UPDATE public.orders SET admin_note='not a mail event' WHERE id=$1",[id]);assert.equal((await requests()).length,1);
  await db.query("UPDATE public.orders SET status='confirmed' WHERE id=$1",[id]);
