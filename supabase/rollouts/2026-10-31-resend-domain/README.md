@@ -1,6 +1,8 @@
 # Resend domain sender — compatibility rollout
 
-This is the existing live resend-email handler with a bounded domain change.
+Historical compatibility snapshot of resend-email v14, retained for rollback.
+The current backend uses the shared handler under supabase/functions:
+resend-email v15 and order-email v1. See docs/server-mail-rollout.md.
 Baseline content SHA-256: fc9aa1805edf189069d908e7ee26c522e4309ce139b4ccadca2dbcf6c50916d2.
 
 Changes:
@@ -68,9 +70,12 @@ Future successful sends log order_email_accepted with provider email ID, opaque
 order ID, status and test-mode flag. Missing-email skips log order_email_skipped.
 Neither log includes customer name, recipient address, message HTML or secrets.
 
-## Pending server transition
+## Server transition applied — 2026-10-31
 
-The Vault-backed shared handler, expanded migration and webhook client settings
-are prepared in this branch, but have not been applied to the live database.
-See docs/server-mail-rollout.md for dependencies, activation and rollback.
-The compatibility entrypoint above is the currently deployed v14 code.
+The owner applied migration 202610280001_order_email_version through the SQL
+Editor and enabled the server webhook. The shared handler is deployed and
+verified. Existing order/product fingerprints and Telegram triggers are unchanged.
+The trusted pg_net probe returned 404 for a nonexistent order without sending mail.
+The frontend/admin webhook settings are included in PR #145. Keep TEST_MODE=true
+until the owner verifies guest checkout, status change and cancellation.
+The compatibility entrypoint above is retained only for rollback.
