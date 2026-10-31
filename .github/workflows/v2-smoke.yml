@@ -71,6 +71,7 @@ jobs:
           node tests/measurements-schema.mjs
           node tests/order-email-security.mjs
           node tests/order-email-version.mjs
+          node tests/order-mail-pipeline.mjs
           node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
@@ -89,6 +90,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify deployable assets and preview indexing
         run: |
+          node tests/resend-domain-sender.mjs
           node tests/hosting-build.mjs
           node tests/seo-domain.cjs
           node tests/cloudflare-pages.cjs

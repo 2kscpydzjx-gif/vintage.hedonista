@@ -44,7 +44,7 @@ const fill=async p=>{for(const [id,value] of Object.entries({checkoutName:'Ол�
   const cart=await p.evaluate(()=>vhGetCart());assert.equal(cart.length,5);assert.ok(cart.every(x=>x.capsule_offer?.id===capId&&x.capsule_offer.look_id===mainId),'capsule identity missing at price '+value);
   await checkout();assert.equal(await p.locator('#checkoutTotal').textContent(),new Intl.NumberFormat('uk-UA').format(total)+' грн');
   await p.locator('.checkout-submit').click();await p.locator('.checkout-success').waitFor();
-  assert.equal(created.length-before,1,'capsule split into product orders at price '+value);assert.equal(f.functionCalls.length-beforeEmails,1,'capsule sent multiple order emails');
+  assert.equal(created.length-before,1,'capsule split into product orders at price '+value);assert.equal(f.functionCalls.length-beforeEmails,0,'capsule duplicated the server notification');
   const order=created.at(-1);assert.equal(order.capsule_id,capId);assert.equal(lines.filter(l=>l.order_id===order.id).length,5);assert.equal(order.amount,total);
  }
  // Recover carts made by the old code: add the same capsule again, without duplicates.

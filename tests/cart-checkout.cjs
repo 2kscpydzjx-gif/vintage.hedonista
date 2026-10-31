@@ -40,7 +40,7 @@ const formValues=p=>p.locator('#checkoutForm input,#checkoutForm textarea').eval
  await p.evaluate(()=>{submitCartCheckout();submitCartCheckout()});
  await p.waitForFunction(()=>document.querySelector('.checkout-submit').disabled);assert.equal(f.functionCalls.length,0);await p.evaluate(item=>vhSetCart([...vhGetCart(),item]),{...product,id:'added-while-checkout',name:'Додано в іншій вкладці'});release();gate=null;
  await p.locator('.checkout-success').waitFor();assert.equal(f.rpcCalls.filter(x=>x.name==='vh_create_checkout_order').length,before+1,'double submit created two orders');
- assert.deepEqual(await p.evaluate(()=>vhGetCart().map(item=>item.id)),['added-while-checkout'],'accepted order erased a new item added during submission');assert.equal(f.functionCalls.length,1);
+ assert.deepEqual(await p.evaluate(()=>vhGetCart().map(item=>item.id)),['added-while-checkout'],'accepted order erased a new item added during submission');assert.equal(f.functionCalls.length,0,'browser duplicated the server notification');
  const args=f.rpcCalls.findLast(x=>x.name==='vh_create_checkout_order').args;
  assert.deepEqual(Object.keys(args).sort(),['p_product_ids','p_customer_name','p_contact','p_email','p_comment','p_capsule_id','p_look_id'].sort(),'existing RPC contract changed');
  assert.equal(args.p_customer_name,'Олена Коваль');assert.equal(args.p_contact,values.checkoutContact);assert.equal(args.p_email,values.checkoutEmail);assert.deepEqual(args.p_product_ids,[product.id]);

@@ -16,6 +16,12 @@ async function equalSecret(left,right){
  const [a,b]=await Promise.all([hash(left),hash(right)]);let different=0;
  for(let i=0;i<a.length;i++)different|=a[i]^b[i];return different===0;
 }
+async function equalSecretHash(secret,expected){
+ if(typeof secret!=='string'||secret.length<32||secret.length>512||typeof expected!=='string'||!/^[0-9a-f]{64}$/i.test(expected))return false;
+ const actual=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(secret)));
+ let different=0;for(let i=0;i<actual.length;i++)different|=actual[i]^parseInt(expected.slice(i*2,i*2+2),16);
+ return different===0;
+}
 
 /** Dependencies are injected so tests never access a real order or email provider. */
 export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.fetch,log=console}){
@@ -29,12 +35,21 @@ export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.
   try{body=JSON.parse(await boundedText(request))}catch(error){return error?.message==='too_large'?reply(413,{ok:false,error:'Request too large'}):reply(400,{ok:false,error:'Invalid JSON'})}
   if(!body||typeof body!=='object'||Array.isArray(body))return reply(400,{ok:false,error:'Invalid request'});
   try{
-   let owner=null,isAdmin=false,webhook=false;
+   let owner=null,isAdmin=false,webhook=false,db=null;
    const hookHeader=request.headers.get('x-vh-webhook-secret');
    const url=env('SUPABASE_URL'),serviceKey=env('SUPABASE_SERVICE_ROLE_KEY'),anonKey=env('SUPABASE_ANON_KEY')||env('SUPABASE_PUBLISHABLE_KEY');
    if(!url||!serviceKey)return reply(503,{ok:false,error:'Email service unavailable'});
    if(hookHeader){
-    if(!await equalSecret(hookHeader,env('ORDER_EMAIL_WEBHOOK_SECRET')))return reply(401,{ok:false,error:'Unauthorized'});
+    if(hookHeader.length<32||hookHeader.length>512)return reply(401,{ok:false,error:'Unauthorized'});
+    const configuredSecret=env('ORDER_EMAIL_WEBHOOK_SECRET');
+    if(configuredSecret){
+     if(!await equalSecret(hookHeader,configuredSecret))return reply(401,{ok:false,error:'Unauthorized'});
+    }else{
+     db=createClient(url,serviceKey,{db:{schema:'public'},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+     const check=await db.rpc('vh_order_email_webhook_secret_hash');
+     if(check.error||typeof check.data!=='string'||!/^[0-9a-f]{64}$/i.test(check.data))return reply(503,{ok:false,error:'Email service unavailable'});
+     if(!await equalSecretHash(hookHeader,check.data))return reply(401,{ok:false,error:'Unauthorized'});
+    }
     webhook=true;
    }else{
     const authorization=request.headers.get('authorization');
@@ -55,9 +70,9 @@ export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.
     orderId=body.record.id;
    }
    if(!uuid(orderId))return reply(400,{ok:false,error:'Invalid order ID'});
-   // A service-role read happens only after a verified user or trusted webhook.
+   // An order row is read only after a verified user or trusted webhook.
    // Customer requests additionally constrain the row to their verified user ID.
-   const db=createClient(url,serviceKey,{db:{schema:'public'},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+   db||=createClient(url,serviceKey,{db:{schema:'public'},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
    let query=db.from('orders').select('*,products(name,brand,cover_image)').eq('id',orderId);
    if(!webhook&&!isAdmin)query=query.eq('user_id',owner);
    const {data:order,error}=await query.maybeSingle();
@@ -71,13 +86,15 @@ export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.
    if(!order.email)return reply(200,{ok:true,skipped:true});
    const testMode=env('TEST_MODE')==='true';
    const recipient=testMode?env('TEST_EMAIL'):order.email;
-   const from=env('ORDER_EMAIL_FROM')||(testMode?'Vintage Hedonista <onboarding@resend.dev>':'');
+   const from=env('ORDER_EMAIL_FROM')||(testMode?'Vintazhka <onboarding@resend.dev>':'');
    const fromAddress=from.match(/<([^<>]+)>$/)?.[1]||from;
    if(!email(recipient)||!email(fromAddress)||/[\r\n]/.test(from)||(!testMode&&/onboarding@resend\.dev/i.test(from))||!env('RESEND_API_KEY'))return reply(503,{ok:false,error:'Email service unavailable'});
    // Resend deduplicates identical retries for 24 hours, including calls to the
    // legacy alias. This is not a substitute for durable database delivery state.
-   const response=await send('https://api.resend.com/emails',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env('RESEND_API_KEY'),'Idempotency-Key':'vh-order-'+String(order.id).toLowerCase()+'-'+order.vh_email_version},body:JSON.stringify({from,to:[recipient],subject:(testMode?'[TEST] ':'')+statusContent(order).subject,html:emailHtml(order)})});
+   const response=await send('https://api.resend.com/emails',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env('RESEND_API_KEY'),'Idempotency-Key':'vh-order-'+String(order.id).toLowerCase()+'-'+order.vh_email_version},body:JSON.stringify({from:`Vintazhka <${fromAddress}>`,to:[recipient],subject:(testMode?'[TEST] ':'')+statusContent(order).subject,html:emailHtml(order)})});
    if(!response.ok){log.warn?.('Order email provider rejected delivery',{status:response.status});return reply(502,{ok:false,error:'Email delivery failed'})}
+   const delivery=await response.json().catch(()=>null);
+   log.info?.('order_email_accepted',{email_id:delivery?.id,order_id:order.id,status:order.status,test_mode:testMode});
    return reply(200,{ok:true,test_mode:testMode});
   }catch{log.warn?.('Order email delivery failed');return reply(503,{ok:false,error:'Email service unavailable'})}
  };
