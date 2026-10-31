@@ -44,8 +44,8 @@ Deployed to project yffwjgwwkapdrpwyjwfp as resend-email version 13, ACTIVE,
 with verify_jwt=true. Read-back source exactly matched the tested deployment
 file (SHA-256 5a68c0cd141fe6a0b2d3f4258d399177a0d0291f4dccabf40693bd8682ef9e2e).
 Live OPTIONS returned 200; POST without Authorization returned 401 before the
-handler. These checks sent no mail. Actual provider delivery remains to be
-verified using an owner-controlled test order while TEST_MODE=true.
+handler. These checks sent no mail. The owner verified receipt of creation, confirmation and cancellation messages
+using a controlled order while TEST_MODE=true.
 
 ## Mail branding and delivery investigation
 
@@ -60,9 +60,17 @@ confirmed-status email. Live function request logs show POST 200 at
 2026-10-31 12:24:21 UTC (creation) and POST 200 at 12:26:30 UTC (confirmation),
 with no function error logs in that interval. The order has both an account
 and email; no recipient or customer data was copied into this repository.
-HTTP 200 does not establish inbox delivery. Resend delivery events for the
-initial message still need inspection; no speculative checkout change was made.
+HTTP 200 alone does not establish inbox delivery. The owner subsequently
+verified Delivered for both messages in Resend and found the initial message
+in Gmail Inbox. No checkout defect was established or patched for that report.
 
 Future successful sends log order_email_accepted with provider email ID, opaque
 order ID, status and test-mode flag. Missing-email skips log order_email_skipped.
 Neither log includes customer name, recipient address, message HTML or secrets.
+
+## Pending server transition
+
+The Vault-backed shared handler, expanded migration and webhook client settings
+are prepared in this branch, but have not been applied to the live database.
+See docs/server-mail-rollout.md for dependencies, activation and rollback.
+The compatibility entrypoint above is the currently deployed v14 code.

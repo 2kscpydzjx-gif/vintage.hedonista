@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {PGlite} from '@electric-sql/pglite';
+import {prepareMailDatabase} from './order-mail-db-fixture.mjs';
 const sql=readFileSync(new URL('../supabase/migrations/202610280001_order_email_version.sql',import.meta.url),'utf8');
 const id='11111111-1111-4111-8111-111111111111';
 for(const withTracking of [true,false]){
  const db=new PGlite();
  try{
+  await prepareMailDatabase(db);
   await db.exec(`CREATE TABLE public.orders(id uuid PRIMARY KEY,status text NOT NULL,amount numeric,admin_note text${withTracking?',ttn text':''});INSERT INTO public.orders(id,status,amount) VALUES('${id}','new',1200)`);
   await db.exec(sql);
   const row=async()=> (await db.query('SELECT * FROM public.orders WHERE id=$1',[id])).rows[0];
