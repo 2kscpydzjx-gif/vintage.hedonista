@@ -15,7 +15,7 @@ const links=new Map();
 let missingSourceFiles=0;
 for(const url of sources){
   const pathname=decodeURIComponent(new URL(url).pathname);
-  const relative=pathname.slice(new URL(base).pathname.length);
+  const path=pathname.slice(new URL(base).pathname.length),relative=!path||path.endsWith('/')?path+'index.html':/\.[^/]+$/.test(path)?path:path+'.html';
   const file=join(root,relative);
   if(!existsSync(file)){missingSourceFiles++;continue}
   const html=readFileSync(file,'utf8');

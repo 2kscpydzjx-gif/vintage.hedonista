@@ -13,6 +13,11 @@ export function configuredSite(root){
 }
 export function launchSite(root){return siteBase(JSON.parse(readFileSync(new URL('launch-site.json',root),'utf8')).siteUrl)}
 export function pageAddress(page,base){return new URL(page==='index.html'&&new URL(base).pathname==='/'?'':page,base).href}
+export function prettyAddress(value){const url=new URL(value);url.pathname=url.pathname.replace(/\/index\.html$/,'/').replace(/\.html$/,'');return url.href}
+export function prettySiteReferences(content,base){
+ const escaped=base.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ return content.replace(new RegExp(escaped+'[^\\s"\'<>`]*','g'),value=>prettyAddress(value));
+}
 export function rebaseSiteReferences(content,from,to){
  let result=content.replaceAll(from,to);
  if(new URL(to).pathname==='/')result=result.replaceAll(new URL('index.html',to).href,to);

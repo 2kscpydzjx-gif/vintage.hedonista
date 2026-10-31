@@ -9,6 +9,9 @@ assert.equal(window.VHProductRoutes.href({slug:'known'}),'seo-product/known/inde
 assert.equal(window.VHProductRoutes.href({slug:'new-jacket'}),'product.html?slug=new-jacket');
 assert.equal(window.VHProductRoutes.href({slug:'new & <script>'}),'product.html?slug=new%20%26%20%3Cscript%3E');
 assert.equal(window.VHProductRoutes.canonical({slug:'сукня'}),'https://shop.example/seo-product/%D1%81%D1%83%D0%BA%D0%BD%D1%8F/index.html');
+window.VH_CONFIG.prettyUrls=true;
+assert.equal(window.VHProductRoutes.href({slug:'known'}),'seo-product/known/');
+assert.equal(window.VHProductRoutes.canonical({slug:'сукня'}),'https://shop.example/seo-product/%D1%81%D1%83%D0%BA%D0%BD%D1%8F/');
 const html='<html><head><title>Manual title</title><meta content="old" property="og:title"><meta property="og:title" content="duplicate"></head><body><h1>Keep content</h1></body></html>';
 const data={title:'Quote " & <tag>',description:'Saved description',image:'https://images.example/cover.webp',canonical:'https://shop.example/seo-product/coat/index.html'};
 const updated=sharingHead(html,data);

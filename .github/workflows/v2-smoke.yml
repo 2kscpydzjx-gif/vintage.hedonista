@@ -19,6 +19,7 @@ on:
       - 'scripts/build-hosting.mjs'
       - 'scripts/seo-deployment.mjs'
       - 'launch-site.json'
+      - 'preview-readonly.js'
       - 'image-variants.js'
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
@@ -86,6 +87,7 @@ jobs:
         run: |
           node tests/hosting-build.mjs
           node tests/seo-domain.cjs
+          node tests/cloudflare-pages.cjs
       - name: Test editor and storefront with isolated data
         run: |
           export VH_TEST_BUILT=1

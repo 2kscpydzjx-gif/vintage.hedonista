@@ -1,10 +1,11 @@
 import {readFileSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {configuredSite,pageAddress} from './seo-deployment.mjs';
+import {configuredSite,pageAddress,prettyAddress} from './seo-deployment.mjs';
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.find(arg=>arg.startsWith('--root='))?.slice(7)||'.');
 const base=configuredSite(pathToFileURL(root+'/'));
-function localPath(address){const url=new URL(address);if(url.origin!==new URL(base).origin||!url.pathname.startsWith(new URL(base).pathname))throw Error('URL outside configured site: '+address);return decodeURIComponent(url.pathname.slice(new URL(base).pathname.length))||'index.html'}
+const pretty=/prettyUrls\s*[:=]\s*true/.test(readFileSync(join(root,'config.js'),'utf8'));
+function localPath(address){const url=new URL(address);if(url.origin!==new URL(base).origin||!url.pathname.startsWith(new URL(base).pathname))throw Error('URL outside configured site: '+address);const path=decodeURIComponent(url.pathname.slice(new URL(base).pathname.length));return !path||path.endsWith('/')?path+'index.html':/\.[^/]+$/.test(path)?path:path+'.html'}
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
 let errors=[];let checked=0;
@@ -32,7 +33,7 @@ for(const address of urls){
    for(const href of hrefs){
     let target;
     try{target=new URL(href,documentBase)}catch{errors.push('Invalid subcategory URL: '+href);continue}
-    if(target.origin!==u.origin||!target.pathname.startsWith(u.pathname.replace(/seo-category\/[^/]+\/index\.html$/,'seo-subcategory/'))){
+    if(target.origin!==u.origin||!target.pathname.startsWith(u.pathname.replace(/seo-category\/[^/]+\/(?:index\.html)?$/,'seo-subcategory/'))){
      errors.push('Unexpected subcategory link: '+href);continue
     }
     const targetPath=localPath(target.href);
@@ -79,7 +80,7 @@ for(const page of staticPages){
  const canonical=head.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1];
  if(!title)errors.push('Missing title: '+page);
  if(!description)errors.push('Missing description: '+page);
- if(canonical!==pageAddress(page,base))errors.push('Canonical mismatch: '+page);
+ if(canonical!==(pretty?prettyAddress(pageAddress(page,base)):pageAddress(page,base)))errors.push('Canonical mismatch: '+page);
  if(!urls.includes(canonical))errors.push('Static page missing from sitemap: '+page);
 }
 for(const page of ['account.html','checkout.html','admin/index.html','admin/admin.html','admin/cms-builder.html']){

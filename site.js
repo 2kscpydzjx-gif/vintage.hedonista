@@ -432,8 +432,8 @@ async function initCatalog(){
  catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
- const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/index\.html$/);
- const staticSubcategory=location.pathname.match(/\/seo-subcategory\/([^/]+)\/([^/]+)\/index\.html$/);
+ const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/(?:index\.html)?$/);
+ const staticSubcategory=location.pathname.match(/\/seo-subcategory\/([^/]+)\/([^/]+)\/(?:index\.html)?$/);
   catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null);
  catalogState.subcategory=params.get('subcategory')||(staticSubcategory?decodeURIComponent(staticSubcategory[2]):null);
 
@@ -782,7 +782,7 @@ function updateCategoryCanonical(){
    ?'seo-subcategory/'+category+'/'+encodeURIComponent(catalogState.subcategory)+'/index.html'
    :'seo-category/'+category+'/index.html';
  }
- link.href=new URL(path,window.VH_CONFIG?.siteUrl||document.baseURI).href;
+ link.href=window.VHSEORuntime?.canonicalUrl(path)||new URL(path,window.VH_CONFIG?.siteUrl||document.baseURI).href;
  if(!link.parentNode)document.head.appendChild(link);
 }
 let vhEditorialConfig=null;
@@ -1638,7 +1638,7 @@ function applyJournalPageSettings(s){
 
 
 function animateJournalContentV108(){
- if(((location.pathname||'').split('/').pop())!=='journal.html')return;
+ if(!['journal','journal.html'].includes((location.pathname||'').split('/').pop()))return;
  vhWhenPageVisible(()=>{
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
   document.body.classList.add('vh-journal-motion');
@@ -2616,7 +2616,7 @@ document.addEventListener('click',e=>{
    ========================================================== */
 (function(){
   function isAbout(){
-    return (location.pathname||'').split('/').pop()==='about.html'
+    return ['about','about.html'].includes((location.pathname||'').split('/').pop())
   }
 
   function initAboutMotion(){
@@ -2731,7 +2731,7 @@ document.addEventListener('click',e=>{
    Catalog intentionally excluded.
    ========================================================== */
 (function(){
- const file=()=>((location.pathname||'').split('/').pop()||'index.html');
+ const file=()=>{const value=(location.pathname||'').split('/').pop()||'index.html';return value.includes('.')?value:value+'.html'};
  const add=VHPageMotion.add;
  function projectedParts(section,hero=false){
   const comp=section?.querySelector(':scope>.vh-cms-composition');if(!comp)return false;
