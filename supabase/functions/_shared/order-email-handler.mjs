@@ -71,13 +71,15 @@ export function createOrderEmailHandler({createClient,env,fetch:send=globalThis.
    if(!order.email)return reply(200,{ok:true,skipped:true});
    const testMode=env('TEST_MODE')==='true';
    const recipient=testMode?env('TEST_EMAIL'):order.email;
-   const from=env('ORDER_EMAIL_FROM')||(testMode?'Vintage Hedonista <onboarding@resend.dev>':'');
+   const from=env('ORDER_EMAIL_FROM')||(testMode?'Vintazhka <onboarding@resend.dev>':'');
    const fromAddress=from.match(/<([^<>]+)>$/)?.[1]||from;
    if(!email(recipient)||!email(fromAddress)||/[\r\n]/.test(from)||(!testMode&&/onboarding@resend\.dev/i.test(from))||!env('RESEND_API_KEY'))return reply(503,{ok:false,error:'Email service unavailable'});
    // Resend deduplicates identical retries for 24 hours, including calls to the
    // legacy alias. This is not a substitute for durable database delivery state.
-   const response=await send('https://api.resend.com/emails',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env('RESEND_API_KEY'),'Idempotency-Key':'vh-order-'+String(order.id).toLowerCase()+'-'+order.vh_email_version},body:JSON.stringify({from,to:[recipient],subject:(testMode?'[TEST] ':'')+statusContent(order).subject,html:emailHtml(order)})});
+   const response=await send('https://api.resend.com/emails',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env('RESEND_API_KEY'),'Idempotency-Key':'vh-order-'+String(order.id).toLowerCase()+'-'+order.vh_email_version},body:JSON.stringify({from:`Vintazhka <${fromAddress}>`,to:[recipient],subject:(testMode?'[TEST] ':'')+statusContent(order).subject,html:emailHtml(order)})});
    if(!response.ok){log.warn?.('Order email provider rejected delivery',{status:response.status});return reply(502,{ok:false,error:'Email delivery failed'})}
+   const delivery=await response.json().catch(()=>null);
+   log.info?.('order_email_accepted',{email_id:delivery?.id,order_id:order.id,status:order.status,test_mode:testMode});
    return reply(200,{ok:true,test_mode:testMode});
   }catch{log.warn?.('Order email delivery failed');return reply(503,{ok:false,error:'Email service unavailable'})}
  };

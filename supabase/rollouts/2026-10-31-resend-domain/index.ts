@@ -44,7 +44,7 @@ function statusContent(order: any) {
     }
   > = {
     new: {
-      subject: `Замовлення #${number} прийнято — Vintage Hedonista`,
+      subject: `Замовлення #${number} прийнято — Vintazhka`,
       eyebrow: "МИ ОТРИМАЛИ ВАШЕ ЗАМОВЛЕННЯ",
       title: "Ваше замовлення прийнято",
       text:
@@ -52,7 +52,7 @@ function statusContent(order: any) {
     },
 
     confirmed: {
-      subject: `Замовлення #${number} підтверджено — Vintage Hedonista`,
+      subject: `Замовлення #${number} підтверджено — Vintazhka`,
       eyebrow: "СТАТУС ЗАМОВЛЕННЯ ОНОВЛЕНО",
       title: "Замовлення підтверджено",
       text:
@@ -60,7 +60,7 @@ function statusContent(order: any) {
     },
 
     shipped: {
-      subject: `Замовлення #${number} відправлено — Vintage Hedonista`,
+      subject: `Замовлення #${number} відправлено — Vintazhka`,
       eyebrow: "ВАША РІЧ УЖЕ В ДОРОЗІ",
       title: "Ваше замовлення відправлено",
       text: order.ttn
@@ -69,15 +69,15 @@ function statusContent(order: any) {
     },
 
     received: {
-      subject: `Замовлення #${number} отримано — Vintage Hedonista`,
+      subject: `Замовлення #${number} отримано — Vintazhka`,
       eyebrow: "ДЯКУЄМО, ЩО ОБРАЛИ НАС",
       title: "Замовлення отримано",
       text:
-        "Сподіваємось, ця річ стане особливою частиною вашого гардероба. Дякуємо, що обрали Vintage Hedonista.",
+        "Сподіваємось, ця річ стане особливою частиною вашого гардероба. Дякуємо, що обрали Vintazhka.",
     },
 
     cancelled: {
-      subject: `Замовлення #${number} скасовано — Vintage Hedonista`,
+      subject: `Замовлення #${number} скасовано — Vintazhka`,
       eyebrow: "СТАТУС ЗАМОВЛЕННЯ",
       title: "Замовлення скасовано",
       text:
@@ -100,7 +100,7 @@ function emailHtml(order: any) {
 
   const brand =
     order.products?.brand ||
-    "VINTAGE HEDONISTA";
+    "VINTAZHKA";
 
   const productImage = order.products?.cover_image
     ? `
@@ -193,7 +193,7 @@ function emailHtml(order: any) {
     font-size:25px;
     letter-spacing:2px;
   ">
-    VINTAGE HEDONISTA
+    VINTAZHKA
   </div>
 
   <div style="
@@ -303,7 +303,7 @@ function emailHtml(order: any) {
     line-height:1.7;
   ">
     З повагою,<br>
-    <strong>команда Vintage Hedonista</strong>
+    <strong>команда Vintazhka</strong>
   </p>
 
 </td>
@@ -388,6 +388,7 @@ Deno.serve(async (req) => {
     }
 
     if (!order.email) {
+      console.info("order_email_skipped", { order_id: order.id, status: order.status, reason: "no_email" });
       return new Response(
         JSON.stringify({
           ok: true,
@@ -415,12 +416,13 @@ Deno.serve(async (req) => {
       recipient = TEST_EMAIL;
     }
 
-    const from = ORDER_EMAIL_FROM || (TEST_MODE ? "Vintage Hedonista <onboarding@resend.dev>" : "");
-    const fromAddress = from.match(/<([^<>]+)>$/)?.[1] || from;
-    if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(fromAddress) || /[\r\n]/.test(from) || (!TEST_MODE && /onboarding@resend\.dev/i.test(from))) {
+    const configuredFrom = ORDER_EMAIL_FROM || (TEST_MODE ? "Vintazhka <onboarding@resend.dev>" : "");
+    const fromAddress = configuredFrom.match(/<([^<>]+)>$/)?.[1] || configuredFrom;
+    if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(fromAddress) || /[\r\n]/.test(configuredFrom) || (!TEST_MODE && /onboarding@resend\.dev/i.test(configuredFrom))) {
       throw new Error("ORDER_EMAIL_FROM is missing or invalid");
     }
 
+    const from = `Vintazhka <${fromAddress}>`;
     const content = statusContent(order);
 
     const resendResponse = await fetch(
@@ -458,6 +460,8 @@ Deno.serve(async (req) => {
           JSON.stringify(resendData),
       );
     }
+
+    console.info("order_email_accepted", { email_id: resendData?.id, order_id: order.id, status: order.status, test_mode: TEST_MODE });
 
     return new Response(
       JSON.stringify({
