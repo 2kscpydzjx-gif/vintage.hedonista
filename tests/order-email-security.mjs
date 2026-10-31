@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 const id='11111111-1111-4111-8111-111111111111',owner='22222222-2222-4222-8222-222222222222',other='33333333-3333-4333-8333-333333333333';
 const secret='unit-test-only-webhook-secret-0123456789';
 function fixture(overrides={}){
- const variables={SUPABASE_URL:'https://example.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service',RESEND_API_KEY:'test-provider-key',TEST_MODE:'true',TEST_EMAIL:'sink@example.test',ORDER_EMAIL_WEBHOOK_SECRET:secret,...overrides.env};
+ const variables={SUPABASE_URL:'https://example.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service',RESEND_API_KEY:'test-provider-key',TEST_MODE:'true',TEST_EMAIL:'sink@example.test',ORDER_EMAIL_WEBHOOK_SECRET:secret,ORDER_EMAIL_REPLY_TO:'support@example.test',...overrides.env};
  const order={id,user_id:owner,email:'private-recipient@example.test',customer_name:'<script>alert(1)</script>',product_name:'<img onerror="alert(1)">',amount:1200,status:'new',vh_email_version:1,ttn:'<b>tracking</b>',...overrides.order};
  const calls={auth:0,admin:0,reads:[],deliveries:[],logs:[],service:0,hashReads:0};
  const createClient=(url,key,options)=>{
@@ -78,3 +78,21 @@ for(const status of ['new','confirmed','shipped','received','cancelled']){const 
  }
 }
 console.log('PASS: verified JWT/ownership/admin access, secret-authenticated guest webhooks, explicit public schema, bounded requests, safe sender/test routing, redacted responses, escaped templates and provider idempotency. No network or real email used.');
+for(const env of [
+ {ORDER_EMAIL_REPLY_TO:'support@example.test\r\nBcc: attacker@example.test'},
+ {ORDER_EMAIL_REPLY_TO:'invalid'},
+ {TEST_MODE:'false',ORDER_EMAIL_FROM:'Vintazhka <orders@shop.example.test>',ORDER_EMAIL_REPLY_TO:''}
+]){
+ const f=fixture({env});assert.equal((await f.run({headers:auth})).status,503);assert.equal(f.calls.deliveries.length,0);
+}
+{
+ const f=fixture({env:{ORDER_EMAIL_REPLY_TO:'  support@example.test  '}});assert.equal((await f.run({headers:auth})).status,200);
+ assert.equal(f.calls.deliveries[0].body.reply_to,'support@example.test');
+ assert.deepEqual(f.calls.deliveries[0].body.to,['sink@example.test']);
+ assert.ok(!JSON.stringify(f.calls.logs).includes('support@example.test'));
+ const staging=fixture({env:{ORDER_EMAIL_REPLY_TO:''}});assert.equal((await staging.run({headers:auth})).status,200);
+ assert.equal(Object.hasOwn(staging.calls.deliveries[0].body,'reply_to'),false,'empty Reply-To sent to provider');
+ const live=fixture({env:{TEST_MODE:'false',ORDER_EMAIL_FROM:'Vintazhka <orders@shop.example.test>'}});assert.equal((await live.run({headers:auth})).status,200);
+ assert.equal(live.calls.deliveries[0].body.reply_to,'support@example.test');assert.deepEqual(live.calls.deliveries[0].body.to,['private-recipient@example.test']);
+}
+console.log('PASS: Reply-To goes to the configured support inbox, preserves test/customer recipients, rejects invalid/header-injected values, and is required before customer delivery. No network or real email used.');
