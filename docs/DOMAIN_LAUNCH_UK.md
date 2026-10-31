@@ -2,6 +2,16 @@
 
 Основний домен: **https://vintazhka.com.ua/**. DNS, NS, HTTPS, облікові записи та основний сайт цими змінами не налаштовуються. Хостинг ще не обраний.
 
+## Зафіксований стан перед вибором хостингу — 2026-10-31
+
+- Постійна Git-позначка: [`seo-vintazhka-prehosting-2026-10-31`](https://github.com/2kscpydzjx-gif/vintage.hedonista/tree/seo-vintazhka-prehosting-2026-10-31).
+- Коміт із SEO-підготовкою: [`d859f415d578e0c9a242ed733d61775db19f41a8`](https://github.com/2kscpydzjx-gif/vintage.hedonista/commit/d859f415d578e0c9a242ed733d61775db19f41a8).
+- Робоча гілка: `codex/prelaunch-mobile-polish`; [чернетка PR #143](https://github.com/2kscpydzjx-gif/vintage.hedonista/pull/143).
+- Стан: підготовлено й перевірено в тестовій версії; **на основний сайт не переносити до окремої вказівки користувача**. Домен, NS і DNS не змінені.
+- Перевірки підготовки пройшли: 149 URL sitemap, статичні посилання на 106 товарів, canonical/OG/JSON-LD після завантаження сторінок, ресурси вкладених сторінок і noindex тестової версії. Це не є перевіркою майбутнього хостингу.
+
+Позначка зберігає саме цей стан коду, навіть якщо робоча гілка зміниться. Перегляд без переключення гілки: `git show seo-vintazhka-prehosting-2026-10-31:docs/DOMAIN_LAUNCH_UK.md`. Подальші деталі хостингу записуватимуться окремими змінами.
+
 ## Що підготовлено
 
 - `launch-site.json` задає майбутню адресу. Поточний `config.js` і вихідний sitemap зберігають адресу GitHub Pages до перенесення.
