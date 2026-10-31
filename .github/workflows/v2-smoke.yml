@@ -118,6 +118,7 @@ jobs:
           node tests/cms-visible-motion.cjs
           node tests/cms-page-choreography.cjs
           node tests/password-recovery.cjs
+          node tests/signup-redirect.cjs
           node tests/storefront-performance.cjs
           node tests/product-card-motion.cjs
           node tests/responsive-layouts.cjs

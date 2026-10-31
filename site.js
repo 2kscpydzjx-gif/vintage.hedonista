@@ -2883,7 +2883,7 @@ window.vhSignUp=async function(){
  const full_name=`${first_name} ${last_name}`.trim();
  const creds=vhAuthCredentials(login,password);
  if(btn){btn.disabled=true;btn.textContent='СТВОРЮЄМО...'}
- const redirectTo=new URL('account.html',location.href).href;
+ const redirectTo=new URL('account.html',document.baseURI).href;
  const {data,error}=await sb.auth.signUp({...creds,options:{data:{first_name,last_name,full_name,phone:creds.phone||null},emailRedirectTo:redirectTo}});
  if(btn){btn.disabled=false;btn.textContent='ЗАРЕЄСТРУВАТИСЯ'}
  if(error){if(msg)msg.textContent=error.message;return}
