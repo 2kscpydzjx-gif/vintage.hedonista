@@ -3,7 +3,20 @@ import {readFileSync,existsSync,statSync} from 'node:fs';
 import vm from 'node:vm';
 import {renderProductRoutes} from '../scripts/product-routes.mjs';
 import {sharingHead} from '../scripts/seo-head.mjs';
+import {renderPublishedNavigation,publishedNavigation} from '../scripts/published-navigation.mjs';
 const window={VH_CONFIG:{siteUrl:'https://shop.example/'}};
+const navigation=renderPublishedNavigation('<html><head></head><body><header><nav><a href="journal.html">Журнал &amp; стиль</a></nav></header><main><h1>Product</h1></main></body></html>',{updated_at:'2026-10-31',nav:{0:{label:'Quotes " & <script>unsafe</script>',href:'javascript:alert(1)'}}});
+assert.ok(navigation.includes('Quotes &quot; &amp; &lt;script&gt;unsafe&lt;/script&gt;'));
+assert.ok(navigation.includes('href="journal.html"'));assert.ok(!navigation.includes('javascript:'));
+assert.ok(navigation.includes('data-vh-nav-default-label="Журнал &amp; стиль"'));assert.ok(navigation.includes('<main><h1>Product</h1></main>'));
+const originalFetch=globalThis.fetch;
+try{
+ globalThis.fetch=async(url,options)=>{
+  assert.ok(url.startsWith('https://project.supabase.co/rest/v1/vh_page_revisions?'));assert.ok(url.includes('revision_status=eq.published'));assert.equal(options.method||'GET','GET');assert.equal(options.headers['Accept-Profile'],'public');assert.equal(options.headers.apikey,'sb_publishable_fixture');
+  return {ok:true,json:async()=>[{updated_at:'2026-10-31',shared:{nav:{3:{label:'Published'}},cmsPageDraft:{privateTestField:'not copied'}}}]};
+ };
+ assert.deepEqual(await publishedNavigation('supabaseUrl: "https://project.supabase.co", supabaseKey: "sb_publishable_fixture"',{cloudflare:true,fixture:null}),{updated_at:'2026-10-31',nav:{3:{label:'Published'}}});
+}finally{globalThis.fetch=originalFetch}
 vm.runInNewContext(renderProductRoutes(['known','known','сукня']),{window,URL});
 assert.equal(window.VHProductRoutes.href({slug:'known'}),'seo-product/known/index.html');
 assert.equal(window.VHProductRoutes.href({slug:'new-jacket'}),'product.html?slug=new-jacket');

@@ -5,7 +5,7 @@ const http=require('node:http');
 const root=path.resolve(__dirname,'..'),dist=path.join(root,'dist'),domain='https://vintazhka.com.ua/';
 let server,base;
 const read=file=>fs.readFileSync(path.join(dist,file),'utf8');
-function build(branch,test=false){return execFileSync(process.execPath,['scripts/build-hosting.mjs','--launch-domain',...(test?['--cloudflare-test']:[])],{cwd:root,env:{...process.env,SITE_BASE_URL:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',CF_PAGES:'1',CF_PAGES_BRANCH:branch,VH_PRODUCTION_BRANCH:'main'},encoding:'utf8'})}
+function build(branch,test=false){return execFileSync(process.execPath,['scripts/build-hosting.mjs','--launch-domain',...(test?['--cloudflare-test']:[])],{cwd:root,env:{...process.env,VH_NAVIGATION_SNAPSHOT_FILE:path.join(root,'scripts/published-navigation.json'),SITE_BASE_URL:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',CF_PAGES:'1',CF_PAGES_BRANCH:branch,VH_PRODUCTION_BRANCH:'main'},encoding:'utf8'})}
 async function pagesRouting(f){
  server=http.createServer((request,response)=>{
   const url=new URL(request.url,'http://preview.local'),canonical=url.pathname.replace(/\/index\.html$/,'/').replace(/\.html$/,'');

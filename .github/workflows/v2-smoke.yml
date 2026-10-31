@@ -19,6 +19,8 @@ on:
       - 'vercel.json'
       - 'scripts/build-hosting.mjs'
       - 'scripts/seo-deployment.mjs'
+      - 'scripts/published-navigation.mjs'
+      - 'scripts/published-navigation.json'
       - 'launch-site.json'
       - 'preview-readonly.js'
       - 'image-variants.js'
@@ -125,6 +127,7 @@ jobs:
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
           node tests/cms-public-shell.cjs
+          node tests/navigation-first-paint.cjs
           node tests/catalog-footer-spacing.cjs
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs

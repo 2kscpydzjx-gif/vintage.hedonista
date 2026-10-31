@@ -21,7 +21,7 @@ const base='http://127.0.0.1:8765';
   assert.equal(await p.locator('.footer-v64-copy').textContent(),shared.footerCopyright);
   assert.equal(await p.locator('[data-footer-instagram]').getAttribute('href'),shared.instagram);
   assert.equal(await p.locator('[data-footer-telegram]').getAttribute('href'),shared.telegram);
-  const reads=f.calls.slice(start).filter(c=>c.table==='vh_page_revisions');assert.equal(reads.length,1,route+' duplicate shell query');assert.equal(reads[0].columns,'shared');assert.ok(reads[0].filters.some(([key,value])=>key==='revision_status'&&value==='published'));
+  const reads=f.calls.slice(start).filter(c=>c.table==='vh_page_revisions');assert.equal(reads.length,1,route+' duplicate shell query');assert.equal(reads[0].columns,'shared,updated_at');assert.ok(reads[0].filters.some(([key,value])=>key==='revision_status'&&value==='published'));
   const untouched=await p.evaluate(()=>document.querySelector('main')?.innerHTML);
   await p.evaluate(()=>VHCMSShell.apply({nav:{3:{label:'New label',href:'javascript:alert(1)'}},footerText:'New footer'}));
   assert.equal(await p.evaluate(()=>document.querySelector('main')?.innerHTML),untouched,'shared settings replaced page content');

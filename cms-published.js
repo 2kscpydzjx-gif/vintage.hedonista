@@ -1,7 +1,7 @@
 (async()=>{'use strict';
 const runtimeSource=document.currentScript?.src||document.baseURI;
 if(!window.VHCMSShell){
- try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-shell.js?v=1',runtimeSource).href;script.onload=resolve;script.onerror=reject;document.head.append(script)})}
+ try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('cms-shell.js?v=2',runtimeSource).href;script.onload=resolve;script.onerror=reject;document.head.append(script)})}
  catch(error){console.warn('Published header/footer runtime could not load',error);window.__VH_PUBLICATION_ERROR=true;window.__VH_PUBLISHED_READY=true;window.VHCMSBoot?.fail();window.dispatchEvent(new Event('vh:published-ready'));return;}
 }
 // Cached HTML from before the shared model was introduced can still load this runtime.
@@ -360,7 +360,7 @@ function applyCurrent(){
 }
 for(const event of new Set(['vh:service-rendered',...Object.values(sourceEvents).map(value=>value[1])]))window.addEventListener(event,applyCurrent);
 async function fetchPublished(key){
- const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
+ const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
  if(error)throw error;return data;
 }
 async function run(){
@@ -377,7 +377,7 @@ async function run(){
   if(page==='about'&&!data&&!isEditorPreview)document.documentElement.classList.add('vh-cms-no-publication');
   currentRevision=data;currentShell=home;
   if(data&&!isEditorPreview){apply(data);window.__VH_CMS_CURRENT_REVISION=data}
-  if(home?.shared)shell(home.shared);
+  shell(home?.shared||{});
   if(pageResult.status==='fulfilled'){if(data)writePublishedCache(publishedCacheKey,data);else try{localStorage.removeItem(publishedCacheKey)}catch{}}
   if(homeResult.status==='fulfilled'){if(home)writePublishedCache(homeCacheKey,home);else try{localStorage.removeItem(homeCacheKey)}catch{}}
   success=true;window.__VH_PUBLICATION_ERROR=false;

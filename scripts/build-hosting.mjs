@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {transform} from 'esbuild';
 import {configuredSite,launchSite,siteBase,rebaseSiteReferences,snapshotBase,localNavigation,robots,prettySiteReferences} from './seo-deployment.mjs';
+import {publishedNavigation,renderPublishedNavigation} from './published-navigation.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
 const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll'].includes(file);
@@ -23,13 +24,15 @@ const sourceSite=configuredSite(new URL('../',import.meta.url));
 const domainBuild=process.argv.includes('--launch-domain');
 const targetSite=siteBase(process.env.SITE_BASE_URL||((preview||domainBuild)?launchSite(new URL('../',import.meta.url)):sourceSite));
 const publicConfig=await readFile(path.join(root,'config.js'),'utf8');
+const navigation=await publishedNavigation(publicConfig,{cloudflare});
 const supabaseOrigin=new URL(publicConfig.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)[1]).origin;
 const previewGuard=cloudflarePreview?await readFile(path.join(root,'preview-readonly.js'),'utf8'):'';
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});let before=0,after=0,count=0;
 for(const file of await files()){
  let content=await readFile(path.join(root,file));
  if(/\.(?:html|js|json|xml|txt)$/.test(file)){
-  let text=rebaseSiteReferences(content.toString(),sourceSite,targetSite);
+  let text=content.toString();if(file.endsWith('.html')&&!file.startsWith('admin/'))text=renderPublishedNavigation(text,navigation);
+  text=rebaseSiteReferences(text,sourceSite,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);
   if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;\n';
