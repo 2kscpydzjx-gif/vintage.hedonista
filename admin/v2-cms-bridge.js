@@ -1,4 +1,4 @@
-/* Vintage Hedonista V2 bridge.
+/* Vintazhka V2 bridge.
  * Preserves the APPROVED original HTML/CSS/SVG; the old CMS is used only as
  * the data/operations engine. No original layout nodes are rebuilt.
  * Must be hosted alongside cms-builder.html on the same origin.

@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {transform} from 'esbuild';
 import {configuredSite,launchSite,siteBase,rebaseSiteReferences,snapshotBase,localNavigation,robots,prettySiteReferences} from './seo-deployment.mjs';
 import {publishedNavigation,renderPublishedNavigation} from './published-navigation.mjs';
+import brand from '../brand.js';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
 const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll'].includes(file);
@@ -33,6 +34,12 @@ for(const file of await files()){
  let content=await readFile(path.join(root,file));
  if(/\.(?:html|js|json|xml|txt)$/.test(file)){
   let text=content.toString();if(file.endsWith('.html')&&!file.startsWith('admin/'))text=renderPublishedNavigation(text,navigation);
+  if(file.endsWith('.html')){
+   text=brand.text(text);
+   text=text.replaceAll('Пошук за назвою, брендом або категорією...','Назва, бренд або категорія');
+   const tag='<script src="'+(file.startsWith('admin/')?'../':'')+'brand.js?v=1"></script>';
+   text=/\bsrc="cms-shell\.js(?:\?|"|$)/.test(text)?text.replace(/<script\b[^>]*src="cms-shell\.js[^>]*>/i,match=>tag+match):text.replace(/<\/head>/i,tag+'</head>');
+  }
   text=rebaseSiteReferences(text,sourceSite,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);

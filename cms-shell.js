@@ -6,7 +6,7 @@
   [...nav.querySelectorAll('a')].forEach((link,i)=>{
    if(!navigationDefaults.has(link))navigationDefaults.set(link,{label:link.dataset.vhNavDefaultLabel??link.textContent,href:link.dataset.vhNavDefaultHref??link.getAttribute('href')});
    const original=navigationDefaults.get(link),value=shared?.nav?.[String(i)];
-   const label=value?.label||(reset?original.label:null);
+   const rawLabel=value?.label||(reset?original.label:null),label=window.VHBrand?.text(rawLabel)??rawLabel;
    if(label!=null&&link.textContent!==label)link.textContent=label;
    const href=value?.href&&/^(https?:|\/|\.\/|\.\.\/|[\w-]+\.html|#)/i.test(value.href)?value.href:reset?original.href:null;
    if(href!=null&&link.getAttribute('href')!==href)link.setAttribute('href',href);
@@ -22,7 +22,7 @@
   image.onerror=()=>{if(image.getAttribute('src')!==source)return;image.onerror=null;image.src=image.dataset.vhLogoDefault;image.style.removeProperty('visibility')};image.src=source;
  }
  function apply(shared,doc=document){
-  shared=shared||{};navigation(shared,doc);
+  shared=window.VHBrand?.content(shared||{})??shared??{};navigation(shared,doc);
   const header=doc.querySelector('body > header'),footer=doc.querySelector('footer.site-footer-v64,body > footer');
   if(header){
    logo(header.querySelector('.vh-header-logo,.brand img'),shared.headerLogo);

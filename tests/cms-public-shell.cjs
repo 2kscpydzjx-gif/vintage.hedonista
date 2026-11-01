@@ -14,7 +14,7 @@ const base='http://127.0.0.1:8765';
   const start=f.calls.length;await p.goto(base+'/'+route);await p.waitForFunction(()=>window.__VH_SHELL_READY===true);
   if(route.startsWith('product.html')||route.startsWith('seo-product/'))await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Тестовий товар'&&document.querySelector('#galleryCount')?.textContent==='1 / 1');
   if(route==='account.html')await p.locator('.vh124-account-hero').waitFor();
-  assert.equal(await p.locator('header nav a').nth(3).textContent(),'HEDONISTA JOURNAL',route);
+  assert.equal(await p.locator('header nav a').nth(3).textContent(),'VINTAZHKA JOURNAL',route);
   assert.equal(await p.locator('.vh-header-logo').getAttribute('src'),shared.headerLogo);
   assert.equal(await p.locator('.vh-footer-logo-img').getAttribute('src'),shared.footerLogo);
   assert.equal(await p.locator('.footer-v64-center').textContent(),shared.footerText);
@@ -38,12 +38,12 @@ const base='http://127.0.0.1:8765';
  // Existing CMS pages keep their single owner and public client.
  for(const route of ['index.html','catalog.html','contacts.html']){
   const start=f.calls.length;await p.goto(base+'/'+route);await p.waitForFunction(()=>window.VHCMSBoot.state==='ready');
-  assert.equal(await p.locator('header nav a').nth(3).textContent(),'HEDONISTA JOURNAL');
+  assert.equal(await p.locator('header nav a').nth(3).textContent(),'VINTAZHKA JOURNAL');
   assert.equal(f.calls.slice(start).filter(c=>c.table==='vh_page_revisions'&&c.filters.some(([key,value])=>key==='page_key'&&value==='home')).length,1,'duplicate home publication read');
   assert.equal(await p.evaluate(()=>window.__cmsTestClients.length),2,'duplicate public client');
  }
  await p.goto(base+'/product.html?slug='+product.slug);await p.waitForFunction(()=>window.__VH_SHELL_READY);f.failRead(true);
- await p.reload();await p.waitForFunction(()=>window.__VH_SHELL_READY);assert.equal(await p.locator('header nav a').nth(3).textContent(),'HEDONISTA JOURNAL','read failure lost cached shell');
+ await p.reload();await p.waitForFunction(()=>window.__VH_SHELL_READY);assert.equal(await p.locator('header nav a').nth(3).textContent(),'VINTAZHKA JOURNAL','read failure lost cached shell');
  f.failRead(false);f.records.delete('home:published');await p.reload();await p.waitForFunction(()=>window.__VH_SHELL_READY);
  assert.equal(await p.evaluate(()=>localStorage.getItem('vh-published-cache-v1-home-shell')),null,'successful empty publication kept stale cache');
  assert.equal(f.calls.filter(c=>c.op!=='select'&&c.table!=='customer_profiles').length,0);assert.deepEqual(f.errors,[]);

@@ -361,7 +361,7 @@ function applyCurrent(){
 for(const event of new Set(['vh:service-rendered',...Object.values(sourceEvents).map(value=>value[1])]))window.addEventListener(event,applyCurrent);
 async function fetchPublished(key){
  const {data,error}=await bounded(db.from('vh_page_revisions').select('blocks,shared,updated_at').eq('page_key',key).eq('revision_status','published').maybeSingle(),'Publication request timed out');
- if(error)throw error;return data;
+ if(error)throw error;return window.VHBrand?.content(data)??data;
 }
 async function run(){
  let success=false;
@@ -369,8 +369,10 @@ async function run(){
   const pageRequest=fetchPublished(page),homeRequest=page==='home'?pageRequest:fetchPublished('home');
   const [pageResult,homeResult]=await Promise.allSettled([pageRequest,homeRequest]);
   // A successful null response means no publication. Cache is only a network-error fallback.
-  const data=pageResult.status==='fulfilled'?pageResult.value:readPublishedCache(publishedCacheKey);
-  const home=page==='home'?data:homeResult.status==='fulfilled'?homeResult.value:readPublishedCache(homeCacheKey);
+  const rawData=pageResult.status==='fulfilled'?pageResult.value:readPublishedCache(publishedCacheKey);
+  const data=window.VHBrand?.content(rawData)??rawData;
+  const rawHome=page==='home'?data:homeResult.status==='fulfilled'?homeResult.value:readPublishedCache(homeCacheKey);
+  const home=window.VHBrand?.content(rawHome)??rawHome;
   if(pageResult.status==='rejected'&&!data)throw pageResult.reason;
   if(homeResult.status==='rejected'&&!home)throw homeResult.reason;
   await waitForSource();

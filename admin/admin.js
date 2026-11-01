@@ -154,7 +154,7 @@ async function loadSettings(){
  put('sShipping',s.shipping_text);
  put('sPayment',s.payment_text);
 
- put('adDeliveryKicker',s.delivery_page_kicker||'VINTAGE HEDONISTA · SERVICE');
+ put('adDeliveryKicker',s.delivery_page_kicker||'VINTAZHKA · SERVICE');
  put('adDeliveryTitle',String(s.delivery_page_title||'ДОСТАВКА\nІ ОПЛАТА').replace(/\\n/g,'\n'));
  put('adDeliveryIntro',s.delivery_page_intro||'Прості умови, щоб покупка вінтажної речі була зрозумілою від замовлення до отримання.');
  put('adDeliveryShippingTitle',s.delivery_shipping_title||'ДОСТАВКА');
@@ -175,13 +175,13 @@ async function loadSettings(){
  put('adDeliveryCtaLinkText',s.delivery_cta_link_text||'ЗВ’ЯЗАТИСЯ З НАМИ →');
  put('adDeliveryCtaLinkUrl',s.delivery_cta_link_url||'contacts.html');
 
- put('adContactsKicker',s.contacts_page_kicker||'VINTAGE HEDONISTA');
+ put('adContactsKicker',s.contacts_page_kicker||'VINTAZHKA');
  put('adContactsTitle',s.contacts_page_title||'КОНТАКТИ');
  put('adContactsIntro',s.contacts_page_intro||'Потрібні точні заміри, додаткові фото або допомога з вибором — напишіть нам.');
  put('adContactsListTitle',s.contacts_list_title||'ЗВ’ЯЗОК');
  put('adContactsInstagramText',s.contacts_instagram_text||s.instagram||'@vintage_hedonista');
  put('adContactsInstagramUrl',s.contacts_instagram_url||'');
- put('adContactsTelegramText',s.contacts_telegram_text||s.telegram||'Vintage Hedonista');
+ put('adContactsTelegramText',s.contacts_telegram_text||s.telegram||'Vintazhka');
  put('adContactsTelegramUrl',s.contacts_telegram_url||'');
  put('adContactsEmailText',s.contacts_email_text||s.email||'');
  put('adContactsPhoneText',s.contacts_phone_text||s.phone||'');
@@ -314,8 +314,8 @@ function goPage(id,{remember=true,history=true}={}){
  const page=$(id);
  if(page)page.classList.add('active');
  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===id));
- const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',capsules:'Капсули',capsuleStyleForm:'Стиль',capsuleForm:'Капсула',news:'HEDONISTA JOURNAL',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
- $('pageTitle').textContent=names[id]||'Vintage Hedonista';
+ const names={dashboard:'Панель керування',homepage:'Головна сторінка',products:'Товари',productForm:'Товар',categories:'Категорії',orders:'Замовлення',customers:'Клієнти',capsules:'Капсули',capsuleStyleForm:'Стиль',capsuleForm:'Капсула',news:'VINTAZHKA JOURNAL',newsForm:'Стаття',aboutPage:'Про нас',deliveryPage:'Доставка і оплата',contactsPage:'Контакти',media:'Медіатека',settings:'Налаштування'};
+ $('pageTitle').textContent=names[id]||'Vintazhka';
  if(remember)sessionStorage.setItem(VH_ADMIN_PAGE_KEY,id);
  if(history!==false){const url=new URL(location.href);url.searchParams.set('page',id);window.history.replaceState(window.history.state,'',url)}
 
@@ -2234,7 +2234,7 @@ $('saveNewsBtn').onclick=async()=>{
 
    await window.VHSEO.save(sb,'article',savedRow.id);
    if(payload.is_guide && savedRow?.is_guide!==true){
-     throw new Error('Позначка HEDONISTA GUIDE не збереглася в Supabase.');
+     throw new Error('Позначка VINTAZHKA GUIDE не збереглася в Supabase.');
    }
    if(payload.is_new_section && savedRow?.is_new_section!==true){
      throw new Error('Позначка «НОВЕ НА САЙТІ» не збереглася в Supabase.');
@@ -2248,7 +2248,7 @@ $('saveNewsBtn').onclick=async()=>{
      try{localStorage.setItem(VH_ADMIN_EDIT_NEWS_KEY,String(savedRow.id))}catch(_){}
      if($('newsFormTitle'))$('newsFormTitle').textContent='Редагувати статтю';
    }
-   toast(payload.is_featured?'Статтю збережено як головну':payload.is_guide?'Статтю додано в HEDONISTA GUIDE':'Статтю збережено');
+   toast(payload.is_featured?'Статтю збережено як головну':payload.is_guide?'Статтю додано в VINTAZHKA GUIDE':'Статтю збережено');
    await loadNews();
    refreshJournalCategorySuggestions(savedRow?.category||payload.category);
    goPage('newsForm',{remember:true})
@@ -2366,7 +2366,7 @@ async function loadHomepageSettings(){
 
  put('hpNewTitle',h.homepage_new_title);
  put('hpNewLinkText',h.homepage_new_link_text);
- put('hpCapsulesKicker',h.homepage_capsules_kicker||'VINTAGE HEDONISTA');
+ put('hpCapsulesKicker',h.homepage_capsules_kicker||'VINTAZHKA');
  put('hpCapsulesTitle',h.homepage_capsules_title||'КАПСУЛИ.');
  put('hpCapsulesText',h.homepage_capsules_text||'Образи, в яких вінтажні речі знаходять нове життя.');
  put('hpCapsulesButtonText',h.homepage_capsules_button_text||'ПЕРЕГЛЯНУТИ КАПСУЛИ');
@@ -2626,7 +2626,7 @@ const ABOUT_DEFAULT={
  about_hero_title:'ОДЯГ З МИНУЛОГО.\nСТИЛЬ ПОЗА ЧАСОМ.',
  about_hero_text:'Ми відбираємо вінтажні речі з Європи — речі з характером, історією та власною естетикою.',
  about_philosophy_title:'МИ НЕ ШУКАЄМО\nПРОСТО СТАРІ РЕЧІ.',
- about_philosophy_text:'Vintage Hedonista — це речі, які вже мали життя до нас і заслуговують на наступне. Ми відбираємо не за віком, а за характером, якістю матеріалів, кроєм та тим відчуттям, яке річ створює.',
+ about_philosophy_text:'Vintazhka — це речі, які вже мали життя до нас і заслуговують на наступне. Ми відбираємо не за віком, а за характером, якістю матеріалів, кроєм та тим відчуттям, яке річ створює.',
  about_p1_title:'ХАРАКТЕР',about_p1_text:'Річ повинна мати власний образ.',
  about_p2_title:'ЯКІСТЬ',about_p2_text:'Матеріали, пошиття та стан проходять відбір.',
  about_p3_title:'УНІКАЛЬНІСТЬ',about_p3_text:'Ми віддаємо перевагу речам, які складно зустріти вдруге.',
@@ -2634,7 +2634,7 @@ const ABOUT_DEFAULT={
  about_manifest_title:'НЕ МАС-МАРКЕТ.\nНЕ КОЛЕКЦІЯ З ТИСЯЧІ\nОДНАКОВИХ РЕЧЕЙ.',
  about_manifest_text:'ONE PIECE. ONE STORY. ONE OWNER.',
  about_origin_title:'ВІД ЄВРОПИ\nДО ВАШОГО ГАРДЕРОБУ',
- about_origin_text:'Ми шукаємо речі, які зберегли характер і якість. Кожна позиція проходить візуальний відбір та перевірку стану перед тим, як потрапити до каталогу Vintage Hedonista.',
+ about_origin_text:'Ми шукаємо речі, які зберегли характер і якість. Кожна позиція проходить візуальний відбір та перевірку стану перед тим, як потрапити до каталогу Vintazhka.',
  about_final_title:'ЗНАЙДІТЬ СВОЮ РІЧ.',
  about_final_text:'Кожна з них чекає лише одного власника.'
 };
@@ -2871,7 +2871,7 @@ async function loadJournalPageSettings(){
  put('jPageTitle',s.journal_page_title||'ВІНТАЖНІ ХРОНІКИ');
  put('jPageSubtitle',s.journal_page_subtitle||'Історії про вінтаж, стиль та речі поза часом');
  put('jNewTitle',s.journal_new_title||'НОВЕ НА САЙТІ');
- put('jGuideTitle',String(s.journal_guide_title||'HEDONISTA\nGUIDE').replace(/\\n/g,'\n'));
+ put('jGuideTitle',String(s.journal_guide_title||'VINTAZHKA\nGUIDE').replace(/\\n/g,'\n'));
  put('jGuideSubtitle',s.journal_guide_subtitle||'КОРИСНІ ГІДИ ТА ПОРАДИ');
  put('jOtherTitle',s.journal_other_title||'ІНШІ ПУБЛІКАЦІЇ');
  put('jCtaTitle',s.journal_cta_title||'ЗНАЙШЛИ НАТХНЕННЯ?');
@@ -3095,7 +3095,7 @@ function constructorPreviewLabel(){
     productForm:'Товар',
     categories:'Каталог / категорії',
     orders:'Адмінка замовлень',
-    news:'Hedonista Journal',
+    news:'Vintazhka Journal',
     newsForm:'Стаття',
     deliveryPage:'Доставка і оплата',
     contactsPage:'Контакти',
@@ -3388,7 +3388,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('DOMContentLoaded',()=>setTimeout(initArticleEditorAccordions,120));
 
-/* V87: normalize any remaining text-only Vintage Hedonista brand marks. */
+/* V87: normalize any remaining text-only Vintazhka brand marks. */
 document.addEventListener('DOMContentLoaded', () => {
   const isAdmin = location.pathname.includes('/admin/');
   const logoPath = isAdmin ? '../assets/vintage-hedonista-logo.png' : 'assets/vintage-hedonista-logo.png';
@@ -3396,8 +3396,8 @@ document.addEventListener('DOMContentLoaded', () => {
   candidates.forEach(el => {
     if (el.querySelector('img')) return;
     const t = (el.textContent || '').replace(/\s+/g,' ').trim().toLowerCase();
-    if (t === 'vintage hedonista') {
-      el.innerHTML = `<img class="${isAdmin ? 'vh-admin-logo' : 'vh-site-logo'}" src="${logoPath}" alt="Vintage Hedonista">`;
+    if (t === 'Vintazhka') {
+      el.innerHTML = `<img class="${isAdmin ? 'vh-admin-logo' : 'vh-site-logo'}" src="${logoPath}" alt="Vintazhka">`;
     }
   });
 });
@@ -3849,7 +3849,7 @@ async function loadCapsulesAdmin(){
  if(links!==null)CAPSULE_PRODUCT_LINKS=links;
  if(lookLinks!==null)CAPSULE_LOOK_PRODUCT_LINKS=lookLinks;
  const x=CAPSULE_PAGE_SETTINGS||{};
- capPut('capHeroKicker',x.hero_kicker||'VINTAGE HEDONISTA');capPut('capHeroTitle',x.hero_title||'КАПСУЛИ');capPut('capHeroSubtitle',x.hero_subtitle||'Одна річ. Багато можливостей');capPut('capHeroDescription',x.hero_description||'');capPut('capHeroButton',x.hero_button_text||'ДИВИТИСЬ ПІДБІРКИ');capPut('capMoodTitle',x.mood_title||'ОБЕРИ СВІЙ НАСТРІЙ.');capPut('capMoodText',x.mood_text||'');
+ capPut('capHeroKicker',x.hero_kicker||'VINTAZHKA');capPut('capHeroTitle',x.hero_title||'КАПСУЛИ');capPut('capHeroSubtitle',x.hero_subtitle||'Одна річ. Багато можливостей');capPut('capHeroDescription',x.hero_description||'');capPut('capHeroButton',x.hero_button_text||'ДИВИТИСЬ ПІДБІРКИ');capPut('capMoodTitle',x.mood_title||'ОБЕРИ СВІЙ НАСТРІЙ.');capPut('capMoodText',x.mood_text||'');
  if($('capHeroPreview'))$('capHeroPreview').innerHTML=x.hero_image?`<img src="${esc(x.hero_image)}" alt="">`:'<span>Фото ще не додано</span>';
  renderCapsuleStylesAdmin();renderCapsulesAdmin();fillCapsuleStyleSelects();
 }

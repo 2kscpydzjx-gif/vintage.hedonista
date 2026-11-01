@@ -1,4 +1,4 @@
-/* Vintage Hedonista shared rich text editor — STEP 75 */
+/* Vintazhka shared rich text editor — STEP 75 */
 (function(){'use strict';
 const ALLOWED=new Set(['P','DIV','BR','STRONG','B','EM','I','UL','OL','LI','H1','H2','H3','A','IMG','FIGURE','FIGCAPTION','BLOCKQUOTE']);
 const svg={bold:'<path d="M6 4h6a4 4 0 0 1 0 8H6zm0 8h7a4 4 0 0 1 0 8H6z"/>',italic:'<path d="M10 4h9M5 20h9M14 4 9 20"/>',link:'<path d="M10 13a5 5 0 0 0 7 .4l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.4l-3 3a5 5 0 0 0 7 7l2-2"/>',list:'<path d="M9 6h12M9 12h12M9 18h12M3 6h.01M3 12h.01M3 18h.01"/>',image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',paragraph:'<path d="M10 20V4m0 0h6v16M10 4H8a4 4 0 0 0 0 8h2"/>',h2:'<path d="M3 5v14M13 5v14M3 12h10M17 12a3 3 0 0 1 6 0c0 3-6 3-6 7h6"/>',h3:'<path d="M3 5v14M13 5v14M3 12h10M18 12a3 3 0 1 1 0 6M18 18a3 3 0 1 0 0-6"/>',left:'<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',right:'<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',center:'<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',trash:'<path d="M4 7h16M10 3h4M6 7l1 14h10l1-14M10 11v6M14 11v6"/>'};

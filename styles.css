@@ -18452,3 +18452,31 @@ body.home-page .homepage-capsules .editorial-copy .btn{
     }
   }
 }
+
+/* Mobile catalogue labels and a compact, readable checkout. */
+@layer vh-responsive {
+ @media(max-width:760px){
+  body.catalog-mobile-page #catalogSortCurrent{font-size:12px!important;line-height:1.4!important}
+  body.catalog-mobile-page .catalog-sort-label{font-size:10px!important;letter-spacing:.7px!important}
+  body.catalog-mobile-page .catalog-sort-option{font-size:12px!important;line-height:1.4!important;min-height:44px!important}
+  body.catalog-mobile-page #catalogResultText{font-size:11px!important;line-height:1.5!important}
+  body.catalog-mobile-page .catalog-view-switch>span{font-size:10px!important;letter-spacing:.5px!important}
+  body.catalog-mobile-page :is(.catalog-luxury-brand,.catalog-luxury-size){font-size:10px!important;line-height:1.5!important}
+  .checkout-page{padding-block:24px 40px!important}
+  .checkout-page .checkout-head{padding-bottom:14px!important}
+  .checkout-page .checkout-head h1{font-size:clamp(30px,8.2vw,38px)!important;line-height:1.16!important;margin-block:8px 12px!important}
+  .checkout-page .checkout-head p{font-size:13px!important;line-height:1.6!important}
+  .checkout-page .checkout-grid{gap:20px!important;padding-top:20px!important}
+  .checkout-page .checkout-form-card{padding:16px!important}
+  .checkout-page .checkout-section-title{font-size:11px!important;line-height:1.5!important;margin-bottom:12px!important}
+  .checkout-page .checkout-customer-state{font-size:12px!important;line-height:1.6!important;margin-bottom:12px!important}
+  .checkout-page .checkout-fields{gap:12px!important;margin-bottom:18px!important}
+  .checkout-page .checkout-fields label{font-size:11px!important;line-height:1.5!important}
+  .checkout-page .checkout-fields textarea{min-height:88px!important}
+  .checkout-page .checkout-item small{font-size:10px!important;line-height:1.4!important}
+  .checkout-page .checkout-item :is(b,strong){font-size:13px!important;line-height:1.45!important}
+  .checkout-page .checkout-total{font-size:11px!important}
+  .checkout-page .checkout-submit{font-size:12px!important;min-height:50px!important}
+  .checkout-page .checkout-form-card>small{font-size:11px!important;line-height:1.6!important}
+ }
+}
