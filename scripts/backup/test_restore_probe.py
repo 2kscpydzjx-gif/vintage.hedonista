@@ -9,6 +9,19 @@ import run as backup
 
 
 class RecoveryGuards(unittest.TestCase):
+    def test_platform_objects_are_identified_without_replacing_custom_role_definitions(self):
+        sql = '''CREATE ROLE "custom_worker";
+GRANT "postgres" TO "cli_login_postgres" GRANTED BY "supabase_admin";
+ALTER TABLE "public"."products" OWNER TO "custom_worker";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT SELECT ON TABLES TO "anon", "authenticated";
+GRANT SELECT ON "public"."products" TO "restore_platform_reader";
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."products";
+'''
+        roles, publications = restore_probe.platform_references(sql)
+        self.assertNotIn("custom_worker", roles)
+        self.assertTrue({"cli_login_postgres", "supabase_admin", "postgres", "anon", "authenticated", "restore_platform_reader"} <= roles)
+        self.assertEqual(publications, {"supabase_realtime"})
+
     def test_copy_fingerprint_covers_prices_measurements_and_escaped_newlines(self):
         sql = 'COPY "public"."products" ("id", "price", "measurements", "description") FROM stdin;\n1\t500\t{"length": 60}\tfirst\\nsecond\n2\t700\t{}\t\\N\n\\.\n'
         parsed = restore_probe.copy_tables(sql)
@@ -68,8 +81,10 @@ CREATE TABLE storage.objects(id int);
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT SELECT ON public.orders TO anon;
+GRANT SELECT ON public.products TO "restore_platform_reader";
+ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."products";
 '''
-            (database / "roles.sql").write_text("-- No custom roles in the fixture\n")
+            (database / "roles.sql").write_text('GRANT "postgres" TO "cli_login_postgres" WITH INHERIT FALSE GRANTED BY "supabase_admin";\n')
             (database / "schema.sql").write_text("-- No extra extensions in the fixture\n")
             (database / "restore-schema.sql").write_text(schema)
             (database / "data.sql").write_text('''SET session_replication_role = replica;

@@ -97,6 +97,24 @@ def extension_sql(schema):
     return "\n".join(result)
 
 
+def platform_references(sql):
+    """Metadata only: roles/publications normally provided by managed Supabase."""
+    role = r'"(' + IDENTIFIER + r')"'
+    roles = set()
+    for prefix in [r'OWNER TO ', r'FOR ROLE ', r'GRANTED BY ', r'SET ROLE ']:
+        roles.update(re.findall(prefix + role, sql))
+    for line in sql.split("\n"):
+        if re.match(r'^(GRANT|REVOKE|CREATE POLICY|ALTER DEFAULT PRIVILEGES)\b', line):
+            match = re.search(r'\b(?:TO|FROM)\s+((?:"' + IDENTIFIER + r'"(?:,\s*)?)+)', line)
+            if match:
+                roles.update(re.findall(role, match[1]))
+    defined = set(re.findall(r'^CREATE ROLE ' + role + r';', sql, re.M))
+    publications = set(re.findall(r'^ALTER PUBLICATION ' + role, sql, re.M))
+    if len(roles) > 256 or len(publications) > 256:
+        raise ProbeError("Unexpected platform metadata inventory")
+    return roles - defined, publications
+
+
 def probe(bundle, work, invoke, *, env=None):
     required = ["roles.sql", "schema.sql", "restore-schema.sql", "data.sql", "history-schema.sql", "history-data.sql"]
     database = bundle / "database"
@@ -124,7 +142,7 @@ def probe(bundle, work, invoke, *, env=None):
         return command([*docker, "exec", "-i", container, "sh", "-c",
                         'export PGPASSWORD="$POSTGRES_PASSWORD"; exec psql "$@"', "restore-probe",
                         "-X", "--quiet", "--no-align", "--tuples-only",
-                        "--set=ON_ERROR_STOP=1", "--set=VERBOSITY=sqlstate", "-U", "supabase_admin", "-d", "postgres"], stdin_text=sql)
+                        "--set=ON_ERROR_STOP=1", "--set=VERBOSITY=verbose", "-U", "supabase_admin", "-d", "postgres"], stdin_text=sql)
 
     def disconnected():
         state = command([*docker, "inspect", container], json_output=True)
@@ -143,6 +161,17 @@ def probe(bundle, work, invoke, *, env=None):
         if disconnected():
             raise ProbeError("Recovery database still has a network connection")
         print("restore_probe: network disconnected; importing inside the temporary container", flush=True)
+        # CLI schema dumps omit platform CREATE ROLE / CREATE PUBLICATION lines,
+        # but keep ownership, grants and ALTER PUBLICATION table memberships.
+        # Provide missing inert platform objects ONLY in this disconnected target.
+        source_metadata = (database / "roles.sql").read_text() + "\n" + (database / "restore-schema.sql").read_text()
+        needed_roles, needed_publications = platform_references(source_metadata)
+        existing_roles = set(json.loads(psql("SELECT coalesce(json_agg(rolname),'[]'::json) FROM pg_roles;\n")))
+        existing_publications = set(json.loads(psql("SELECT coalesce(json_agg(pubname),'[]'::json) FROM pg_publication;\n")))
+        for name in sorted(needed_roles - existing_roles):
+            psql(f'CREATE ROLE "{name}" NOLOGIN NOSUPERUSER NOBYPASSRLS;\n')
+        for name in sorted(needed_publications - existing_publications):
+            psql(f'CREATE PUBLICATION "{name}";\n')
         # All DDL/DML below targets only the newly created, disconnected container.
         sql = "BEGIN;\nSET session_replication_role = replica;\nSET check_function_bodies = false;\n"
         sql += (database / "roles.sql").read_text() + "\n"
@@ -161,7 +190,7 @@ def probe(bundle, work, invoke, *, env=None):
             if rows and rows[-1] == "":
                 rows.pop()
             if len(rows) != expected_table["count"] or row_digest(rows) != expected_table["digest"]:
-                raise ProbeError("Restored table contents differ from the snapshot")
+                raise ProbeError("Restored table contents differ from the snapshot (" + schema + "." + table + ")")
             verified_rows += len(rows)
         # Check that an unauthenticated buyer cannot read orders after restore.
         if ("public", "orders") in expected:

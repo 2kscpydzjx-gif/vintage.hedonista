@@ -41,7 +41,12 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
             raise BackupError("Isolated local database authentication failed")
         state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
         if state:
-            raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + ")")
+            extra = ""
+            if state[1] == "42704":
+                missing = re.search(r'\b(role|publication|schema|type) "([A-Za-z_][A-Za-z0-9_-]{0,62})" does not exist', result.stderr)
+                if missing:
+                    extra = "; missing " + missing[1] + " " + missing[2]
+            raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + extra + ")")
         raise BackupError(f"{Path(args[0]).name}: command failed (exit {result.returncode}); no backup marked complete")
     if json_output:
         try:
