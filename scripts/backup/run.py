@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = json.loads((ROOT / "scripts/backup/config.json").read_text())
@@ -34,6 +34,9 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800):
     except (OSError, subprocess.TimeoutExpired):
         raise BackupError(f"{Path(args[0]).name}: unavailable or timed out") from None
     if result.returncode:
+        diagnostic = (result.stdout + result.stderr).lower()
+        if "password authentication failed" in diagnostic or "sasl auth failed" in diagnostic:
+            raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
         raise BackupError(f"{Path(args[0]).name}: command failed (exit {result.returncode}); no backup marked complete")
     if json_output:
         try:
@@ -61,6 +64,27 @@ def validate_database_url(value, project=CONFIG["project_ref"]):
     if parsed.scheme not in ("postgres", "postgresql") or not (direct or pooler) or port != 5432 or parsed.path != "/postgres" or not parsed.password or parsed.fragment:
         raise BackupError("Use this project's direct or SESSION pooler URL on port 5432")
     return value
+
+
+def database_url():
+    value = require("BACKUP_DATABASE_URL")
+    if os.environ.get("BACKUP_DATABASE_PASSWORD"):
+        password = require("BACKUP_DATABASE_PASSWORD")
+        if value.count("[YOUR-PASSWORD]") != 1:
+            raise BackupError("With a separate password, keep [YOUR-PASSWORD] in the connection template")
+        value = value.replace("[YOUR-PASSWORD]", quote(password, safe=""))
+    elif "[YOUR-PASSWORD]" in value:
+        raise BackupError("Missing secret: BACKUP_DATABASE_PASSWORD")
+    return validate_database_url(value)
+
+
+def check_database(directory, env):
+    output = directory / "connection-check.sql"
+    call(["supabase", "db", "dump", "--db-url", database_url(), "--file", str(output), "--schema", "public"], env=env)
+    if not output.is_file() or not output.stat().st_size:
+        raise BackupError("Database check returned an empty schema export")
+    os.chmod(output, 0o600)
+    return {"database_connection_verified": True, "schema_export_verified": True, "source_mutations": False}
 
 
 def key_path(value):
@@ -234,7 +258,7 @@ def sync_media(directory, previous, env):
 
 
 def export_database(directory, env):
-    db_url = validate_database_url(require("BACKUP_DATABASE_URL"))
+    db_url = database_url()
     database = directory / "database"
     database.mkdir(exist_ok=True)
     commands = [
@@ -349,13 +373,18 @@ def retention(env):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["initialize", "backup", "check", "retention", "restore-files"])
+    parser.add_argument("mode", choices=["initialize", "backup", "check", "check-database", "retention", "restore-files"])
     parser.add_argument("--snapshot")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     os.umask(0o077)
     with tempfile.TemporaryDirectory(prefix="vintazhka-backup-") as temporary:
         work = Path(temporary)
+        if args.mode == "check-database":
+            # A schema-only export tests the password without reading customer
+            # rows, touching Drive or requiring Storage/API credentials.
+            print(json.dumps(check_database(work, dict(os.environ))))
+            return
         with credentials(work, storage=args.mode == "backup") as env:
             if args.mode == "initialize":
                 call(["restic", "init", "--repository-version", "2"], env=env)
