@@ -8,7 +8,7 @@ on:
       mode:
         description: 'initialize once, then backup; retention requires a verified full restore'
         type: choice
-        options: [backup, initialize, check-database, check, retention]
+        options: [backup, backup-and-test, test-restore, initialize, check-database, check, retention]
         default: backup
         required: true
 
