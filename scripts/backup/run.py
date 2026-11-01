@@ -27,16 +27,19 @@ class BackupError(RuntimeError):
     pass
 
 
-def call(args, *, cwd=None, env=None, json_output=False, timeout=1800):
+def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_text=None):
     """Keep CLI errors, which may contain credentials, filenames or SQL, out of logs."""
     try:
-        result = subprocess.run(args, cwd=cwd, env=env, text=True, capture_output=True, timeout=timeout)
+        result = subprocess.run(args, cwd=cwd, env=env, input=stdin_text, text=True, capture_output=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired):
         raise BackupError(f"{Path(args[0]).name}: unavailable or timed out") from None
     if result.returncode:
         diagnostic = (result.stdout + result.stderr).lower()
         if "password authentication failed" in diagnostic or "sasl auth failed" in diagnostic:
             raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
+        state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
+        if state:
+            raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + ")")
         raise BackupError(f"{Path(args[0]).name}: command failed (exit {result.returncode}); no backup marked complete")
     if json_output:
         try:
@@ -267,6 +270,7 @@ def export_database(directory, env):
         ("history-schema.sql", ["--schema", "supabase_migrations"]),
         ("history-data.sql", ["--schema", "supabase_migrations", "--data-only", "--use-copy"]),
         ("auth-storage-reference.sql", ["--schema", "auth,storage"]),
+        ("restore-schema.sql", ["--schema", "public,vh_private,auth,storage"]),
     ]
     # CLI subprocess output is captured, never streamed into Actions logs.
     for name, flags in commands:
@@ -373,7 +377,7 @@ def retention(env):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["initialize", "backup", "check", "check-database", "retention", "restore-files"])
+    parser.add_argument("mode", choices=["initialize", "backup", "backup-and-test", "test-restore", "check", "check-database", "retention", "restore-files"])
     parser.add_argument("--snapshot")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -385,18 +389,36 @@ def main():
             # rows, touching Drive or requiring Storage/API credentials.
             print(json.dumps(check_database(work, dict(os.environ))))
             return
-        with credentials(work, storage=args.mode == "backup") as env:
+        with credentials(work, storage=args.mode in ("backup", "backup-and-test")) as env:
             if args.mode == "initialize":
                 call(["restic", "init", "--repository-version", "2"], env=env)
                 result = {"repository_id": call(["restic", "cat", "config"], env=env, json_output=True)["id"]}
-            elif args.mode == "backup":
+            elif args.mode in ("backup", "backup-and-test"):
                 result = backup(work, env)
+                if args.mode == "backup-and-test":
+                    from restore_probe import ProbeError, probe
+                    try:
+                        result.update(probe(work / "verified-restore", work, call, env=env))
+                    except ProbeError as error:
+                        raise BackupError(str(error)) from None
                 if os.environ.get("BACKUP_RESTORE_VERIFIED") == "true" and datetime.now(timezone.utc).weekday() == 6:
                     retention(env)
                     result["retention_applied"] = True
             else:
                 verify_repository(env)
-                if args.mode == "check":
+                if args.mode == "test-restore":
+                    from restore_probe import ProbeError, probe
+                    saved = snapshots(env)
+                    if not saved:
+                        raise BackupError("No snapshot available for recovery test")
+                    target = work / "recovery"
+                    restore_bundle(max(saved, key=lambda s: s["time"]), target, env)
+                    validate_bundle(target)
+                    try:
+                        result = probe(target, work, call, env=env)
+                    except ProbeError as error:
+                        raise BackupError(str(error)) from None
+                elif args.mode == "check":
                     call(["restic", "check", "--read-data"], env=env)
                     result = {"full_repository_check": True}
                 elif args.mode == "retention":
