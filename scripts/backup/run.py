@@ -41,7 +41,12 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
             raise BackupError("Isolated local database authentication failed")
         state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
         if state:
-            raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + ")")
+            extra = ""
+            if state[1] == "42704":
+                missing = re.search(r'\b(role|publication|schema|type) "([A-Za-z_][A-Za-z0-9_-]{0,62})" does not exist', result.stderr)
+                if missing:
+                    extra = "; missing " + missing[1] + " " + missing[2]
+            raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + extra + ")")
         raise BackupError(f"{Path(args[0]).name}: command failed (exit {result.returncode}); no backup marked complete")
     if json_output:
         try:
@@ -414,10 +419,12 @@ def main():
                     if not saved:
                         raise BackupError("No snapshot available for recovery test")
                     target = work / "recovery"
-                    restore_bundle(max(saved, key=lambda s: s["time"]), target, env)
+                    selected_snapshot = max(saved, key=lambda s: s["time"])
+                    restore_bundle(selected_snapshot, target, env)
                     validate_bundle(target)
                     try:
                         result = probe(target, work, call, env=env)
+                        result["snapshot_id"] = selected_snapshot["id"]
                     except ProbeError as error:
                         raise BackupError(str(error)) from None
                 elif args.mode == "check":
