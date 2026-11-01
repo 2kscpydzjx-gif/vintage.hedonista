@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "project_ref": "yffwjgwwkapdrpwyjwfp",
+  "drive_folder_id": "13ykpAhb_0yL3vHQ9BhxdPp05zOtroZjj",
+  "storage_endpoint": "https://yffwjgwwkapdrpwyjwfp.storage.supabase.co/storage/v1/s3",
+  "storage_region": "eu-west-1",
+  "repository_directory": "encrypted-repository",
+  "host": "vintazhka",
+  "retention": {"daily": 14, "weekly": 8, "monthly": 6}
+}

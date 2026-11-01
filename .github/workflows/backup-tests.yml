@@ -1,0 +1,32 @@
+name: Validate encrypted backup pipeline
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/backup/**'
+      - '.github/workflows/store-backup.yml'
+      - '.github/workflows/backup-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install verified local-only test tools
+        run: |
+          python3 scripts/backup/install_tools.py --directory "$RUNNER_TEMP/backup-tools"
+          echo "$RUNNER_TEMP/backup-tools" >> "$GITHUB_PATH"
+      - name: Verify pinned Supabase CLI command interface without production credentials
+        run: |
+          supabase db dump --help >/dev/null
+          supabase functions list --help >/dev/null
+          supabase functions download --help >/dev/null
+      - name: Test changed objects, source safety and encrypted recovery with synthetic data
+        run: python3 -m unittest discover -s scripts/backup -p 'test_*.py' -v
