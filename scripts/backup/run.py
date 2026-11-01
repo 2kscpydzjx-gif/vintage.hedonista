@@ -36,7 +36,9 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
     if result.returncode:
         diagnostic = (result.stdout + result.stderr).lower()
         if "password authentication failed" in diagnostic or "sasl auth failed" in diagnostic:
-            raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
+            if Path(args[0]).name == "supabase" and "dump" in args:
+                raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
+            raise BackupError("Isolated local database authentication failed")
         state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
         if state:
             raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + ")")

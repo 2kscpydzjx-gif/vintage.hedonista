@@ -121,7 +121,9 @@ def probe(bundle, work, invoke, *, env=None):
         return invoke(args, env=child_env, **kwargs)
 
     def psql(sql):
-        return command([*docker, "exec", "-i", container, "psql", "-X", "--quiet", "--no-align", "--tuples-only",
+        return command([*docker, "exec", "-i", container, "sh", "-c",
+                        'export PGPASSWORD="$POSTGRES_PASSWORD"; exec psql "$@"', "restore-probe",
+                        "-X", "--quiet", "--no-align", "--tuples-only",
                         "--set=ON_ERROR_STOP=1", "--set=VERBOSITY=sqlstate", "-U", "supabase_admin", "-d", "postgres"], stdin_text=sql)
 
     def disconnected():
