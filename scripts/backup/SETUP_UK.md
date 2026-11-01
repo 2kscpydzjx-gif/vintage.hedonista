@@ -18,7 +18,8 @@ https://drive.google.com/drive/folders/13ykpAhb_0yL3vHQ9BhxdPp05zOtroZjj
 | --- | --- |
 | `BACKUP_DRIVE_TOKEN` | JSON OAuth-токена Rclone для акаунта, що володіє папкою; потрібен `refresh_token` |
 | `BACKUP_RESTIC_PASSWORD` | Довгий унікальний пароль шифрування; додатково зберегти у власному менеджері паролів |
-| `BACKUP_DATABASE_URL` | URI Supabase Connect → Session pooler, порт 5432, для `yffwjgwwkapdrpwyjwfp`, із чинним паролем бази та percent-encoded спеціальними символами |
+| `BACKUP_DATABASE_URL` | URI-шаблон Supabase Connect → Session pooler, порт 5432, для `yffwjgwwkapdrpwyjwfp`; залишити `[YOUR-PASSWORD]` без підстановки |
+| `BACKUP_DATABASE_PASSWORD` | Чинний пароль бази без додаткових лапок; програма сама закодує спецсимволи. Старий формат повного URI з паролем також підтримується, якщо окремий секрет пароля не заданий |
 | `BACKUP_STORAGE_ACCESS_KEY` | Access key для S3-сумісного доступу Storage цього проєкту |
 | `BACKUP_STORAGE_SECRET_KEY` | Відповідний S3 secret key |
 | `BACKUP_SUPABASE_ACCESS_TOKEN` | Особистий Supabase access token із доступом до проєкту для читання розгорнутих Edge Functions |
@@ -26,6 +27,8 @@ https://drive.google.com/drive/folders/13ykpAhb_0yL3vHQ9BhxdPp05zOtroZjj
 Підключення Google Drive в чаті не передає постійний доступ до GitHub Actions. Для токена встановити Rclone з офіційного джерела й виконати локально `rclone authorize drive` (у Windows: `.\rclone.exe authorize drive`). У браузері вибрати власний акаунт і перевірити дозволи. Скопіювати отриманий JSON лише у GitHub Secret. Стандартний OAuth-доступ Rclone може охоплювати Drive ширше, ніж одна папка; робоча конфігурація обмежена конкретним `root_folder_id`. За потреби використати окремий обліковий запис для резервних копій.
 
 Існуючий пароль бази не потрібно скидати. Якщо він невідомий, зупинитися й узгодити доступ окремо, а не змінювати його під час роботи магазину.
+
+Після збереження двох секретів бази запустити workflow з `main` у режимі `check-database`. Він експортує лише схему `public` у тимчасову приватну папку, підтверджує підключення та видаляє файл після завершення. Рядки замовлень/користувачів не читаються, нічого не імпортується, Drive та S3 для цього тесту не потрібні. Успішний результат містить `database_connection_verified=true`.
 
 Supabase Storage S3 endpoint: `https://yffwjgwwkapdrpwyjwfp.storage.supabase.co/storage/v1/s3`, регіон `eu-west-1`. Код використовує лише list/copy-from-source, не створює, не оновлює й не видаляє об'єкти у Supabase. Фактичні доступи ключа можуть бути ширшими за операції коду, тому ключі зберігати тільки у Secrets.
 

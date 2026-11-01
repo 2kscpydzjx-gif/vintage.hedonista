@@ -7,11 +7,49 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
+from urllib.parse import unquote, urlsplit
 
 import run as backup
 
 
 class BackupGuards(unittest.TestCase):
+    def test_separate_database_password_encodes_special_characters(self):
+        ref = backup.CONFIG["project_ref"]
+        template = f"postgresql://postgres.{ref}:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+        password = "synthetic:@#?%[] /пароль"
+        with patch.dict(os.environ, {"BACKUP_DATABASE_URL": template, "BACKUP_DATABASE_PASSWORD": password}, clear=True):
+            actual = backup.database_url()
+            self.assertEqual(unquote(urlsplit(actual).password), password)
+            self.assertEqual(urlsplit(actual).hostname, "aws-1-eu-west-1.pooler.supabase.com")
+
+    def test_database_template_must_not_silently_use_another_password(self):
+        ref = backup.CONFIG["project_ref"]
+        uri = f"postgresql://postgres.{ref}:old@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+        with patch.dict(os.environ, {"BACKUP_DATABASE_URL": uri, "BACKUP_DATABASE_PASSWORD": "new"}, clear=True):
+            with self.assertRaises(backup.BackupError):
+                backup.database_url()
+        with patch.dict(os.environ, {"BACKUP_DATABASE_URL": uri}, clear=True):
+            self.assertEqual(backup.database_url(), uri)
+
+    def test_database_check_uses_schema_only_without_other_credentials(self):
+        ref = backup.CONFIG["project_ref"]
+        values = {"BACKUP_DATABASE_URL": f"postgresql://postgres.{ref}:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres",
+                  "BACKUP_DATABASE_PASSWORD": "fixture-password"}
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, values, clear=True):
+            directory = Path(temporary)
+            def dump(args, **kwargs):
+                self.assertEqual(args[:3], ["supabase", "db", "dump"])
+                self.assertEqual(args[-2:], ["--schema", "public"])
+                self.assertNotIn("--data-only", args)
+                Path(args[args.index("--file") + 1]).write_text("CREATE TABLE fixture(id int);")
+                return ""
+            with patch.object(backup, "call", side_effect=dump) as command:
+                result = backup.check_database(directory, dict(os.environ))
+            self.assertEqual(command.call_count, 1)
+            self.assertTrue(result["database_connection_verified"])
+            self.assertFalse(result["source_mutations"])
+            self.assertEqual((directory / "connection-check.sql").stat().st_mode & 0o777, 0o600)
+
     def test_session_connection_is_scoped_and_transaction_pooler_is_rejected(self):
         ref = backup.CONFIG["project_ref"]
         good = f"postgresql://postgres.{ref}:fixture@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"

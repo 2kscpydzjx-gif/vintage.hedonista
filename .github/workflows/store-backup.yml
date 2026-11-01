@@ -8,7 +8,7 @@ on:
       mode:
         description: 'initialize once, then backup; retention requires a verified full restore'
         type: choice
-        options: [backup, initialize, check, retention]
+        options: [backup, initialize, check-database, check, retention]
         default: backup
         required: true
 
@@ -45,6 +45,7 @@ jobs:
           RESTIC_PASSWORD: ${{ secrets.BACKUP_RESTIC_PASSWORD }}
           BACKUP_REPOSITORY_ID: ${{ vars.BACKUP_REPOSITORY_ID }}
           BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_DATABASE_PASSWORD: ${{ secrets.BACKUP_DATABASE_PASSWORD }}
           BACKUP_STORAGE_ACCESS_KEY: ${{ secrets.BACKUP_STORAGE_ACCESS_KEY }}
           BACKUP_STORAGE_SECRET_KEY: ${{ secrets.BACKUP_STORAGE_SECRET_KEY }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.BACKUP_SUPABASE_ACCESS_TOKEN }}
