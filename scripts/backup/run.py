@@ -419,10 +419,12 @@ def main():
                     if not saved:
                         raise BackupError("No snapshot available for recovery test")
                     target = work / "recovery"
-                    restore_bundle(max(saved, key=lambda s: s["time"]), target, env)
+                    selected_snapshot = max(saved, key=lambda s: s["time"])
+                    restore_bundle(selected_snapshot, target, env)
                     validate_bundle(target)
                     try:
                         result = probe(target, work, call, env=env)
+                        result["snapshot_id"] = selected_snapshot["id"]
                     except ProbeError as error:
                         raise BackupError(str(error)) from None
                 elif args.mode == "check":
