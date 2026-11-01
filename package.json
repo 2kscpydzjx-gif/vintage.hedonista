@@ -1,15 +1,10 @@
 {
-  "name": "vintage-hedonista-storefront",
+  "name": "vintazhka-legacy-pages-redirect",
   "private": true,
   "scripts": {
-    "build": "node scripts/build-hosting.mjs",
-    "build:domain": "node scripts/build-hosting.mjs --launch-domain",
-    "build:cloudflare:test": "node scripts/build-hosting.mjs --launch-domain --cloudflare-test",
-    "audit:domain": "node scripts/audit-seo.mjs --root=dist && node scripts/audit-internal-links.mjs --root=dist",
-    "test:hosting": "node tests/hosting-build.mjs"
-  },
-  "devDependencies": {
-    "esbuild": "0.25.12",
-    "playwright": "1.56.1"
+    "build": "node scripts/build.mjs",
+    "build:domain": "node scripts/build.mjs",
+    "build:cloudflare:test": "node scripts/build.mjs",
+    "test": "node tests/redirects.mjs"
   }
 }

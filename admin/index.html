@@ -1,47 +1,13 @@
-<!doctype html><html lang="uk"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preconnect" href="https://yffwjgwwkapdrpwyjwfp.supabase.co" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Montserrat:wght@400;500;600&display=swap"></noscript>
-<title>Vintage Hedonista Admin — Вхід</title><link rel="stylesheet" href="styles.css?v=78"><link rel="stylesheet" href="mobile.css?v=1"><script defer src="viewport.js?v=1"></script></head><body class="vh-admin-login">
-<div class="login-wrap"><form class="login-card" id="loginForm"><div class="login-brand"><img class="vh-admin-logo" src="../assets/vintage-hedonista-logo-v257.webp" alt="Vintage Hedonista"></div><div class="login-sub">Адміністративна панель</div><label for="email">Email</label><input class="input" id="email" type="email" inputmode="email" autocomplete="username" placeholder="Email" required><label for="password">Пароль</label><input class="input" id="password" type="password" autocomplete="current-password" placeholder="Пароль" required><button class="btn primary block" id="loginBtn" type="submit">УВІЙТИ</button><div class="error" id="error" role="alert" aria-atomic="true"></div></form></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script>
-<script>
-const sb=supabase.createClient(VH_CONFIG.supabaseUrl,VH_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'vintage-hedonista-admin-auth'}});
-(async()=>{
- const {data:{session},error:sessionError}=await sb.auth.getSession();
- if(sessionError){
-   console.error(sessionError);
-   await sb.auth.signOut().catch(()=>{});
-   return
- }
- if(!session)return;
-
- const {data:isAdmin,error}=await sb.rpc('is_admin');
- if(!error&&isAdmin===true){
-   location.replace('admin.html');
-   return
- }
-
- // Session may belong to a deleted/non-admin account. Clear it instead of login/admin redirect loop.
- console.warn(error||'Stored session is not admin');
- await sb.auth.signOut().catch(()=>{});
-})();
-let signingIn=false;
-loginForm.addEventListener('submit',async event=>{
- event.preventDefault();if(signingIn)return;
- const message=document.getElementById('error'),button=document.getElementById('loginBtn');
- message.textContent='';const emailV=email.value.trim(),passwordV=password.value;
- if(!emailV||!passwordV){message.textContent='Введіть email і пароль';return}
- signingIn=true;button.disabled=true;button.textContent='ВХОДИМО…';
- try{
-  const {error:authError}=await sb.auth.signInWithPassword({email:emailV,password:passwordV});
-  if(authError){message.textContent=authError.code==='invalid_credentials'||authError.code==='invalid_login_credentials'?'Неправильний email або пароль.':'Не вдалося увійти. Перевірте дані й повторіть спробу.';return}
-  const {data:isAdmin,error:roleError}=await sb.rpc('is_admin');
-  if(roleError||isAdmin!==true){await sb.auth.signOut();message.textContent='Цей акаунт не має прав адміністратора';return}
-  location.href='admin.html';
- }catch{message.textContent='Не вдалося підключитися. Перевірте інтернет і повторіть спробу.'}
- finally{signingIn=false;button.disabled=false;button.textContent='УВІЙТИ'}
-});
-</script></body></html>
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vintazhka — нова адреса магазину</title><link rel="canonical" href="https://vintazhka.com.ua/admin/"><script>location.replace((function destination(pathname,search='',hash=''){
+  const prefix='/vintage.hedonista';
+  let targetPath=pathname;
+  if(targetPath===prefix)targetPath='/';
+  else if(targetPath.startsWith(prefix+'/'))targetPath=targetPath.slice(prefix.length);
+  targetPath=targetPath.replace(/\/index\.html$/i,'/').replace(/\.html$/i,'');
+  const target=new URL('https://vintazhka.com.ua/');
+  target.pathname=targetPath||'/';
+  target.search=search;
+  target.hash=hash;
+  return target.href;
+})(location.pathname,location.search,location.hash));</script><meta http-equiv="refresh" content="0;url=https://vintazhka.com.ua/admin/"><style>body{max-width:36rem;margin:15vh auto;padding:1.5rem;font:18px/1.6 system-ui;background:#f1e7d8;color:#211b15}a{color:inherit}</style></head><body><h1>Магазин переїхав</h1><p>Нова адреса Vintazhka — <a href="https://vintazhka.com.ua/admin/">vintazhka.com.ua</a>.</p></body></html>

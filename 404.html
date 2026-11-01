@@ -1,6 +1,13 @@
 <!doctype html>
-<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Сторінку не знайдено — Vintage Hedonista</title>
-<style>*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:32px 20px;background:#efe7dc;color:#21170f;font:16px/1.6 Arial,sans-serif}main{max-width:650px;text-align:center}small{font-size:11px;letter-spacing:.16em;color:#8b6947}.code{font:100px/1.2 Georgia,serif;margin:24px 0 8px}h1{font:400 clamp(25px,5vw,38px)/1.3 Georgia,serif;margin:12px 0}p{color:#756454}.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 20px;border:1px solid #21170f;color:inherit;text-decoration:none;font-size:12px}a:first-child{background:#17110d;color:#efe7dc}a:focus-visible{outline:3px solid #aa7843;outline-offset:4px}</style>
-<script>
-(()=>{const root=location.hostname.endsWith('.github.io')?'/vintage.hedonista/':'/';window.VH404Root=root;const match=location.pathname.match(/\/seo-product\/([^/]+)\/(?:index\.html)?$/);if(match){try{const slug=decodeURIComponent(match[1]);if(slug&&!slug.includes('/'))location.replace(root+'product.html?slug='+encodeURIComponent(slug))}catch{}}document.addEventListener('DOMContentLoaded',()=>{document.getElementById('catalog').href=root+'catalog.html';document.getElementById('home').href=root+'index.html';const icon=document.createElement('link');icon.rel='icon';icon.href=root+'assets/vintage-hedonista-logo.png';document.head.append(icon)});})();
-</script></head><body><main><small>VINTAGE HEDONISTA</small><div class="code" aria-hidden="true">404</div><h1>Сторінку не знайдено</h1><p>Можливо, адресу змінено або посилання застаріло. Перегляньте актуальну колекцію в каталозі.</p><div class="actions"><a id="catalog" href="catalog.html">ДО КАТАЛОГУ</a><a id="home" href="index.html">НА ГОЛОВНУ</a></div></main></body></html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vintazhka — нова адреса магазину</title><link rel="canonical" href="https://vintazhka.com.ua/"><script>location.replace((function destination(pathname,search='',hash=''){
+  const prefix='/vintage.hedonista';
+  let targetPath=pathname;
+  if(targetPath===prefix)targetPath='/';
+  else if(targetPath.startsWith(prefix+'/'))targetPath=targetPath.slice(prefix.length);
+  targetPath=targetPath.replace(/\/index\.html$/i,'/').replace(/\.html$/i,'');
+  const target=new URL('https://vintazhka.com.ua/');
+  target.pathname=targetPath||'/';
+  target.search=search;
+  target.hash=hash;
+  return target.href;
+})(location.pathname,location.search,location.hash));</script><meta http-equiv="refresh" content="0;url=https://vintazhka.com.ua/"><style>body{max-width:36rem;margin:15vh auto;padding:1.5rem;font:18px/1.6 system-ui;background:#f1e7d8;color:#211b15}a{color:inherit}</style></head><body><h1>Магазин переїхав</h1><p>Нова адреса Vintazhka — <a href="https://vintazhka.com.ua/">vintazhka.com.ua</a>.</p></body></html>
