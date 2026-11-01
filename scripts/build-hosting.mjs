@@ -23,6 +23,7 @@ const sourceSite=configuredSite(new URL('../',import.meta.url));
 // Explicit opt-in for the real domain; normal production builds keep the current site.
 const domainBuild=process.argv.includes('--launch-domain');
 const targetSite=siteBase(process.env.SITE_BASE_URL||((preview||domainBuild)?launchSite(new URL('../',import.meta.url)):sourceSite));
+const analyticsEnabled=!preview&&targetSite===launchSite(new URL('../',import.meta.url));
 const publicConfig=await readFile(path.join(root,'config.js'),'utf8');
 const navigation=await publishedNavigation(publicConfig,{cloudflare});
 const supabaseOrigin=new URL(publicConfig.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)[1]).origin;
@@ -35,6 +36,7 @@ for(const file of await files()){
   text=rebaseSiteReferences(text,sourceSite,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);
+  if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=1"></script></head>');
   if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;\n';
   if(file==='robots.txt')text=robots(targetSite);
   content=Buffer.from(text);

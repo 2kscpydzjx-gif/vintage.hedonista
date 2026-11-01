@@ -14,6 +14,7 @@ on:
       - 'styles.css'
       - 'storefront-ui.js'
       - 'checkout-feedback.js'
+      - 'analytics.js'
       - 'package.json'
       - 'package-lock.json'
       - 'vercel.json'
@@ -54,6 +55,7 @@ jobs:
           node --check cms-model.js
           node --check storefront-ui.js
           node --check checkout-feedback.js
+          node --check analytics.js
           node --check image-variants.js
           node --check product-routes.js
           node --check vh-seo-runtime.js
@@ -124,6 +126,7 @@ jobs:
           node tests/responsive-layouts.cjs
           node tests/tablet-device-profiles.cjs
           node tests/cart-checkout.cjs
+          node tests/store-analytics.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
           node tests/home-mobile-copy.cjs

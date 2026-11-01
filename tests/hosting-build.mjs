@@ -9,10 +9,13 @@ const sourceConfig=readFileSync(join(root,'config.js'),'utf8'),sourceSitemap=rea
 const legacy=sourceConfig.match(/siteUrl\s*:\s*"([^"]+)"/)[1],domain=JSON.parse(readFileSync(join(root,'launch-site.json'),'utf8')).siteUrl;
 console.log(build(true).trim());
 assert.equal(read('robots.txt'),'User-agent: *\nDisallow: /\n');
+assert.doesNotMatch(read('index.html'),/src="analytics\.js/,'analytics injected in a protected preview');
 for(const file of ['index.html','catalog.html','checkout.html','product.html','admin/cms-builder.html'])assert.match(read(file),/<meta name="robots" content="noindex,nofollow,noarchive">/);
 assert.ok(read('config.js').includes(domain));assert.ok(!read('sitemap.xml').includes(legacy));
 console.log(build(false,true).trim());
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);
+for(const file of ['index.html','catalog.html','product.html','checkout.html'])assert.match(read(file),/<script defer src="analytics\.js\?v=1"><\/script>/);
+for(const file of ['account.html','admin/admin.html','404.html'])assert.doesNotMatch(read(file),/src="analytics\.js/);
 assert.equal(read('robots.txt'),'User-agent: *\nAllow: /\nDisallow: /admin/\nSitemap: '+domain+'sitemap.xml\n');
 const locs=xml=>[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
 const oldUrls=locs(sourceSitemap),newUrls=locs(read('sitemap.xml'));
