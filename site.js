@@ -1068,6 +1068,7 @@ async function initProduct(){
  window.VHSEORuntime?.productStructuredData(data,currentImages);
 
  renderProduct();
+ vhTrackCommerce('view_item',[data],data.price,'product:'+data.id);
 
  let rec=[];
 
@@ -1520,6 +1521,7 @@ async function openOrder(){
    : `<b>ЗАМОВЛЕННЯ БЕЗ АКАУНТА</b><span>Заповніть контактні дані, email для статусів замовлення та відділення Нової пошти.</span>`;
 
  $('orderModal').classList.remove('hidden');
+ vhTrackCommerce('begin_checkout',[currentProduct],currentProduct.price,'direct:'+currentProduct.id);
  document.body.classList.add('vh-modal-open')
 }
 window.openOrder=openOrder;
@@ -1561,6 +1563,7 @@ async function submitOrder(){
    });
    if(error)throw error;
    if(!data?.success||!Array.isArray(data.order_ids)||!data.order_ids.length)throw Error('Сервер не підтвердив створення замовлення');
+   vhTrackCommerce('order_placed',[product],data.total??live.price,data.order_ids.join(':'));
    window.VHCheckoutFeedback.success('order',{items:[product],total:data.total!=null&&Number.isFinite(Number(data.total))?Number(data.total):Number(live.price),orderNumber:data.order_number});
    try{vhSetCart(vhGetCart().filter(item=>String(item.id)!==String(product.id)));vhRenderCart()}catch(error){console.warn('Order accepted; cart could not be refreshed',error)}
    // A failed notification or profile refresh cannot turn an accepted order into a failed purchase.
@@ -2026,6 +2029,8 @@ function vhGetProfile(){
  try{return JSON.parse(localStorage.getItem(VH_PROFILE_KEY)||'null')}catch{return null}
 }
 function vhMoney(v){return new Intl.NumberFormat('uk-UA').format(Number(v||0))+' грн'}
+// Analytics failure or a visitor's refusal must never interrupt shopping.
+function vhTrackCommerce(name,items,total,key){try{window.VHAnalytics?.commerce(name,items,total,key)}catch{}}
 
 function vhUpdateCartBadge(){
  const cart=vhGetCart();
@@ -2207,7 +2212,7 @@ function vhRenderCart(){
    </div>`).join(''):'<div class="vh-cart-empty"><b>КОШИК ПОРОЖНІЙ</b><span>Додайте річ зі сторінки товару.</span><a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a></div>'
 }
 window.vhRemoveCartItem=function(index){
- const cart=vhGetCart();cart.splice(index,1);vhSetCart(cart);vhRenderCart()
+ const cart=vhGetCart(),removed=cart.splice(index,1);vhSetCart(cart);vhRenderCart();vhTrackCommerce('remove_from_cart',removed,removed[0]?.price)
 };
 
 function addCurrentProductToCart(){
@@ -2223,6 +2228,7 @@ function addCurrentProductToCart(){
    cover_image:currentProduct.cover_image||currentImages?.[0]||''
  });
  vhSetCart(cart);
+ vhTrackCommerce('add_to_cart',[cart[cart.length-1]],currentProduct.price);
  toast('Додано в кошик')
 }
 window.addCurrentProductToCart=addCurrentProductToCart;
@@ -2269,12 +2275,13 @@ async function initCheckoutPage(){
    </div>`).join(''):'<div class="checkout-empty">Кошик порожній. <a href="catalog.html">Повернутися до каталогу →</a></div>';
  try{await vhRefreshBundleOffers(cart)}catch(e){console.warn(e)}
  const checkoutPricing=vhBundlePricing(cart,vhBundleOffers);
+ vhTrackCommerce('begin_checkout',cart.map(item=>({...item,price:checkoutPricing.amounts.get(String(item.id))})),checkoutPricing.total,'cart:'+cart.map(item=>item.id).sort().join(':'));
  $('checkoutTotal').textContent=vhMoney(checkoutPricing.total);
  if(checkoutPricing.discounts.length)$('checkoutItems').insertAdjacentHTML('beforeend',checkoutPricing.discounts.map(d=>'<div class="checkout-discount">Комплектна ціна: '+escapeArticleHtml(d.title)+' · економія '+vhMoney(d.saving)+'</div>').join(''))
 }
 window.initCheckoutPage=initCheckoutPage;
 window.checkoutRemoveItem=function(i){
- const cart=vhGetCart();cart.splice(i,1);vhSetCart(cart);initCheckoutPage()
+ const cart=vhGetCart(),removed=cart.splice(i,1);vhSetCart(cart);initCheckoutPage();vhTrackCommerce('remove_from_cart',removed,removed[0]?.price)
 };
 
 let vhCheckoutSubmitting=false;
@@ -2343,6 +2350,7 @@ async function submitCartCheckout(){
   });
   if(error)throw error;
   if(!data?.success||!Array.isArray(data.order_ids)||!data.order_ids.length)throw new Error('Сервер не підтвердив створення замовлення');
+  vhTrackCommerce('order_placed',checked.map(item=>({...item,price:pricing.amounts.get(String(item.id))})),data.total??pricing.total,data.order_ids.join(':'));
   if(Math.abs(Number(data.total)-pricing.total)>0.009){
    console.warn('Server pricing differs',data.total,pricing.total);
   }

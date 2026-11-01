@@ -103,6 +103,7 @@ async function detail(){
   if(!products.length)return showError('У цьому образі немає товарів');
   try{
    const cart=typeof vhGetCart==='function'?vhGetCart():JSON.parse(localStorage.getItem('vh_cart_v1')||'[]');
+   const previousIds=new Set(cart.map(item=>String(item.id)));
    let added=0,already=0,unavailable=0;
    for(const p of products){
     if(p.status!=='published'||(p.stock!=null&&Number(p.stock)<=0)){unavailable++;continue}
@@ -123,6 +124,7 @@ async function detail(){
     }
     if(typeof vhSetCart==='function')vhSetCart(cart);
     else localStorage.setItem('vh_cart_v1',JSON.stringify(cart));
+    if(typeof vhTrackCommerce==='function'){const addedItems=cart.filter(item=>!previousIds.has(String(item.id)));vhTrackCommerce('add_to_cart',addedItems,addedItems.reduce((sum,item)=>sum+Number(item.price||0),0))}
     if(typeof vhRenderCart==='function')vhRenderCart();
     if(typeof vhOpenPanel==='function')vhOpenPanel('cart');
    }
