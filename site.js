@@ -2105,10 +2105,10 @@ function vhOpenPanel(type){
  }
  if(type==='profile'){
    vhGetCurrentUser().then(user=>{
-     if(user){ location.href='account.html'; return }
+     if(user){ location.href=new URL('account.html',document.baseURI).href; return }
      $('vh125LoginOverlay').classList.remove('hidden');
      document.body.classList.add('vh-modal-open');
-     vhShowAuth('login')
+     vhShowAuth('login');
    })
  }
  if(type==='cart'){
@@ -2243,6 +2243,13 @@ function vhInitHeaderActions(){
  vhUpdateCartBadge();
 }
 document.addEventListener('DOMContentLoaded',vhInitHeaderActions);
+// Delegation also covers the footer on generated and CMS-rendered pages.
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a[data-vh-footer-account]');
+ if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+ event.preventDefault();
+ vhOpenPanel('profile');
+});
 
 async function vhPrefillCheckout(){
  // Match the Buy form: only an authenticated customer's details are reused.
@@ -2871,7 +2878,7 @@ function vhAuthShell(mode='login'){
        </button>
      </form>
 
-     ${!isLogin?'<p class="vh-privacy-note">Про обробку персональних даних: <a href="'+(document.querySelector('meta[name="vh-privacy-policy"]')?.content||'https://docs.google.com/document/d/1zbje7UPVkA1JHb4Hfua791R0lXbpnbZ7/edit')+'" target="_blank" rel="noopener">Політика конфіденційності</a></p>':''}
+     ${!isLogin?'<p class="vh-privacy-note">Про обробку персональних даних: <a href="'+(document.querySelector('meta[name="vh-privacy-policy"]')?.content||'privacy.html')+'" target="_blank" rel="noopener">Політика конфіденційності</a></p>':''}
 
      <div class="vh125-auth-switch">
        <span>${isLogin?'НЕ МАЄТЕ АКАУНТА?':'ВЖЕ МАЄТЕ АКАУНТ?'}</span>
@@ -2893,7 +2900,7 @@ window.vhSignIn=async function(){
  const {error}=await sb.auth.signInWithPassword(vhAuthCredentials(login,password));
  if(btn){btn.disabled=false;btn.textContent='УВІЙТИ'}
  if(error){if(msg)msg.textContent='Не вдалося увійти. Перевірте дані або підтвердження email/телефону.';console.error(error);return}
- toast('Вхід виконано'); location.href='account.html'
+ toast('Вхід виконано'); location.href=new URL('account.html',document.baseURI).href
 }
 
 window.vhSignUp=async function(){

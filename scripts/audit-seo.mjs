@@ -71,7 +71,7 @@ for(const address of urls){
   if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
  }
 }
-const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html'];
+const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];
 for(const page of staticPages){
  const html=readFileSync(join(root,page),'utf8');
  const head=html.slice(0,html.toLowerCase().indexOf('</head>'));

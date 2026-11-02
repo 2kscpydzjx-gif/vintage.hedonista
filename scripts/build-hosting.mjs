@@ -11,7 +11,7 @@ import {renderAppIcons} from './app-icons.mjs';
 import {renderStorefrontFooter} from './storefront-footer.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
-const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
+const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm|pdf)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
 async function files(dir=''){
  const result=[];for(const entry of await readdir(path.join(root,dir),{withFileTypes:true})){
   const file=path.posix.join(dir,entry.name);
