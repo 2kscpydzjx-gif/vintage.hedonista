@@ -48,12 +48,13 @@ const root=path.resolve(__dirname,'../dist'),origin='https://vintazhka.com.ua';
   assert.match(await p.locator('#accountPageMount').innerText(),/Олена/);p.off('framenavigated',navigation);
  }
  f.user(null);f.session(null);await p.goto(origin+'/privacy.html');
+ if(!await p.evaluate(()=>!!window.VHAnalytics))await p.addScriptTag({url:origin+'/analytics.js'});
+ await p.locator('[data-vh-analytics-settings]').waitFor({state:'visible'});
  // The real read-only preview notice must not cover legal links or cookie controls.
  await p.evaluate(()=>{window.VH_DEPLOYMENT={readOnlyData:true,supabaseOrigin:'https://fixture.invalid'}});
  await p.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../preview-readonly.js'),'utf8')});
  for(const width of [320,390,768,1366]){
   await p.setViewportSize({width,height:900});
-  if(!await p.evaluate(()=>!!window.VHAnalytics))await p.addScriptTag({url:origin+'/analytics.js'});
   await p.locator('[data-vh-analytics-settings]').waitFor({state:'visible'});
   await p.evaluate(async()=>{await document.fonts.ready;for(let i=0;i<5;i++){scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}});
   const bounds=await p.evaluate(()=>({notice:document.querySelector('#vh-cloudflare-preview-notice').getBoundingClientRect().top,links:[...document.querySelectorAll('footer [data-vh-privacy-link],footer [data-vh-analytics-settings]')].map(el=>el.getBoundingClientRect().bottom),overflow:document.documentElement.scrollWidth>innerWidth}));
