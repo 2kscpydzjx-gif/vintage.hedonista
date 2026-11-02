@@ -25,11 +25,11 @@ const box=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return 
    assert.ok(Math.abs(h.x-b.x)<1&&Math.abs(h.w-b.w)<1,'Stacked copy has mismatched gutters at '+width);
    assert.equal(h.left,0);assert.equal(h.right,0);assert.equal(b.left,0);assert.equal(b.right,0);
    const slowCenter=await slow.evaluate(el=>{const r=el.getBoundingClientRect();return r.x+r.width/2});assert.ok(Math.abs(h.center-slowCenter)<1);
-   assert.equal(await body.locator('p').evaluate(el=>getComputedStyle(el).textAlign),'left');
+   assert.equal(await body.locator('p').evaluate(el=>getComputedStyle(el).textAlign),'center');
    const heroParagraphs=await p.locator('#heroDescription,#heroDescription > p').evaluateAll(nodes=>nodes.map(el=>{const r=el.getBoundingClientRect();return [r.x,r.width]}));
    assert.ok(heroParagraphs.every(r=>Math.abs(r[0]-heroParagraphs[0][0])<1&&Math.abs(r[1]-heroParagraphs[0][1])<1),'Nested rich description is offset');
   }else{
-   assert.equal(h.left,12);assert.ok(h.right>20);assert.ok(b.left>20,'Tablet/desktop column controls changed');
+   assert.equal(h.left,0);assert.equal(h.right,0);assert.equal(b.left,0,'Slow Fashion retains excessive saved column insets');
    assert.equal(await p.locator('#heroTitle').evaluate(el=>getComputedStyle(el).textAlign),'start');
   }
   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Horizontal overflow at '+width);
@@ -42,5 +42,5 @@ const box=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return 
  }
  assert.equal(f.calls.some(c=>c.table==='vh_page_revisions'&&c.op!=='select'),false);
  assert.deepEqual(f.errors,[]);
- console.log('PASS: mobile home title centering, matching copy gutters despite saved desktop insets, full-width rich descriptions, native/CMS layouts and untouched tablet/desktop alignment; no content writes.');
+ console.log('PASS: centred mobile Slow Fashion, matching copy gutters, clean desktop columns, full-width rich descriptions and untouched hero/CMS records.');
 }finally{await f.browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

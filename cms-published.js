@@ -143,7 +143,31 @@ function cmsApplyPublishedAnimation(section,animation){
  @media(prefers-reduced-motion:reduce){.cms-animation-fade-up,.cms-animation-fade-left,.cms-animation-fade-right,.cms-animation-fade,.cms-animation-zoom{animation:none!important}}
  `;document.head.append(css)}
 }
-function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};const publishedOrder=d.shared?.cmsPageDraft?.order;if(page==='about'&&Array.isArray(publishedOrder)&&publishedOrder.length){original.forEach((el,i)=>{if(!publishedOrder.includes(window.VHCMSModel.sectionId(el,i)))el.style.display='none'})}original.forEach((el,i)=>{const e=edits[window.VHCMSModel.sectionId(el,i)];if(!e)return;if(e.design?.layoutVersion===1){window.VHCMSModel.applyMapped(el,e.mapped,page);window.VHCMSModel.applyDesign(el,e.design,page,e);window.VHCMSModel.motion(el,e.animation,e.duration);return;}el.dataset.vhCmsIndex=String(i);window.VHCMSModel.applyFieldStyles(el,e.fieldStyles,page);if(e.images&&e.design?.photoPreset!=='gradient-hero')cmsApplyPublishedImages(el,e.images);cmsApplyPublishedAnimation(el,e.animation);if(e.hidden)el.style.display='none';window.VHCMSModel.applyMapped(el,e.mapped,page);if(page==='home'&&el.matches('.homepage-capsules')){
+function homeEditorialFlow(el,edit){
+ if(page!=='home'||!el.matches('[data-cms-legacy="existing-3"]'))return;
+ const active=el.dataset.vhLayout==='text-top'&&!!el.querySelector(':scope>.vh-cms-composition>.vh-cms-copy>.vh-cms-copy-heading');
+ el.classList.toggle('vh-home-editorial-flow',active);if(!active)return;
+ const copy=el.querySelector(':scope>.vh-cms-composition>.vh-cms-copy');if(!copy)return;
+ // Keep the published photo footprint/crop; only the text stops sharing its fixed height.
+ const design=edit.design||{},height=Number(design.height),share=Number(design.photoWidth);
+ const photoHeight=design.heightMode==='fixed'&&design.height!=null&&design.height!==''&&Number.isFinite(height)?Math.max(120,Math.min(1600,height))*Math.max(20,Math.min(80,Number.isFinite(share)?share:50))/100:Math.max(120,Math.min(800,Number(design.maxPhotoHeight)||480));
+ el.style.setProperty('--vh-editorial-photo-height',photoHeight+'px');
+ copy.style.removeProperty('column-gap');
+ for(const column of copy.querySelectorAll('.vh-cms-copy-heading,.vh-cms-copy-body')){
+  for(const node of column.querySelectorAll('h1,h2,h3,h4,p,div,li,blockquote,.eyebrow'))node.style.removeProperty('text-align');
+  for(const heading of column.querySelectorAll('h1,h2,h3')){
+   heading.querySelectorAll('br').forEach(br=>br.replaceWith(' '));
+   heading.textContent=heading.textContent.replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+   for(const prop of ['font-size','line-height','letter-spacing'])heading.style.removeProperty(prop);
+  }
+  for(const node of column.querySelectorAll('p,.eyebrow')){
+   const empty=n=>n.nodeType===3&&!n.textContent.replace(/\u00a0/g,' ').trim()||n.nodeType===1&&(n.tagName==='BR'||/^(P|SPAN|DIV)$/.test(n.tagName)&&!n.textContent.replace(/\u00a0/g,' ').trim());
+   while(node.firstChild&&empty(node.firstChild))node.firstChild.remove();
+   while(node.lastChild&&empty(node.lastChild))node.lastChild.remove();
+  }
+ }
+}
+function apply(d){const original=sections(),edits=d.shared?.cmsPageDraft?.existing||{};const publishedOrder=d.shared?.cmsPageDraft?.order;if(page==='about'&&Array.isArray(publishedOrder)&&publishedOrder.length){original.forEach((el,i)=>{if(!publishedOrder.includes(window.VHCMSModel.sectionId(el,i)))el.style.display='none'})}original.forEach((el,i)=>{const e=edits[window.VHCMSModel.sectionId(el,i)];if(!e)return;if(e.design?.layoutVersion===1){window.VHCMSModel.applyMapped(el,e.mapped,page);window.VHCMSModel.applyDesign(el,e.design,page,e);homeEditorialFlow(el,e);window.VHCMSModel.motion(el,e.animation,e.duration);return;}el.dataset.vhCmsIndex=String(i);window.VHCMSModel.applyFieldStyles(el,e.fieldStyles,page);if(e.images&&e.design?.photoPreset!=='gradient-hero')cmsApplyPublishedImages(el,e.images);cmsApplyPublishedAnimation(el,e.animation);if(e.hidden)el.style.display='none';window.VHCMSModel.applyMapped(el,e.mapped,page);if(page==='home'&&el.matches('.homepage-capsules')){
  const media=el.querySelector('#homeCapsulesMedia');
  if(media&&typeof e.capsuleImage==='string'){
   if(e.capsuleImage==='__removed__')media.replaceChildren();

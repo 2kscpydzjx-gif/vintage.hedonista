@@ -18454,6 +18454,26 @@ body.home-page .homepage-capsules .editorial-copy .btn{
 }
 
 /* Mobile catalogue labels and a compact, readable checkout. */
+/* Slow Fashion copy grows independently of the saved fixed photo height. */
+@layer vh-responsive {
+ .home-page .vh-home-editorial-flow>.vh-cms-composition{height:auto!important;min-height:0!important;max-height:none!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto var(--vh-editorial-photo-height,480px)!important}
+ .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-copy{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,45fr) minmax(0,55fr)!important;grid-template-rows:auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;width:100%!important;max-width:100%!important;padding:clamp(28px,3.5vw,48px)!important;gap:clamp(28px,5vw,80px)!important;align-content:start!important;align-items:center!important}
+ .home-page .vh-home-editorial-flow :is(.vh-cms-copy-heading,.vh-cms-copy-body){padding:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;align-self:center!important;justify-content:flex-start!important;align-items:flex-start!important;text-align:left!important;width:100%!important;max-width:none!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-heading{grid-column:1!important;grid-row:1!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-body{grid-column:2!important;grid-row:1!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy :is(h1,h2,h3){font-size:clamp(24px,2.2vw,34px)!important;line-height:1.35!important;letter-spacing:0!important;margin:0!important;text-align:left!important;max-width:100%!important;overflow-wrap:normal!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy .eyebrow{margin:0 0 12px!important;line-height:1.5!important;text-align:left!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-body :is(p,li,blockquote){font-size:15px!important;line-height:1.8!important;margin:0!important;text-align:left!important}
+ .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-photo{grid-column:1!important;grid-row:2!important;height:var(--vh-editorial-photo-height,480px)!important;min-height:0!important;max-height:none!important}
+ @media(max-width:760px){
+  .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-copy{grid-template-columns:minmax(0,1fr)!important;padding:28px clamp(20px,6vw,28px)!important;gap:18px!important;justify-items:center!important}
+  .home-page .vh-home-editorial-flow :is(.vh-cms-copy-heading,.vh-cms-copy-body){max-width:38rem!important;margin:0 auto!important;align-items:center!important;text-align:center!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy-body{grid-column:1!important;grid-row:2!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy :is(h1,h2,h3){font-size:clamp(24px,6.4vw,30px)!important;line-height:1.35!important;text-align:center!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy :is(.eyebrow,p,li,blockquote){text-align:center!important}
+ }
+}
+
 @layer vh-responsive {
  @media(max-width:760px){
   body.catalog-mobile-page #catalogSortCurrent{font-size:12px!important;line-height:1.4!important}

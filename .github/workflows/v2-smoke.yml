@@ -16,6 +16,9 @@ on:
       - 'checkout-feedback.js'
       - 'analytics.js'
       - 'brand.js'
+      - 'brand-logo.css'
+      - 'scripts/brand-logos.mjs'
+      - 'assets/vintazhka-logo-original.png'
       - 'package.json'
       - 'package-lock.json'
       - 'vercel.json'
@@ -134,6 +137,7 @@ jobs:
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
           node tests/home-mobile-copy.cjs
+          node tests/home-editorial-flow.cjs
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
           node tests/cms-public-shell.cjs

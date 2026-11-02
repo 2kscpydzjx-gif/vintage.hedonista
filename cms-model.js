@@ -359,7 +359,7 @@
  }
  function applyLogo(image,value){
   if(!image||typeof value!=='string')return;
-  if(!image.dataset.vhLogoDefault)image.dataset.vhLogoDefault=image.getAttribute('src')||'assets/vintage-hedonista-logo-v257.webp';
+  if(!image.dataset.vhLogoDefault)image.dataset.vhLogoDefault=image.getAttribute('src')||'assets/vintazhka-logo-original.png';
   if(value==='__removed__'){image.style.visibility='hidden';return}
   const source=value.trim()||image.dataset.vhLogoDefault;
   image.style.removeProperty('visibility');

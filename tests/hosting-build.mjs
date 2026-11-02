@@ -38,7 +38,7 @@ for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs']
 console.log(build(false).trim());
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);assert.equal(read('robots.txt'),readFileSync(join(root,'robots.txt'),'utf8'));
 for(const excluded of ['.git','node_modules','tests','docs','scripts','supabase','work','package.json','package-lock.json','vercel.json','launch-site.json','SUPABASE_ORDER_PERMISSIONS_V250.sql'])assert.equal(existsSync(join(root,'dist',excluded)),false,excluded+' leaked into public build');
-for(const required of ['brand.js','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
+for(const required of ['brand.js','brand-logo.css','assets/vintazhka-logo-original.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
 function htmlFiles(dir){return readdirSync(dir).flatMap(name=>{const path=join(dir,name);return statSync(path).isDirectory()?htmlFiles(path):name.endsWith('.html')?[path]:[]})}
 let checked=0;
 for(const file of htmlFiles(join(root,'dist'))){

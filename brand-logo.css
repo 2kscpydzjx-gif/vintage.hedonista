@@ -1,0 +1,13 @@
+/* The supplied PNG stays unchanged. These viewports hide its empty outer canvas. */
+@layer vh-responsive {
+ .vh-logo-viewport{display:contents}
+ .vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"]){position:relative!important;display:block!important;flex:0 0 auto!important;width:min(112px,100%)!important;aspect-ratio:4/3!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;margin:0!important;padding:0!important;line-height:0!important}
+ .vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"])>img{position:absolute!important;inset:auto!important;left:-4.310345%!important;top:-26.436782%!important;display:block!important;width:108.103448%!important;height:auto!important;min-width:0!important;max-width:none!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;transform:none!important;object-fit:contain!important;object-position:center!important}
+ body>header .brand>.vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"]){width:85.333333px!important;height:64px!important;max-width:100%!important}
+ .vh-footer-logo-link:has(>.vh-logo-viewport>img[src*="vintazhka-logo-original.png"]){height:auto!important;min-height:0!important;max-height:none!important}
+ .vh-admin-shell .sidebar .brand>.vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"]){width:120px!important;height:90px!important;margin-inline:auto!important}
+ .vh-admin-login .login-brand>.vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"]){width:min(200px,100%)!important;height:auto!important;margin-inline:auto!important}
+ @media(max-width:1199px),(max-width:1439px) and (pointer:coarse){
+  .vh-footer-logo-link>.vh-logo-viewport.vh-logo-viewport:has(>img[src*="vintazhka-logo-original.png"]){width:85.333333px!important;height:64px!important;max-width:100%!important}
+ }
+}
