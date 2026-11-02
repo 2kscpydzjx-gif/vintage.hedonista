@@ -19,6 +19,12 @@ on:
       - 'brand-logo.css'
       - 'scripts/brand-logos.mjs'
       - 'assets/vintazhka-logo-original.png'
+      - 'assets/icons/**'
+      - 'site.webmanifest'
+      - 'favicon.ico'
+      - 'apple-touch-icon.png'
+      - 'scripts/app-icons.mjs'
+      - 'scripts/generate-app-icons.cjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vercel.json'
@@ -100,6 +106,7 @@ jobs:
         run: |
           node tests/resend-domain-sender.mjs
           node tests/hosting-build.mjs
+          node tests/app-icons.cjs
           node tests/seo-domain.cjs
           node tests/cloudflare-pages.cjs
       - name: Test editor and storefront with isolated data

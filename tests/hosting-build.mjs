@@ -38,13 +38,13 @@ for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs']
 console.log(build(false).trim());
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);assert.equal(read('robots.txt'),readFileSync(join(root,'robots.txt'),'utf8'));
 for(const excluded of ['.git','node_modules','tests','docs','scripts','supabase','work','package.json','package-lock.json','vercel.json','launch-site.json','SUPABASE_ORDER_PERMISSIONS_V250.sql'])assert.equal(existsSync(join(root,'dist',excluded)),false,excluded+' leaked into public build');
-for(const required of ['brand.js','brand-logo.css','assets/vintazhka-logo-original.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
+for(const required of ['brand.js','brand-logo.css','assets/vintazhka-logo-original.png','favicon.ico','apple-touch-icon.png','site.webmanifest','admin/site.webmanifest','assets/icons/apple-touch-icon-180.png','assets/icons/favicon-16.png','assets/icons/favicon-32.png','assets/icons/icon-192.png','assets/icons/icon-512.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
 function htmlFiles(dir){return readdirSync(dir).flatMap(name=>{const path=join(dir,name);return statSync(path).isDirectory()?htmlFiles(path):name.endsWith('.html')?[path]:[]})}
 let checked=0;
 for(const file of htmlFiles(join(root,'dist'))){
  const html=readFileSync(file,'utf8'),url=new URL(file.slice(join(root,'dist').length),'https://build.example'),base=html.match(/<base\b[^>]*href="([^"]+)"/)?.[1],doc=base?new URL(base,url):url;
  for(const match of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g)){
-  const target=new URL(match[1],doc);if(target.origin!=='https://build.example'||!(/\.(?:js|css|png|woff2?|ico|webp)$/.test(target.pathname)))continue;
+  const target=new URL(match[1],doc);if(target.origin!=='https://build.example'||!(/\.(?:js|css|png|woff2?|ico|webp|webmanifest)$/.test(target.pathname)))continue;
   assert.equal(existsSync(join(root,'dist',decodeURIComponent(target.pathname))),true,file+' missing '+target.pathname);checked++;
  }
 }
