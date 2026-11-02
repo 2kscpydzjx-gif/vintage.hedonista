@@ -6,7 +6,7 @@ const build=preview=>execFileSync(process.execPath,['scripts/build-hosting.mjs',
 function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.join(dir,name);return fs.statSync(file).isDirectory()?walk(file):[file]})}
 (async()=>{let server;const f=await fixture({reducedMotion:'reduce'});try{
  console.log(build(true).trim());f.user(null);f.session(null);
- server=http.createServer(pagesHandler(dist,f.png));await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const handler=await pagesHandler(dist,f.png);server=http.createServer(handler);server.once('close',handler.close);await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  await f.context.route(base+'/**',route=>route.continue());
  const kinds={'seo-product':'product','seo-category':'catalog','seo-subcategory':'catalog','seo-article':'journal'};
  let checked=0;
@@ -16,7 +16,7 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
   for(const tail of ['/index.html','/','']){
    const r=await fetch(base+'/'+old+'/'+suffix+tail+'?utm_source=saved-link&note=a%26b',{redirect:'manual'});assert.equal(r.status,301);const target=new URL(r.headers.get('location'),base);assert.equal(target.pathname,'/'+next);assert.equal(target.searchParams.get('utm_source'),'saved-link');assert.equal(target.searchParams.get('note'),'a&b');
   }
-  const response=await fetch(base+'/'+next);assert.equal(response.status,200);const html=await response.text();
+  const response=await fetch(base+'/'+next,{redirect:'manual'});assert.equal(response.status,200,'public URL redirected instead of serving the page: '+next);const html=await response.text();
   assert.ok(/<h1\b/.test(html),'static content missing '+next);assert.ok(html.includes('rel="canonical" href="'+domain+next+'"'));assert.doesNotMatch(html,/href="[^"<>]*seo-(?:product|category|subcategory|article)\//);
   const canonical=await fetch(base+'/'+next+'index.html',{redirect:'manual'});assert.equal(canonical.status,301);assert.equal(new URL(canonical.headers.get('location'),base).pathname,'/'+next);checked++;
  }
@@ -38,7 +38,7 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
   await p.locator('[onclick="addCurrentProductToCart()"]').click();await p.locator('[data-header-cart]').click();await p.locator('#vhCheckoutLink').click();await p.waitForURL('**/checkout');await p.locator('.checkout-item').waitFor();
   // No snapshot is needed for a newly published product or article.
   for(const route of ['product/'+fresh.slug+'/','product.html?slug='+fresh.slug+'&utm_source=shared']){
-   const response=await p.goto(base+'/'+route);assert.equal(response.status(),200);await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Новий жакет');assert.equal(new URL(p.url()).pathname,'/product/'+fresh.slug+'/');assert.equal(await p.locator('link[rel=canonical]').getAttribute('href'),domain+'product/'+fresh.slug+'/');assert.equal(await p.evaluate(()=>document.baseURI),base+'/');
+   const response=await p.goto(base+'/'+route);assert.equal(response.status(),200);if(route.startsWith('product/'))assert.equal(response.request().redirectedFrom(),null,'clean product URL lost its slug in a redirect');await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Новий жакет');assert.equal(new URL(p.url()).pathname,'/product/'+fresh.slug+'/');assert.equal(await p.locator('link[rel=canonical]').getAttribute('href'),domain+'product/'+fresh.slug+'/');assert.equal(await p.evaluate(()=>document.baseURI),base+'/');
   }
   await p.goto(base+'/journal/'+article.slug+'/');await p.locator('#articleRoot h1').filter({hasText:'Нова історія'}).waitFor();await p.waitForFunction(()=>document.querySelector('meta[property="og:type"]')?.content==='article');assert.equal(await p.locator('link[rel=canonical]').getAttribute('href'),domain+'journal/'+article.slug+'/');
   await p.goto(base+'/catalog/verkhnii-odyah/');await p.waitForFunction(()=>VHCMSBoot.state==='ready');assert.equal(await p.evaluate(()=>catalogState.category),'verkhnii-odyah');
@@ -49,6 +49,6 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
  }
  const missing=await p.goto(base+'/neisnuyucha-storinka');assert.equal(missing.status(),404);
  assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.equal(f.rpcCalls.length,0);assert.equal(f.functionCalls.length,0);
- console.log('PASS: '+checked+' static clean URLs, single-hop permanent redirects and query retention, complete initial HTML/canonical/OG/JSON-LD/sitemap, new products/articles/categories before snapshots, desktop/mobile catalog→product→cart→checkout, filters, root assets and no data writes.');
+ console.log('PASS: genuine Cloudflare Pages handler accepts every rule; '+checked+' static clean URLs, single-hop permanent redirects and query retention, complete initial HTML/canonical/OG/JSON-LD/sitemap, new products/articles/categories before snapshots, desktop/mobile catalog→product→cart→checkout, filters, root assets and no data writes.');
  console.log(build(false).trim());assert.doesNotMatch(fs.readFileSync(path.join(dist,'index.html'),'utf8'),/readOnlyData/);
 }finally{await f.browser.close();if(server)await new Promise(r=>server.close(r));execFileSync(process.execPath,['scripts/build-hosting.mjs'],{cwd:root,env:{...process.env,CF_PAGES:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',SITE_BASE_URL:''},stdio:'pipe'})}})().catch(e=>{console.error(e);process.exitCode=1});

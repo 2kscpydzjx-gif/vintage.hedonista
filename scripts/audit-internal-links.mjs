@@ -4,8 +4,10 @@ import {readFileSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {configuredSite} from './seo-deployment.mjs';
+import {cleanAssetFile} from './clean-urls.mjs';
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.find(arg=>arg.startsWith('--root='))?.slice(7)||'.');
 const base=configuredSite(pathToFileURL(root+'/'));
+const clean=/cleanUrls\s*[:=]\s*true/.test(readFileSync(join(root,'config.js'),'utf8'));
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const locs=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
 const products=locs.filter(u=>new URL(u).pathname.match(/\/(?:seo-product|product)\//));
@@ -16,7 +18,7 @@ let missingSourceFiles=0;
 for(const url of sources){
   const pathname=decodeURIComponent(new URL(url).pathname);
   const path=pathname.slice(new URL(base).pathname.length),relative=!path||path.endsWith('/')?path+'index.html':/\.[^/]+$/.test(path)?path:path+'.html';
-  const file=join(root,relative);
+  const file=join(root,clean?cleanAssetFile(relative):relative);
   if(!existsSync(file)){missingSourceFiles++;continue}
   const html=readFileSync(file,'utf8');
   for(const match of html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi)){

@@ -7,7 +7,8 @@ let server,base;
 const read=file=>fs.readFileSync(path.join(dist,file),'utf8');
 function build(branch,test=false){return execFileSync(process.execPath,['scripts/build-hosting.mjs','--launch-domain',...(test?['--cloudflare-test']:[])],{cwd:root,env:{...process.env,VH_NAVIGATION_SNAPSHOT_FILE:path.join(root,'scripts/published-navigation.json'),SITE_BASE_URL:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',CF_PAGES:'1',CF_PAGES_BRANCH:branch,VH_PRODUCTION_BRANCH:'main'},encoding:'utf8'})}
 async function pagesRouting(f){
- server=http.createServer(require('./pages-routing.cjs').pagesHandler(dist,f.png));
+ const handler=await require('./pages-routing.cjs').pagesHandler(dist,f.png);
+ server=http.createServer(handler);server.once('close',handler.close);
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base='http://127.0.0.1:'+server.address().port;
  await f.context.route(base+'/**',route=>route.continue());
 }

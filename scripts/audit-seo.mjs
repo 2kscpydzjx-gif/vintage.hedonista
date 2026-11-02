@@ -2,10 +2,12 @@ import {readFileSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {configuredSite,pageAddress,prettyAddress} from './seo-deployment.mjs';
-import {snapshotIdentity} from './clean-urls.mjs';
+import {snapshotIdentity,cleanAssetFile} from './clean-urls.mjs';
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.find(arg=>arg.startsWith('--root='))?.slice(7)||'.');
 const base=configuredSite(pathToFileURL(root+'/'));
 const pretty=/prettyUrls\s*[:=]\s*true/.test(readFileSync(join(root,'config.js'),'utf8'));
+const clean=/cleanUrls\s*[:=]\s*true/.test(readFileSync(join(root,'config.js'),'utf8'));
+const asset=file=>join(root,clean?cleanAssetFile(file):file);
 function localPath(address){const url=new URL(address);if(url.origin!==new URL(base).origin||!url.pathname.startsWith(new URL(base).pathname))throw Error('URL outside configured site: '+address);const path=decodeURIComponent(url.pathname.slice(new URL(base).pathname.length));return !path||path.endsWith('/')?path+'index.html':/\.[^/]+$/.test(path)?path:path+'.html'}
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
@@ -15,7 +17,7 @@ for(const address of urls){
  const u=new URL(address);
  const path=localPath(address),identity=snapshotIdentity(path); // URL is encoded, disk folder is Unicode
  if(!/^seo-(product|article|category|subcategory)\//.test(identity))continue;
- const file=join(root,path);checked++;
+ const file=asset(path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
  const html=readFileSync(file,'utf8');
  const documentBase=new URL(html.match(/<base\b[^>]*href="([^"]+)"/i)?.[1]||address,address);
@@ -38,7 +40,7 @@ for(const address of urls){
      errors.push('Unexpected subcategory link: '+href);continue
     }
     const targetPath=localPath(target.href);
-    if(!existsSync(join(root,targetPath)))errors.push('Broken subcategory link: '+href);
+    if(!existsSync(asset(targetPath)))errors.push('Broken subcategory link: '+href);
    }
   }
  }

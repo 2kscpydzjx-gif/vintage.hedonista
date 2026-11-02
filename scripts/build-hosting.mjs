@@ -9,7 +9,7 @@ import brand from '../brand.js';
 import {renderBrandLogos} from './brand-logos.mjs';
 import {renderAppIcons} from './app-icons.mjs';
 import {renderStorefrontFooter} from './storefront-footer.mjs';
-import {cleanReferences,cleanFile,cleanRedirects} from './clean-urls.mjs';
+import {cleanReferences,cleanAssetFile,cleanRedirects} from './clean-urls.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
 const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm|pdf)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
@@ -74,7 +74,7 @@ for(const file of publicFiles){
   const html=content.toString(),guard='<script>window.VH_DEPLOYMENT='+JSON.stringify({readOnlyData:true,supabaseOrigin})+';'+previewGuard+'</script>';
   content=Buffer.from(html.replace(/<meta\b[^>]*charset=[^>]*>/i,match=>match+guard));
  }
- const dest=path.join(out,cloudflare?cleanFile(file):file);await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,content);count++;
+ const dest=path.join(out,cloudflare?cleanAssetFile(file):file);await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,content);count++;
 }
 if(cloudflare){
  await writeFile(path.join(out,'_redirects'),cleanRedirects(publicFiles));

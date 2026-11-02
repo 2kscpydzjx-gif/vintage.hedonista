@@ -8,6 +8,12 @@ export function cleanReferences(text,base){
  return text.replace(expression,(_,root,prefix)=>root+kinds[prefix.slice(0,-1)]+'/');
 }
 export function cleanFile(file){return file.replace(/^seo-(?:product|category|subcategory|article)\//,prefix=>kinds[prefix.slice(0,-1)]+'/')}
+// Pages normalizes index.html before serving proxy targets. Keep the public
+// trailing-slash URL separate from its flat, extensionless asset target.
+export function cleanAssetFile(file){
+ const clean=cleanFile(file);
+ return /^(?:product|catalog|journal)\/.+\/index\.html$/.test(clean)?clean.replace(/\/index\.html$/,'.html'):file;
+}
 export function snapshotIdentity(file){
  if(file.startsWith('product/'))return file.replace(/^product\//,'seo-product/');
  if(file.startsWith('journal/'))return file.replace(/^journal\//,'seo-article/');
@@ -28,8 +34,8 @@ export function cleanRedirects(files){
  // Exact rewrites precede fallbacks so crawlers receive the existing static
  // product/article/editorial HTML. New items work before the next SEO snapshot.
  const exact=['/catalog/ /catalog 301','/journal/ /journal 301'];
- for(const file of snapshots){const target='/'+cleanFile(file).split('/').map(encodeURIComponent).join('/');exact.push(target.slice(0,-10)+' '+target+' 200')}
- lines.push('/product/:slug/ /product.html?slug=:slug 200','/journal/:slug/ /article.html?slug=:slug 200','/catalog/:category/:slug/ /catalog.html?category=:category&subcategory=:slug 200','/catalog/:category/ /catalog.html?category=:category 200');
+ for(const file of snapshots){const source='/'+cleanFile(file).split('/').map(encodeURIComponent).join('/'),target='/'+cleanAssetFile(file).split('/').map(encodeURIComponent).join('/');exact.push(source.slice(0,-10)+' '+target.slice(0,-5)+' 200')}
+ lines.push('/product/:slug/ /product?slug=:slug 200','/journal/:slug/ /article?slug=:slug 200','/catalog/:category/:slug/ /catalog?category=:category&subcategory=:slug 200','/catalog/:category/ /catalog?category=:category 200');
  const rules=[...exact,...lines];
  if(rules.some(rule=>rule.length>1000))throw Error('A clean URL rule exceeds the Cloudflare 1000-character limit');
  return rules.join('\n')+'\n';
