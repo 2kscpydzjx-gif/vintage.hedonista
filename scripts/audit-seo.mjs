@@ -71,7 +71,7 @@ for(const address of urls){
   const genericDescription=seoDescription.startsWith('Переглядайте ')&&seoDescription.includes(' у Vintazhka:');
   if(genericTitle||genericDescription)templateMetadata.push({path,title:genericTitle,description:genericDescription});
   if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
-  if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
+  if(!/<script defer src="site(?:\.[a-f0-9]{12})?\.js(?:\?v=\d+)?"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);
  }
 }
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];

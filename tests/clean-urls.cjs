@@ -24,11 +24,19 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
  for(const rootPage of ['catalog','journal']){const r=await fetch(base+'/'+rootPage+'/',{redirect:'manual'});assert.equal(r.status,301);assert.equal(new URL(r.headers.get('location'),base).pathname,'/'+rootPage)}
  const known={id:'route-known',slug:'vovnyanyi-zhaket-kardyhan',name:'Вовняний жакет',price:1200,status:'published',category_id:'outer',subcategory_id:'kimono',categories:{name:'Верхній одяг',slug:'verkhnii-odyah'},subcategories:{name:'Кімоно',slug:'kimono'},cover_image:base+'/assets/test-upload.png',product_images:[]};
  const fresh={...known,id:'route-fresh',slug:'novyi-zhaket-bez-snapshot',name:'Новий жакет'},article={id:'article-fresh',slug:'nova-istoriya-bez-snapshot',title:'Нова історія',excerpt:'Короткий опис',content:'Історія речей.',status:'published',published_at:'2026-11-02'};
- f.data('products',[known,fresh]);f.data('news',[article]);f.data('categories',[{id:'outer',name:'Верхній одяг',slug:'verkhnii-odyah',is_active:true},{id:'fresh-category',name:'Нова категорія',slug:'nova-kategoriya',is_active:true}]);f.data('subcategories',[{id:'kimono',category_id:'outer',name:'Кімоно',slug:'kimono'}]);
+ const reported={...known,id:'reported-skirt',slug:'vintazhna-midi-spidnytsya-u-pisochno-terakotovu-klitynku',name:'Вінтажна міді спідниця у пісочно-теракотову клітинку'};
+ f.data('products',[known,fresh,reported]);f.data('news',[article]);f.data('categories',[{id:'outer',name:'Верхній одяг',slug:'verkhnii-odyah',is_active:true},{id:'fresh-category',name:'Нова категорія',slug:'nova-kategoriya',is_active:true}]);f.data('subcategories',[{id:'kimono',category_id:'outer',name:'Кімоно',slug:'kimono'}]);
  f.data('vh_seo_metadata',[{entity_type:'page',entity_id:'home',seo_title:'SAVED HOME TITLE',meta_description:'Home description'},{entity_type:'page',entity_id:'catalog',seo_title:'SAVED CATALOG TITLE',meta_description:'Catalog description'}]);
+ // Simulate the old cached router at its historical URL. New HTML must never
+ // request this cache key, including on the exact product reported in production.
+ let staleRequests=0;
+ await f.context.route(base+'/site.js*',route=>{staleRequests++;return route.fulfill({contentType:'text/javascript',body:'function initProduct(){document.getElementById("productRoot").innerHTML="<h1>Товар не знайдено</h1>"}'})});
  const p=await f.context.newPage();
  for(const width of [390,1440]){
   await p.setViewportSize({width,height:950});
+  await p.goto(base+'/product/'+reported.slug+'/');await p.waitForFunction(()=>typeof currentProduct!=='undefined'&&currentProduct?.id==='reported-skirt');await p.locator('#productName').filter({hasText:reported.name}).waitFor();
+  assert.match(await p.locator('script[src*="site."]').getAttribute('src'),/^site\.[a-f0-9]{12}\.js$/);
+  assert.equal(await p.locator('#productRoot').getByText('Товар не знайдено',{exact:true}).count(),0);
   // A real catalog link, then product/gallery/breadcrumbs/cart and checkout.
   await p.goto(base+'/catalog');await p.waitForFunction(()=>VHCMSBoot.state==='ready');await p.locator('#catalogProducts a[href="product/'+known.slug+'/"]').first().click();
   await p.waitForURL('**/product/'+known.slug+'/');await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Вовняний жакет');
@@ -48,6 +56,7 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
   await p.goto(base+'/product/neisnuyuchyi-tovar/');await p.locator('#productRoot h1').filter({hasText:'Товар не знайдено'}).waitFor();assert.match(await p.locator('meta[name=robots]').getAttribute('content'),/noindex/);
  }
  const missing=await p.goto(base+'/neisnuyucha-storinka');assert.equal(missing.status(),404);
+ assert.equal(staleRequests,0,'a pre-migration cached router URL was requested');
  assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.equal(f.rpcCalls.length,0);assert.equal(f.functionCalls.length,0);
  console.log('PASS: genuine Cloudflare Pages handler accepts every rule; '+checked+' static clean URLs, single-hop permanent redirects and query retention, complete initial HTML/canonical/OG/JSON-LD/sitemap, new products/articles/categories before snapshots, desktop/mobile catalog→product→cart→checkout, filters, root assets and no data writes.');
  console.log(build(false).trim());assert.doesNotMatch(fs.readFileSync(path.join(dist,'index.html'),'utf8'),/readOnlyData/);

@@ -3,6 +3,7 @@ import {readFile,mkdir,writeFile,rm,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {transform} from 'esbuild';
+import {createHash} from 'node:crypto';
 import {configuredSite,launchSite,siteBase,rebaseSiteReferences,snapshotBase,localNavigation,robots,prettySiteReferences} from './seo-deployment.mjs';
 import {publishedNavigation,renderPublishedNavigation} from './published-navigation.mjs';
 import brand from '../brand.js';
@@ -77,6 +78,24 @@ for(const file of publicFiles){
  const dest=path.join(out,cloudflare?cleanAssetFile(file):file);await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,content);count++;
 }
 if(cloudflare){
+ // Route parsers must not share cache keys with the pre-migration scripts.
+ // Keep aliases at the root so document.currentScript-relative imports work.
+ const routingFiles=['site.js','config.js','product-routes.js','vh-seo-runtime.js','vh-page-seo.js','cms-published.js'];
+ const routingNames=new Map();
+ for(const file of routingFiles){
+  const bytes=await readFile(path.join(out,file));
+  const name=file.slice(0,-3)+'.'+createHash('sha256').update(bytes).digest('hex').slice(0,12)+'.js';
+  routingNames.set(file,name);await writeFile(path.join(out,name),bytes);
+ }
+ for(const file of publicFiles.filter(file=>file.endsWith('.html')&&!file.startsWith('admin/'))){
+  const dest=path.join(out,cleanAssetFile(file)),html=await readFile(dest,'utf8');
+  const fresh=html.replace(/(<script\b[^>]*\bsrc=")([^"]+)(")/gi,(all,start,src,end)=>{
+   if(/^(?:https?:)?\/\//i.test(src))return all;
+   const url=new URL(src,'https://local.invalid/'),name=routingNames.get(url.pathname.slice(1));
+   return name?start+name+end:all;
+  });
+  await writeFile(dest,fresh);
+ }
  await writeFile(path.join(out,'_redirects'),cleanRedirects(publicFiles));
  const headers='/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'+(cloudflarePreview?'  X-Robots-Tag: noindex, nofollow, noarchive\n':'')+'\n/site.webmanifest\n  Content-Type: application/manifest+json\n\n/admin/site.webmanifest\n  Content-Type: application/manifest+json\n\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n';
  await writeFile(path.join(out,'_headers'),headers);
