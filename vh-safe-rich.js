@@ -1,4 +1,4 @@
-/* Vintage Hedonista shared safe rich text output */
+/* Vintazhka shared safe rich text output */
 (function(){
  const tags=new Set(['P','DIV','BR','STRONG','B','EM','I','UL','OL','LI','H1','H2','H3','H4','A','BLOCKQUOTE','FIGURE','FIGCAPTION','IMG']);
  function ok(url){const s=String(url||'').trim();if(!s||/[\u0000-\u001f]/.test(s))return false;return /^(https?:\/\/|mailto:|tel:|\/(?!\/)|\.\/|\.\.\/|#)/i.test(s)}

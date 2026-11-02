@@ -55,7 +55,7 @@
   const root=kind==='order'?rootFor(kind):document.querySelector('.checkout-grid');if(!root)return;
   const section=document.createElement('section');section.className='checkout-success vh-order-success';section.tabIndex=-1;section.setAttribute('role','status');section.setAttribute('aria-live','polite');
   const add=(tag,text,className)=>{const el=document.createElement(tag);el.textContent=text;if(className)el.className=className;section.append(el);return el};
-  add('div','VINTAGE HEDONISTA','kicker');add('h2','ЗАМОВЛЕННЯ ПРИЙНЯТО');
+  add('div','VINTAZHKA','kicker');add('h2','ЗАМОВЛЕННЯ ПРИЙНЯТО');
   if(orderNumber&&/^[\p{L}\p{N}# /_-]{1,60}$/u.test(String(orderNumber)))add('p','Номер замовлення: '+orderNumber);
   if(items.length){const list=add('ul','');for(const item of items){const li=document.createElement('li');li.textContent=String(item.name||'Товар');list.append(li)}}
   if(Number.isFinite(total))add('p','Разом: '+new Intl.NumberFormat('uk-UA').format(total)+' грн','vh-order-success-total');

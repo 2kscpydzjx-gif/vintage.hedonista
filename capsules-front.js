@@ -41,7 +41,7 @@ async function detail(){
  q=key?(isUuid?q.eq('id',key):q.eq('slug',key)):q.order('created_at',{ascending:true}).limit(1);
  const {data:style,error}=await q.maybeSingle();
  if(error||!style){showError(error?.message||'Стиль не знайдено');return}
- document.title=`${style.title||'Капсули'} — Vintage Hedonista`;
+ document.title=`${style.title||'Капсули'} — Vintazhka`;
  // STEP 49: test the full-bleed editorial HERO only for PREPPY.
  document.body.classList.add('vh-preppy-full-hero');
  const hero=document.querySelector('.capsule-detail-placeholder'); imageBox(hero,style.hero_image,'HERO ФОТО','РЕКОМЕНДОВАНО 1600 × 1200 px');

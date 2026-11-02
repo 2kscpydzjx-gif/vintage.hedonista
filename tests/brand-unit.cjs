@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const brand=require('../brand.js');
+assert.equal(brand.text('Vintage Hedonista — речі з історією'),'Vintazhka — речі з історією');
+assert.equal(brand.text('VINTAGE\nHEDONISTA'),'VINTAZHKA');
+assert.equal(brand.text('VINTAGE\\nHEDONISTA'),'VINTAZHKA');
+assert.equal(brand.text('VINTAGE<br>HEDONISTA'),'VINTAZHKA');
+assert.equal(brand.text('HEDONISTA JOURNAL&nbsp;<br>'),'VINTAZHKA JOURNAL&nbsp;<br>');
+assert.equal(brand.text('HEDONISTA\nGUIDE'),'VINTAZHKA\nGUIDE');
+const original={price:700,measurements_v2:{waist:70},instagram:'@vintage_hedonista',contacts_telegram_text:'Vintage Hedonista',href:'https://example.test/vintage.hedonista/',storageKey:'vintage-hedonista-customer-auth',shared:{nav:{3:{label:'HEDONISTA JOURNAL',href:'journal.html'}},cmsPageDraft:{existing:{'existing-0':{mapped:{'unified:title':'VINTAGE HEDONISTA'}}}}}};
+const saved=structuredClone(original),view=brand.content(original);
+assert.deepEqual(original,saved,'brand rendering mutated original data');
+assert.equal(view.shared.nav[3].label,'VINTAZHKA JOURNAL');assert.equal(view.shared.cmsPageDraft.existing['existing-0'].mapped['unified:title'],'VINTAZHKA');
+assert.equal(view.href,original.href);assert.equal(view.storageKey,original.storageKey);assert.equal(view.instagram,original.instagram);assert.equal(view.contacts_telegram_text,original.contacts_telegram_text);assert.equal(view.price,700);assert.deepEqual(view.measurements_v2,original.measurements_v2);
+assert.equal(brand.socialLabel('@vintage_hedonista'),'Instagram');assert.equal(brand.socialLabel('@vintage_hedonista','Telegram'),'Telegram');assert.equal(brand.socialLabel('Vintage Hedonista','Telegram'),'Vintazhka');
+console.log('PASS: legacy brand label normalization, rich/newline headings, fresh view objects, unchanged social destinations, auth storage keys, prices and measurements.');

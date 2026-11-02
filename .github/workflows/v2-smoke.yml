@@ -15,6 +15,10 @@ on:
       - 'storefront-ui.js'
       - 'checkout-feedback.js'
       - 'analytics.js'
+      - 'brand.js'
+      - 'brand-logo.css'
+      - 'scripts/brand-logos.mjs'
+      - 'assets/vintazhka-logo-original.png'
       - 'package.json'
       - 'package-lock.json'
       - 'vercel.json'
@@ -56,6 +60,8 @@ jobs:
           node --check storefront-ui.js
           node --check checkout-feedback.js
           node --check analytics.js
+          node --check brand.js
+          node tests/brand-unit.cjs
           node --check image-variants.js
           node --check product-routes.js
           node --check vh-seo-runtime.js
@@ -127,9 +133,11 @@ jobs:
           node tests/tablet-device-profiles.cjs
           node tests/cart-checkout.cjs
           node tests/store-analytics.cjs
+          node tests/brand-mobile.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
           node tests/home-mobile-copy.cjs
+          node tests/home-editorial-flow.cjs
           node tests/mobile-storefront.cjs
           node tests/storefront-shell.cjs
           node tests/cms-public-shell.cjs

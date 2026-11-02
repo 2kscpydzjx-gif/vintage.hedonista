@@ -20,13 +20,13 @@ function fallback(){
  if(parts[0]==='category'){
   const existing=defaults?.categories?.[parts[1]];if(existing)return existing;
   const name=cat?.name||parts[1]||'';
-  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
+  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintazhka',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintazhka. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
  }
  if(parts[0]==='subcategory'){
   const existing=defaults?.subcategories?.[parts[1]+'/'+parts[2]];if(existing)return existing;
   const sub=subcategories.find(x=>x.slug===parts[2]&&String(x.category_id)===String(cat?.id));
   const name=sub?.name||parts[2]||'';
-  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintage Hedonista',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintage Hedonista. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
+  return {heading:'Вінтажні '+name.toLowerCase()+' у Vintazhka',description:'Відкрийте добірку '+name.toLowerCase()+' у Vintazhka. Знайдіть вінтажні речі з характером та доповніть свій гардероб особливими деталями.',features:[]};
  }
  return {};
 }

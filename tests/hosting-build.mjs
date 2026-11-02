@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync,existsSync,readdirSync,statSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {gzipSync} from 'node:zlib';
+import brand from '../brand.js';
 const root=resolve(import.meta.dirname,'..'),build=(preview,domain=false)=>execFileSync(process.execPath,['scripts/build-hosting.mjs',...(domain?['--launch-domain']:[])],{cwd:root,env:{...process.env,SITE_BASE_URL:'',VERCEL_ENV:preview?'preview':'production',VERCEL_PROJECT_ID:preview?'prj_npe9JPYcE2zOAPUENtqSWZAy9kHA':'production-fixture'},encoding:'utf8'});
 const read=file=>readFileSync(join(root,'dist',file),'utf8');
 const sourceConfig=readFileSync(join(root,'config.js'),'utf8'),sourceSitemap=readFileSync(join(root,'sitemap.xml'),'utf8');
@@ -30,14 +31,14 @@ for(const file of walk(join(root,'dist')).filter(file=>/\.(html|js|json|xml|txt)
  if(canonical){assert.ok(canonical.startsWith(domain));assert.ok(newUrls.includes(canonical));}
  // Content and existing route names survive domain preparation unchanged.
  const source=readFileSync(join(root,file.slice(join(root,'dist').length+1)),'utf8');
- assert.equal(content.match(/<title>([^<]+)<\/title>/)?.[1],source.match(/<title>([^<]+)<\/title>/)?.[1]);
- assert.deepEqual([...content.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>m[1]),[...source.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>m[1]));
+ assert.equal(content.match(/<title>([^<]+)<\/title>/)?.[1],brand.text(source.match(/<title>([^<]+)<\/title>/)?.[1]));
+ assert.deepEqual([...content.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>m[1]),[...source.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>brand.text(m[1])));
 }
 for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs'])console.log(execFileSync(process.execPath,[script,'--root=dist'],{cwd:root,encoding:'utf8'}).trim());
 console.log(build(false).trim());
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);assert.equal(read('robots.txt'),readFileSync(join(root,'robots.txt'),'utf8'));
 for(const excluded of ['.git','node_modules','tests','docs','scripts','supabase','work','package.json','package-lock.json','vercel.json','launch-site.json','SUPABASE_ORDER_PERMISSIONS_V250.sql'])assert.equal(existsSync(join(root,'dist',excluded)),false,excluded+' leaked into public build');
-for(const required of ['checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
+for(const required of ['brand.js','brand-logo.css','assets/vintazhka-logo-original.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
 function htmlFiles(dir){return readdirSync(dir).flatMap(name=>{const path=join(dir,name);return statSync(path).isDirectory()?htmlFiles(path):name.endsWith('.html')?[path]:[]})}
 let checked=0;
 for(const file of htmlFiles(join(root,'dist'))){

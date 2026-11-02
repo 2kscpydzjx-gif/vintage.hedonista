@@ -30,7 +30,7 @@
    try{const result=await client.auth.getSession();session=result.data?.session;error=result.error}catch(e){error=e}
    clearLink();
    if(linkError||error||!session){invalid(mount);return true}
-   mount.innerHTML=`<div class="wrap"><div class="vh125-auth"><div class="vh125-auth-kicker">VINTAGE HEDONISTA</div><h1>НОВИЙ ПАРОЛЬ</h1><p>Введіть новий пароль щонайменше з 8 символів.</p><form id="vhRecoveryForm" class="vh125-auth-form"><label>НОВИЙ ПАРОЛЬ<input id="vhRecoveryPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>ПОВТОРІТЬ ПАРОЛЬ<input id="vhRecoveryConfirm" type="password" autocomplete="new-password" minlength="8" required></label><button class="vh125-auth-submit" type="submit">ЗБЕРЕГТИ ПАРОЛЬ</button><p id="vhRecoveryMessage" role="status" aria-live="polite"></p></form></div></div>`;
+   mount.innerHTML=`<div class="wrap"><div class="vh125-auth"><div class="vh125-auth-kicker">VINTAZHKA</div><h1>НОВИЙ ПАРОЛЬ</h1><p>Введіть новий пароль щонайменше з 8 символів.</p><form id="vhRecoveryForm" class="vh125-auth-form"><label>НОВИЙ ПАРОЛЬ<input id="vhRecoveryPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>ПОВТОРІТЬ ПАРОЛЬ<input id="vhRecoveryConfirm" type="password" autocomplete="new-password" minlength="8" required></label><button class="vh125-auth-submit" type="submit">ЗБЕРЕГТИ ПАРОЛЬ</button><p id="vhRecoveryMessage" role="status" aria-live="polite"></p></form></div></div>`;
    mount.querySelector('form').onsubmit=async event=>{
     event.preventDefault();const button=event.target.querySelector('button'),status=mount.querySelector('#vhRecoveryMessage');
     if(button.disabled)return;

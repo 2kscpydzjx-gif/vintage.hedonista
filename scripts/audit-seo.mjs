@@ -64,8 +64,8 @@ for(const address of urls){
   // Informational report only: editorial text can legitimately be customized in Supabase.
   const seoTitle=html.match(/<title>([^<]*)<\/title>/i)?.[1]||'';
   const seoDescription=html.match(/<meta name="description" content="([^"]*)"/i)?.[1]||'';
-  const genericTitle=seoTitle.endsWith(' — вінтажний одяг | Vintage Hedonista');
-  const genericDescription=seoDescription.startsWith('Переглядайте ')&&seoDescription.includes(' у Vintage Hedonista:');
+  const genericTitle=seoTitle.endsWith(' — вінтажний одяг | Vintazhka');
+  const genericDescription=seoDescription.startsWith('Переглядайте ')&&seoDescription.includes(' у Vintazhka:');
   if(genericTitle||genericDescription)templateMetadata.push({path,title:genericTitle,description:genericDescription});
   if(!/<meta name="vh-static-canonical" content="[^"]+">/i.test(html))errors.push('Missing static canonical marker: '+path);
   if(!/<script defer src="site\.js\?v=\d+"><\/script>/i.test(html))errors.push('Missing catalog script: '+path);

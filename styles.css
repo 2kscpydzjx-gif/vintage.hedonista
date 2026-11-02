@@ -6885,17 +6885,13 @@ header .vh-header-logo{
 }
 
 
-/* ==========================================================
-   V97 — CLEAN LOGO INTRO
-   mannequin → VINTAGE | HEDONISTA → ODESA, УКРАЇНА
-   ========================================================== */
-
+/* Whole supplied logo emerges from the same near-black background as startup. */
 html.vh-intro-active,
 body.vh-intro-active{
   overflow:hidden !important;
 }
 
-.vh-intro-v97{
+.vh-intro-vintazhka{
   position:fixed;
   inset:0;
   z-index:99999;
@@ -6908,77 +6904,29 @@ body.vh-intro-active{
   cursor:pointer;
   transition:opacity .48s ease, visibility .48s linear;
 }
-
-.vh-intro-v97.is-leaving{
+.vh-intro-vintazhka.is-leaving{
   opacity:0;
   visibility:hidden;
   pointer-events:none;
 }
-
-.vh-intro-v97 .vh-intro-stage{
+.vh-intro-vintazhka .vh-intro-stage{
+  --vh-brand-logo-width:100%;
   position:relative;
-  width:min(920px,76vw);
-  aspect-ratio:1.02 / 1;
-  transform:translateY(-1vh);
-}
-
-/* Each layer contains the same logo image, but only its own crop is visible. */
-.vh-intro-v97 .vh97-layer{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
+  width:min(420px,76vw,96svh);
+  aspect-ratio:4/3;
   opacity:0;
+  filter:brightness(.12) blur(3px);
 }
-
-.vh-intro-v97 .vh-intro-logo{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  object-position:center;
+.vh-intro-vintazhka .vh-intro-logo{
   user-select:none;
   pointer-events:none;
 }
-
-/* 1. Mannequin only. Crop stops well before ODESA. */
-.vh-intro-v97 .vh97-mannequin{
-  clip-path:inset(10% 42% 41% 42%);
+.vh-intro-vintazhka.is-running .vh-intro-stage{
+  animation:vhLogoEmerge 1.65s cubic-bezier(.22,.61,.36,1) .12s both;
 }
-.vh-intro-v97.is-running .vh97-mannequin{
-  animation:vh97Mannequin .66s cubic-bezier(.2,.7,.2,1) .08s forwards;
-}
-
-/* 2. VINTAGE | HEDONISTA only. */
-.vh-intro-v97 .vh97-wordmark{
-  clip-path:inset(35% 0 39% 0);
-}
-.vh-intro-v97.is-running .vh97-wordmark{
-  animation:vh97Wordmark .66s cubic-bezier(.2,.7,.2,1) .82s forwards;
-}
-
-/* 3. Bottom ornament + ODESA, УКРАЇНА only. */
-.vh-intro-v97 .vh97-odesa{
-  clip-path:inset(61% 14% 3% 14%);
-}
-.vh-intro-v97.is-running .vh97-odesa{
-  animation:vh97Odesa .56s cubic-bezier(.2,.7,.2,1) 1.52s forwards;
-}
-
-@keyframes vh97Mannequin{
-  from{opacity:0;transform:translateY(7px) scale(.97)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-@keyframes vh97Wordmark{
-  from{opacity:0;transform:scaleX(.92)}
-  to{opacity:1;transform:scaleX(1)}
-}
-@keyframes vh97Odesa{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1;transform:translateY(0)}
+@keyframes vhLogoEmerge{
+  from{opacity:0;filter:brightness(.12) blur(3px)}
+  to{opacity:1;filter:brightness(1) blur(0)}
 }
 
 /* Enlarged header logo must never steal clicks from navigation. */
@@ -6994,17 +6942,8 @@ header .header-icon-btn{
   pointer-events:auto !important;
 }
 
-@media(max-width:760px){
-  .vh-intro-v97 .vh-intro-stage{
-    width:min(96vw,620px);
-    transform:translateY(-2vh);
-  }
-}
-
 @media(prefers-reduced-motion:reduce){
-  .vh-intro-v97{
-    display:none !important;
-  }
+  .vh-intro-vintazhka{display:none !important}
 }
 
 
@@ -18451,4 +18390,52 @@ body.home-page .homepage-capsules .editorial-copy .btn{
       width:100%!important;max-width:40rem!important;margin-inline:auto!important;padding-inline:0!important;
     }
   }
+}
+
+/* Mobile catalogue labels and a compact, readable checkout. */
+/* Slow Fashion copy grows independently of the saved fixed photo height. */
+@layer vh-responsive {
+ .home-page .vh-home-editorial-flow>.vh-cms-composition{height:auto!important;min-height:0!important;max-height:none!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto var(--vh-editorial-photo-height,480px)!important}
+ .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-copy{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,45fr) minmax(0,55fr)!important;grid-template-rows:auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;width:100%!important;max-width:100%!important;padding:clamp(28px,3.5vw,48px)!important;gap:clamp(28px,5vw,80px)!important;align-content:start!important;align-items:center!important}
+ .home-page .vh-home-editorial-flow :is(.vh-cms-copy-heading,.vh-cms-copy-body){padding:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;align-self:center!important;justify-content:flex-start!important;align-items:flex-start!important;text-align:left!important;width:100%!important;max-width:none!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-heading{grid-column:1!important;grid-row:1!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-body{grid-column:2!important;grid-row:1!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy :is(h1,h2,h3){font-size:clamp(24px,2.2vw,34px)!important;line-height:1.35!important;letter-spacing:0!important;margin:0!important;text-align:left!important;max-width:100%!important;overflow-wrap:normal!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy .eyebrow{margin:0 0 12px!important;line-height:1.5!important;text-align:left!important}
+ .home-page .vh-home-editorial-flow .vh-cms-copy-body :is(p,li,blockquote){font-size:15px!important;line-height:1.8!important;margin:0!important;text-align:left!important}
+ .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-photo{grid-column:1!important;grid-row:2!important;height:var(--vh-editorial-photo-height,480px)!important;min-height:0!important;max-height:none!important}
+ @media(max-width:760px){
+  .home-page .vh-home-editorial-flow>.vh-cms-composition>.vh-cms-copy{grid-template-columns:minmax(0,1fr)!important;padding:28px clamp(20px,6vw,28px)!important;gap:18px!important;justify-items:center!important}
+  .home-page .vh-home-editorial-flow :is(.vh-cms-copy-heading,.vh-cms-copy-body){max-width:38rem!important;margin:0 auto!important;align-items:center!important;text-align:center!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy-body{grid-column:1!important;grid-row:2!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy :is(h1,h2,h3){font-size:clamp(24px,6.4vw,30px)!important;line-height:1.35!important;text-align:center!important}
+  .home-page .vh-home-editorial-flow .vh-cms-copy :is(.eyebrow,p,li,blockquote){text-align:center!important}
+ }
+}
+
+@layer vh-responsive {
+ @media(max-width:760px){
+  body.catalog-mobile-page #catalogSortCurrent{font-size:12px!important;line-height:1.4!important}
+  body.catalog-mobile-page .catalog-sort-label{font-size:10px!important;letter-spacing:.7px!important}
+  body.catalog-mobile-page .catalog-sort-option{font-size:12px!important;line-height:1.4!important;min-height:44px!important}
+  body.catalog-mobile-page #catalogResultText{font-size:11px!important;line-height:1.5!important}
+  body.catalog-mobile-page .catalog-view-switch>span{font-size:10px!important;letter-spacing:.5px!important}
+  body.catalog-mobile-page :is(.catalog-luxury-brand,.catalog-luxury-size){font-size:10px!important;line-height:1.5!important}
+  .checkout-page{padding-block:24px 40px!important}
+  .checkout-page .checkout-head{padding-bottom:14px!important}
+  .checkout-page .checkout-head h1{font-size:clamp(30px,8.2vw,38px)!important;line-height:1.16!important;margin-block:8px 12px!important}
+  .checkout-page .checkout-head p{font-size:13px!important;line-height:1.6!important}
+  .checkout-page .checkout-grid{gap:20px!important;padding-top:20px!important}
+  .checkout-page .checkout-form-card{padding:16px!important}
+  .checkout-page .checkout-section-title{font-size:11px!important;line-height:1.5!important;margin-bottom:12px!important}
+  .checkout-page .checkout-customer-state{font-size:12px!important;line-height:1.6!important;margin-bottom:12px!important}
+  .checkout-page .checkout-fields{gap:12px!important;margin-bottom:18px!important}
+  .checkout-page .checkout-fields label{font-size:11px!important;line-height:1.5!important}
+  .checkout-page .checkout-fields textarea{min-height:88px!important}
+  .checkout-page .checkout-item small{font-size:10px!important;line-height:1.4!important}
+  .checkout-page .checkout-item :is(b,strong){font-size:13px!important;line-height:1.45!important}
+  .checkout-page .checkout-total{font-size:11px!important}
+  .checkout-page .checkout-submit{font-size:12px!important;min-height:50px!important}
+  .checkout-page .checkout-form-card>small{font-size:11px!important;line-height:1.6!important}
+ }
 }
