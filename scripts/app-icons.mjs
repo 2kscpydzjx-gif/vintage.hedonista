@@ -1,11 +1,12 @@
 const iconVersion='1';
+const browserIconVersion='2';
 
 export function renderAppIcons(html,file=''){
  const admin=file.startsWith('admin/'),root=admin?'../':'',name=admin?'Vintazhka Admin':'Vintazhka';
  const tags=[
-  `<link rel="icon" href="${root}favicon.ico?v=${iconVersion}" sizes="16x16 32x32 48x48">`,
-  `<link rel="icon" type="image/png" sizes="32x32" href="${root}assets/icons/favicon-32.png?v=${iconVersion}">`,
-  `<link rel="icon" type="image/png" sizes="16x16" href="${root}assets/icons/favicon-16.png?v=${iconVersion}">`,
+  `<link rel="icon" href="${root}favicon.ico?v=${browserIconVersion}" sizes="16x16 32x32 48x48">`,
+  `<link rel="icon" type="image/png" sizes="32x32" href="${root}assets/icons/favicon-32.png?v=${browserIconVersion}">`,
+  `<link rel="icon" type="image/png" sizes="16x16" href="${root}assets/icons/favicon-16.png?v=${browserIconVersion}">`,
   `<link rel="apple-touch-icon" sizes="180x180" href="${root}assets/icons/apple-touch-icon-180.png?v=${iconVersion}">`,
   `<link rel="manifest" href="site.webmanifest?v=${iconVersion}">`,
   '<meta name="theme-color" content="#0d0c09">',

@@ -1,17 +1,17 @@
 /* Export standard browser/home-screen sizes from the owner's original PNG. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {chromium}=require('playwright');
-const root=path.resolve(__dirname,'..'),input=process.argv[2];
+const root=path.resolve(__dirname,'..'),input=process.argv[2],browserOnly=process.argv.includes('--browser-only');
 if(!input)throw new Error('Usage: node scripts/generate-app-icons.cjs /path/to/original.png');
 const original=fs.readFileSync(input);
 (async()=>{
  const browser=await chromium.launch({headless:true,...(fs.existsSync('/usr/bin/chromium')?{executablePath:'/usr/bin/chromium',args:['--no-sandbox']}: {})});
  try{
   const page=await browser.newPage();
-  const exports=await page.evaluate(async source=>{
+  const exports=await page.evaluate(async ({source,browserOnly})=>{
    const image=new Image();image.src=source;await image.decode();
    if(image.width!==image.height)throw new Error('App icon source must be square');
-   return [16,32,48,180,192,512].map(size=>{
+   return (browserOnly?[16,32,48]:[16,32,48,180,192,512]).map(size=>{
     const canvas=document.createElement('canvas');canvas.width=canvas.height=size;
     const ctx=canvas.getContext('2d');
     // Home-screen icons need an opaque background; browser favicons retain alpha.
@@ -20,7 +20,7 @@ const original=fs.readFileSync(input);
     ctx.drawImage(image,0,0,size,size);
     return {size,base64:canvas.toDataURL('image/png').split(',')[1]};
    });
-  },'data:image/png;base64,'+original.toString('base64'));
+  },{source:'data:image/png;base64,'+original.toString('base64'),browserOnly});
   fs.mkdirSync(path.join(root,'assets/icons'),{recursive:true});
   const frames=[];
   for(const item of exports){

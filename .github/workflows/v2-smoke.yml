@@ -24,6 +24,8 @@ on:
       - 'favicon.ico'
       - 'apple-touch-icon.png'
       - 'scripts/app-icons.mjs'
+      - 'scripts/storefront-footer.mjs'
+      - 'storefront-details.css'
       - 'scripts/generate-app-icons.cjs'
       - 'package.json'
       - 'package-lock.json'
@@ -150,6 +152,7 @@ jobs:
           node tests/cms-public-shell.cjs
           node tests/navigation-first-paint.cjs
           node tests/catalog-footer-spacing.cjs
+          node tests/footer-details.cjs
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs

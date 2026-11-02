@@ -2871,6 +2871,8 @@ function vhAuthShell(mode='login'){
        </button>
      </form>
 
+     ${!isLogin?'<p class="vh-privacy-note">Про обробку персональних даних: <a href="'+(document.querySelector('meta[name="vh-privacy-policy"]')?.content||'https://docs.google.com/document/d/1zbje7UPVkA1JHb4Hfua791R0lXbpnbZ7/edit')+'" target="_blank" rel="noopener">Політика конфіденційності</a></p>':''}
+
      <div class="vh125-auth-switch">
        <span>${isLogin?'НЕ МАЄТЕ АКАУНТА?':'ВЖЕ МАЄТЕ АКАУНТ?'}</span>
        <button type="button" onclick="vhShowAuth('${isLogin?'register':'login'}')">
