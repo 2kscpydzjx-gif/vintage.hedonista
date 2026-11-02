@@ -145,7 +145,8 @@ function cmsApplyPublishedAnimation(section,animation){
 }
 function homeEditorialFlow(el,edit){
  if(page!=='home'||!el.matches('[data-cms-legacy="existing-3"]'))return;
- const active=el.dataset.vhLayout==='text-top'&&!!el.querySelector(':scope>.vh-cms-composition>.vh-cms-copy>.vh-cms-copy-heading');
+ // The editorial correction is for heading-left; intentional reversed layouts keep CMS controls.
+ const active=el.dataset.vhLayout==='text-top'&&edit.design?.textLayout==='heading-left'&&!!el.querySelector(':scope>.vh-cms-composition>.vh-cms-copy>.vh-cms-copy-heading');
  el.classList.toggle('vh-home-editorial-flow',active);if(!active)return;
  const copy=el.querySelector(':scope>.vh-cms-composition>.vh-cms-copy');if(!copy)return;
  // Keep the published photo footprint/crop; only the text stops sharing its fixed height.
