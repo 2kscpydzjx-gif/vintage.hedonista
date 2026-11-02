@@ -2387,8 +2387,8 @@ document.addEventListener('click',e=>{
 
 
 /* ==========================================================
-   V95 — Vintazhka intro
-   First entry + browser refresh only.
+   Vintazhka — a whole-logo reveal from darkness.
+   First entry per tab session only.
    No replay when returning to Home from other site pages.
    ========================================================== */
 (function(){
@@ -2439,19 +2439,13 @@ document.addEventListener('click',e=>{
     if(!shouldRunIntro())return;
 
     const overlay=document.createElement('div');
-    overlay.className='vh-intro vh-intro-v97';
+    overlay.className='vh-intro vh-intro-vintazhka';
     overlay.setAttribute('aria-hidden','true');
 
     overlay.innerHTML=`
       <div class="vh-intro-stage">
-        <div class="vh97-layer vh97-mannequin">
-          <img class="vh-intro-logo" src="assets/vintage-hedonista-logo.png" alt="">
-        </div>
-        <div class="vh97-layer vh97-wordmark">
-          <img class="vh-intro-logo" src="assets/vintage-hedonista-logo.png" alt="">
-        </div>
-        <div class="vh97-layer vh97-odesa">
-          <img class="vh-intro-logo" src="assets/vintage-hedonista-logo.png" alt="">
+        <div class="vh-logo-viewport">
+          <img class="vh-intro-logo" src="assets/vintazhka-logo-original.png" alt="" decoding="async" fetchpriority="high">
         </div>
       </div>
     `;
@@ -2461,13 +2455,17 @@ document.addEventListener('click',e=>{
     document.body.classList.add('vh-intro-active');
     markIntroSeen();
 
-    requestAnimationFrame(()=>overlay.classList.add('is-running'));
-
-    let finishRequested=false,leaving=false;
+    const logo=overlay.querySelector('.vh-intro-logo');
+    let finishRequested=false,leaving=false,revealScheduled=false,revealTimer,imageTimer;
     const finish=()=>{
       finishRequested=true;
+      clearTimeout(revealTimer);clearTimeout(imageTimer);
       if(!overlay.isConnected||leaving||(window.VHCMSBoot&&window.VHCMSBoot.state!=='ready'))return;
-      leaving=true;window.removeEventListener('vh:cms-ready',onReady);
+      leaving=true;
+      window.removeEventListener('vh:cms-ready',onReady);
+      document.removeEventListener('keydown',onIntroKey);
+      logo.removeEventListener('load',onLogoReady);
+      logo.removeEventListener('error',finish);
       overlay.classList.add('is-leaving');
       setTimeout(()=>{
         overlay.remove();
@@ -2477,17 +2475,26 @@ document.addEventListener('click',e=>{
       },500)
     };
 
+    const beginReveal=()=>{
+      if(finishRequested||leaving||revealScheduled||!overlay.isConnected)return;
+      revealScheduled=true;clearTimeout(imageTimer);
+      requestAnimationFrame(()=>{
+        if(finishRequested||leaving||!overlay.isConnected)return;
+        overlay.classList.add('is-running');
+        revealTimer=setTimeout(finish,2400);
+      });
+    };
+    // Start the fade after the original PNG is decoded, so a slow image cannot pop in.
+    const onLogoReady=()=>{if(logo.decode)logo.decode().then(beginReveal,finish);else beginReveal()};
     const onReady=()=>{if(finishRequested)finish()};
+    const onIntroKey=e=>{if(e.key==='Escape')finish()};
     window.addEventListener('vh:cms-ready',onReady);
-    setTimeout(finish,2550);
-
     overlay.addEventListener('click',finish,{once:true});
-    document.addEventListener('keydown',function onIntroKey(e){
-      if(e.key==='Escape'){
-        document.removeEventListener('keydown',onIntroKey);
-        finish()
-      }
-    });
+    document.addEventListener('keydown',onIntroKey);
+    logo.addEventListener('load',onLogoReady,{once:true});
+    logo.addEventListener('error',finish,{once:true});
+    imageTimer=setTimeout(finish,4500);
+    if(logo.complete){if(logo.naturalWidth)onLogoReady();else finish()}
   }
 
   if(document.readyState==='loading'){

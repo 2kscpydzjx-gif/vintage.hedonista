@@ -6885,17 +6885,13 @@ header .vh-header-logo{
 }
 
 
-/* ==========================================================
-   V97 — CLEAN LOGO INTRO
-   mannequin → VINTAGE | HEDONISTA → ODESA, УКРАЇНА
-   ========================================================== */
-
+/* Whole supplied logo emerges from the same near-black background as startup. */
 html.vh-intro-active,
 body.vh-intro-active{
   overflow:hidden !important;
 }
 
-.vh-intro-v97{
+.vh-intro-vintazhka{
   position:fixed;
   inset:0;
   z-index:99999;
@@ -6908,77 +6904,29 @@ body.vh-intro-active{
   cursor:pointer;
   transition:opacity .48s ease, visibility .48s linear;
 }
-
-.vh-intro-v97.is-leaving{
+.vh-intro-vintazhka.is-leaving{
   opacity:0;
   visibility:hidden;
   pointer-events:none;
 }
-
-.vh-intro-v97 .vh-intro-stage{
+.vh-intro-vintazhka .vh-intro-stage{
+  --vh-brand-logo-width:100%;
   position:relative;
-  width:min(920px,76vw);
-  aspect-ratio:1.02 / 1;
-  transform:translateY(-1vh);
-}
-
-/* Each layer contains the same logo image, but only its own crop is visible. */
-.vh-intro-v97 .vh97-layer{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
+  width:min(420px,76vw,96svh);
+  aspect-ratio:4/3;
   opacity:0;
+  filter:brightness(.12) blur(3px);
 }
-
-.vh-intro-v97 .vh-intro-logo{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  object-position:center;
+.vh-intro-vintazhka .vh-intro-logo{
   user-select:none;
   pointer-events:none;
 }
-
-/* 1. Mannequin only. Crop stops well before ODESA. */
-.vh-intro-v97 .vh97-mannequin{
-  clip-path:inset(10% 42% 41% 42%);
+.vh-intro-vintazhka.is-running .vh-intro-stage{
+  animation:vhLogoEmerge 1.65s cubic-bezier(.22,.61,.36,1) .12s both;
 }
-.vh-intro-v97.is-running .vh97-mannequin{
-  animation:vh97Mannequin .66s cubic-bezier(.2,.7,.2,1) .08s forwards;
-}
-
-/* 2. VINTAGE | HEDONISTA only. */
-.vh-intro-v97 .vh97-wordmark{
-  clip-path:inset(35% 0 39% 0);
-}
-.vh-intro-v97.is-running .vh97-wordmark{
-  animation:vh97Wordmark .66s cubic-bezier(.2,.7,.2,1) .82s forwards;
-}
-
-/* 3. Bottom ornament + ODESA, УКРАЇНА only. */
-.vh-intro-v97 .vh97-odesa{
-  clip-path:inset(61% 14% 3% 14%);
-}
-.vh-intro-v97.is-running .vh97-odesa{
-  animation:vh97Odesa .56s cubic-bezier(.2,.7,.2,1) 1.52s forwards;
-}
-
-@keyframes vh97Mannequin{
-  from{opacity:0;transform:translateY(7px) scale(.97)}
-  to{opacity:1;transform:translateY(0) scale(1)}
-}
-@keyframes vh97Wordmark{
-  from{opacity:0;transform:scaleX(.92)}
-  to{opacity:1;transform:scaleX(1)}
-}
-@keyframes vh97Odesa{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1;transform:translateY(0)}
+@keyframes vhLogoEmerge{
+  from{opacity:0;filter:brightness(.12) blur(3px)}
+  to{opacity:1;filter:brightness(1) blur(0)}
 }
 
 /* Enlarged header logo must never steal clicks from navigation. */
@@ -6994,17 +6942,8 @@ header .header-icon-btn{
   pointer-events:auto !important;
 }
 
-@media(max-width:760px){
-  .vh-intro-v97 .vh-intro-stage{
-    width:min(96vw,620px);
-    transform:translateY(-2vh);
-  }
-}
-
 @media(prefers-reduced-motion:reduce){
-  .vh-intro-v97{
-    display:none !important;
-  }
+  .vh-intro-vintazhka{display:none !important}
 }
 
 
