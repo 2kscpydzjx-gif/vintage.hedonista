@@ -43,6 +43,7 @@ on:
       - 'config.js'
       - 'assets/optimized/**'
       - 'scripts/product-routes.mjs'
+      - 'scripts/clean-urls.mjs'
       - 'scripts/seo-head.mjs'
       - 'password-recovery.js'
       - 'order-delivery.js'
@@ -111,6 +112,7 @@ jobs:
           node tests/app-icons.cjs
           node tests/seo-domain.cjs
           node tests/cloudflare-pages.cjs
+          node tests/clean-urls.cjs
       - name: Test editor and storefront with isolated data
         run: |
           export VH_TEST_BUILT=1

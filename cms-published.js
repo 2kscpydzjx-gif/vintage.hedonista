@@ -12,7 +12,7 @@ if(!window.VHCMSModel||window.VHCMSModel.version!==9){
 }
 
 const map={'index.html':'home','catalog.html':'catalog','capsule.html':'capsules','about.html':'about','journal.html':'journal','delivery.html':'delivery','contacts.html':'contacts'};
-const isCatalogSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)&&!!document.querySelector('meta[name="vh-static-canonical"]');
+const isCatalogSeoSnapshot=/\/(?:seo-(?:category|subcategory)|catalog)\//.test(location.pathname)&&(!!document.querySelector('meta[name="vh-static-canonical"]')||!!(window.VH_CONFIG?.cleanUrls&&document.getElementById('catalogProducts')));
 const file=location.pathname.split('/').pop()||'index.html';
 const page=isCatalogSeoSnapshot?'catalog':map[file.includes('.')?file:file+'.html'];if(!page)return;
 const previewParams=new URLSearchParams(location.search);

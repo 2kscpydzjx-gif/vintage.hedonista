@@ -7,15 +7,8 @@ let server,base;
 const read=file=>fs.readFileSync(path.join(dist,file),'utf8');
 function build(branch,test=false){return execFileSync(process.execPath,['scripts/build-hosting.mjs','--launch-domain',...(test?['--cloudflare-test']:[])],{cwd:root,env:{...process.env,VH_NAVIGATION_SNAPSHOT_FILE:path.join(root,'scripts/published-navigation.json'),SITE_BASE_URL:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',CF_PAGES:'1',CF_PAGES_BRANCH:branch,VH_PRODUCTION_BRANCH:'main'},encoding:'utf8'})}
 async function pagesRouting(f){
- server=http.createServer((request,response)=>{
-  const url=new URL(request.url,'http://preview.local'),canonical=url.pathname.replace(/\/index\.html$/,'/').replace(/\.html$/,'');
-  if(canonical!==url.pathname){response.writeHead(301,{Location:canonical+url.search});return response.end()}
-  const relative=decodeURIComponent(url.pathname).replace(/^\//,''),file=path.resolve(dist,relative.endsWith('/')||!relative?relative+'index.html':/\.[^/]+$/.test(relative)?relative:relative+'.html');
-  const found=file.startsWith(dist+path.sep)&&fs.existsSync(file)&&fs.statSync(file).isFile();
-  const types={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png'};
-  if(relative==='assets/test-upload.png'){response.writeHead(200,{'Content-Type':'image/png'});return response.end(f.png)}
-  response.writeHead(found?200:404,{'Content-Type':found?(types[path.extname(file)]||'application/octet-stream'):'text/html; charset=utf-8'});response.end(fs.readFileSync(found?file:path.join(dist,'404.html')));
- });
+ const handler=await require('./pages-routing.cjs').pagesHandler(dist,f.png);
+ server=http.createServer(handler);server.once('close',handler.close);
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base='http://127.0.0.1:'+server.address().port;
  await f.context.route(base+'/**',route=>route.continue());
 }
@@ -43,10 +36,10 @@ async function pagesRouting(f){
    assert.equal(await p.locator('#vh-cloudflare-preview-notice').count(),1);
    if(['about','delivery','contacts','journal'].includes(file))await p.waitForFunction(name=>document.body.classList.contains('vh-'+name+'-motion'),file);
   }
-  for(const route of ['seo-category/verkhnii-odyah/','seo-subcategory/verkhnii-odyah/kimono/','seo-product/'+product.slug+'/']){
+  for(const route of ['catalog/verkhnii-odyah/','catalog/verkhnii-odyah/kimono/','product/'+product.slug+'/']){
    await p.goto(base+'/'+route+'index.html');await p.waitForFunction(()=>window.VHSEORuntime&&window.VH_CONFIG);
    assert.equal(new URL(p.url()).pathname,'/'+route);
-   if(route.startsWith('seo-product/')){await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Тест Cloudflare');await p.waitForFunction(()=>document.querySelector('#vh-product-breadcrumb-structured-data'));const schema=JSON.parse(await p.locator('#vh-static-product-jsonld').textContent());assert.equal(schema.url,domain+route);assert.equal(schema.offers.url,domain+route)}
+   if(route.startsWith('product/')){await p.waitForFunction(()=>document.querySelector('#productName')?.textContent==='Тест Cloudflare');await p.waitForFunction(()=>document.querySelector('#vh-product-breadcrumb-structured-data'));const schema=JSON.parse(await p.locator('#vh-static-product-jsonld').textContent());assert.equal(schema.url,domain+route);assert.equal(schema.offers.url,domain+route)}
    else{await p.waitForFunction(()=>window.VHCMSBoot.state==='ready');assert.equal(await p.evaluate(()=>catalogState.category),'verkhnii-odyah');if(route.includes('kimono'))assert.equal(await p.evaluate(()=>catalogState.subcategory),'kimono')}
    assert.equal(await p.locator('link[rel=canonical]').getAttribute('href'),domain+route);assert.equal(await p.evaluate(()=>document.baseURI),base+'/');
   }

@@ -16,7 +16,7 @@
  function pageLocation(){
   const url=new URL(location.href);url.search='';url.hash='';
   const slug=new URLSearchParams(location.search).get('slug');
-  if(/^\/product(?:\.html)?\/?$/.test(url.pathname)&&slug&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)&&slug.length<=180)url.pathname='/seo-product/'+slug+'/';
+  if(/^\/product(?:\.html)?\/?$/.test(url.pathname)&&slug&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)&&slug.length<=180)url.pathname='/product/'+slug+'/';
   return url.href;
  }
  function referrer(){try{return new URL(document.referrer).origin+'/'}catch{return ''}}
