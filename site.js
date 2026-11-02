@@ -1,3 +1,8 @@
+function vhPublicRoute(kind,...parts){return window.VHStorefrontRoutes?.path(kind,...parts)||({product:'seo-product',category:'seo-category',subcategory:'seo-subcategory',article:'seo-article'}[kind]+'/'+parts.map(encodeURIComponent).join('/')+'/index.html')}
+function vhReadableLocation(kind,slug){
+ if(!window.VH_CONFIG?.cleanUrls||!new URLSearchParams(location.search).has('slug'))return;
+ const url=new URL(vhPublicRoute(kind,slug),document.baseURI),query=new URLSearchParams(location.search);query.delete('slug');url.search=query;url.hash=location.hash;history.replaceState(history.state,'',url);
+}
 function vhProductHref(product){return window.VHProductRoutes?.href(product)||'product.html?slug='+encodeURIComponent(product.slug||'')}
 /* Queue native motion until the final CMS content is visible, including the intro. */
 function vhWhenPageVisible(job){if(window.VHCMSBoot?.whenVisible)window.VHCMSBoot.whenVisible(job);else job()}
@@ -219,7 +224,7 @@ $('topGrid').innerHTML=[1,2,3,4].map((slot,i)=>{
  const {data:cats,error:catError}=catsRes;
  if(catError)console.error(catError);
  const categoryItems=cats||[];
- $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="seo-category/${encodeURIComponent(c.slug)}/index.html">${c.cover_image?`<img src="${c.cover_image}"${window.VHImageVariants?.attributes(c.cover_image)||''} alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
+ $('categoryGrid').innerHTML=categoryItems.length?categoryItems.map(c=>`<a class="category-card" href="${vhPublicRoute('category',c.slug)}">${c.cover_image?`<img src="${c.cover_image}"${window.VHImageVariants?.attributes(c.cover_image)||''} alt="${c.name}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(c.name,'1600 × 800 px')}<div class="category-overlay"><div><h3>${c.name.toUpperCase()}</h3><small>ПЕРЕГЛЯНУТИ</small></div></div></a>`).join(''):'<div class="empty">Додайте активні категорії</div>';
  initCategoryCarousel();
 
  $('journalTitle').textContent=s.homepage_journal_title||'VINTAZHKA JOURNAL';$('journalLink').textContent=(s.homepage_journal_link_text||'ВЕСЬ ЖУРНАЛ')+' →';const {data:news,error:newsError}=newsRes;if(newsError)console.error(newsError);$('homeNews').innerHTML=(news||[]).length?(news||[]).map(newsCard).join(''):'<div class="empty">Опублікуйте першу новину в адмінці</div>';
@@ -331,7 +336,7 @@ function initCategoryCarousel(){
  requestAnimationFrame(update);
 }
 
-function newsCard(n){const href=`seo-article/${encodeURIComponent(n.slug)}/index.html`;return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}"${window.VHImageVariants?.attributes(n.cover_image)||''} alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
+function newsCard(n){const href=vhPublicRoute('article',n.slug);return `<article class="story"><a class="story-image" href="${href}">${n.cover_image?`<img src="${n.cover_image}"${window.VHImageVariants?.attributes(n.cover_image)||''} alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder('Обкладинка статті','1600 × 1000 px')}</a><small>${new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA')}</small><h3><a href="${href}">${n.title}</a></h3><p>${n.excerpt||''}</p><a class="story-read" href="${href}">ЧИТАТИ →</a></article>`}
 
 function initHomeJournalCarousel(){
  const track=$('homeNews'),prev=$('journalPrev'),next=$('journalNext');
@@ -434,10 +439,12 @@ async function initCatalog(){
  catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
- const staticCategory=location.pathname.match(/\/seo-category\/([^/]+)\/(?:index\.html)?$/);
- const staticSubcategory=location.pathname.match(/\/seo-subcategory\/([^/]+)\/([^/]+)\/(?:index\.html)?$/);
-  catalogState.category=params.get('category')||(staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null);
- catalogState.subcategory=params.get('subcategory')||(staticSubcategory?decodeURIComponent(staticSubcategory[2]):null);
+ const staticCategory=location.pathname.match(/\/(?:seo-category|catalog)\/([^/]+)\/(?:index\.html)?$/);
+ const staticSubcategory=location.pathname.match(/\/(?:seo-subcategory|catalog)\/([^/]+)\/([^/]+)\/(?:index\.html)?$/);
+ const pathCategory=staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null;
+ const pathSubcategory=staticSubcategory?decodeURIComponent(staticSubcategory[2]):null;
+ catalogState.category=window.VH_CONFIG?.cleanUrls&&pathCategory?pathCategory:params.get('category')||pathCategory;
+ catalogState.subcategory=window.VH_CONFIG?.cleanUrls&&pathCategory?pathSubcategory:params.get('subcategory')||pathSubcategory;
 
  // If URL contains an old/non-active category, return to all products.
  if(catalogState.category&&!catalogCategories.some(c=>c.slug===catalogState.category)){
@@ -779,10 +786,10 @@ function updateCategoryCanonical(){
  // Point Google at the existing static SEO snapshot for the selection.
  let path='catalog.html';
  if(catalogState.category){
-  const category=encodeURIComponent(catalogState.category);
+  const category=catalogState.category;
   path=catalogState.subcategory
-   ?'seo-subcategory/'+category+'/'+encodeURIComponent(catalogState.subcategory)+'/index.html'
-   :'seo-category/'+category+'/index.html';
+   ?vhPublicRoute('subcategory',category,catalogState.subcategory)
+   :vhPublicRoute('category',category);
  }
  link.href=window.VHSEORuntime?.canonicalUrl(path)||new URL(path,window.VH_CONFIG?.siteUrl||document.baseURI).href;
  if(!link.parentNode)document.head.appendChild(link);
@@ -849,7 +856,13 @@ async function applySelectedCategorySEO(){
 }
 
 function updateCatalogUrl(){
- const onSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname);
+ const onSeoSnapshot=/\/seo-(?:category|subcategory)\//.test(location.pathname)||/\/catalog\/[^/]+\//.test(location.pathname);
+ if(window.VH_CONFIG?.cleanUrls){
+  document.querySelector('meta[name="vh-static-canonical"]')?.remove();
+  const route=catalogState.category?(catalogState.subcategory?vhPublicRoute('subcategory',catalogState.category,catalogState.subcategory):vhPublicRoute('category',catalogState.category)):'catalog';
+  const url=new URL(route,document.baseURI),query=new URLSearchParams(location.search);query.delete('category');query.delete('subcategory');url.search=query;
+  history.replaceState(history.state,'',url);void applySelectedCategorySEO();void renderCatalogEditorial();return;
+ }
  if(onSeoSnapshot){
   document.querySelector('meta[name="vh-static-canonical"]')?.remove();
  }
@@ -1039,7 +1052,7 @@ let currentProduct=null,currentImages=[],currentImageAlts=[],galleryIndex=0,ligh
 
 function vhMissingProduct(){document.title='Товар не знайдено — Vintazhka';let meta=document.querySelector('meta[name=robots]');if(!meta){meta=document.createElement('meta');meta.name='robots';document.head.append(meta)}meta.content='noindex,follow';$('productRoot').innerHTML='<div class="empty"><h1>Товар не знайдено</h1><p>Перегляньте актуальну добірку в каталозі.</p><a class="btn" href="catalog.html">До каталогу</a></div>'}
 async function initProduct(){
- const slug=new URLSearchParams(location.search).get('slug') || (()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})();
+ const slug=(()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article|product|journal)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})() || new URLSearchParams(location.search).get('slug');
 
  if(!slug){
    vhMissingProduct();
@@ -1059,6 +1072,7 @@ async function initProduct(){
  if(!data){vhMissingProduct();return}
 
  currentProduct=data;
+ vhReadableLocation('product',data.slug);
  window.VHSEORuntime?.apply(publicSb,'product',data.id,{title:data.name+' — Vintazhka',description:data.short_description||'',image:data.cover_image,canonicalUrl:window.VHProductRoutes?.canonical(data)});
  const sortedProductImages=(data.product_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
  currentImages=sortedProductImages.map(x=>x.image_url);
@@ -1222,8 +1236,8 @@ function renderProduct(){
    const anchor=document.createElement('a');anchor.href=new URL(path,document.baseURI).href;anchor.textContent=vhPlainText(name);anchor.dataset.vhSeoCrumb='1';
    crumbs.insertBefore(separator,current);crumbs.insertBefore(anchor,current);
   };
-  if(category)addCrumb(category.name,'seo-category/'+encodeURIComponent(category.slug)+'/index.html');
-  if(subcategory)addCrumb(subcategory.name,'seo-subcategory/'+encodeURIComponent(category.slug)+'/'+encodeURIComponent(subcategory.slug)+'/index.html');
+  if(category)addCrumb(category.name,vhPublicRoute('category',category.slug));
+  if(subcategory)addCrumb(subcategory.name,vhPublicRoute('subcategory',category.slug,subcategory.slug));
   const finalSeparator=document.createElement('span');finalSeparator.textContent='/';finalSeparator.dataset.vhSeoCrumb='1';
   crumbs.insertBefore(finalSeparator,current);
  }
@@ -1598,7 +1612,7 @@ function journalDate(n){
   return new Date(n.published_at||n.created_at).toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase()
 }
 function journalCategoryName(n){return n.category||'ІСТОРІЇ РЕЧЕЙ'}
-function journalArticleHref(n){return `seo-article/${encodeURIComponent(n.slug)}/index.html`}
+function journalArticleHref(n){return vhPublicRoute('article',n.slug)}
 function journalCover(n,label='Обкладинка статті',size='1200 × 1200 px'){
   return n.cover_image?`<img src="${n.cover_image}"${window.VHImageVariants?.attributes(n.cover_image)||''} alt="${n.title}" loading="lazy" decoding="async" fetchpriority="low">`:placeholder(label,size)
 }
@@ -1878,7 +1892,7 @@ function renderEditorialArticleContent(content,title){
 }
 
 async function initArticle(){
- const slug=new URLSearchParams(location.search).get('slug') || (()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})();
+ const slug=(()=>{const m=location.pathname.match(/\/(?:seo-product|seo-article|product|journal)\/([^/]+)\/?(?:index\.html)?$/);try{return m?decodeURIComponent(m[1]):null}catch{return null}})() || new URLSearchParams(location.search).get('slug');
  if(!slug){$('articleRoot').innerHTML='<div class="empty">Статтю не знайдено</div>';return}
 
  const [,{data,error}]=await Promise.all([
@@ -1890,8 +1904,9 @@ async function initArticle(){
    return
  }
 
+ vhReadableLocation('article',data.slug);
  document.title=`${data.title} — Vintazhka`;
- window.VHSEORuntime?.apply(publicSb,'article',data.id,{title:data.title+' — Vintazhka',description:data.excerpt||'',image:data.cover_image});
+ window.VHSEORuntime?.apply(publicSb,'article',data.id,{title:data.title+' — Vintazhka',description:data.excerpt||'',image:data.cover_image,canonicalUrl:vhPublicRoute('article',data.slug)});
 
  const gallery=Array.isArray(data.gallery_images)?data.gallery_images:[];
  const bodyHtml=renderEditorialArticleContent(data.content,data.title);

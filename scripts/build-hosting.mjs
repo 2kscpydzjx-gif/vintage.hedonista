@@ -9,6 +9,7 @@ import brand from '../brand.js';
 import {renderBrandLogos} from './brand-logos.mjs';
 import {renderAppIcons} from './app-icons.mjs';
 import {renderStorefrontFooter} from './storefront-footer.mjs';
+import {cleanReferences,cleanFile,cleanRedirects} from './clean-urls.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
 const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm|pdf)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
@@ -33,7 +34,8 @@ const navigation=await publishedNavigation(publicConfig,{cloudflare});
 const supabaseOrigin=new URL(publicConfig.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)[1]).origin;
 const previewGuard=cloudflarePreview?await readFile(path.join(root,'preview-readonly.js'),'utf8'):'';
 await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});let before=0,after=0,count=0;
-for(const file of await files()){
+const publicFiles=await files();
+for(const file of publicFiles){
  let content=await readFile(path.join(root,file));
  if(/\.(?:html|js|json|xml|txt)$/.test(file)){
   let text=content.toString();if(file.endsWith('.html')&&!file.startsWith('admin/'))text=renderPublishedNavigation(text,navigation);
@@ -47,10 +49,15 @@ for(const file of await files()){
    text=/\bsrc="cms-shell\.js(?:\?|"|$)/.test(text)?text.replace(/<script\b[^>]*src="cms-shell\.js[^>]*>/i,match=>tag+match):text.replace(/<\/head>/i,tag+'</head>');
   }
   text=rebaseSiteReferences(text,sourceSite,targetSite);
+  if(cloudflare&&/\.(?:html|json|xml)$/.test(file))text=cleanReferences(text,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);
   if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=1"></script></head>');
-  if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;\n';
+  if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;window.VH_CONFIG.cleanUrls=true;\n';
+  if(cloudflare&&file.endsWith('.html')){
+   if(/^seo-/.test(file))text=text.replace(/(<base\b[^>]*\bhref=")[^"]*(")/i,'$1/$2');
+   else if(['product.html','article.html','catalog.html'].includes(file))text=text.replace(/<head\b[^>]*>/i,'$&<base href="/">');
+  }
   if(file==='robots.txt')text=robots(targetSite);
   content=Buffer.from(text);
  }
@@ -67,9 +74,10 @@ for(const file of await files()){
   const html=content.toString(),guard='<script>window.VH_DEPLOYMENT='+JSON.stringify({readOnlyData:true,supabaseOrigin})+';'+previewGuard+'</script>';
   content=Buffer.from(html.replace(/<meta\b[^>]*charset=[^>]*>/i,match=>match+guard));
  }
- const dest=path.join(out,file);await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,content);count++;
+ const dest=path.join(out,cloudflare?cleanFile(file):file);await mkdir(path.dirname(dest),{recursive:true});await writeFile(dest,content);count++;
 }
 if(cloudflare){
+ await writeFile(path.join(out,'_redirects'),cleanRedirects(publicFiles));
  const headers='/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'+(cloudflarePreview?'  X-Robots-Tag: noindex, nofollow, noarchive\n':'')+'\n/site.webmanifest\n  Content-Type: application/manifest+json\n\n/admin/site.webmanifest\n  Content-Type: application/manifest+json\n\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n';
  await writeFile(path.join(out,'_headers'),headers);
 }

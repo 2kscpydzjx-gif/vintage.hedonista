@@ -2,6 +2,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {configuredSite,pageAddress,prettyAddress} from './seo-deployment.mjs';
+import {snapshotIdentity} from './clean-urls.mjs';
 const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.find(arg=>arg.startsWith('--root='))?.slice(7)||'.');
 const base=configuredSite(pathToFileURL(root+'/'));
 const pretty=/prettyUrls\s*[:=]\s*true/.test(readFileSync(join(root,'config.js'),'utf8'));
@@ -12,8 +13,8 @@ let errors=[];let checked=0;
 const templateMetadata=[];
 for(const address of urls){
  const u=new URL(address);
- const path=localPath(address); // URL is encoded, disk folder is Unicode
- if(!/^seo-(product|article|category|subcategory)\//.test(path))continue;
+ const path=localPath(address),identity=snapshotIdentity(path); // URL is encoded, disk folder is Unicode
+ if(!/^seo-(product|article|category|subcategory)\//.test(identity))continue;
  const file=join(root,path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
  const html=readFileSync(file,'utf8');
@@ -25,7 +26,7 @@ for(const address of urls){
  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Missing H1: '+path);
  if(/<img\b[^>]*\balt="[^"]*"[^>]*\balt=/i.test(html))errors.push('Duplicate ALT: '+path);
  if(!/<base\b[^>]*id="vh-seo-base"/i.test(html))errors.push('Missing root base: '+path);
- if(/\/seo-category\//.test(u.pathname)){
+ if(/^seo-category\//.test(identity)){
   const nav=html.match(/<nav class="vh-seo-subcategory-links"[^>]*>([\s\S]*?)<\/nav>/i)?.[1];
   if(nav){
    const hrefs=[...nav.matchAll(/<a\s+href="([^"]+)"/gi)].map(m=>m[1].replaceAll('&amp;','&'));
@@ -33,7 +34,7 @@ for(const address of urls){
    for(const href of hrefs){
     let target;
     try{target=new URL(href,documentBase)}catch{errors.push('Invalid subcategory URL: '+href);continue}
-    if(target.origin!==u.origin||!target.pathname.startsWith(u.pathname.replace(/seo-category\/[^/]+\/(?:index\.html)?$/,'seo-subcategory/'))){
+    if(target.origin!==u.origin||!target.pathname.startsWith(identity!==path?u.pathname.replace(/index\.html$/,''):u.pathname.replace(/seo-category\/[^/]+\/(?:index\.html)?$/,'seo-subcategory/'))){
      errors.push('Unexpected subcategory link: '+href);continue
     }
     const targetPath=localPath(target.href);
@@ -41,7 +42,7 @@ for(const address of urls){
    }
   }
  }
- if(/\/seo-product\//.test(u.pathname)){
+ if(/^seo-product\//.test(identity)){
   const inventory=html.match(/<meta\s+name=["']vh-product-inventory["']\s+content=["']([^"']*)["']/i)?.[1];
   const expected={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[inventory];
   const blocks=[...html.matchAll(/<script\b(?=[^>]*\bid=["']vh-static-product-jsonld["'])[^>]*>([\s\S]*?)<\/script>/gi)];
@@ -58,7 +59,7 @@ for(const address of urls){
    if(!expected)errors.push('Unknown inventory status for Offer: '+path);
   }
  }
- if(/\/seo-(?:category|subcategory)\//.test(u.pathname)){
+ if(/^seo-(?:category|subcategory)\//.test(identity)){
   const editorial=html.match(/<section\b(?=[^>]*\bid=["']catalogSeoEditorial["'])[^>]*>([\s\S]*?)<\/section>/i);
   if(!editorial||!/<h2\b[^>]*>[^<]+<\/h2>/i.test(editorial[1])||!/<p\b[^>]*>[^<]+<\/p>/i.test(editorial[1])||/\s+hidden(?:\s|>|=)/i.test(editorial[0].split('>')[0]+'>'))errors.push('Missing visible static SEO editorial: '+path);
   // Informational report only: editorial text can legitimately be customized in Supabase.

@@ -8,8 +8,8 @@ const root=resolve(fileURLToPath(new URL('../',import.meta.url)),process.argv.fi
 const base=configuredSite(pathToFileURL(root+'/'));
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const locs=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
-const products=locs.filter(u=>new URL(u).pathname.includes('/seo-product/'));
-const sources=locs.filter(u=>/\/seo-(category|subcategory)\//.test(new URL(u).pathname));
+const products=locs.filter(u=>new URL(u).pathname.match(/\/(?:seo-product|product)\//));
+const sources=locs.filter(u=>/\/(?:seo-(?:category|subcategory)|catalog)\//.test(new URL(u).pathname));
 sources.unshift(new URL('catalog.html',locs[0]).href,new URL('index.html',locs[0]).href);
 const links=new Map();
 let missingSourceFiles=0;

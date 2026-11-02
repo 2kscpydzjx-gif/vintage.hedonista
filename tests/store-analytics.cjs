@@ -34,7 +34,7 @@ const events=async p=>(await commands(p)).filter(args=>args[0]==='event');
   },product);
   let sent=await events(p);assert.deepEqual(sent.map(x=>x[1]),['page_view','view_item','order_placed']);
   const order=sent.find(x=>x[1]==='order_placed')[2];assert.equal(order.currency,'UAH');assert.equal(order.value,1200);assert.deepEqual(Object.keys(order.items[0]).sort(),['item_brand','item_id','item_name','price','quantity']);
-  assert.equal(order.page_location,'https://vintazhka.com.ua/seo-product/isolated-jacket/');
+  assert.equal(order.page_location,'https://vintazhka.com.ua/product/isolated-jacket/');
   assert.doesNotMatch(JSON.stringify(await commands(p)),/customer@example|private-order-id|Private note|private-fragment|380671234567/);
   for(const width of [320,390,820,1440]){
    await p.setViewportSize({width,height:900});await p.getByRole('button',{name:'Налаштування cookie',exact:true}).click();

@@ -25,6 +25,17 @@ assert.equal(window.VHProductRoutes.canonical({slug:'сукня'}),'https://shop
 window.VH_CONFIG.prettyUrls=true;
 assert.equal(window.VHProductRoutes.href({slug:'known'}),'seo-product/known/');
 assert.equal(window.VHProductRoutes.canonical({slug:'сукня'}),'https://shop.example/seo-product/%D1%81%D1%83%D0%BA%D0%BD%D1%8F/');
+window.VH_CONFIG.cleanUrls=true;
+assert.equal(window.VHProductRoutes.href({slug:'known'}),'product/known/');
+assert.equal(window.VHProductRoutes.href({slug:'new-jacket'}),'product/new-jacket/');
+assert.equal(window.VHStorefrontRoutes.path('subcategory','odezhda','сукні'),'catalog/odezhda/%D1%81%D1%83%D0%BA%D0%BD%D1%96/');
+assert.equal(window.VHProductRoutes.canonical({slug:'сукня'}),'https://shop.example/product/%D1%81%D1%83%D0%BA%D0%BD%D1%8F/');
+window.VH_CONFIG.cleanUrls=false;
+const {cleanReferences}=await import('../scripts/clean-urls.mjs');
+assert.equal(cleanReferences('<a href="seo-product/coat/index.html">', 'https://shop.example/'),'<a href="product/coat/index.html">');
+assert.equal(cleanReferences('<a href="https://shop.example/seo-product/coat/">', 'https://shop.example/'),'<a href="https://shop.example/product/coat/">');
+const externalImage='<img src="https://storage.example/seo-product/coat.png">';
+assert.equal(cleanReferences(externalImage,'https://shop.example/'),externalImage);
 const html='<html><head><title>Manual title</title><meta content="old" property="og:title"><meta property="og:title" content="duplicate"></head><body><h1>Keep content</h1></body></html>';
 const data={title:'Quote " & <tag>',description:'Saved description',image:'https://images.example/cover.webp',canonical:'https://shop.example/seo-product/coat/index.html'};
 const updated=sharingHead(html,data);
