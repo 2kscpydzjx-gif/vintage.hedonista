@@ -14,6 +14,8 @@ const sdk=`(()=>{
   const p=await f.context.newPage();await p.setViewportSize({width,height:850});
   await p.goto(base+'/account.html#access_token=isolated-test&refresh_token=isolated-test&type=recovery');
   await p.waitForSelector('#vhRecoveryForm');assert.equal(new URL(p.url()).hash,'','recovery credentials remain in URL');
+  assert.ok(await p.locator('#accountPageMount .vh125-auth').evaluate(el=>el.getBoundingClientRect().width<=420));
+  assert.ok(await p.locator('#vhRecoveryForm input').evaluateAll(nodes=>nodes.every(el=>{const r=el.getBoundingClientRect();return r.height>=44&&r.height<=48&&r.width<=420&&parseFloat(getComputedStyle(el).fontSize)>=16})),'recovery inputs must be compact and touch-friendly');
   await p.fill('#vhRecoveryPassword','new-password-123');await p.fill('#vhRecoveryConfirm','different-password');
   await p.click('#vhRecoveryForm button');await p.waitForFunction(()=>document.querySelector('#vhRecoveryMessage')?.textContent.includes('не збігаються'));
   const before=calls.filter(x=>x.op==='update').length;
@@ -23,7 +25,7 @@ const sdk=`(()=>{
   await p.evaluate(()=>{window.__updateError=false});await p.click('#vhRecoveryForm button');
   await p.getByRole('heading',{name:'ПАРОЛЬ ЗМІНЕНО'}).waitFor();assert.equal(calls.filter(x=>x.op==='update').length,before+2);
   assert.deepEqual(calls.filter(x=>x.op==='update').at(-1).payload,{password:'new-password-123'});
-  assert.equal(await p.locator('a[href="account.html"]').count(),1);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  assert.equal(await p.locator('#accountPageMount a[href="account.html"]').count(),1);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await p.close();
  }
  const expired=await f.context.newPage();await expired.addInitScript(()=>{window.__expired=true});

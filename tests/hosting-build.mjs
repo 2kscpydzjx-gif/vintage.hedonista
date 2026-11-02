@@ -32,13 +32,14 @@ for(const file of walk(join(root,'dist')).filter(file=>/\.(html|js|json|xml|txt)
  // Content and existing route names survive domain preparation unchanged.
  const source=readFileSync(join(root,file.slice(join(root,'dist').length+1)),'utf8');
  assert.equal(content.match(/<title>([^<]+)<\/title>/)?.[1],brand.text(source.match(/<title>([^<]+)<\/title>/)?.[1]));
- assert.deepEqual([...content.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>m[1]),[...source.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>brand.text(m[1])));
+ const headings=html=>[...html.replace(/<footer\b[\s\S]*?<\/footer>/gi,'').matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/g)].map(m=>m[1]);
+ assert.deepEqual(headings(content),headings(source).map(brand.text));
 }
 for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs'])console.log(execFileSync(process.execPath,[script,'--root=dist'],{cwd:root,encoding:'utf8'}).trim());
 console.log(build(false).trim());
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);assert.equal(read('robots.txt'),readFileSync(join(root,'robots.txt'),'utf8'));
 for(const excluded of ['.git','node_modules','tests','docs','scripts','supabase','work','package.json','package-lock.json','vercel.json','launch-site.json','SUPABASE_ORDER_PERMISSIONS_V250.sql'])assert.equal(existsSync(join(root,'dist',excluded)),false,excluded+' leaked into public build');
-for(const required of ['brand.js','brand-logo.css','assets/vintazhka-logo-original.png','favicon.ico','apple-touch-icon.png','site.webmanifest','admin/site.webmanifest','assets/icons/apple-touch-icon-180.png','assets/icons/favicon-16.png','assets/icons/favicon-32.png','assets/icons/icon-192.png','assets/icons/icon-512.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
+for(const required of ['brand.js','brand-logo.css','storefront-details.css','privacy.html','assets/documents/privacy-policy-2026-11-01.pdf','assets/vintazhka-logo-original.png','favicon.ico','apple-touch-icon.png','site.webmanifest','admin/site.webmanifest','assets/icons/apple-touch-icon-180.png','assets/icons/favicon-16.png','assets/icons/favicon-32.png','assets/icons/icon-192.png','assets/icons/icon-512.png','checkout-feedback.js','order-delivery.js','admin/cms-builder.js','admin/config.js','image-variants.js','cms-boot.css','product-routes.js'])assert.equal(existsSync(join(root,'dist',required)),true,'missing '+required);
 function htmlFiles(dir){return readdirSync(dir).flatMap(name=>{const path=join(dir,name);return statSync(path).isDirectory()?htmlFiles(path):name.endsWith('.html')?[path]:[]})}
 let checked=0;
 for(const file of htmlFiles(join(root,'dist'))){

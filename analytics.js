@@ -60,13 +60,18 @@
   if(document.getElementById('vh-analytics-choice'))return;
   const panel=document.createElement('section');panel.id='vh-analytics-choice';panel.setAttribute('role','region');panel.setAttribute('aria-label','Налаштування аналітики');
   const text=document.createElement('p');text.textContent='Дозволити аналітичні cookie? Вони допомагають нам розуміти відвідування й покращувати магазин.';panel.append(text);
+  const privacy=document.querySelector('meta[name="vh-privacy-policy"]')?.content;
+  if(privacy){const link=document.createElement('a');link.href=privacy;link.target='_blank';link.rel='noopener';link.textContent='Політика конфіденційності';link.style.cssText='display:inline-block;margin:0 0 12px;text-decoration:underline';panel.append(link)}
   const actions=document.createElement('div');
   for(const [label,value] of [['Відхилити','denied'],['Дозволити','granted']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.addEventListener('click',()=>choose(value));actions.append(button)}
   panel.append(actions);document.body.append(panel);
  }
  function settingsButton(){
-  const footer=document.querySelector('footer');if(!footer||footer.querySelector('[data-vh-analytics-settings]'))return;
-  const button=document.createElement('button');button.type='button';button.dataset.vhAnalyticsSettings='';button.className='vh-analytics-settings';button.textContent='Налаштування cookie';button.addEventListener('click',settings);footer.append(button);
+  const footer=document.querySelector('footer');if(!footer)return;
+  let button=footer.querySelector('[data-vh-analytics-settings]');
+  if(!button){button=document.createElement('button');button.type='button';button.dataset.vhAnalyticsSettings='';button.className='vh-analytics-settings';button.textContent='Налаштування cookie';footer.append(button)}
+  if(!button.dataset.vhAnalyticsBound){button.addEventListener('click',settings);button.dataset.vhAnalyticsBound='1'}
+  button.hidden=false;
  }
  function commerce(name,products,total,eventKey){
   if(!['view_item','add_to_cart','remove_from_cart','begin_checkout','order_placed'].includes(name)||!Array.isArray(products))return;
