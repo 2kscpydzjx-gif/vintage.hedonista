@@ -31,7 +31,7 @@ const fits=el=>{const r=el.getBoundingClientRect();return {width:r.width,height:
  }
  for(const width of [320,390,600,768,820,901,1024,1199]){
   const p=await f.context.newPage();await p.setViewportSize({width,height:1000});await p.emulateMedia({reducedMotion:'reduce'});await p.goto(base+'/capsule.html');await p.waitForFunction(()=>window.VHCMSBoot.state==='ready');
-  const h=await p.locator('.capsule-hero h1').evaluate(fits);assert.ok(h.scrollWidth<=h.clientWidth+2,'capsule title clips at '+width);
+  const h=await p.locator('.capsule-hero h1:visible').evaluate(fits);assert.ok(h.scrollWidth<=h.clientWidth+2,'capsule title clips at '+width);
   await p.goto(base+'/about.html');await p.waitForFunction(()=>window.VHCMSBoot.state==='ready');
   const about=await p.locator('#aboutHeroTitle').evaluate(fits);assert.ok(about.scrollWidth<=about.clientWidth+2,'about title clips at '+width);
   await p.close();

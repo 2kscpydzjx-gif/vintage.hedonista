@@ -9,7 +9,7 @@ const description='Від романтики до гранжу, від клас�
  f.set('capsules','published',{shared:{cmsPageDraft:{existing:{'existing-0':{design:{layout:'photo-left',photoPreset:'left',photoWidth:50},mapped:{'static:.capsule-hero-copy h1:0':'МИСТЕЦТВО ПОЄДНУВАТИ','static:.capsule-hero-copy p:0':description,'static:.capsule-hero-photo:0':base+'/assets/test-upload.png'}}}}}});
  const records=JSON.stringify([...f.records]);
  await f.context.route(photo,route=>route.fulfill({contentType:'image/png',body:f.png}));
- for(const width of [320,360,390,430,600,760,768,820,1024,1366,1440,1920]){
+ for(const [index,width] of [320,360,390,430,600,760,768,820,1024,1366,1440,1920].entries()){
   const p=await f.context.newPage();await p.setViewportSize({width,height:900});await p.goto(base+'/capsule.html');await p.waitForFunction(()=>VHCMSBoot.state==='ready');
   const hero=p.locator('.capsule-hero');assert.equal(await hero.getAttribute('data-vh-layout'),'gradient-hero');
   assert.equal(await hero.locator(':scope>.vh-cms-composition').count(),1);assert.equal(await hero.locator('.vh-cms-photo img').getAttribute('src'),photo);
@@ -23,9 +23,16 @@ const description='Від романтики до гранжу, від клас�
   assert.ok(layout.intro.height<(width<=760?250:220),'intro is oversized at '+width);
   if(width<=760)assert.ok(layout.title.bottom<=layout.text.top);else assert.ok(layout.title.right<layout.text.left);
   await p.evaluate(()=>dispatchEvent(new Event('vh:capsules-rendered')));assert.equal(await hero.locator(':scope>.vh-cms-composition').count(),1);
-  const destination=await p.locator('.capsule-card-link').getAttribute('href');assert.match(destination,/capsule-1(?:\.html)?\?style=preppy/);await p.locator('.capsule-card-link').click();await p.waitForURL(/capsule-1(?:\.html)?\?style=preppy/);await p.close();
+  const card=p.locator('a.capsule-card'),destination=await card.getAttribute('href');assert.match(destination,/capsule-1(?:\.html)?\?style=preppy/);
+  assert.equal(await card.locator('a,button').count(),0,'nested interactive elements');assert.equal(await card.getAttribute('aria-labelledby'),await card.locator('h3').getAttribute('id'));
+  // Exercise the photo, title, visual CTA and native keyboard link on phone/tablet/desktop.
+  if(index%4===0){await card.scrollIntoViewIfNeeded();await card.click({position:{x:35,y:35}})}
+  else if(index%4===1)await card.locator('h3').click();
+  else if(index%4===2)await card.locator('.capsule-card-link').click();
+  else{await card.focus();assert.equal(await card.evaluate(el=>document.activeElement===el),true);await p.keyboard.press('Enter')}
+  await p.waitForURL(/capsule-1(?:\.html)?\?style=preppy/);await p.close();
  }
  const p=await f.context.newPage();await p.emulateMedia({reducedMotion:'reduce'});await p.goto(base+'/capsule.html');await p.waitForFunction(()=>VHCMSBoot.state==='ready');assert.equal(await p.locator('.capsule-hero [data-vh-page-entry]').count(),0);assert.equal(await p.locator('.capsule-hero .vh-cms-copy').evaluate(el=>Number(getComputedStyle(el).opacity)),1);await p.close();
  assert.equal(JSON.stringify([...f.records]),records);assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.deepEqual(f.errors,[]);
- console.log('PASS: capsule gradient/photo/brand, published text, visible entry, compact intro, 12 responsive widths, no nested scroll/overflow, repeat CMS render, style navigation, reduced motion and no data writes.');
+ console.log('PASS: capsule gradient/photo/brand, published text, visible entry, compact intro, 12 responsive widths, no nested scroll/overflow, repeat CMS render, whole-card photo/title/CTA/keyboard navigation, reduced motion and no data writes.');
 }finally{await f.browser.close()}})().catch(error=>{console.error(error);process.exitCode=1});
