@@ -51,6 +51,28 @@ const VHPageMotion=(()=>{
  return {add,release};
 })();
 
+/* These features can be replaced by CMS compositions. Animate the final visible
+   structure, and park an explicitly configured CMS effect until it enters view. */
+function vhVisibleFeature(section,split=false){
+ if(!section||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+ const edit=window.__VH_CMS_CURRENT_REVISION?.shared?.cmsPageDraft?.existing?.[section.dataset.cmsLegacy];
+ if(edit?.hidden||edit?.animation==='none')return;
+ const configured=section.hasAttribute('data-vh-motion')||[...section.classList].some(name=>/^cms-animation-(fade|zoom)/.test(name));
+ if(configured){
+  const animations=section.getAnimations();
+  animations.forEach(animation=>{animation.pause();animation.currentTime=0});
+  const play=()=>animations.forEach(animation=>animation.play());
+  if('IntersectionObserver' in window){
+   const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();play()}},{rootMargin:'0px 0px -8% 0px'});
+   observer.observe(section);
+  }else play();
+  return;
+ }
+ const composition=section.querySelector(':scope>.vh-cms-composition');
+ const parts=composition?[...composition.querySelectorAll(':scope>.vh-cms-copy,:scope>.vh-cms-photo')]:[...section.children];
+ parts.forEach((node,i)=>VHPageMotion.add(node,split?(i%2?'right':'left'):'up',80+i*100));
+}
+
 /* V273 — inventory label styling applied at element level to defeat legacy !important CSS. */
 const VH_STATUS_INLINE_STYLE="align-items:center!important;justify-content:center!important;background:rgba(12,9,7,.78)!important;color:#d8b989!important;border:1px solid #b99c72!important;border-radius:0!important;box-shadow:none!important;padding:9px 12px!important;font:600 11px/1.25 Montserrat,Arial,sans-serif!important;letter-spacing:.035em!important;width:max-content!important;max-width:100%!important;min-height:0!important;";
 function vhApplyInventoryLabelStyle(node){
@@ -2569,7 +2591,9 @@ document.addEventListener('click',e=>{
       '.brand-statement .wrap'
     ];
 
-    const revealEls=[...document.querySelectorAll(revealSelectors.join(','))];
+    const slowFashion=document.querySelector('body.home-page>[data-cms-legacy="existing-3"]');
+    vhVisibleFeature(slowFashion);
+    const revealEls=[...document.querySelectorAll(revealSelectors.join(','))].filter(el=>!slowFashion?.contains(el));
     revealEls.forEach((el,i)=>{
       el.classList.add('vh-home-reveal');
       el.style.setProperty('--vh-reveal-delay',`${Math.min((i%3)*70,140)}ms`);
@@ -2665,10 +2689,7 @@ document.addEventListener('click',e=>{
     document.body.classList.add('vh-about-motion');
 
     const hero=document.querySelector('.about-hero');
-    if(hero){
-      hero.classList.add('vh-about-hero-enter');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>hero.classList.add('is-entered')));
-    }
+    vhWhenPageVisible(()=>vhVisibleFeature(hero,true));
 
     const selectors=[
       '.about-philosophy',

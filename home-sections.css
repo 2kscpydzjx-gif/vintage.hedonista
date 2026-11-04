@@ -53,7 +53,8 @@
  body.home-page .vh-home-section-head>.section-link:focus-visible{outline:2px solid #a77744;outline-offset:5px}
  @media(max-width:760px){
   body.home-page{--vh-home-feature-gap:32px;--vh-home-grid-gap:24px;--vh-home-heading-gap:14px}
-  body.home-page .vh-home-section-head{grid-template-columns:minmax(0,max-content) minmax(16px,1fr) auto!important;gap:10px!important}
+  body.home-page .vh-home-section-head{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}
+  body.home-page .vh-home-heading-rule{display:none!important}
   body.home-page .vh-home-section-head>h2{font-size:clamp(19px,4.8vw,22px)!important}
   body.home-page .vh-home-section-head>.section-link{min-height:44px!important;font-size:9px!important;gap:5px!important;letter-spacing:0!important}
  }
