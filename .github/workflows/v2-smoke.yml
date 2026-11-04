@@ -26,6 +26,7 @@ on:
       - 'scripts/app-icons.mjs'
       - 'scripts/storefront-footer.mjs'
       - 'storefront-details.css'
+      - 'home-sections.css'
       - 'scripts/generate-app-icons.cjs'
       - 'package.json'
       - 'package-lock.json'
