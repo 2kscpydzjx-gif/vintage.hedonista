@@ -1,0 +1,63 @@
+/* The capsule index shares the homepage's left-aligned editorial typography. */
+@layer vh-responsive {
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]{margin:0!important;overflow:hidden!important}
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition{
+  min-height:clamp(460px,37vw,560px)!important;
+  background:#0d0c09!important;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition>.vh-cms-photo:after{
+  background:linear-gradient(90deg,rgba(13,12,9,.96),rgba(13,12,9,.82) 30%,rgba(13,12,9,.35) 56%,rgba(13,12,9,.05) 80%)!important;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition>.vh-cms-copy{
+  width:min(660px,65%)!important;max-width:660px!important;min-height:clamp(460px,37vw,560px)!important;
+  height:auto!important;overflow:visible!important;
+  padding:48px clamp(30px,5vw,80px)!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;text-align:left!important;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy>*{text-align:left!important;max-width:100%!important}
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .capsule-kicker{
+  font:500 12px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.16em!important;color:#b99975!important;margin:0 0 20px!important;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy h1{
+  font:400 clamp(27px,2.85vw,42px)/1.115 "VH Prata Aligned",Prata,Georgia,serif!important;letter-spacing:.008em!important;
+  color:#eee3d6!important;margin:0 0 26px!important;overflow-wrap:normal!important;text-wrap:balance;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy h2{font-size:22px!important;line-height:1.3!important;margin:0 0 18px!important}
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy p{
+  font:400 clamp(12px,1vw,14px)/1.5 Montserrat,Arial,sans-serif!important;color:#ded0bf!important;margin:0!important;max-width:100%!important;
+ }
+ .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy :is(p,h2):empty{display:none!important}
+ .capsule-page>.capsule-intro{padding:36px 0 24px!important;margin:0!important}
+ .capsule-page .capsule-intro-grid{
+  display:grid!important;grid-template-columns:minmax(0,42fr) minmax(0,58fr)!important;
+  align-items:center!important;gap:clamp(28px,5vw,72px)!important;
+  min-height:0!important;padding-top:0!important;padding-bottom:28px!important;
+ }
+ .capsule-page .capsule-intro h2{font:400 clamp(24px,2.2vw,30px)/1.3 "VH Prata Aligned",Prata,Georgia,serif!important;letter-spacing:0!important;max-width:none!important;margin:0!important}
+ .capsule-page .capsule-intro p{font:400 15px/1.75 Montserrat,Arial,sans-serif!important;justify-self:end!important;width:100%!important;max-width:480px!important;margin:0!important}
+ .capsule-page>.capsule-cards{padding-top:0!important}
+ .capsule-page .capsule-card{display:block;text-decoration:none;cursor:pointer}
+ .capsule-page .capsule-card:focus-visible{outline:2px solid #b99975!important;outline-offset:4px}
+ .capsule-page .capsule-card:focus-visible .capsule-card-link{background:#f1e9df;color:#17120d}
+ @media(hover:hover){.capsule-page .capsule-card:hover .capsule-card-link{background:#f1e9df;color:#17120d}}
+ @media(min-width:761px) and (max-width:1100px){
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy h1{font-size:clamp(26px,3vw,36px)!important}
+ }
+ @media(max-width:760px){
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition{min-height:0!important}
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition>.vh-cms-photo:after{
+   background:linear-gradient(180deg,rgba(13,12,9,.02),rgba(13,12,9,.05) 28%,rgba(13,12,9,.3) 45%,rgba(13,12,9,.88) 60%,rgba(13,12,9,.98) 78%,#0d0c09)!important;
+  }
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero]>.vh-cms-composition>.vh-cms-copy{
+   width:100%!important;max-width:none!important;min-height:0!important;padding:clamp(250px,65vw,320px) 30px 32px!important;
+  }
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .capsule-kicker{font-size:10px!important;margin-bottom:12px!important}
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy h1{font-size:clamp(27px,7.5vw,39px)!important;line-height:1.12!important;margin-bottom:18px!important;max-width:100%!important}
+  .capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy p{font-size:clamp(12px,1vw,14px)!important;line-height:1.5!important;width:100%!important;max-width:40rem!important;margin-inline:auto!important}
+  .capsule-page>.capsule-intro{padding:28px 0 20px!important}
+  .capsule-page .capsule-intro-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px!important;padding-bottom:22px!important}
+  .capsule-page .capsule-intro h2{font-size:24px!important}
+  .capsule-page .capsule-intro p{font-size:14px!important;line-height:1.65!important;max-width:100%!important;justify-self:start!important}
+ }
+ @media(max-width:390px){.capsule-page>.capsule-hero[data-vh-layout=gradient-hero] .vh-cms-copy h1{font-size:clamp(25px,7vw,32px)!important}}
+}

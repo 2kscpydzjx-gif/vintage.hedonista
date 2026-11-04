@@ -24,9 +24,9 @@ async function home(){
  }
  const grid=document.querySelector('.capsule-cards-grid'); if(!grid)return;
  grid.innerHTML='';
- (styles||[]).forEach(st=>{
-   const a=document.createElement('article');a.className='capsule-card';
-   a.innerHTML=`<div class="capsule-card-placeholder ${st.image_url?'has-image':''}">${st.image_url?`<img src="${esc(st.image_url)}"${window.VHImageVariants?.attributes(esc(st.image_url))||''} alt="${esc(st.title||'')}" loading="lazy" decoding="async">`:ph('ФОТО СТИЛЮ','1200 × 900 px')}</div><div class="capsule-card-copy"><h3>${esc(st.title||'БЕЗ НАЗВИ')}</h3><p>${esc(st.short_description||'')}</p></div><a class="capsule-card-link" href="capsule-1.html?style=${encodeURIComponent(st.slug||st.id)}">ПЕРЕГЛЯНУТИ</a>`;
+ (styles||[]).forEach((st,i)=>{
+   const a=document.createElement('a');a.className='capsule-card';a.href='capsule-1.html?style='+encodeURIComponent(st.slug||st.id);a.setAttribute('aria-labelledby','capsule-style-'+i);
+   a.innerHTML=`<div class="capsule-card-placeholder ${st.image_url?'has-image':''}">${st.image_url?`<img src="${esc(st.image_url)}"${window.VHImageVariants?.attributes(esc(st.image_url))||''} alt="${esc(st.title||'')}" loading="lazy" decoding="async">`:ph('ФОТО СТИЛЮ','1200 × 900 px')}</div><div class="capsule-card-copy"><h3 id="capsule-style-${i}">${esc(st.title||'БЕЗ НАЗВИ')}</h3><p>${esc(st.short_description||'')}</p></div><span class="capsule-card-link" aria-hidden="true">ПЕРЕГЛЯНУТИ</span>`;
    grid.appendChild(a);
  });
  if(!(styles||[]).length)grid.innerHTML='<div class="capsule-front-empty">Поки немає опублікованих стилів.</div>';

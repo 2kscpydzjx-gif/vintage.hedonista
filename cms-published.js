@@ -279,6 +279,7 @@ if(design.photoPreset==='gradient-hero'||!e.mapped||!fields(el).some(f=>f.type==
  // Never rearrange dynamic catalog, journal, checkout or shared storefront components.
  renderAboutBlocks(d,original);original.forEach((el,i)=>{const edit=edits[window.VHCMSModel.sectionId(el,i)]||{};window.VHCMSModel.applyFieldStyles(el,edit.fieldStyles,page);window.VHCMSModel.applyButtons(el,edit.customButtons);window.VHCMSModel.applyMediaSettings(el,edit,page);window.VHCMSModel.applyButtonSettings(el,edit.buttonSettings,page);window.VHCMSModel.motion(el,edit.animation,edit.duration||700)});
 
+ if(page==='capsules')window.VHCapsulePage?.present(edits);
 }
 function renderAboutBlocks(data,original){
  const main=document.querySelector('main')||document.body;
