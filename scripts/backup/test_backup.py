@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 from urllib.parse import unquote, urlsplit
@@ -13,6 +14,30 @@ import run as backup
 
 
 class BackupGuards(unittest.TestCase):
+    def test_stale_unlock_is_scoped_to_verified_repository(self):
+        expected = "a" * 64
+        with patch.dict(os.environ, {"BACKUP_REPOSITORY_ID": expected}), patch.object(backup, "call") as command:
+            command.return_value = {"id": expected}
+            backup.prepare_backup_repository({"fixture": "env"})
+            self.assertEqual(command.call_args_list[0].args[0], ["restic", "cat", "config"])
+            self.assertEqual(command.call_args_list[1].args[0], ["restic", "unlock"])
+            self.assertEqual(command.call_count, 2)
+            command.reset_mock()
+            command.return_value = {"id": "b" * 64}
+            with self.assertRaises(backup.BackupError):
+                backup.prepare_backup_repository({})
+            self.assertEqual(command.call_count, 1)
+
+    def test_lock_errors_name_only_safe_operation(self):
+        completed = subprocess.CompletedProcess([], 11, "PRIVATE-DATA", "secret-password and lock owner")
+        with patch.object(backup.subprocess, "run", return_value=completed):
+            with self.assertRaises(backup.BackupError) as caught:
+                backup.call(["restic", "restore", "private-snapshot"])
+        self.assertIn("restic restore", str(caught.exception))
+        self.assertIn("exit 11", str(caught.exception))
+        for sensitive in ["PRIVATE", "secret", "private-snapshot", "lock owner"]:
+            self.assertNotIn(sensitive, str(caught.exception))
+
     def test_separate_database_password_encodes_special_characters(self):
         ref = backup.CONFIG["project_ref"]
         template = f"postgresql://postgres.{ref}:[YOUR-PASSWORD]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
@@ -138,6 +163,44 @@ class BackupGuards(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("restic"), "Install the checksum-pinned Restic test binary")
 class EncryptedRoundTrip(unittest.TestCase):
+    def test_active_lock_survives_and_abandoned_lock_is_recovered(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            env = {**os.environ, "RESTIC_REPOSITORY": str(root / "repository"),
+                   "RESTIC_PASSWORD": "synthetic-lock-test-only", "RESTIC_CACHE_DIR": str(root / "cache")}
+            backup.call(["restic", "init", "--repository-version", "2"], env=env)
+            identity = backup.call(["restic", "cat", "config"], env=env, json_output=True)["id"]
+            process = subprocess.Popen(["restic", "backup", "--stdin", "--stdin-filename", "fixture"],
+                                       env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                deadline = time.monotonic() + 12
+                while not list((root / "repository/locks").glob("*")) and time.monotonic() < deadline:
+                    if process.poll() is not None:
+                        self.fail("Synthetic lock holder exited early")
+                    time.sleep(.05)
+                locks = set((root / "repository/locks").glob("*"))
+                self.assertTrue(locks, "Synthetic backup did not acquire a lock")
+                with patch.dict(os.environ, {"BACKUP_REPOSITORY_ID": identity}):
+                    backup.prepare_backup_repository(env)
+                self.assertEqual(set((root / "repository/locks").glob("*")), locks, "An active lock was removed")
+                process.kill()
+                process.communicate(timeout=10)
+                self.assertEqual(set((root / "repository/locks").glob("*")), locks)
+                with patch.dict(os.environ, {"BACKUP_REPOSITORY_ID": identity}):
+                    backup.prepare_backup_repository(env)
+                self.assertEqual(list((root / "repository/locks").glob("*")), [])
+                source = root / "source"
+                source.mkdir()
+                (source / "fixture.txt").write_text("synthetic recovery verified")
+                backup.call(["restic", "backup", "."], cwd=source, env=env)
+                saved = backup.call(["restic", "snapshots", "--json"], env=env, json_output=True)[-1]
+                backup.restore_bundle(saved, root / "restored", env)
+                self.assertEqual((root / "restored/fixture.txt").read_text(), "synthetic recovery verified")
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.communicate(timeout=10)
+
     def test_incremental_capture_deletion_and_old_version_recovery(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

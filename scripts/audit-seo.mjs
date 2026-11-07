@@ -1,5 +1,5 @@
-import {readFileSync,existsSync} from 'node:fs';
-import {join,resolve} from 'node:path';
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
+import {join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {configuredSite,pageAddress,prettyAddress} from './seo-deployment.mjs';
 import {snapshotIdentity,cleanAssetFile} from './clean-urls.mjs';
@@ -20,6 +20,7 @@ for(const address of urls){
  const file=asset(path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
  const html=readFileSync(file,'utf8');
+ if(/<meta\b(?=[^>]*\bname=["']robots["'])(?=[^>]*\bcontent=["'][^"']*\bnoindex\b)[^>]*>/i.test(html))errors.push('Non-indexable page in sitemap: '+path);
  const documentBase=new URL(html.match(/<base\b[^>]*href="([^"]+)"/i)?.[1]||address,address);
  const canonical=html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
  if(canonical!==address)errors.push('Canonical mismatch: '+path);
@@ -75,6 +76,23 @@ for(const address of urls){
  }
 }
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];
+// Empty subcategory files deliberately remain outside the sitemap. Audit their
+// managed directive too, so exclusions cannot silently lose their noindex tag.
+function subcategoryFiles(dir){
+ if(!existsSync(dir))return [];
+ return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?subcategoryFiles(join(dir,entry.name)):entry.name.endsWith('.html')?[join(dir,entry.name)]:[]);
+}
+for(const file of subcategoryFiles(join(root,clean?'catalog':'seo-subcategory'))){
+ const path=relative(root,file).replaceAll('\\','/');
+ if(!(clean?/^catalog\/[^/]+\/[^/]+\.html$/:/^seo-subcategory\/[^/]+\/[^/]+\/index\.html$/).test(path))continue;
+ const html=readFileSync(file,'utf8');
+ const canonical=html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
+ if(!canonical){errors.push('Missing subcategory canonical: '+path);continue}
+ if(!urls.includes(canonical)){
+  if(!/<meta name="robots" content="noindex,follow" data-vh-empty-subcategory="1">/.test(html))errors.push('Missing empty subcategory noindex: '+path);
+  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Empty subcategory lost its page content: '+path);
+ }else if(/data-vh-empty-subcategory=["']1["']/i.test(html))errors.push('Empty subcategory must stay outside sitemap: '+path);
+}
 for(const page of staticPages){
  const html=readFileSync(join(root,page),'utf8');
  const head=html.slice(0,html.toLowerCase().indexOf('</head>'));

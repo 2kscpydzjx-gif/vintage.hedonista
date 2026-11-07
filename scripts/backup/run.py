@@ -29,11 +29,18 @@ class BackupError(RuntimeError):
 
 def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_text=None):
     """Keep CLI errors, which may contain credentials, filenames or SQL, out of logs."""
+    program = Path(args[0]).name
+    operation = args[1] if program == "restic" and len(args) > 1 and args[1] in {
+        "cat", "snapshots", "unlock", "restore", "backup", "check", "forget", "init"
+    } else None
+    label = program + (" " + operation if operation else "")
     try:
         result = subprocess.run(args, cwd=cwd, env=env, input=stdin_text, text=True, capture_output=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired):
-        raise BackupError(f"{Path(args[0]).name}: unavailable or timed out") from None
+        raise BackupError(f"{label}: unavailable or timed out") from None
     if result.returncode:
+        if program == "restic" and result.returncode == 11:
+            raise BackupError(f"{label}: repository lock unavailable (exit 11); active locks were not forced open")
         diagnostic = (result.stdout + result.stderr).lower()
         if "password authentication failed" in diagnostic or "sasl auth failed" in diagnostic:
             if Path(args[0]).name == "supabase" and "dump" in args:
@@ -47,7 +54,7 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
                 if missing:
                     extra = "; missing " + missing[1] + " " + missing[2]
             raise BackupError("Isolated SQL operation failed (SQLSTATE " + state[1] + extra + ")")
-        raise BackupError(f"{Path(args[0]).name}: command failed (exit {result.returncode}); no backup marked complete")
+        raise BackupError(f"{label}: command failed (exit {result.returncode}); no backup marked complete")
     if json_output:
         try:
             return json.loads(result.stdout)
@@ -211,6 +218,13 @@ def verify_repository(env):
         raise BackupError("Repository identity mismatch")
 
 
+def prepare_backup_repository(env):
+    # Verify the pinned repository before any metadata repair. Restic's default
+    # unlock removes only stale locks; never use --remove-all or --no-lock.
+    verify_repository(env)
+    call(["restic", "unlock"], env=env, timeout=120)
+
+
 def snapshots(env):
     return call(["restic", "snapshots", "--json", "--host", CONFIG["host"], "--tag", TAG], env=env, json_output=True)
 
@@ -328,7 +342,7 @@ def make_manifest(directory, inventory_value, changed):
 
 
 def backup(work, env):
-    verify_repository(env)
+    prepare_backup_repository(env)
     existing = snapshots(env)
     directory = work / "snapshot"
     directory.mkdir(mode=0o700)
