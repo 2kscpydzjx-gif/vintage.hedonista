@@ -9,7 +9,8 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
  const handler=await pagesHandler(dist,f.png);server=http.createServer(handler);server.once('close',handler.close);await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  await f.context.route(base+'/**',route=>route.continue());
  const kinds={'seo-product':'product','seo-category':'catalog','seo-subcategory':'catalog','seo-article':'journal'};
- let checked=0;
+ const sitemap=fs.readFileSync(path.join(dist,'sitemap.xml'),'utf8');
+ let checked=0;const emptyPages=[];
  for(const [old,prefix] of Object.entries(kinds))for(const file of walk(path.join(root,old)).filter(f=>f.endsWith('/index.html'))){
   const suffix=path.relative(path.join(root,old),path.dirname(file)).split(path.sep).map(encodeURIComponent).join('/'),next=prefix+'/'+suffix+'/';
   assert.equal(fs.existsSync(path.join(dist,old,suffix,'index.html')),false);
@@ -18,9 +19,12 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
   }
   const response=await fetch(base+'/'+next,{redirect:'manual'});assert.equal(response.status,200,'public URL redirected instead of serving the page: '+next);const html=await response.text();
   assert.ok(/<h1\b/.test(html),'static content missing '+next);assert.ok(html.includes('rel="canonical" href="'+domain+next+'"'));assert.doesNotMatch(html,/href="[^"<>]*seo-(?:product|category|subcategory|article)\//);
+  const empty=fs.readFileSync(file,'utf8').includes('data-vh-empty-subcategory="1"');
+  assert.equal(sitemap.includes('<loc>'+domain+next+'</loc>'),!empty,'sitemap/indexing mismatch: '+next);
+  if(empty){emptyPages.push(next);assert.match(html,/<meta name="robots" content="noindex,nofollow,noarchive">/)}
   const canonical=await fetch(base+'/'+next+'index.html',{redirect:'manual'});assert.equal(canonical.status,301);assert.equal(new URL(canonical.headers.get('location'),base).pathname,'/'+next);checked++;
  }
- const sitemap=fs.readFileSync(path.join(dist,'sitemap.xml'),'utf8');assert.doesNotMatch(sitemap,/seo-(?:product|category|subcategory|article)\//);assert.equal((sitemap.match(/<loc>/g)||[]).length,(fs.readFileSync(path.join(root,'sitemap.xml'),'utf8').match(/<loc>/g)||[]).length);
+ assert.doesNotMatch(sitemap,/seo-(?:product|category|subcategory|article)\//);assert.equal((sitemap.match(/<loc>/g)||[]).length,(fs.readFileSync(path.join(root,'sitemap.xml'),'utf8').match(/<loc>/g)||[]).length);
  for(const rootPage of ['catalog','journal']){const r=await fetch(base+'/'+rootPage+'/',{redirect:'manual'});assert.equal(r.status,301);assert.equal(new URL(r.headers.get('location'),base).pathname,'/'+rootPage)}
  const known={id:'route-known',slug:'vovnyanyi-zhaket-kardyhan',name:'Вовняний жакет',price:1200,status:'published',category_id:'outer',subcategory_id:'kimono',categories:{name:'Верхній одяг',slug:'verkhnii-odyah'},subcategories:{name:'Кімоно',slug:'kimono'},cover_image:base+'/assets/test-upload.png',product_images:[]};
  const fresh={...known,id:'route-fresh',slug:'novyi-zhaket-bez-snapshot',name:'Новий жакет'},article={id:'article-fresh',slug:'nova-istoriya-bez-snapshot',title:'Нова історія',excerpt:'Короткий опис',content:'Історія речей.',status:'published',published_at:'2026-11-02'};
@@ -60,4 +64,9 @@ function walk(dir){return fs.readdirSync(dir).flatMap(name=>{const file=path.joi
  assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.equal(f.rpcCalls.length,0);assert.equal(f.functionCalls.length,0);
  console.log('PASS: genuine Cloudflare Pages handler accepts every rule; '+checked+' static clean URLs, single-hop permanent redirects and query retention, complete initial HTML/canonical/OG/JSON-LD/sitemap, new products/articles/categories before snapshots, desktop/mobile catalog→product→cart→checkout, filters, root assets and no data writes.');
  console.log(build(false).trim());assert.doesNotMatch(fs.readFileSync(path.join(dist,'index.html'),'utf8'),/readOnlyData/);
+ for(const next of emptyPages){
+  const file=decodeURIComponent(next.replace(/\/$/,'.html'));
+  assert.match(fs.readFileSync(path.join(dist,file),'utf8'),/<meta name="robots" content="noindex,follow" data-vh-empty-subcategory="1">/);
+  assert.ok(!fs.readFileSync(path.join(dist,'sitemap.xml'),'utf8').includes('<loc>'+domain+next+'</loc>'));
+ }
 }finally{await f.browser.close();if(server)await new Promise(r=>server.close(r));execFileSync(process.execPath,['scripts/build-hosting.mjs'],{cwd:root,env:{...process.env,CF_PAGES:'',VERCEL_ENV:'production',VERCEL_PROJECT_ID:'fixture',SITE_BASE_URL:''},stdio:'pipe'})}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {fillCatalogEditorial,stripStaticProductLinks,staticProductFallback} from './seo-editorial.mjs';
 import {renderProductRoutes} from './product-routes.mjs';
 import {sharingHead} from './seo-head.mjs';
+import {subcategoryHasProducts,subcategoryIndexing} from './subcategory-indexing.mjs';
 import {configuredSite,siteBase,pageAddress,robots,rebaseSiteReferences,localNavigation} from './seo-deployment.mjs';
 const cfg=readFileSync(new URL('../config.js',import.meta.url),'utf8');
 const url=cfg.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)?.[1];
@@ -111,7 +112,7 @@ const subcategorySeoFallbacks={
 };
 for(const sub of subcategories){
  const parent=activeCategories.get(String(sub.category_id));
- if(parent?.slug&&sub.slug)entries.push(new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href);
+ if(parent?.slug&&sub.slug&&subcategoryHasProducts(sub,products))entries.push(new URL('seo-subcategory/'+encodeURIComponent(parent.slug)+'/'+encodeURIComponent(sub.slug)+'/index.html',base).href);
 }
 const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const unique=[...new Set(entries)];
@@ -302,6 +303,7 @@ for(const sub of subcategories){
  html=html.replace(/<h1 class="page-title">[^<]*<\/h1>/i,'<h1 class="page-title">'+htmlEscape(sub.name.toUpperCase())+'</h1>');
  html=embedEditorial(html,editorialFor('subcategory',sub.name,sub.slug,parent.slug));
  html=appendProductLinks(html,products.filter(p=>String(p.subcategory_id)===String(sub.id)));
+ html=subcategoryIndexing(html,subcategoryHasProducts(sub,products));
  const target=join(root,'seo-subcategory',String(parent.slug),String(sub.slug));
  mkdirSync(target,{recursive:true});writeFileSync(join(target,'index.html'),sharingHead(html,{title,description:desc,canonical}));
 }

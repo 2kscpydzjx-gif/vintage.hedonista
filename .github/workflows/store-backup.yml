@@ -1,6 +1,11 @@
 name: Encrypted store backup to Google Drive
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/backup/**'
+      - '.github/workflows/store-backup.yml'
   schedule:
     - cron: '35 1 * * *'
   workflow_dispatch:
@@ -50,7 +55,7 @@ jobs:
           BACKUP_STORAGE_SECRET_KEY: ${{ secrets.BACKUP_STORAGE_SECRET_KEY }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.BACKUP_SUPABASE_ACCESS_TOKEN }}
           BACKUP_RESTORE_VERIFIED: ${{ vars.BACKUP_RESTORE_VERIFIED }}
-          BACKUP_MODE: ${{ inputs.mode || 'backup' }}
+          BACKUP_MODE: ${{ inputs.mode || (github.event_name == 'push' && 'backup-and-test') || 'backup' }}
           DO_NOT_TRACK: '1'
         run: python3 scripts/backup/run.py "$BACKUP_MODE"
       # No plaintext exports, credentials, traces or screenshots are uploaded as artifacts.
