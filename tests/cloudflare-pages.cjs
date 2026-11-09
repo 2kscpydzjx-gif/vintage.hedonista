@@ -19,7 +19,7 @@ async function pagesRouting(f){
  assert.equal(read('robots.txt'),'User-agent: *\nDisallow: /\n');
  assert.match(read('index.html'),/VH_DEPLOYMENT=.*readOnlyData/);assert.match(read('index.html'),/canonical" href="https:\/\/vintazhka.com.ua\/"/);
  assert.match(read('sitemap.xml'),/https:\/\/vintazhka.com.ua\/contacts</);assert.doesNotMatch(read('sitemap.xml'),/\.html</);
- for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs'])execFileSync(process.execPath,[script,'--root=dist'],{cwd:root,stdio:'pipe'});
+ for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs'])execFileSync(process.execPath,[script,'--root=dist',...(script==='scripts/audit-seo.mjs'?['--preview']:[])],{cwd:root,stdio:'pipe'});
  const f=await fixture();try{
   f.session(null);f.user(null);await pagesRouting(f);
   f.data('categories',[{id:'cat',slug:'verkhnii-odyah',name:'Верхній одяг',is_active:true}]);

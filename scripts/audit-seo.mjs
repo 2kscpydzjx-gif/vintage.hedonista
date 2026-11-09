@@ -1,5 +1,5 @@
-import {readFileSync,existsSync} from 'node:fs';
-import {join,resolve} from 'node:path';
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
+import {join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {configuredSite,pageAddress,prettyAddress} from './seo-deployment.mjs';
 import {snapshotIdentity,cleanAssetFile} from './clean-urls.mjs';
@@ -11,7 +11,10 @@ const asset=file=>join(root,clean?cleanAssetFile(file):file);
 function localPath(address){const url=new URL(address);if(url.origin!==new URL(base).origin||!url.pathname.startsWith(new URL(base).pathname))throw Error('URL outside configured site: '+address);const path=decodeURIComponent(url.pathname.slice(new URL(base).pathname.length));return !path||path.endsWith('/')?path+'index.html':/\.[^/]+$/.test(path)?path:path+'.html'}
 const xml=readFileSync(join(root,'sitemap.xml'),'utf8');
 const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1].replaceAll('&amp;','&'));
+// Production checks indexable pages; protected previews require global noindex.
+const preview=process.argv.includes('--preview');
 let errors=[];let checked=0;
+if(preview&&!/^Disallow:\s*\/\s*$/m.test(readFileSync(join(root,'robots.txt'),'utf8')))errors.push('Preview must block crawling');
 const templateMetadata=[];
 for(const address of urls){
  const u=new URL(address);
@@ -20,6 +23,8 @@ for(const address of urls){
  const file=asset(path);checked++;
  if(!existsSync(file)){errors.push('Missing: '+path);continue}
  const html=readFileSync(file,'utf8');
+ const noindex=/<meta\b(?=[^>]*\bname=["']robots["'])(?=[^>]*\bcontent=["'][^"']*\bnoindex\b)[^>]*>/i.test(html);
+ if(preview?!noindex:noindex)errors.push((preview?'Missing preview noindex: ':'Non-indexable page in sitemap: ')+path);
  const documentBase=new URL(html.match(/<base\b[^>]*href="([^"]+)"/i)?.[1]||address,address);
  const canonical=html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
  if(canonical!==address)errors.push('Canonical mismatch: '+path);
@@ -75,9 +80,29 @@ for(const address of urls){
  }
 }
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];
+// Empty subcategory files deliberately remain outside the sitemap. Audit their
+// managed directive too, so exclusions cannot silently lose their noindex tag.
+function subcategoryFiles(dir){
+ if(!existsSync(dir))return [];
+ return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?subcategoryFiles(join(dir,entry.name)):entry.name.endsWith('.html')?[join(dir,entry.name)]:[]);
+}
+for(const file of subcategoryFiles(join(root,clean?'catalog':'seo-subcategory'))){
+ const path=relative(root,file).replaceAll('\\','/');
+ if(!(clean?/^catalog\/[^/]+\/[^/]+\.html$/:/^seo-subcategory\/[^/]+\/[^/]+\/index\.html$/).test(path))continue;
+ const html=readFileSync(file,'utf8');
+ const canonical=html.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
+ if(!canonical){errors.push('Missing subcategory canonical: '+path);continue}
+ if(!urls.includes(canonical)){
+  const expected=preview?/<meta name="robots" content="noindex,nofollow,noarchive">/:/<meta name="robots" content="noindex,follow" data-vh-empty-subcategory="1">/;
+  if(!expected.test(html))errors.push('Missing empty subcategory noindex: '+path);
+  if(!/<h1\b[^>]*>[^<]+<\/h1>/i.test(html))errors.push('Empty subcategory lost its page content: '+path);
+ }else if(/data-vh-empty-subcategory=["']1["']/i.test(html))errors.push('Empty subcategory must stay outside sitemap: '+path);
+}
 for(const page of staticPages){
  const html=readFileSync(join(root,page),'utf8');
  const head=html.slice(0,html.toLowerCase().indexOf('</head>'));
+ if(preview&&!/<meta name="robots" content="noindex,nofollow,noarchive">/.test(head))errors.push('Missing preview noindex: '+page);
+ if(!preview&&/<meta\b(?=[^>]*\bname=["']robots["'])(?=[^>]*\bcontent=["'][^"']*\bnoindex\b)[^>]*>/i.test(head))errors.push('Non-indexable public page: '+page);
  const title=head.match(/<title>([^<]+)<\/title>/i)?.[1];
  const description=head.match(/<meta\s+name="description"\s+content="([^"]+)"/i)?.[1];
  const canonical=head.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1];

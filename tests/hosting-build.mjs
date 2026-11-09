@@ -28,7 +28,12 @@ for(const file of walk(join(root,'dist')).filter(file=>/\.(html|js|json|xml|txt)
  const content=readFileSync(file,'utf8');assert.ok(!content.includes(legacy),'legacy site reference in '+file);
  if(!file.endsWith('.html'))continue;
  const canonical=content.match(/<link rel="canonical" href="([^"]+)"/i)?.[1];
- if(canonical){assert.ok(canonical.startsWith(domain));assert.ok(newUrls.includes(canonical));}
+ if(canonical){
+  assert.ok(canonical.startsWith(domain));
+  if(content.includes('data-vh-empty-subcategory="1"')){
+   assert.ok(!newUrls.includes(canonical));assert.match(content,/<meta name="robots" content="noindex,follow" data-vh-empty-subcategory="1">/);
+  }else assert.ok(newUrls.includes(canonical));
+ }
  // Content and existing route names survive domain preparation unchanged.
  const source=readFileSync(join(root,file.slice(join(root,'dist').length+1)),'utf8');
  assert.equal(content.match(/<title>([^<]+)<\/title>/)?.[1],brand.text(source.match(/<title>([^<]+)<\/title>/)?.[1]));

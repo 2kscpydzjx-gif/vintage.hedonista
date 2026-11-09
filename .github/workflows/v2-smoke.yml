@@ -47,6 +47,7 @@ on:
       - 'assets/optimized/**'
       - 'scripts/product-routes.mjs'
       - 'scripts/clean-urls.mjs'
+      - 'scripts/subcategory-indexing.mjs'
       - 'scripts/seo-head.mjs'
       - 'password-recovery.js'
       - 'order-delivery.js'
@@ -95,6 +96,7 @@ jobs:
           node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
+          node tests/subcategory-indexing.mjs
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
           node --check cms-published.js

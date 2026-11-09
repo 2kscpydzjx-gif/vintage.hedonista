@@ -7,6 +7,8 @@ on:
       - 'scripts/audit-seo.mjs'
       - 'scripts/seo-deployment.mjs'
       - 'scripts/seo-editorial.mjs'
+      - 'scripts/subcategory-indexing.mjs'
+      - 'tests/subcategory-indexing.mjs'
       - 'tests/seo-editorial.mjs'
       - 'account.html'
       - 'checkout.html'
@@ -30,6 +32,7 @@ jobs:
           node --check scripts/generate-sitemap.mjs
           node --check scripts/audit-seo.mjs
           node tests/seo-editorial.mjs
+          node tests/subcategory-indexing.mjs
       - name: Generate sitemap and static SEO pages
         run: node scripts/generate-sitemap.mjs
       - name: Build static Product JSON-LD
