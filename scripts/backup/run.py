@@ -34,6 +34,8 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
         "cat", "snapshots", "unlock", "restore", "backup", "check", "forget", "init"
     } else None
     label = program + (" " + operation if operation else "")
+    if program == "supabase" and args[1:3] in (["db", "dump"], ["functions", "list"], ["functions", "download"]):
+        label += " " + " ".join(args[1:3])
     try:
         result = subprocess.run(args, cwd=cwd, env=env, input=stdin_text, text=True, capture_output=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired):
@@ -46,6 +48,34 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
             if Path(args[0]).name == "supabase" and "dump" in args:
                 raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
             raise BackupError("Isolated local database authentication failed")
+        if program == "supabase":
+            # Match known failure classes, but never echo any subprocess text:
+            # even a harmless-looking diagnostic can contain connection secrets.
+            classes = [
+                ("version mismatch", "database/client version mismatch"),
+                ("server version", "database/client version mismatch"),
+                ("cannot connect to the docker daemon", "Docker daemon unavailable"),
+                ("failed to pull docker image", "Docker image download failed"),
+                ("no space left on device", "runner disk full"),
+                ("unknown flag", "unsupported CLI flag"),
+                ("context deadline exceeded", "connection timeout"),
+                ("i/o timeout", "connection timeout"),
+                ("connection timed out", "connection timeout"),
+                ("connection refused", "connection refused"),
+                ("no such host", "DNS resolution failed"),
+                ("could not translate host name", "DNS resolution failed"),
+                ("network is unreachable", "network unavailable"),
+                ("no matching schemas", "requested schema missing"),
+                ("no matching tables", "requested table missing"),
+                ("permission denied", "export permission denied"),
+                ("unauthorized", "API authorization failed"),
+                ("invalid access token", "API authorization failed"),
+                ("status 401", "API authorization failed"),
+                ("status 403", "API access forbidden"),
+            ]
+            for needle, reason in classes:
+                if needle in diagnostic:
+                    raise BackupError(f"{label}: {reason} (exit {result.returncode}); no backup marked complete")
         state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
         if state:
             extra = ""
@@ -296,7 +326,11 @@ def export_database(directory, env):
     # CLI subprocess output is captured, never streamed into Actions logs.
     for name, flags in commands:
         output = database / name
-        call(["supabase", "db", "dump", "--db-url", db_url, "--file", str(output), *flags], env=env)
+        print("Backup stage: database export " + name, flush=True)
+        try:
+            call(["supabase", "db", "dump", "--db-url", db_url, "--file", str(output), *flags], env=env)
+        except BackupError as error:
+            raise BackupError("Database export " + name + ": " + str(error)) from None
         if not output.is_file() or not output.stat().st_size:
             raise BackupError("Empty database export")
         os.chmod(output, 0o600)
@@ -305,6 +339,7 @@ def export_database(directory, env):
 def export_functions(directory, env):
     require("SUPABASE_ACCESS_TOKEN")
     project = CONFIG["project_ref"]
+    print("Backup stage: deployed function inventory", flush=True)
     functions = call(["supabase", "functions", "list", "--project-ref", project, "--output", "json"], env=env, json_output=True)
     if not isinstance(functions, list):
         raise BackupError("Unexpected function inventory")
@@ -315,6 +350,7 @@ def export_functions(directory, env):
         slug = function.get("slug")
         if not isinstance(slug, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,99}", slug):
             raise BackupError("Unexpected function name")
+        print("Backup stage: deployed function download", flush=True)
         call(["supabase", "functions", "download", slug, "--project-ref", project, "--use-api"], cwd=destination, env=env)
 
 
