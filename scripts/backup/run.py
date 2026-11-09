@@ -378,12 +378,14 @@ def make_manifest(directory, inventory_value, changed):
 
 
 def backup(work, env):
+    print("Backup stage: verify repository and recover stale locks", flush=True)
     prepare_backup_repository(env)
     existing = snapshots(env)
     directory = work / "snapshot"
     directory.mkdir(mode=0o700)
     previous = {}
     if existing:
+        print("Backup stage: restore previous media cache", flush=True)
         latest = max(existing, key=lambda x: x["time"])
         restore_bundle(latest, directory, env)
         validate_bundle(directory)
@@ -394,6 +396,7 @@ def backup(work, env):
                 shutil.rmtree(child) if child.is_dir() else child.unlink()
     changed_total = 0
     for attempt in range(3):
+        print("Backup stage: synchronize media", flush=True)
         current, changed = sync_media(directory, previous, env)
         changed_total += changed
         export_database(directory, env)
@@ -404,17 +407,20 @@ def backup(work, env):
         raise BackupError("Storage changed during capture; retry later")
     export_functions(directory, env)
     manifest = make_manifest(directory, current, changed_total)
+    print("Backup stage: write encrypted snapshot", flush=True)
     response = call(["restic", "backup", "--json", "--host", CONFIG["host"], "--tag", TAG, "--tag", "format:1", "."], cwd=directory, env=env)
     summaries = [json.loads(line) for line in response.splitlines() if line.strip()]
     summary = next((s for s in reversed(summaries) if s.get("message_type") == "summary" and s.get("snapshot_id")), None)
     if not summary:
         raise BackupError("No completed snapshot returned")
+    print("Backup stage: verify encrypted repository", flush=True)
     call(["restic", "check"], env=env)
     # Test retrieval of this exact encrypted snapshot, not merely archive creation.
     completed = next((s for s in snapshots(env) if s["id"] == summary["snapshot_id"]), None)
     if not completed:
         raise BackupError("Completed snapshot cannot be found")
     restored = work / "verified-restore"
+    print("Backup stage: restore and verify new snapshot", flush=True)
     restore_bundle(completed, restored, env)
     validate_bundle(restored)
     return {"snapshot_id": summary["snapshot_id"], "media_files": manifest["media_count"], "changed_media_files": changed_total,
@@ -454,6 +460,7 @@ def main():
                 result = backup(work, env)
                 if args.mode == "backup-and-test":
                     from restore_probe import ProbeError, probe
+                    print("Backup stage: disconnected full database restore", flush=True)
                     try:
                         result.update(probe(work / "verified-restore", work, call, env=env))
                     except ProbeError as error:

@@ -152,6 +152,15 @@ class BackupGuards(unittest.TestCase):
                 backup.export_database(Path(temporary), {})
             self.assertEqual(command.call_count, 1)
 
+    def test_function_failure_label_does_not_include_private_function_name(self):
+        completed = subprocess.CompletedProcess([], 1, "", "Unauthorized: private-token")
+        with patch.object(backup.subprocess, "run", return_value=completed):
+            with self.assertRaises(backup.BackupError) as caught:
+                backup.call(["supabase", "functions", "download", "private-function", "--project-ref", "private-project"])
+        message = str(caught.exception)
+        self.assertIn("supabase functions download: API authorization failed", message)
+        self.assertNotIn("private", message)
+
     def test_retention_cannot_run_before_controlled_restore(self):
         with patch.dict(os.environ, {"BACKUP_RESTORE_VERIFIED": "false"}), patch.object(backup, "call") as command:
             with self.assertRaises(backup.BackupError):
