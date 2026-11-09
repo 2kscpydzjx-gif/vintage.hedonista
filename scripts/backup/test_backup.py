@@ -122,6 +122,45 @@ class BackupGuards(unittest.TestCase):
         self.assertNotIn("secret", str(caught.exception))
         self.assertNotIn("SENSITIVE", str(caught.exception))
 
+    def test_supabase_failure_classes_hide_raw_output_and_arguments(self):
+        cases = [
+            ("pg_dump: server version: 18; pg_dump version: 17", "database/client version mismatch"),
+            ("dial tcp private-host:5432: i/o timeout", "connection timeout"),
+            ("Cannot connect to the Docker daemon at private-path", "Docker daemon unavailable"),
+            ("unknown flag: private-flag", "unsupported CLI flag"),
+            ("no matching schemas were found: private-schema", "requested schema missing"),
+            ("permission denied for table customer-data", "export permission denied"),
+            ("Unauthorized: private-token", "API authorization failed"),
+            ("unrecognized sensitive message", "command failed"),
+        ]
+        for raw, expected in cases:
+            with self.subTest(expected=expected):
+                completed = subprocess.CompletedProcess([], 1, "SENSITIVE_SQL", raw + " secret-password")
+                with patch.object(backup.subprocess, "run", return_value=completed):
+                    with self.assertRaises(backup.BackupError) as caught:
+                        backup.call(["supabase", "db", "dump", "--db-url", "secret-connection"])
+                message = str(caught.exception)
+                self.assertIn("supabase db dump", message)
+                self.assertIn(expected, message)
+                for secret in [raw, "secret-password", "secret-connection", "SENSITIVE_SQL"]:
+                    self.assertNotIn(secret, message)
+
+    def test_database_export_error_identifies_fixed_stage_and_stops(self):
+        with tempfile.TemporaryDirectory() as temporary, patch.object(backup, "database_url", return_value="fixture"), \
+                patch.object(backup, "call", side_effect=backup.BackupError("supabase db dump: connection timeout")) as command:
+            with self.assertRaisesRegex(backup.BackupError, "Database export roles.sql: supabase db dump: connection timeout"):
+                backup.export_database(Path(temporary), {})
+            self.assertEqual(command.call_count, 1)
+
+    def test_function_failure_label_does_not_include_private_function_name(self):
+        completed = subprocess.CompletedProcess([], 1, "", "Unauthorized: private-token")
+        with patch.object(backup.subprocess, "run", return_value=completed):
+            with self.assertRaises(backup.BackupError) as caught:
+                backup.call(["supabase", "functions", "download", "private-function", "--project-ref", "private-project"])
+        message = str(caught.exception)
+        self.assertIn("supabase functions download: API authorization failed", message)
+        self.assertNotIn("private", message)
+
     def test_retention_cannot_run_before_controlled_restore(self):
         with patch.dict(os.environ, {"BACKUP_RESTORE_VERIFIED": "false"}), patch.object(backup, "call") as command:
             with self.assertRaises(backup.BackupError):

@@ -34,6 +34,8 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
         "cat", "snapshots", "unlock", "restore", "backup", "check", "forget", "init"
     } else None
     label = program + (" " + operation if operation else "")
+    if program == "supabase" and args[1:3] in (["db", "dump"], ["functions", "list"], ["functions", "download"]):
+        label += " " + " ".join(args[1:3])
     try:
         result = subprocess.run(args, cwd=cwd, env=env, input=stdin_text, text=True, capture_output=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired):
@@ -46,6 +48,34 @@ def call(args, *, cwd=None, env=None, json_output=False, timeout=1800, stdin_tex
             if Path(args[0]).name == "supabase" and "dump" in args:
                 raise BackupError("Database authentication failed: check BACKUP_DATABASE_PASSWORD")
             raise BackupError("Isolated local database authentication failed")
+        if program == "supabase":
+            # Match known failure classes, but never echo any subprocess text:
+            # even a harmless-looking diagnostic can contain connection secrets.
+            classes = [
+                ("version mismatch", "database/client version mismatch"),
+                ("server version", "database/client version mismatch"),
+                ("cannot connect to the docker daemon", "Docker daemon unavailable"),
+                ("failed to pull docker image", "Docker image download failed"),
+                ("no space left on device", "runner disk full"),
+                ("unknown flag", "unsupported CLI flag"),
+                ("context deadline exceeded", "connection timeout"),
+                ("i/o timeout", "connection timeout"),
+                ("connection timed out", "connection timeout"),
+                ("connection refused", "connection refused"),
+                ("no such host", "DNS resolution failed"),
+                ("could not translate host name", "DNS resolution failed"),
+                ("network is unreachable", "network unavailable"),
+                ("no matching schemas", "requested schema missing"),
+                ("no matching tables", "requested table missing"),
+                ("permission denied", "export permission denied"),
+                ("unauthorized", "API authorization failed"),
+                ("invalid access token", "API authorization failed"),
+                ("status 401", "API authorization failed"),
+                ("status 403", "API access forbidden"),
+            ]
+            for needle, reason in classes:
+                if needle in diagnostic:
+                    raise BackupError(f"{label}: {reason} (exit {result.returncode}); no backup marked complete")
         state = re.search(r'ERROR:\s+([0-9A-Z]{5})\b', result.stderr)
         if state:
             extra = ""
@@ -296,7 +326,11 @@ def export_database(directory, env):
     # CLI subprocess output is captured, never streamed into Actions logs.
     for name, flags in commands:
         output = database / name
-        call(["supabase", "db", "dump", "--db-url", db_url, "--file", str(output), *flags], env=env)
+        print("Backup stage: database export " + name, flush=True)
+        try:
+            call(["supabase", "db", "dump", "--db-url", db_url, "--file", str(output), *flags], env=env)
+        except BackupError as error:
+            raise BackupError("Database export " + name + ": " + str(error)) from None
         if not output.is_file() or not output.stat().st_size:
             raise BackupError("Empty database export")
         os.chmod(output, 0o600)
@@ -305,6 +339,7 @@ def export_database(directory, env):
 def export_functions(directory, env):
     require("SUPABASE_ACCESS_TOKEN")
     project = CONFIG["project_ref"]
+    print("Backup stage: deployed function inventory", flush=True)
     functions = call(["supabase", "functions", "list", "--project-ref", project, "--output", "json"], env=env, json_output=True)
     if not isinstance(functions, list):
         raise BackupError("Unexpected function inventory")
@@ -315,6 +350,7 @@ def export_functions(directory, env):
         slug = function.get("slug")
         if not isinstance(slug, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,99}", slug):
             raise BackupError("Unexpected function name")
+        print("Backup stage: deployed function download", flush=True)
         call(["supabase", "functions", "download", slug, "--project-ref", project, "--use-api"], cwd=destination, env=env)
 
 
@@ -342,12 +378,14 @@ def make_manifest(directory, inventory_value, changed):
 
 
 def backup(work, env):
+    print("Backup stage: verify repository and recover stale locks", flush=True)
     prepare_backup_repository(env)
     existing = snapshots(env)
     directory = work / "snapshot"
     directory.mkdir(mode=0o700)
     previous = {}
     if existing:
+        print("Backup stage: restore previous media cache", flush=True)
         latest = max(existing, key=lambda x: x["time"])
         restore_bundle(latest, directory, env)
         validate_bundle(directory)
@@ -358,6 +396,7 @@ def backup(work, env):
                 shutil.rmtree(child) if child.is_dir() else child.unlink()
     changed_total = 0
     for attempt in range(3):
+        print("Backup stage: synchronize media", flush=True)
         current, changed = sync_media(directory, previous, env)
         changed_total += changed
         export_database(directory, env)
@@ -368,17 +407,20 @@ def backup(work, env):
         raise BackupError("Storage changed during capture; retry later")
     export_functions(directory, env)
     manifest = make_manifest(directory, current, changed_total)
+    print("Backup stage: write encrypted snapshot", flush=True)
     response = call(["restic", "backup", "--json", "--host", CONFIG["host"], "--tag", TAG, "--tag", "format:1", "."], cwd=directory, env=env)
     summaries = [json.loads(line) for line in response.splitlines() if line.strip()]
     summary = next((s for s in reversed(summaries) if s.get("message_type") == "summary" and s.get("snapshot_id")), None)
     if not summary:
         raise BackupError("No completed snapshot returned")
+    print("Backup stage: verify encrypted repository", flush=True)
     call(["restic", "check"], env=env)
     # Test retrieval of this exact encrypted snapshot, not merely archive creation.
     completed = next((s for s in snapshots(env) if s["id"] == summary["snapshot_id"]), None)
     if not completed:
         raise BackupError("Completed snapshot cannot be found")
     restored = work / "verified-restore"
+    print("Backup stage: restore and verify new snapshot", flush=True)
     restore_bundle(completed, restored, env)
     validate_bundle(restored)
     return {"snapshot_id": summary["snapshot_id"], "media_files": manifest["media_count"], "changed_media_files": changed_total,
@@ -418,6 +460,7 @@ def main():
                 result = backup(work, env)
                 if args.mode == "backup-and-test":
                     from restore_probe import ProbeError, probe
+                    print("Backup stage: disconnected full database restore", flush=True)
                     try:
                         result.update(probe(work / "verified-restore", work, call, env=env))
                     except ProbeError as error:
