@@ -49,3 +49,27 @@
  .vh-policy-article a{text-decoration:underline;text-underline-offset:3px}
  .vh-policy-article a:focus-visible{outline:2px solid #856540;outline-offset:4px}
  .vh-policy-download{display:inline-flex;align-items:center;min-height:44px;margin-bottom:24px}
+
+/* Product photography note and its contextual contact request. */
+.product-gallery-column .vh-product-photo-note{margin:18px 0 0;padding:16px 0 0;border-top:1px solid #b99a6a;color:#655442;min-width:0}
+.vh-product-photo-note .vh-photo-note-title{display:block;margin:0 0 8px!important;font-family:inherit!important;font-size:14px!important;font-weight:500!important;line-height:1.45!important;letter-spacing:.02em!important;text-transform:none!important;color:#3c2b1d}
+.vh-product-photo-note p{margin:0!important;font-size:13px!important;line-height:1.75!important;max-width:64ch}
+.vh-product-photo-note a{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:4px 0;font-size:13px;line-height:1.5;color:#674923;text-decoration:underline;text-underline-offset:4px}
+.vh-product-photo-note a:hover{color:#302219}
+.vh-product-photo-note a:focus-visible,.vh-photo-request a:focus-visible,.vh-photo-request button:focus-visible{outline:2px solid #856540;outline-offset:4px}
+.service-contacts .vh-photo-request{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:24px 48px;padding-top:28px;padding-bottom:28px;border-top:1px solid #b99a6a;border-bottom:1px solid #cdbda8;scroll-margin-top:100px;overflow-wrap:anywhere}
+.vh-photo-request h2{margin:0 0 12px!important;font-family:inherit!important;font-size:20px!important;line-height:1.4!important;font-weight:500!important;text-transform:none!important}
+.vh-photo-request-heading>a{display:inline-block;color:#624724;text-decoration:underline;text-underline-offset:4px;font-size:15px;line-height:1.65}
+.vh-photo-request-heading p{margin:12px 0 0!important;font-size:13px;line-height:1.75;color:#655442}
+.vh-photo-request-message{min-width:0}
+.vh-photo-request-message label{display:block;margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#655442}
+.vh-photo-request textarea{display:block;width:100%;box-sizing:border-box;min-height:144px;max-height:320px;resize:vertical;padding:14px;border:1px solid #cdbda8;border-radius:0;background:#f7f1e8;color:#302219;font:inherit;font-size:14px;line-height:1.65}
+.vh-photo-request-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;margin-top:10px}
+.vh-photo-request-actions a,.vh-photo-request-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:6px 0;font:inherit;font-size:13px;line-height:1.5;color:#624724;text-decoration:underline;text-underline-offset:4px;border:0;border-radius:0;background:transparent;cursor:pointer}
+.vh-photo-request [hidden]{display:none!important}
+#photoRequestStatus{margin:4px 0 0!important;min-height:22px;font-size:12px;line-height:1.6;color:#655442}
+@media(max-width:760px){
+ .product-gallery-column .vh-product-photo-note{margin-top:14px;padding-top:14px}
+ .service-contacts .vh-photo-request{grid-template-columns:minmax(0,1fr);gap:18px;padding-top:22px;padding-bottom:20px}
+ .vh-photo-request h2{font-size:18px!important}
+}

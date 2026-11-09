@@ -126,6 +126,7 @@ jobs:
           node tests/cms-layouts.cjs
           node tests/cms-legacy.cjs
           node tests/cms-contact-fields.cjs
+          node tests/product-photo-note.cjs
           node tests/cms-shell.cjs
           node tests/cms-shared-editing.cjs
           node tests/cms-review.cjs

@@ -31,6 +31,9 @@ const domainBuild=process.argv.includes('--launch-domain');
 const targetSite=siteBase(process.env.SITE_BASE_URL||((preview||domainBuild)?launchSite(new URL('../',import.meta.url)):sourceSite));
 const analyticsEnabled=!preview&&targetSite===launchSite(new URL('../',import.meta.url));
 const publicConfig=await readFile(path.join(root,'config.js'),'utf8');
+// Keep the notice on existing SEO snapshots in sync with the product template.
+const productPhotoNote=(await readFile(path.join(root,'product.html'),'utf8')).match(/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/)?.[0];
+if(!productPhotoNote)throw Error('Product photo notice is missing from the template');
 const navigation=await publishedNavigation(publicConfig,{cloudflare});
 const supabaseOrigin=new URL(publicConfig.match(/supabaseUrl\s*:\s*['"]([^'"]+)/)[1]).origin;
 const previewGuard=cloudflarePreview?await readFile(path.join(root,'preview-readonly.js'),'utf8'):'';
@@ -45,6 +48,10 @@ for(const file of publicFiles){
    text=renderBrandLogos(text,file);
    text=renderAppIcons(text,file);
    text=renderStorefrontFooter(text,file);
+   if(file==='product.html'||file.startsWith('seo-product/')){
+    const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
+    text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);
+   }
    text=text.replaceAll('Пошук за назвою, брендом або категорією...','Назва, бренд або категорія');
    const tag='<script src="'+(file.startsWith('admin/')?'../':'')+'brand.js?v=1"></script>';
    text=/\bsrc="cms-shell\.js(?:\?|"|$)/.test(text)?text.replace(/<script\b[^>]*src="cms-shell\.js[^>]*>/i,match=>tag+match):text.replace(/<\/head>/i,tag+'</head>');

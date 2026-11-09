@@ -1266,6 +1266,13 @@ function renderProduct(){
  if($('productBrandFact'))$('productBrandFact').textContent=vhPlainText(p.brand)||'—';
  if($('productSeason'))$('productSeason').textContent=p.season||'—';
  $('productName').textContent=vhPlainText(p.name);
+ const photoRequest=$('productPhotoRequestLink');
+ if(photoRequest){
+  const contact=new URL('contacts.html',document.baseURI);
+  if(window.VH_CONFIG?.prettyUrls)contact.pathname=contact.pathname.replace(/\.html$/,'');
+  contact.hash=new URLSearchParams({photo_product:$('productName').textContent,photo_url:window.VHProductRoutes?.canonical(p)||location.href}).toString();
+  photoRequest.href=contact.href;
+ }
  $('productPrice').textContent=money(p.price);
  $('productShortDescription').textContent=vhPlainText(p.short_description);
  $('productShortDescription').classList.toggle('hidden',!p.short_description);
@@ -2012,6 +2019,50 @@ function normalizeSocialUrl(value,type){
  if(type==='telegram')return `https://t.me/${clean.replace(/^t\.me\//,'')}`;
  return v;
 }
+
+function vhPhotoRequestContext(){
+ if(location.hash.length>8192)return null;
+ const params=new URLSearchParams(location.hash.slice(1)),name=params.get('photo_product')?.replace(/\s+/g,' ').trim().slice(0,300);
+ if(!name||!params.get('photo_url'))return null;
+ try{
+  const site=new URL(window.VH_CONFIG?.siteUrl||document.baseURI),url=new URL(params.get('photo_url'));
+  if(url.origin!==site.origin||url.username||url.password||!url.pathname.startsWith(site.pathname))return null;
+  if(!/^(?:seo-product|product)\/[^/]+\/(?:index\.html)?$/.test(url.pathname.slice(site.pathname.length)))return null;
+  url.search='';url.hash='';
+  return {name,url:url.href,message:`Вітаю! Хочу запросити додаткові фото товару «${name}», щоб уточнити колір, фактуру та деталі.\n\n${url.href}`};
+ }catch{return null}
+}
+function vhRenderPhotoRequest(){
+ const main=document.querySelector('.service-contacts'),request=vhPhotoRequestContext();
+ if(!main)return;
+ if(!request){$('photoRequest')?.remove();return}
+ let card=$('photoRequest');
+ if(!card){
+  card=document.createElement('section');card.id='photoRequest';card.className='wrap vh-photo-request';card.setAttribute('aria-labelledby','photoRequestTitle');
+  card.innerHTML=`<div class="vh-photo-request-heading"><h2 id="photoRequestTitle" tabindex="-1">Запит додаткових фото</h2><a id="photoRequestProduct"></a><p>Оберіть зручний спосіб зв’язку або скопіюйте запит для Instagram чи іншого месенджера.</p></div><div class="vh-photo-request-message"><label for="photoRequestMessage">Ваш запит</label><textarea id="photoRequestMessage" rows="4" readonly></textarea><div class="vh-photo-request-actions"><a id="photoRequestTelegram" target="_blank" rel="noopener" hidden>Telegram</a><a id="photoRequestEmail" hidden>Email</a><button type="button" id="photoRequestCopy">Скопіювати запит</button></div><p id="photoRequestStatus" role="status" aria-live="polite"></p></div>`;
+  const hero=main.querySelector('.service-hero');if(hero)hero.after(card);else main.prepend(card);
+  $('photoRequestCopy').addEventListener('click',async()=>{
+   const field=$('photoRequestMessage'),status=$('photoRequestStatus');
+   try{await navigator.clipboard.writeText(field.value);status.textContent='Запит скопійовано.'}
+   catch{field.focus();field.select();status.textContent=typeof document.execCommand==='function'&&document.execCommand('copy')?'Запит скопійовано.':'Текст виділено — скопіюйте його та вставте в повідомлення.'}
+  });
+  const focus=()=>requestAnimationFrame(()=>{if(!card.isConnected)return;$('photoRequestTitle').focus({preventScroll:true});card.scrollIntoView({block:'start',behavior:'instant'})});
+  if(window.VHCMSBoot?.whenVisible)window.VHCMSBoot.whenVisible(focus);else focus();
+ }
+ $('photoRequestProduct').textContent=request.name;$('photoRequestProduct').href=request.url;
+ $('photoRequestMessage').value=request.message;
+ const telegram=$('photoRequestTelegram'),email=$('photoRequestEmail');telegram.hidden=true;email.hidden=true;
+ try{
+  const url=new URL($('contactsTelegramLink')?.href);
+  if(url.protocol==='https:'&&['t.me','telegram.me'].includes(url.hostname)&&/^\/[a-zA-Z0-9_]{5,32}\/?$/.test(url.pathname)){
+   url.searchParams.delete('profile');url.searchParams.set('text',request.message);telegram.href=url.href;telegram.hidden=false;
+  }
+ }catch{}
+ const address=$('contactsEmailLink')?.getAttribute('href')?.match(/^mailto:([^?\s]+@[^?\s]+)$/i)?.[1];
+ if(address){email.href='mailto:'+address+'?'+new URLSearchParams({subject:'Додаткові фото — '+request.name,body:request.message}).toString().replace(/\+/g,'%20');email.hidden=false}
+}
+// Read final published contact links after CMS overrides, without rewriting them.
+for(const event of ['vh:published-ready','vh:service-rendered','hashchange'])window.addEventListener(event,()=>queueMicrotask(vhRenderPhotoRequest));
 async function initContactsPage(){
  const s=await loadSettings();
  setServiceText('contactsKicker',s.contacts_page_kicker,'VINTAZHKA');

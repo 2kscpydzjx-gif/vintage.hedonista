@@ -17,6 +17,7 @@ export function renderStorefrontFooter(html,file=''){
   </footer>`;
  });
  if(!/href="storefront-details\.css/.test(html))html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="storefront-details.css?v=1"></head>');
+ html=html.replace(/href="storefront-details\.css(?:\?[^"]*)?"/g,'href="storefront-details.css?v=2"');
  if(!/name="vh-privacy-policy"/.test(html))html=html.replace(/<\/head>/i,'<meta name="vh-privacy-policy" content="'+privacyUrl+'"></head>');
  html=html.replace(/(<meta name="vh-privacy-policy" content=")[^"]*(")/g,'$1'+privacyUrl+'$2');
  html=html.replace(/<a\b[^>]*data-vh-privacy-link[^>]*>[\s\S]*?<\/a>/g,privacyLink);
