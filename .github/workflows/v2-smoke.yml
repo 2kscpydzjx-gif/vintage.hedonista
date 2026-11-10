@@ -10,6 +10,7 @@ on:
       - 'cms-published.js'
       - 'cms-shell.js'
       - 'site.js'
+      - 'product-photo-request.js'
       - 'capsules-front.js'
       - 'styles.css'
       - 'storefront-ui.js'
@@ -71,6 +72,7 @@ jobs:
         run: |
           node --check cms-model.js
           node --check storefront-ui.js
+          node --check product-photo-request.js
           node --check checkout-feedback.js
           node --check analytics.js
           node --check brand.js
@@ -126,6 +128,7 @@ jobs:
           node tests/cms-layouts.cjs
           node tests/cms-legacy.cjs
           node tests/cms-contact-fields.cjs
+          node tests/product-photo-note.cjs
           node tests/cms-shell.cjs
           node tests/cms-shared-editing.cjs
           node tests/cms-review.cjs

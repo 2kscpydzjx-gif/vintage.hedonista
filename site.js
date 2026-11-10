@@ -1266,6 +1266,8 @@ function renderProduct(){
  if($('productBrandFact'))$('productBrandFact').textContent=vhPlainText(p.brand)||'—';
  if($('productSeason'))$('productSeason').textContent=p.season||'—';
  $('productName').textContent=vhPlainText(p.name);
+ const photoRequest=$('productPhotoRequestLink');
+ if(photoRequest)photoRequest.onclick=()=>window.VHPhotoRequest.open({name:$('productName').textContent,url:window.VHProductRoutes?.canonical(p)||location.href,settings:SITE_SETTINGS,client:publicSb,opener:photoRequest});
  $('productPrice').textContent=money(p.price);
  $('productShortDescription').textContent=vhPlainText(p.short_description);
  $('productShortDescription').classList.toggle('hidden',!p.short_description);
@@ -2012,6 +2014,7 @@ function normalizeSocialUrl(value,type){
  if(type==='telegram')return `https://t.me/${clean.replace(/^t\.me\//,'')}`;
  return v;
 }
+
 async function initContactsPage(){
  const s=await loadSettings();
  setServiceText('contactsKicker',s.contacts_page_kicker,'VINTAZHKA');
