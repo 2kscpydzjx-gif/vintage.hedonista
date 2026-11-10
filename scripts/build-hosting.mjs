@@ -51,6 +51,7 @@ for(const file of publicFiles){
    if(file==='product.html'||file.startsWith('seo-product/')){
     const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
     text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);
+    if(!/\bsrc="product-photo-request\.js(?:\?|"|$)/.test(text))text=text.replace(/<\/head>/i,'<script defer src="product-photo-request.js?v=1"></script></head>');
    }
    text=text.replaceAll('Пошук за назвою, брендом або категорією...','Назва, бренд або категорія');
    const tag='<script src="'+(file.startsWith('admin/')?'../':'')+'brand.js?v=1"></script>';
@@ -87,7 +88,7 @@ for(const file of publicFiles){
 if(cloudflare){
  // Route parsers must not share cache keys with the pre-migration scripts.
  // Keep aliases at the root so document.currentScript-relative imports work.
- const routingFiles=['site.js','config.js','product-routes.js','vh-seo-runtime.js','vh-page-seo.js','cms-published.js'];
+ const routingFiles=['site.js','config.js','product-routes.js','vh-seo-runtime.js','vh-page-seo.js','cms-published.js','product-photo-request.js'];
  const routingNames=new Map();
  for(const file of routingFiles){
   const bytes=await readFile(path.join(out,file));
