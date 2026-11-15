@@ -16,6 +16,8 @@
   color:#333!important;text-align:center!important;
  }
  .article-page .article-editorial.has-cover>.article-v71-cover-intro{grid-row:1!important;align-self:end!important;margin:240px auto 0!important}
+ /* Cover the subpixel paint seam where the white title panel meets the page. */
+ .article-page .article-editorial.has-cover>.article-v71-cover-intro::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#fff;pointer-events:none}
  .article-page .article-editorial:not(.has-cover)>.article-v71-cover-intro{width:100%!important;background:#fff!important;padding-top:28px!important}
  .article-page .article-editorial .article-v71-masthead{margin:0 0 20px!important;font:400 12px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.09em!important;text-transform:uppercase!important;color:#a77744!important;text-align:center!important}
  .article-page .article-editorial>.article-v71-cover-intro h1{max-width:1120px!important;margin:0 auto!important;font:600 clamp(22px,2.1vw,28px)/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.12em!important;text-transform:uppercase!important;text-align:center!important;color:#333!important;overflow-wrap:anywhere!important;text-wrap:balance}
