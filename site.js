@@ -1936,16 +1936,16 @@ async function initArticle(){
  const bodyHtml=renderEditorialArticleContent(data.content,data.title);
 
  $('articleRoot').innerHTML=`
-   <article class="article-v71">
-     <section class="article-v71-cover-intro">
-       <div class="article-v71-masthead">VINTAZHKA JOURNAL</div>
-       <h1>${escapeArticleHtml(data.title)}</h1>
-     </section>
-
+   <article class="article-v71 article-editorial${data.cover_image?' has-cover':''}">
      ${data.cover_image?`
        <figure class="article-v71-cover">
-         <img src="${data.cover_image}"${window.VHImageVariants?.attributes(data.cover_image)||''} alt="${escapeArticleHtml(data.title)}" fetchpriority="high" loading="eager" decoding="async">
+         <img src="${escapeArticleHtml(data.cover_image)}"${window.VHImageVariants?.attributes(data.cover_image)||''} alt="${escapeArticleHtml(data.title)}" fetchpriority="high" loading="eager" decoding="async">
        </figure>`:''}
+
+     <section class="article-v71-cover-intro">
+       <div class="article-v71-masthead">${escapeArticleHtml(data.category||'VINTAZHKA JOURNAL')}</div>
+       <h1>${escapeArticleHtml(data.title)}</h1>
+     </section>
 
      ${data.excerpt?`
        <div class="article-v71-deck">
@@ -1966,6 +1966,8 @@ async function initArticle(){
        <a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a>
      </nav>
    </article>`;
+ // Excerpts can contain the editor's rich paragraphs; render them safely as prose.
+ if(data.excerpt)window.VHSafeRich?.render($('articleRoot').querySelector('.article-v71-deck'),data.excerpt);
 }
 
 /* ==========================================================

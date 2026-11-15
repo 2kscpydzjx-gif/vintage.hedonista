@@ -28,6 +28,9 @@ on:
       - 'scripts/storefront-footer.mjs'
       - 'storefront-details.css'
       - 'home-sections.css'
+      - 'article-layout.css'
+      - 'scripts/article-layout.mjs'
+      - 'scripts/generate-sitemap.mjs'
       - 'capsule-mobile-headings.css'
       - 'capsule-navigation.css'
       - 'capsule-page.css'
@@ -100,6 +103,7 @@ jobs:
           node --check capsules-front.js
           node --check admin/admin.js
           node tests/seo-editorial.mjs
+          node tests/article-layout.mjs
           node tests/subcategory-indexing.mjs
           node --check cms-boot.js
           node scripts/sync-cms-boot.cjs --check
@@ -146,6 +150,7 @@ jobs:
           node tests/cms-entry-experience.cjs
           node tests/cms-visible-motion.cjs
           node tests/feature-entry-motion.cjs
+          node tests/article-layout.cjs
           node tests/capsule-page.cjs
           node tests/capsule-navigation.cjs
           node tests/capsule-mobile-headings.cjs

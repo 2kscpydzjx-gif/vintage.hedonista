@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {fillCatalogEditorial,stripStaticProductLinks,staticProductFallback} from './seo-editorial.mjs';
 import {renderProductRoutes} from './product-routes.mjs';
 import {sharingHead} from './seo-head.mjs';
+import {renderArticleLayout} from './article-layout.mjs';
 import {subcategoryHasProducts,subcategoryIndexing} from './subcategory-indexing.mjs';
 import {configuredSite,siteBase,pageAddress,robots,rebaseSiteReferences,localNavigation} from './seo-deployment.mjs';
 const cfg=readFileSync(new URL('../config.js',import.meta.url),'utf8');
@@ -27,7 +28,7 @@ const staticPages=['index.html','catalog.html','about.html','journal.html','deli
 const entries=staticPages.map(p=>pageAddress(p,base));
 const [products,news,categories,subcategories]=await Promise.all([
  rows('products','id,slug,name,status,category_id,subcategory_id,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
- rows('news','id,slug,title,excerpt,cover_image,content','status=eq.published'),
+ rows('news','id,slug,title,excerpt,cover_image,content,category','status=eq.published'),
  rows('categories','id,name,slug','is_active=eq.true'),
  rows('subcategories','id,category_id,name,slug','id=not.is.null')
 ]);
@@ -199,8 +200,8 @@ function snapshot(kind,row){
  }else{
   // Plain-text fallback avoids injecting untrusted CMS HTML into static pages.
   const content=strip(row.content||'');
-  const article='<article class="article-v71"><section class="article-v71-cover-intro"><div class="article-v71-masthead">VINTAZHKA JOURNAL</div><h1>'+htmlEscape(row.title||'Стаття')+'</h1></section>'+(row.cover_image?'<figure class="article-v71-cover"><img src="'+htmlEscape(row.cover_image)+'" alt="'+htmlEscape(row.title||'Стаття')+'" loading="eager"></figure>':'')+(row.excerpt?'<div class="article-v71-deck"><p>'+htmlEscape(row.excerpt)+'</p></div>':'')+'<div class="article-v71-content"><p>'+htmlEscape(content||row.excerpt||'')+'</p></div></article>';
-  html=html.replace(/(<div\s+id="articleRoot"[^>]*>)/i,'$1'+article);
+  const article='<article class="article-v71"><section class="article-v71-cover-intro"><div class="article-v71-masthead">'+htmlEscape(row.category||'VINTAZHKA JOURNAL')+'</div><h1>'+htmlEscape(row.title||'Стаття')+'</h1></section>'+(row.cover_image?'<figure class="article-v71-cover"><img src="'+htmlEscape(row.cover_image)+'" alt="'+htmlEscape(row.title||'Стаття')+'" loading="eager"></figure>':'')+(row.excerpt?'<div class="article-v71-deck"><p>'+htmlEscape(strip(row.excerpt))+'</p></div>':'')+'<div class="article-v71-content"><p>'+htmlEscape(content||row.excerpt||'')+'</p></div></article>';
+  html=renderArticleLayout(html.replace(/(<div\s+id="articleRoot"[^>]*>)/i,'$1'+article));
  }
  const slug=String(row.slug||'').normalize('NFC');
  if(!slug||slug==='.'||slug==='..'||/[\\/\x00-\x1f]/.test(slug))throw Error('Unsafe slug for '+dir+': '+slug);
