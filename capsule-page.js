@@ -5,7 +5,7 @@
  window.VHCapsulePage={present(edits){
   const hero=document.querySelector('.capsule-page>.capsule-hero');if(!hero)return;
   const saved=edits['existing-0']||{};
-  const edit={...saved,design:{...saved.design,layoutVersion:1,photoPreset:'gradient-hero',heightMode:'auto',minHeight:480,textLayout:'stacked',align:'center',textPosition:'center',textWidth:52,backgroundMode:'dark',textTone:'light',cropDevices:{desktop:{fit:'cover',x:65,y:25,zoom:100},tablet:{fit:'cover',x:66,y:35,zoom:100},mobile:{fit:'cover',x:72,y:35,zoom:100}}},mapped:{...saved.mapped,'static:.capsule-hero-copy .capsule-kicker:0':'VINTAZHKA','static:.capsule-hero-photo:0':photo},layoutImages:{0:photo},mediaSettings:{},mediaCrop:{}};
+  const edit={...saved,design:{...saved.design,layoutVersion:1,photoPreset:'gradient-hero',heightMode:'auto',minHeight:480,textLayout:'stacked',align:'left',textPosition:'center',textWidth:52,backgroundMode:'dark',textTone:'light',cropDevices:{desktop:{fit:'cover',x:65,y:25,zoom:100},tablet:{fit:'cover',x:66,y:35,zoom:100},mobile:{fit:'cover',x:72,y:35,zoom:100}}},mapped:{...saved.mapped,'static:.capsule-hero-copy .capsule-kicker:0':'VINTAZHKA','static:.capsule-hero-photo:0':photo},layoutImages:{0:photo},mediaSettings:{},mediaCrop:{}};
   window.VHCMSModel.applyDesign(hero,edit.design,'capsules',edit);
   // Old title positions and animation classes are not part of this presentation.
   const copy=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-copy');
@@ -13,6 +13,10 @@
   // Release only page-owned presentation fields so the home type scale can apply.
   copy?.querySelectorAll('*').forEach(node=>{
    for(const property of ['font-size','text-align','color'])node.style.removeProperty(property);
+  });
+  // Old saved non-breaking indents must not offset the left edge of the heading.
+  copy?.querySelectorAll('h1').forEach(heading=>{
+   for(const node of heading.childNodes)if(node.nodeType===Node.TEXT_NODE&&(!node.previousSibling||node.previousSibling.nodeName==='BR'))node.textContent=node.textContent.replace(/^[\s\u00a0]+/u,'');
   });
   copy?.querySelectorAll('.capsule-kicker').forEach(node=>node.textContent='VINTAZHKA');
   const image=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-photo>img');

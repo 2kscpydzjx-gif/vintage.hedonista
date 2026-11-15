@@ -12,16 +12,22 @@ const capsule=(i,style=styles[0])=>({id:'capsule-'+i,style_id:style.id,title:'К
  f.set('capsules','published',{shared:{cmsPageDraft:{existing:{'existing-0':{design:{layoutVersion:1,photoPreset:'gradient-hero',headingSize:44},mapped:{'static:.capsule-hero-copy h1:0':'МИСТЕЦТВО ПОЄДНУВАТИ','static:.capsule-hero-copy p:0':description}}}}}});
  const p=await f.context.newPage();
  const metrics=(el,pseudo)=>{const c=getComputedStyle(el,pseudo);return ['fontFamily','fontSize','fontWeight','lineHeight','color','letterSpacing'].map(k=>c[k])};
+ const geometry=async(selector,heroSelector)=>p.locator(selector).evaluate((el,heroSelector)=>{const box=el.getBoundingClientRect(),hero=el.closest(heroSelector).getBoundingClientRect();return {x:box.x,y:box.y-hero.y,width:box.width}},heroSelector);
+ const matchesHome=(actual,home,label,keys)=>{for(const key of keys)assert.ok(Math.abs(actual[key]-home[key])<1,label+' '+key+': '+actual[key]+' vs '+home[key])};
  const snapshot=async selectors=>Promise.all(selectors.map(s=>p.locator(s).evaluate(metrics,s==='.capsule-style-hero-copy'?'::before':null)));
  for(const width of [320,360,390,430,600,760,768,820,1024,1250,1366,1440,1920]){
   await p.setViewportSize({width,height:900});
   await p.goto(base+'/index.html');await p.waitForFunction(()=>VHCMSBoot.state==='ready');
   const home=await snapshot(['#heroEyebrow','#heroTitle','#heroDescription']);
+  const homeTitle=await geometry('#heroTitle','.hero');
   await p.goto(base+'/capsule.html');await p.waitForFunction(()=>VHCMSBoot.state==='ready');
   assert.deepEqual(await snapshot(['.capsule-hero>.vh-cms-composition .capsule-kicker','.capsule-hero>.vh-cms-composition h1','.capsule-hero>.vh-cms-composition p']),home,'index hero differs from home at '+width);
+  if(width>760)matchesHome(await geometry('.capsule-hero>.vh-cms-composition h1','.capsule-hero'),homeTitle,'index heading placement at '+width,width>1100?['x','y','width']:['x','y']);
   await p.goto(base+'/capsule-1.html?style=style-0');await p.waitForFunction(()=>document.querySelector('#capsuleCurrentLabel').textContent.includes('/'));
   assert.deepEqual(await snapshot(['.capsule-style-hero-copy','.capsule-style-hero-copy h1','.capsule-style-hero-copy p']),home,'detail hero differs from home at '+width);
-  for(const selector of ['.capsule-style-hero-copy h1','.capsule-style-hero-copy p','.capsule-info','.capsule-info-description'])assert.equal(await p.locator(selector).evaluate(el=>getComputedStyle(el).textAlign),'center');
+  for(const selector of ['.capsule-style-hero-copy h1','.capsule-style-hero-copy p'])assert.equal(await p.locator(selector).evaluate(el=>getComputedStyle(el).textAlign),'left');
+  for(const selector of ['.capsule-info','.capsule-info-description'])assert.notEqual(await p.locator(selector).evaluate(el=>getComputedStyle(el).textAlign),'center','non-hero alignment changed');
+  if(width>760)matchesHome(await geometry('#capsuleStyleHeroCopy h1','.capsule-detail-hero'),homeTitle,'detail heading placement at '+width,width>1100?['x','y','width']:['x','y']);
   const nav=p.locator('.capsule-page-nav');
   assert.equal(await nav.locator('#capsuleCurrentLabel').textContent(),'КАПСУЛА 01 / 03');
   assert.equal(await nav.locator('#capsuleGroupPrev').isDisabled(),true);
@@ -48,5 +54,5 @@ const capsule=(i,style=styles[0])=>({id:'capsule-'+i,style_id:style.id,title:'К
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
  f.data('capsules',[]);await p.goto(base+'/capsule-1.html?style=style-0');await p.getByText('У стилі «BLACK & WHITE» поки немає опублікованих капсул.').waitFor();assert.equal(await p.locator('.capsule-page-nav').isVisible(),false);
  assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.deepEqual(f.errors,[]);
- console.log('PASS: home/index/detail hero typography matches at 13 widths, centred copy, labelled accessible capsule navigation and boundaries, separate looks, six styles, single/empty capsules and no writes.');
+ console.log('PASS: home/index/detail hero typography matches at 13 widths and desktop heading position/column width match, left-aligned hero only, labelled accessible capsule navigation and boundaries, separate looks, six styles, single/empty capsules and no writes.');
 }finally{await f.browser.close()}})().catch(error=>{console.error(error);process.exitCode=1});
