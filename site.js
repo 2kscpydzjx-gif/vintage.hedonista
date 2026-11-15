@@ -1884,8 +1884,8 @@ function renderEditorialArticleContent(content,title){
   function clean(el){for(const n of [...el.childNodes]){if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
    if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG'].includes(n.tagName)){n.remove();continue}
    clean(n);if(!allowed.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
-   const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align');for(const a of [...n.attributes])n.removeAttribute(a.name);
-   if(n.tagName==='FIGURE'){if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}
+   const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align'),fx=n.getAttribute('data-vh-x');for(const a of [...n.attributes])n.removeAttribute(a.name);
+   if(n.tagName==='FIGURE'){if(window.VHSafeRich?.figureLayout)window.VHSafeRich.figureLayout(n,{width:fw,align:fa,x:fx});else{if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}}
   if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href))n.setAttribute('href',href);
    if(n.tagName==='A'&&n.hasAttribute('href'))n.setAttribute('rel','noopener noreferrer');
    if(n.tagName==='IMG'&&src&&/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)){n.setAttribute('src',src);n.setAttribute('alt',alt||'');n.setAttribute('loading','lazy')}else if(n.tagName==='IMG')n.remove();

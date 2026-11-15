@@ -49,6 +49,7 @@ on:
       - 'product-routes.js'
       - 'vh-seo-runtime.js'
       - 'vh-page-seo.js'
+      - 'vh-safe-rich.js'
       - 'config.js'
       - 'assets/optimized/**'
       - 'scripts/product-routes.mjs'
@@ -102,6 +103,9 @@ jobs:
           node tests/order-mail-pipeline.mjs
           node --check capsules-front.js
           node --check admin/admin.js
+          node --check admin/vh-rich-editor.js
+          node --check admin/article-photos.js
+          node --check vh-safe-rich.js
           node tests/seo-editorial.mjs
           node tests/article-layout.mjs
           node tests/subcategory-indexing.mjs
@@ -177,6 +181,7 @@ jobs:
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
+          node tests/article-editor.cjs
           node tests/admin-mobile.cjs
           node tests/product-measurements.cjs
           node tests/measurement-persistence.cjs

@@ -106,6 +106,13 @@ async function prepareImage(file,targetW,targetH,bg='#2a1d14',quality=.92){
   const ext=isWebp?'.webp':'.jpg';
   return new File([blob],(file.name.replace(/\.[^.]+$/,'')||'image')+ext,{type:blob.type});
 }
+// Inline article images retain their proportions and never acquire padded side bars.
+async function prepareArticleImage(file,maxWidth=1600,maxHeight=1600){
+ const bitmap=await createImageBitmap(file);
+ const scale=Math.min(1,maxWidth/bitmap.width,maxHeight/bitmap.height);
+ const width=Math.max(1,Math.round(bitmap.width*scale)),height=Math.max(1,Math.round(bitmap.height*scale));
+ bitmap.close();return prepareImage(file,width,height,'#fff',.92);
+}
 async function uploadFile(file,path){
  // Keep Storage filename/content type consistent after automatic WebP conversion.
  if(file?.type==='image/webp')path=String(path).replace(/\.(?:jpe?g|png)$/i,'.webp');
@@ -2039,6 +2046,8 @@ window.removePendingNewsGalleryImage=function(index){
 /* V185 — structured Journal blocks, stored inside the existing news.content field */
 const VH_JOURNAL_BLOCKS_PREFIX='VH_BLOCKS_V1:';
 let JOURNAL_BLOCKS=[];
+let NEWS_SLUG_MANUAL=false,NEWS_LAST_TITLE='';
+const JOURNAL_IMAGE_UPLOADS=new Map();
 function journalLegacyToBlocks(raw){
  const text=String(raw||'').trim(); if(!text)return [];
  if(text.startsWith(VH_JOURNAL_BLOCKS_PREFIX)){
@@ -2065,9 +2074,9 @@ function journalSanitizeHtml(html){
   if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
   if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG','FORM'].includes(n.tagName)){n.remove();continue}
   visit(n);if(!tags.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
-  const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align');
+  const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align'),fx=n.getAttribute('data-vh-x');
   for(const at of [...n.attributes])n.removeAttribute(at.name);
-  if(n.tagName==='FIGURE'){if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}
+  if(n.tagName==='FIGURE')window.VHSafeRich.figureLayout(n,{width:fw,align:fa,x:fx});
   if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href)){n.setAttribute('href',href);n.setAttribute('rel','noopener noreferrer')}
   if(n.tagName==='IMG'&&src&&(/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)||/^data:image\/(png|jpeg|webp);base64,/i.test(src))){n.setAttribute('src',src);n.setAttribute('alt',alt||'')}else if(n.tagName==='IMG')n.remove();
  }}visit(root);return root.innerHTML;
@@ -2083,22 +2092,24 @@ async function serializeJournalBlocks(){
  syncJournalBlockInputs();let html=journalSanitizeHtml(window.__journalDraftHtml||'');
  const doc=new DOMParser().parseFromString('<div>'+html+'</div>','text/html');
  for(const img of doc.querySelectorAll('img[src^="data:image/"]')){
-  const data=img.getAttribute('src');const blob=await(await fetch(data)).blob();
+  const data=img.getAttribute('src');
+  if(JOURNAL_IMAGE_UPLOADS.has(data)){img.setAttribute('src',JOURNAL_IMAGE_UPLOADS.get(data));continue}
+  const blob=await(await fetch(data)).blob();
   const file=new File([blob],'article-inline.jpg',{type:blob.type||'image/jpeg'});
-  const prepared=await prepareImage(file,1600,1200,'#eadbc7',.92);
+  const prepared=await prepareArticleImage(file);
   const url=await uploadFile(prepared,`news/article-${Date.now()}-${crypto.randomUUID()}.jpg`);
-  img.setAttribute('src',url);
+  JOURNAL_IMAGE_UPLOADS.set(data,url);img.setAttribute('src',url);
  }
  return 'VH_HTML_V1:'+journalSanitizeHtml(doc.body.firstElementChild.innerHTML);
 }
 function resetNewsForm(){
- editingNewsId=null;
+ editingNewsId=null;NEWS_SLUG_MANUAL=false;JOURNAL_IMAGE_UPLOADS.clear();
  window.VHSEO?.fill('article');
  localStorage.removeItem(VH_ADMIN_EDIT_NEWS_KEY);
  sessionStorage.setItem('vh-news-form-mode','new');
 
  $('newsFormTitle').textContent='Нова стаття';
- $('nTitle').value='';$('nSlug').value='';$('nExcerpt').value='';$('nContent').value=''; JOURNAL_BLOCKS=[]; window.__journalDraftHtml=''; renderJournalBlocks();
+ $('nTitle').value='';NEWS_LAST_TITLE='';$('nSlug').value='';$('nExcerpt').value='';$('nContent').value=''; JOURNAL_BLOCKS=[]; window.__journalDraftHtml=''; renderJournalBlocks();
  $('nCategory').value='';refreshJournalCategorySuggestions('');
  $('nStatus').value='draft';
  $('nFeatured').checked=false;
@@ -2121,13 +2132,19 @@ function resetNewsForm(){
 function openNewsForm(){resetNewsForm();goPage('newsForm')}
 window.openNewsForm=openNewsForm;
 
-$('nTitle').oninput=e=>{if(!editingNewsId)$('nSlug').value=slugify(e.target.value)};
+function updateNewsSlug(){
+ $('nSlug').value=slugify($('nTitle').value);
+ $('nSlug').dispatchEvent(new Event('change',{bubbles:true}));
+}
+$('nTitle').oninput=()=>{const title=$('nTitle').value;if(title===NEWS_LAST_TITLE)return;NEWS_LAST_TITLE=title;if(!NEWS_SLUG_MANUAL)updateNewsSlug()};
+$('nSlug').oninput=()=>{NEWS_SLUG_MANUAL=true};
+$('newsSlugFromTitle').onclick=()=>{NEWS_SLUG_MANUAL=false;updateNewsSlug()};
 $('nImage').onchange=()=>renderNewsCoverPreview();
 $('nGallery').onchange=()=>renderNewsGalleryPreview();
 
 function editNews(id){
  const n=news.find(x=>x.id===id);if(!n)return;
- editingNewsId=id;
+ editingNewsId=id;NEWS_SLUG_MANUAL=false;NEWS_LAST_TITLE=n.title||'';JOURNAL_IMAGE_UPLOADS.clear();
  window.VHSEO?.load(sb,'article',id);
  sessionStorage.setItem('vh-news-form-mode','edit');
  localStorage.setItem(VH_ADMIN_EDIT_NEWS_KEY,id);
@@ -2162,25 +2179,26 @@ $('saveNewsBtn').onclick=async()=>{
  const btn=$('saveNewsBtn');btn.disabled=true;btn.textContent='ЗБЕРЕЖЕННЯ...';
  try{
    const old=editingNewsId?news.find(x=>x.id===editingNewsId):null;
-   let cover=NEWS_COVER_CURRENT;
-   let gallery=[...NEWS_GALLERY_CURRENT];
+   const coverBefore=NEWS_COVER_CURRENT,galleryBefore=[...NEWS_GALLERY_CURRENT],newGalleryFiles=[...$('nGallery').files];
+   let cover=coverBefore;
+   let gallery=[...galleryBefore];
 
    const original=$('nImage').files[0];
    if(original){
-     const f=await prepareImage(original,2400,1600,'#eadbc7',.92);
+     const f=await prepareArticleImage(original,2400,1600);
      cover=await uploadFile(f,`news/${Date.now()}-${crypto.randomUUID()}.jpg`)
    }
 
    for(let i=0;i<gallery.length;i++){
      const item=gallery[i];
      if(item&&typeof item==='object'&&item.__replacementFile){
-       const f=await prepareImage(item.__replacementFile,1200,1200,'#eadbc7',.92);
+       const f=await prepareArticleImage(item.__replacementFile);
        gallery[i]=await uploadFile(f,`news/gallery-${Date.now()}-${crypto.randomUUID()}.jpg`)
      }
    }
 
-   for(const originalGallery of [...$('nGallery').files]){
-     const f=await prepareImage(originalGallery,1200,1200,'#eadbc7',.92);
+   for(const originalGallery of newGalleryFiles){
+     const f=await prepareArticleImage(originalGallery);
      gallery.push(await uploadFile(f,`news/gallery-${Date.now()}-${crypto.randomUUID()}.jpg`))
    }
 
@@ -2239,6 +2257,18 @@ $('saveNewsBtn').onclick=async()=>{
    if(payload.is_new_section && savedRow?.is_new_section!==true){
      throw new Error('Позначка «НОВЕ НА САЙТІ» не збереглася в Supabase.');
    }
+
+   // Commit only unchanged picker state; files selected during saving stay pending.
+   if(NEWS_COVER_CURRENT===coverBefore)NEWS_COVER_CURRENT=savedRow.cover_image||null;
+   if($('nImage').files[0]===original)$('nImage').value='';
+   if(NEWS_GALLERY_CURRENT.length===galleryBefore.length&&NEWS_GALLERY_CURRENT.every((item,i)=>item===galleryBefore[i]))NEWS_GALLERY_CURRENT=[...(savedRow.gallery_images||[])];
+   const galleryFilesNow=[...$('nGallery').files];
+   if(galleryFilesNow.length===newGalleryFiles.length&&galleryFilesNow.every((file,i)=>file===newGalleryFiles[i]))$('nGallery').value='';
+   renderNewsCoverPreview();renderNewsGalleryPreview();
+
+   // Keep subsequent saves from uploading the same embedded photos again.
+   $('journalArticleHtml')?.__vhRichEditor?.replaceImageUrls(JOURNAL_IMAGE_UPLOADS);
+   syncJournalBlockInputs();JOURNAL_IMAGE_UPLOADS.clear();
 
    // Stay in the editor after save.
    // If this was a new article, continue editing the newly created row.
