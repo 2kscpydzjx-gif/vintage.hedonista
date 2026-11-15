@@ -91,9 +91,16 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
   panel.style.left=(left-fig.left)+'px';panel.style.top=(Math.max(top,Math.min(photo.top+6,bottom-panel.getBoundingClientRect().height))-fig.top)+'px';
  }
  function topBlock(node){while(node&&node.parentElement!==visual)node=node.parentElement;return node}
+ function updateScale(fig){
+  const select=fig.querySelector('.vh-image-scale');if(!select)return;
+  const width=String(Math.max(20,Math.min(100,Number(fig.dataset.vhWidth)||100)));
+  for(const option of [...select.options])if(option.dataset.custom)option.remove();
+  if(![...select.options].some(option=>option.value===width)){const option=new Option(width+'%',width);option.dataset.custom='1';select.add(option)}
+  select.value=width;
+ }
  function photoPlacement(fig,align='center'){
   delete fig.dataset.vhX;fig.style.removeProperty('--vh-photo-offset');
-  fig.dataset.vhAlign=align;fig.dataset.vhWidth=['left','right'].includes(align)?'40':'100';window.VHSafeRich.figureLayout(fig);
+  fig.dataset.vhAlign=align;fig.dataset.vhWidth=['left','right'].includes(align)?'40':'100';window.VHSafeRich.figureLayout(fig);updateScale(fig);
  }
  function normalizeRows(){
   for(const row of visual.querySelectorAll('div[data-vh-photo-row]')){
@@ -102,7 +109,7 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
    if(!photos.length){row.remove();continue}
    if(photos.length===1){row.replaceWith(photos[0]);continue}
    if(photos.length>3){for(let i=photos.length-1;i>=3;i--)row.after(photos[i]);}
-   for(const photo of photos.slice(0,3))photoPlacement(photo);
+   for(const photo of photos.slice(0,3)){photo.dataset.vhAlign='center';delete photo.dataset.vhX;photo.style.removeProperty('--vh-photo-offset');window.VHSafeRich.figureLayout(photo);updateScale(photo)}
    window.VHSafeRich.photoRowLayout(row,String(Math.min(3,photos.length)));
   }
  }
@@ -160,7 +167,9 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
    fig.classList.add('vh-inline-figure');fig.setAttribute('contenteditable','false');
    const panel=document.createElement('div');panel.className='vh-image-controls';panel.hidden=true;panel.setAttribute('contenteditable','false');
    const make=(key,title,fn,label)=>{const b=document.createElement('button');b.type='button';b.title=title;b.setAttribute('aria-label',title);b.innerHTML=svg[key]?ico(key):(label||key);b.onmousedown=e=>e.preventDefault();b.onclick=e=>{e.preventDefault();updateHistoryMeta();fn(b)};panel.append(b);return b};
-   function update(group=''){window.VHSafeRich.figureLayout(fig);sync(group);positionControls()}
+   const size=document.createElement('select');size.className='vh-image-scale';size.title='Масштаб фото';size.setAttribute('aria-label','Масштаб фото');[100,80,60,40,25].forEach(value=>size.add(new Option(value+'%',value)));panel.append(size);
+   function update(group=''){window.VHSafeRich.figureLayout(fig);updateScale(fig);sync(group);positionControls()}
+   size.onchange=()=>{updateHistoryMeta();fig.dataset.vhWidth=size.value;update()};
    const align=value=>{const row=fig.parentElement.matches('[data-vh-photo-row]')?fig.parentElement:null;if(row){row.after(fig);normalizeRows()}photoPlacement(fig,value);update()};
    make('left','Фото ліворуч, текст обтікає справа',()=>align('left'));
    make('center','Фото по центру, без обтікання',()=>align('center'));
@@ -173,7 +182,7 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
    make('up','Фото на один блок вище',()=>shift(-1),'↑');make('down','Фото на один блок нижче',()=>shift(1),'↓');
    make('','ALT опис фото',()=>{const img=fig.querySelector('img');if(!img)return;const alt=prompt('ALT: опишіть зображення для пошуку та доступності',img.alt||'');if(alt!==null){img.alt=alt.trim();sync()}},'ALT');
    make('trash','Видалити фото',()=>deletePhoto(fig));
-   panel.addEventListener('focusin',updateHistoryMeta);fig.append(panel);
+   panel.addEventListener('focusin',updateHistoryMeta);fig.append(panel);updateScale(fig);
    const resize=document.createElement('button');resize.type='button';resize.hidden=true;resize.className='vh-image-resize';resize.setAttribute('aria-label','Змінити ширину фото перетягуванням');resize.title='Тягни для зміни ширини; клавіші ← / → — по 1%';resize.innerHTML=ico('resize');fig.append(resize);
    const setWidth=value=>{fig.dataset.vhWidth=String(Math.max(20,Math.min(100,Math.round(value))));update('photo-width')};
    resize.addEventListener('pointerdown',e=>{
@@ -242,7 +251,7 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
   if(!draggedFigure)return;e.preventDefault();const fig=draggedFigure,proposal=proposalAt(e)||dropProposal;
   if(proposal){
    const target=proposal.target;
-   if(proposal.mode==='row'&&target!==fig){let row=target.parentElement.matches('[data-vh-photo-row]')?target.parentElement:null;if(!row){row=document.createElement('div');row.dataset.vhPhotoRow='2';target.before(row);row.append(target)}photoPlacement(target);photoPlacement(fig);if(proposal.before)target.before(fig);else target.after(fig)}
+   if(proposal.mode==='row'&&target!==fig){let row=target.parentElement.matches('[data-vh-photo-row]')?target.parentElement:null;const sameRow=row&&fig.parentElement===row;if(!row){row=document.createElement('div');row.dataset.vhPhotoRow='2';target.before(row);row.append(target);photoPlacement(target)}if(!sameRow)photoPlacement(fig);if(proposal.before)target.before(fig);else target.after(fig)}
    else if(proposal.mode==='free'){const bounds=visual.getBoundingClientRect(),style=getComputedStyle(visual),left=bounds.left+parseFloat(style.paddingLeft),available=visual.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-fig.getBoundingClientRect().width;fig.dataset.vhAlign='free';fig.dataset.vhX=String(available>0?Math.max(0,Math.min(100,Math.round((proposal.x-left-dragOffset)/available*100))):0);window.VHSafeRich.figureLayout(fig)}
    else if(proposal.mode==='left'||proposal.mode==='right'){target.before(fig);photoPlacement(fig,proposal.mode)}
    else if(target&&target!==fig){if(proposal.before)target.before(fig);else target.after(fig);photoPlacement(fig)}

@@ -69,3 +69,5 @@
 #newsForm #journalBlockEditor .vh-rte-canvas figure>img{cursor:grab}
 #newsForm #journalBlockEditor .vh-rte-canvas .is-dragging>img{cursor:grabbing}
 .is-dragging .vh-image-controls{pointer-events:none;opacity:.25}
+
+#newsForm #journalBlockEditor .vh-rte-canvas [data-vh-photo-row]>figure>img{width:var(--vh-photo-width,100%)!important;margin:0 auto!important}
