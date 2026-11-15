@@ -5,7 +5,6 @@ let products=[],categories=[],subcategories=[],orders=[],news=[],heroSlides=[],i
 let MEDIA_LIBRARY_V132=[];
 let MEDIA_PICKER_TARGET_V132=null;
 let NEWS_COVER_CURRENT=null;
-let NEWS_GALLERY_CURRENT=[];
 let existingImages=[]; let newImages=[];
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 /* V211 — send order email from the server-side Edge Function */
@@ -1983,63 +1982,10 @@ function renderNewsCoverPreview(){
  </div>`:''
 }
 
-function renderNewsGalleryPreview(){
- const box=$('newsGalleryPreview');
- if(!box)return;
- const existing=NEWS_GALLERY_CURRENT.map((u,i)=>{
-   const src=(u&&typeof u==='object'&&u.__previewUrl)?u.__previewUrl:u;
-   return `
-   <div class="news-photo-admin-card">
-     <img src="${src}" alt="">
-     <button type="button" class="news-photo-remove v208-single-photo-remove" onclick="removeNewsGalleryImage(${i})" title="Видалити фото">×</button>
-   </div>`
- }).join('');
- const pending=[...($('nGallery')?.files||[])].map((f,i)=>{
-   const url=URL.createObjectURL(f);
-   return `<div class="news-photo-admin-card">
-     <img src="${url}" alt="">
-     <button type="button" class="news-photo-remove v208-single-photo-remove" onclick="removePendingNewsGalleryImage(${i})" title="Видалити фото">×</button>
-   </div>`
- }).join('');
- box.innerHTML=existing+pending
-}
-
 window.removeNewsCoverImage=function(){
  NEWS_COVER_CURRENT=null;
  if($('nImage'))$('nImage').value='';
  renderNewsCoverPreview()
-};
-
-
-window.replaceNewsGalleryImage=function(index){
- const picker=document.createElement('input');
- picker.type='file';
- picker.accept='image/*';
- picker.style.display='none';
- document.body.appendChild(picker);
- picker.onchange=()=>{
-   const file=picker.files?.[0];
-   if(!file){picker.remove();return}
-   // Store File directly in the gallery state; saveNews handles it below.
-   NEWS_GALLERY_CURRENT[index]={__replacementFile:file,__previewUrl:URL.createObjectURL(file)};
-   renderNewsGalleryPreview();
-   picker.remove()
- };
- picker.click()
-};
-
-window.removeNewsGalleryImage=function(index){
- NEWS_GALLERY_CURRENT.splice(index,1);
- renderNewsGalleryPreview()
-};
-
-window.removePendingNewsGalleryImage=function(index){
- const input=$('nGallery');
- if(!input)return;
- const dt=new DataTransfer();
- [...input.files].forEach((file,i)=>{if(i!==index)dt.items.add(file)});
- input.files=dt.files;
- renderNewsGalleryPreview()
 };
 
 
@@ -2124,9 +2070,9 @@ function resetNewsForm(){
  $('nNewOrder').value='0';
  $('nGuideOrder').value='0';
 
- $('nImage').value='';$('nGallery').value='';
- NEWS_COVER_CURRENT=null;NEWS_GALLERY_CURRENT=[];
- renderNewsCoverPreview();renderNewsGalleryPreview();
+ $('nImage').value='';
+ NEWS_COVER_CURRENT=null;
+ renderNewsCoverPreview();
  $('deleteNewsBtn').classList.add('hidden')
 }
 
@@ -2141,7 +2087,6 @@ $('nTitle').oninput=()=>{const title=$('nTitle').value;if(title===NEWS_LAST_TITL
 $('nSlug').oninput=()=>{NEWS_SLUG_MANUAL=true};
 $('newsSlugFromTitle').onclick=()=>{NEWS_SLUG_MANUAL=false;updateNewsSlug()};
 $('nImage').onchange=()=>renderNewsCoverPreview();
-$('nGallery').onchange=()=>renderNewsGalleryPreview();
 
 function editNews(id){
  const n=news.find(x=>x.id===id);if(!n)return;
@@ -2167,10 +2112,9 @@ function editNews(id){
  $('nNewOrder').value=Number(n.new_order||0);
  $('nGuideOrder').value=Number(n.guide_order||0);
 
- $('nImage').value='';$('nGallery').value='';
+ $('nImage').value='';
  NEWS_COVER_CURRENT=n.cover_image||null;
- NEWS_GALLERY_CURRENT=Array.isArray(n.gallery_images)?[...n.gallery_images]:[];
- renderNewsCoverPreview();renderNewsGalleryPreview();
+ renderNewsCoverPreview();
  $('deleteNewsBtn').classList.remove('hidden');
  goPage('newsForm')
 }
@@ -2180,27 +2124,13 @@ $('saveNewsBtn').onclick=async()=>{
  const btn=$('saveNewsBtn');btn.disabled=true;btn.textContent='ЗБЕРЕЖЕННЯ...';
  try{
    const old=editingNewsId?news.find(x=>x.id===editingNewsId):null;
-   const coverBefore=NEWS_COVER_CURRENT,galleryBefore=[...NEWS_GALLERY_CURRENT],newGalleryFiles=[...$('nGallery').files];
+   const coverBefore=NEWS_COVER_CURRENT;
    let cover=coverBefore;
-   let gallery=[...galleryBefore];
 
    const original=$('nImage').files[0];
    if(original){
      const f=await prepareArticleImage(original,2400,1600);
      cover=await uploadFile(f,`news/${Date.now()}-${crypto.randomUUID()}.jpg`)
-   }
-
-   for(let i=0;i<gallery.length;i++){
-     const item=gallery[i];
-     if(item&&typeof item==='object'&&item.__replacementFile){
-       const f=await prepareArticleImage(item.__replacementFile);
-       gallery[i]=await uploadFile(f,`news/gallery-${Date.now()}-${crypto.randomUUID()}.jpg`)
-     }
-   }
-
-   for(const originalGallery of newGalleryFiles){
-     const f=await prepareArticleImage(originalGallery);
-     gallery.push(await uploadFile(f,`news/gallery-${Date.now()}-${crypto.randomUUID()}.jpg`))
    }
 
    const status=$('nStatus').value;
@@ -2219,9 +2149,11 @@ $('saveNewsBtn').onclick=async()=>{
      display_order:Number($('nDisplayOrder').value||0),
      new_order:Number($('nNewOrder').value||0),
      guide_order:Number($('nGuideOrder').value||0),
-     cover_image:cover,
-     gallery_images:gallery
+     cover_image:cover
    };
+
+   // Existing galleries remain stored; the article form now edits only its cover.
+   if(!old)payload.gallery_images=[];
 
    if(!payload.title||!payload.slug)throw new Error('Вкажи заголовок і slug');
    if(!payload.category)throw new Error('Оберіть категорію статті');
@@ -2262,10 +2194,7 @@ $('saveNewsBtn').onclick=async()=>{
    // Commit only unchanged picker state; files selected during saving stay pending.
    if(NEWS_COVER_CURRENT===coverBefore)NEWS_COVER_CURRENT=savedRow.cover_image||null;
    if($('nImage').files[0]===original)$('nImage').value='';
-   if(NEWS_GALLERY_CURRENT.length===galleryBefore.length&&NEWS_GALLERY_CURRENT.every((item,i)=>item===galleryBefore[i]))NEWS_GALLERY_CURRENT=[...(savedRow.gallery_images||[])];
-   const galleryFilesNow=[...$('nGallery').files];
-   if(galleryFilesNow.length===newGalleryFiles.length&&galleryFilesNow.every((file,i)=>file===newGalleryFiles[i]))$('nGallery').value='';
-   renderNewsCoverPreview();renderNewsGalleryPreview();
+   renderNewsCoverPreview();
 
    // Keep subsequent saves from uploading the same embedded photos again.
    $('journalArticleHtml')?.__vhRichEditor?.replaceImageUrls(JOURNAL_IMAGE_UPLOADS);
