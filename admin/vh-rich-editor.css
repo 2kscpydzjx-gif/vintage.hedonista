@@ -28,14 +28,18 @@
 .vh-image-controls{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:3px;padding:4px;background:#211a15ed;border:1px solid #997144;border-radius:4px;z-index:5}.vh-image-controls button{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:transparent;color:#e3c49b;border:0;cursor:pointer}.vh-image-controls button:hover{background:#4b3523}.vh-image-controls select{width:55px;background:#231b16;color:#e3c49b;border:1px solid #80603c;font-size:11px;padding:4px}.vh-image-controls button:last-child{color:#f3b3a7}
 #newsForm #journalBlockEditor .vh-rte{margin:0}#newsForm #journalBlockEditor .vh-rte-canvas{min-height:390px}
 
-/* The article scrolls with the page; formatting follows the writing position. */
-#newsForm .journal-editor-main,#newsForm #journalBlockEditor .vh-rte{overflow:visible!important}
-#newsForm #journalBlockEditor .vh-rte-toolbar{position:sticky!important;top:var(--vh-editor-top,78px)!important;z-index:89!important;background:#211a15;border-radius:5px 5px 0 0;box-shadow:0 3px 8px #0005}
-#newsForm #journalBlockEditor .vh-rte-canvas,#newsForm #journalBlockEditor .vh-rte-code{max-height:none!important;overflow:visible!important;min-height:390px!important;scroll-margin-top:180px;display:flow-root}
+/* One bounded writing window: tools stay outside its scrolling text area. */
+#newsForm .journal-editor-main{overflow:visible!important}
+#newsForm #journalBlockEditor .vh-rte{display:flex;flex-direction:column;height:clamp(360px,calc(100dvh - 220px),760px);overflow:hidden!important}
+#newsForm #journalBlockEditor .vh-rte-toolbar{position:static!important;top:auto!important;z-index:auto!important;flex:0 0 auto;background:#211a15;border-radius:5px 5px 0 0}
+#newsForm #journalBlockEditor .vh-rte-canvas,#newsForm #journalBlockEditor .vh-rte-code{flex:1 1 0!important;height:0!important;min-height:140px!important;max-height:none!important;overflow-y:scroll!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b89669 #211a15!important;display:flow-root;resize:none}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar{width:10px}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar-thumb{background:#b89669!important;border:2px solid #211a15!important;border-radius:8px}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar-track{background:#211a15!important}
 .vh-rte-canvas :is(p,div,span,strong,b,em,i,h1,h2,h3,li,blockquote,figcaption):not([contenteditable=false]):not(.vh-image-drop-marker){color:inherit!important;background-color:transparent!important}
 .vh-rte-status:empty{display:none}.vh-rte-status{padding:8px 12px;color:#dbc5a7;font-size:12px;line-height:1.5;border-top:1px solid #493727}
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align=free]{float:none!important;clear:both!important;margin:18px 0!important;margin-left:var(--vh-photo-offset,0%)!important}
-.vh-image-controls{position:relative;inset:auto;width:100%;margin-top:6px;max-width:100%;flex-wrap:wrap;box-sizing:border-box;gap:4px}
+.vh-image-controls{position:absolute;inset:auto;max-width:none;overflow:auto;margin:0;flex-wrap:wrap;box-sizing:border-box;gap:4px}
 .vh-image-controls button{min-width:28px;width:auto;padding:4px;font-size:11px}
 .vh-image-controls .vh-image-drag{cursor:grab}.vh-image-controls .vh-image-drag:active{cursor:grabbing}
 .vh-image-adjustments{flex-basis:100%;min-width:0;color:#e3c49b;font:11px/1.5 Montserrat,Arial,sans-serif}
@@ -48,10 +52,18 @@
 .vh-inline-figure.is-dragging{opacity:.45}
 .journal-slug-row{display:flex;align-items:center;gap:8px;min-width:0}.journal-slug-row .input{min-width:0;flex:1}.journal-slug-row .btn{flex-shrink:0}
 @media(max-width:1199px){
- #newsForm #journalBlockEditor .vh-rte-toolbar{z-index:90}
  #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align=free]{margin:16px 0!important}
  .vh-image-adjustments input{min-height:44px}
  .vh-image-resize{display:none}
 }
 
 .vh-image-resize svg{display:block;width:18px;height:18px}
+
+.vh-image-controls[hidden],.vh-image-resize[hidden]{display:none!important}
+#newsForm #journalBlockEditor figure.is-photo-selected>img{outline:1px solid #c9a36e;outline-offset:2px}
+#newsForm #journalBlockEditor figure>img{cursor:pointer}
+.vh-rte-tool:disabled{opacity:.35;cursor:default}
+/* The article heading stays in the page flow and cannot cover the writing window. */
+#newsForm.active{padding-top:0!important}
+#newsForm.active>.content-editor-top{position:relative!important;inset:auto!important;width:100%!important;z-index:auto!important;box-shadow:none!important;margin-bottom:16px!important}
+#newsForm #journalBlockEditor .vh-rte{scroll-margin-top:82px}

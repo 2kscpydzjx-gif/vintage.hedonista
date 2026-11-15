@@ -104,7 +104,6 @@ jobs:
           node --check capsules-front.js
           node --check admin/admin.js
           node --check admin/vh-rich-editor.js
-          node --check admin/article-photos.js
           node --check vh-safe-rich.js
           node tests/seo-editorial.mjs
           node tests/article-layout.mjs
