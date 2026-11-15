@@ -10,6 +10,7 @@ import brand from '../brand.js';
 import {renderBrandLogos} from './brand-logos.mjs';
 import {renderAppIcons} from './app-icons.mjs';
 import {renderStorefrontFooter} from './storefront-footer.mjs';
+import {renderArticleLayout} from './article-layout.mjs';
 import {cleanReferences,cleanAssetFile,cleanRedirects} from './clean-urls.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
@@ -48,6 +49,7 @@ for(const file of publicFiles){
    text=renderBrandLogos(text,file);
    text=renderAppIcons(text,file);
    text=renderStorefrontFooter(text,file);
+   if(file==='article.html'||file.startsWith('seo-article/'))text=renderArticleLayout(text);
    if(file==='product.html'||file.startsWith('seo-product/')){
     const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
     text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);

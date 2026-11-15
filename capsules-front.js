@@ -6,6 +6,20 @@ function vhStyleCapsuleBadge(node){if(!node)return;for(const d of VH_CAPSULE_STA
 const cfg=window.VH_CONFIG||{};
 const sb=()=>window.VHPublicClient||(window.supabase?.createClient&&cfg.supabaseUrl&&cfg.supabaseKey?(window.VHPublicClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{storageKey:'vintage-hedonista-public-content',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})):null);
 const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+// Preserve saved heading indents on desktop; mobile CSS hides only their spans.
+function alignMobileHeroHeading(heading){
+ if(!heading)return;heading.dataset.vhCapsuleHeading='';
+ const walker=document.createTreeWalker(heading,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT),nodes=[];
+ while(walker.nextNode())nodes.push(walker.currentNode);
+ let lineStart=true;
+ for(const node of nodes){
+  if(node.nodeType===Node.ELEMENT_NODE){if(node.tagName==='BR')lineStart=true;continue}
+  if(node.parentElement.closest('.vh-capsule-heading-indent'))continue;
+  if(lineStart){const indent=node.textContent.match(/^[\s\u00a0]+/u)?.[0];if(indent){const span=document.createElement('span');span.className='vh-capsule-heading-indent';span.textContent=indent;node.before(span);node.textContent=node.textContent.slice(indent.length)}}
+  if(node.textContent.trim())lineStart=false;
+ }
+}
+window.VHAlignMobileCapsuleHeading=alignMobileHeroHeading;
 const money=v=>`${new Intl.NumberFormat('uk-UA',{maximumFractionDigits:0}).format(Number(v)||0)} ₴`;
 const ph=(label,size)=>`<span>${esc(label)}<br><small>${esc(size)}</small></span>`;
 function imageBox(el,url,label,size){if(!el)return;if(url){el.innerHTML=`<img src="${esc(url)}"${window.VHImageVariants?.attributes(esc(url))||''} alt="" loading="eager" decoding="async">`;el.classList.add('has-image')}else{el.innerHTML=ph(label,size);el.classList.remove('has-image')}}
@@ -47,6 +61,7 @@ async function detail(){
  const hero=document.querySelector('.capsule-detail-placeholder'); imageBox(hero,style.hero_image,'HERO ФОТО','РЕКОМЕНДОВАНО 1600 × 1200 px');
  if(style.page_title||style.title) hero?.setAttribute('aria-label',style.page_title||style.title);
  const heroCopy=document.querySelector('#capsuleStyleHeroCopy'); if(heroCopy){heroCopy.innerHTML=`<h1>${esc(style.page_title||style.title||'')}</h1>${style.page_description?`<p>${esc(style.page_description)}</p>`:''}`;}
+ alignMobileHeroHeading(heroCopy?.querySelector('h1'));
  const {data:caps,error:ce}=await db.from('capsules').select('*').eq('style_id',style.id).eq('is_active',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
  if(ce)return showError(`Капсули: ${ce.message}`);
  let capsules=caps||[], idx=0, lookIdx=0, looks=[], lookLinks=[], allProducts=[];

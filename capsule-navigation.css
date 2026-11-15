@@ -1,0 +1,32 @@
+/* Capsule navigation only. The original page presentation stays intact. */
+@layer vh-responsive {
+ /* Labelled controls keep the counter centred and provide generous tap targets. */
+ body.capsule-style-live .capsule-page-nav.capsule-page-nav-compact{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;gap:20px!important;
+  align-items:center!important;justify-content:normal!important;padding:0 0 22px!important;margin:0 0 28px!important;
+ }
+ body.capsule-style-live .capsule-page-nav-current{grid-column:2;grid-row:1;text-align:center!important;letter-spacing:.12em!important}
+ body.capsule-style-live .capsule-page-nav-button{
+  appearance:none;display:flex;align-items:center;justify-content:center;width:max-content;max-width:100%;min-height:46px;
+  padding:12px 20px;border:1px solid #a78d70;background:transparent;color:#5a4030;
+  font:500 11px/1.5 Montserrat,Arial,sans-serif;letter-spacing:.025em;text-align:center;cursor:pointer;
+  transition:background-color .2s ease,color .2s ease,border-color .2s ease;
+ }
+ body.capsule-style-live .capsule-page-nav-button.prev{grid-column:1;grid-row:1;justify-self:start}
+ body.capsule-style-live .capsule-page-nav-button.next{grid-column:3;grid-row:1;justify-self:end}
+ body.capsule-style-live .capsule-page-nav-button:disabled{opacity:.38;cursor:default}
+ body.capsule-style-live .capsule-page-nav-button:focus-visible{outline:2px solid #a77744;outline-offset:4px}
+ @media(hover:hover){body.capsule-style-live .capsule-page-nav-button:hover:not(:disabled){background:#5a4030;color:#f1e9df;border-color:#5a4030}}
+ body.capsule-style-live .capsule-page-nav[hidden]{display:none!important}
+ @media(max-width:760px){
+  body.capsule-style-live .capsule-page-nav.capsule-page-nav-compact{grid-template-columns:repeat(2,minmax(0,max-content))!important;justify-content:center!important;gap:10px 8px!important;padding-bottom:14px!important;margin-bottom:20px!important}
+  body.capsule-style-live .capsule-page-nav-current{grid-column:1/-1;grid-row:1}
+  body.capsule-style-live .capsule-page-nav-button{
+   width:auto!important;min-height:36px!important;height:36px!important;padding:8px 12px!important;
+   font-size:11px!important;line-height:1.2!important;letter-spacing:0!important;white-space:nowrap!important;
+  }
+  body.capsule-style-live .capsule-page-nav-button.prev{grid-column:1;grid-row:2}
+  body.capsule-style-live .capsule-page-nav-button.next{grid-column:2;grid-row:2}
+ }
+ @media(prefers-reduced-motion:reduce){body.capsule-style-live .capsule-page-nav-button{transition:none}}
+}

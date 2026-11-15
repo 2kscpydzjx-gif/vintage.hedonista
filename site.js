@@ -1884,8 +1884,9 @@ function renderEditorialArticleContent(content,title){
   function clean(el){for(const n of [...el.childNodes]){if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
    if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG'].includes(n.tagName)){n.remove();continue}
    clean(n);if(!allowed.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
-   const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align');for(const a of [...n.attributes])n.removeAttribute(a.name);
-   if(n.tagName==='FIGURE'){if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}
+   const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align'),fx=n.getAttribute('data-vh-x'),fr=n.getAttribute('data-vh-photo-row');for(const a of [...n.attributes])n.removeAttribute(a.name);
+   if(n.tagName==='FIGURE'){if(window.VHSafeRich?.figureLayout)window.VHSafeRich.figureLayout(n,{width:fw,align:fa,x:fx});else{if(fw&&/^\d{2,3}$/.test(fw))n.setAttribute('data-vh-width',String(Math.min(100,Math.max(20,+fw))));if(['left','right','center'].includes(fa))n.setAttribute('data-vh-align',fa)}}
+   if(n.tagName==='DIV'&&/^[23]$/.test(String(fr))){if(window.VHSafeRich?.photoRowLayout)window.VHSafeRich.photoRowLayout(n,fr);else{n.setAttribute('data-vh-photo-row',fr);n.style.setProperty('--vh-photo-columns',fr)}}
   if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href))n.setAttribute('href',href);
    if(n.tagName==='A'&&n.hasAttribute('href'))n.setAttribute('rel','noopener noreferrer');
    if(n.tagName==='IMG'&&src&&/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)){n.setAttribute('src',src);n.setAttribute('alt',alt||'');n.setAttribute('loading','lazy')}else if(n.tagName==='IMG')n.remove();
@@ -1936,16 +1937,16 @@ async function initArticle(){
  const bodyHtml=renderEditorialArticleContent(data.content,data.title);
 
  $('articleRoot').innerHTML=`
-   <article class="article-v71">
-     <section class="article-v71-cover-intro">
-       <div class="article-v71-masthead">VINTAZHKA JOURNAL</div>
-       <h1>${escapeArticleHtml(data.title)}</h1>
-     </section>
-
+   <article class="article-v71 article-editorial${data.cover_image?' has-cover':''}">
      ${data.cover_image?`
        <figure class="article-v71-cover">
-         <img src="${data.cover_image}"${window.VHImageVariants?.attributes(data.cover_image)||''} alt="${escapeArticleHtml(data.title)}" fetchpriority="high" loading="eager" decoding="async">
+         <img src="${escapeArticleHtml(data.cover_image)}"${window.VHImageVariants?.attributes(data.cover_image)||''} alt="${escapeArticleHtml(data.title)}" fetchpriority="high" loading="eager" decoding="async">
        </figure>`:''}
+
+     <section class="article-v71-cover-intro">
+       <div class="article-v71-masthead">${escapeArticleHtml(data.category||'VINTAZHKA JOURNAL')}</div>
+       <h1>${escapeArticleHtml(data.title)}</h1>
+     </section>
 
      ${data.excerpt?`
        <div class="article-v71-deck">
@@ -1966,6 +1967,8 @@ async function initArticle(){
        <a href="catalog.html">ПЕРЕЙТИ ДО КАТАЛОГУ →</a>
      </nav>
    </article>`;
+ // Excerpts can contain the editor's rich paragraphs; render them safely as prose.
+ if(data.excerpt)window.VHSafeRich?.render($('articleRoot').querySelector('.article-v71-deck'),data.excerpt);
 }
 
 /* ==========================================================

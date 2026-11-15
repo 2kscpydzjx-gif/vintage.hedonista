@@ -25,5 +25,61 @@
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="25"]{--vh-photo-width:25%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="40"]{--vh-photo-width:40%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="60"]{--vh-photo-width:60%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="80"]{--vh-photo-width:80%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="100"]{--vh-photo-width:100%}
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="left"]{float:left;margin:12px 20px 12px 0}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="right"]{float:right;margin:12px 0 12px 20px}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="center"]{float:none;margin:18px auto}
 #newsForm #journalBlockEditor .vh-rte-canvas figure img{display:block;width:100%;height:auto;max-width:100%;margin:0;object-fit:contain}
-.vh-image-controls{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:3px;padding:4px;background:#211a15ed;border:1px solid #997144;border-radius:4px;z-index:5}.vh-image-controls button{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:transparent;color:#e3c49b;border:0;cursor:pointer}.vh-image-controls button:hover{background:#4b3523}.vh-image-controls select{width:55px;background:#231b16;color:#e3c49b;border:1px solid #80603c;font-size:11px;padding:4px}.vh-image-controls button:last-child{color:#f3b3a7}
+/* Compact photo tools: one desktop strip; a balanced grid for touch screens. */
+.vh-admin-shell #newsForm .vh-image-controls{position:absolute;inset:auto;display:grid;grid-template-columns:repeat(var(--vh-photo-tool-columns,10),minmax(0,1fr));align-items:center;gap:2px;box-sizing:border-box;max-width:none;overflow:auto;margin:0;padding:5px;background:#241d17fa;border:1px solid #8c7150;border-radius:8px;box-shadow:0 5px 16px #0005,0 1px 2px #0003;z-index:5;color:#e2c8a3;color-scheme:dark}
+.vh-admin-shell #newsForm .vh-image-controls button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-width:0;height:28px;min-height:28px;padding:0;background:transparent;color:#dbc6a9;border:1px solid transparent;border-radius:4px;font:500 10px/1 Montserrat,Arial,sans-serif;letter-spacing:.02em;cursor:pointer;transition:background .12s,color .12s}
+.vh-admin-shell #newsForm .vh-image-controls button svg{width:15px;height:15px;pointer-events:none}
+.vh-admin-shell #newsForm .vh-image-controls button:is(:hover,[aria-pressed=true]){background:#b5936033;color:#f3ddb8}
+.vh-admin-shell #newsForm .vh-image-controls :is(button,select):focus-visible{outline:2px solid #d2ae78;outline-offset:1px}
+.vh-admin-shell #newsForm .vh-image-controls .vh-image-scale{grid-column:span 2;box-sizing:border-box;width:100%;min-width:0;height:28px;min-height:28px;margin:0;padding:0 3px;background:#17130f;color:#ead4b3;border:1px solid #6c563d;border-radius:4px;font:500 11px/1 Montserrat,Arial,sans-serif;cursor:pointer}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=trash]{color:#d6a394}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=trash]:hover{background:#a4473333;color:#ffc3af}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=alt]{font-size:9px;letter-spacing:.04em}
+@media(max-width:1199px){
+ .vh-admin-shell #newsForm .vh-image-controls button{height:44px}
+ .vh-admin-shell #newsForm .vh-image-controls .vh-image-scale{height:44px;font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.vh-admin-shell #newsForm .vh-image-controls button{transition:none}}
 #newsForm #journalBlockEditor .vh-rte{margin:0}#newsForm #journalBlockEditor .vh-rte-canvas{min-height:390px}
+
+/* One bounded writing window: tools stay outside its scrolling text area. */
+#newsForm .journal-editor-main{overflow:visible!important}
+#newsForm #journalBlockEditor .vh-rte{display:flex;flex-direction:column;height:clamp(360px,calc(100dvh - 220px),760px);overflow:hidden!important}
+#newsForm #journalBlockEditor .vh-rte-toolbar{position:static!important;top:auto!important;z-index:auto!important;flex:0 0 auto;background:#211a15;border-radius:5px 5px 0 0}
+#newsForm #journalBlockEditor .vh-rte-canvas,#newsForm #journalBlockEditor .vh-rte-code{flex:1 1 0!important;height:0!important;min-height:140px!important;max-height:none!important;overflow-y:scroll!important;overflow-x:hidden!important;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b89669 #211a15!important;display:flow-root;resize:none}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar{width:10px}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar-thumb{background:#b89669!important;border:2px solid #211a15!important;border-radius:8px}
+#newsForm #journalBlockEditor :is(.vh-rte-canvas,.vh-rte-code)::-webkit-scrollbar-track{background:#211a15!important}
+.vh-rte-canvas :is(p,div,span,strong,b,em,i,h1,h2,h3,li,blockquote,figcaption):not([contenteditable=false]):not(.vh-image-drop-marker){color:inherit!important;background-color:transparent!important}
+.vh-rte-status:empty{display:none}.vh-rte-status{padding:8px 12px;color:#dbc5a7;font-size:12px;line-height:1.5;border-top:1px solid #493727}
+#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align=free]{float:none!important;clear:both!important;margin:18px 0!important;margin-left:var(--vh-photo-offset,0%)!important}
+.vh-image-controls .vh-image-drag{cursor:grab}.vh-image-controls .vh-image-drag:active{cursor:grabbing}
+.vh-image-resize{position:absolute;right:0;top:0;bottom:auto;width:28px;height:28px;min-height:28px;background:#211a15;color:#f1d1a3;border:1px solid #997144;cursor:ew-resize;touch-action:none;z-index:6;padding:2px}
+.vh-image-drop-marker{position:absolute;z-index:12;background:#c9a36e!important;border:1px solid #e5c79d;box-sizing:border-box;margin:0!important;pointer-events:none}.vh-image-drop-marker::before{content:attr(data-label);position:absolute;top:-22px;left:0;width:max-content;max-width:240px;padding:3px 6px;background:#c9a36e;color:#171310;font:11px/1.4 Montserrat,Arial,sans-serif;border-radius:3px}.vh-image-drop-marker[data-placement=left],.vh-image-drop-marker[data-placement=right]{background:#c9a36e25!important;border:2px dashed #c9a36e}
+.vh-inline-figure.is-dragging{opacity:.45}
+.journal-slug-row{display:flex;align-items:center;gap:8px;min-width:0}.journal-slug-row .input{min-width:0;flex:1}.journal-slug-row .btn{flex-shrink:0}
+@media(max-width:1199px){
+ #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align=free]{margin:16px 0!important}
+ .vh-image-resize{display:none}
+}
+
+.vh-image-resize svg{display:block;width:18px;height:18px}
+
+.vh-image-controls[hidden],.vh-image-resize[hidden]{display:none!important}
+#newsForm #journalBlockEditor figure.is-photo-selected>img{outline:1px solid #c9a36e;outline-offset:2px}
+#newsForm #journalBlockEditor figure>img{cursor:pointer}
+.vh-rte-tool:disabled{opacity:.35;cursor:default}
+/* The article heading stays in the page flow and cannot cover the writing window. */
+#newsForm.active{padding-top:0!important}
+#newsForm.active>.content-editor-top{position:relative!important;inset:auto!important;width:100%!important;z-index:auto!important;box-shadow:none!important;margin-bottom:16px!important}
+#newsForm #journalBlockEditor .vh-rte{scroll-margin-top:82px}
+
+#newsForm #journalBlockEditor .vh-rte-canvas{position:relative}
+#newsForm #journalBlockEditor .vh-rte-canvas [data-vh-photo-row]{display:grid;grid-template-columns:repeat(var(--vh-photo-columns,2),minmax(0,1fr));gap:12px;align-items:start;clear:both;margin:18px 0}
+#newsForm #journalBlockEditor .vh-rte-canvas [data-vh-photo-row]>figure.vh-inline-figure{width:100%!important;min-width:0!important;float:none!important;clear:none!important;margin:0!important}
+#newsForm #journalBlockEditor .vh-rte-canvas [data-vh-photo-row] .vh-image-resize{display:none!important}
+#newsForm #journalBlockEditor .vh-rte-canvas figure>img{cursor:grab}
+#newsForm #journalBlockEditor .vh-rte-canvas .is-dragging>img{cursor:grabbing}
+.is-dragging .vh-image-controls{pointer-events:none;opacity:.25}
+
+#newsForm #journalBlockEditor .vh-rte-canvas [data-vh-photo-row]>figure>img{width:var(--vh-photo-width,100%)!important;margin:0 auto!important}
