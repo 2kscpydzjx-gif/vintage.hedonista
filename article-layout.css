@@ -65,3 +65,9 @@
  .article-page .article-editorial .article-v71-content figure[data-vh-align=free]{float:none!important;clear:both!important;margin:32px 0!important;margin-left:var(--vh-photo-offset,0%)!important}
  @media(max-width:760px){.article-page .article-editorial .article-v71-content figure[data-vh-align=free]{width:100%!important;margin:24px 0!important}}
 }
+
+@layer vh-responsive {
+ .article-page .article-editorial .article-v71-content [data-vh-photo-row]{display:grid!important;grid-template-columns:repeat(var(--vh-photo-columns,2),minmax(0,1fr))!important;gap:12px!important;align-items:start!important;clear:both!important;margin:32px 0!important}
+ .article-page .article-editorial .article-v71-content [data-vh-photo-row]>figure{width:100%!important;min-width:0!important;float:none!important;clear:none!important;margin:0!important}
+ @media(max-width:760px){.article-page .article-editorial .article-v71-content [data-vh-photo-row]{gap:8px!important;margin:24px 0!important}}
+}

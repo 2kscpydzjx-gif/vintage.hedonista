@@ -2074,9 +2074,10 @@ function journalSanitizeHtml(html){
   if(n.nodeType===8){n.remove();continue}if(n.nodeType!==1)continue;
   if(['SCRIPT','STYLE','IFRAME','OBJECT','SVG','FORM'].includes(n.tagName)){n.remove();continue}
   visit(n);if(!tags.has(n.tagName)){n.replaceWith(...n.childNodes);continue}
-  const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align'),fx=n.getAttribute('data-vh-x');
+  const href=n.getAttribute('href'),src=n.getAttribute('src'),alt=n.getAttribute('alt'),fw=n.getAttribute('data-vh-width'),fa=n.getAttribute('data-vh-align'),fx=n.getAttribute('data-vh-x'),fr=n.getAttribute('data-vh-photo-row');
   for(const at of [...n.attributes])n.removeAttribute(at.name);
   if(n.tagName==='FIGURE')window.VHSafeRich.figureLayout(n,{width:fw,align:fa,x:fx});
+  if(n.tagName==='DIV')window.VHSafeRich.photoRowLayout(n,fr);
   if(n.tagName==='A'&&href&&/^(https?:\/\/|mailto:|tel:|\/|\.\/|\.\.\/|#)/i.test(href)){n.setAttribute('href',href);n.setAttribute('rel','noopener noreferrer')}
   if(n.tagName==='IMG'&&src&&(/^(https?:\/\/|\/|\.\/|\.\.\/)/i.test(src)||/^data:image\/(png|jpeg|webp);base64,/i.test(src))){n.setAttribute('src',src);n.setAttribute('alt',alt||'')}else if(n.tagName==='IMG')n.remove();
  }}visit(root);return root.innerHTML;

@@ -181,6 +181,7 @@ jobs:
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
           node tests/article-editor.cjs
+          node tests/article-photo-rows.cjs
           node tests/admin-mobile.cjs
           node tests/product-measurements.cjs
           node tests/measurement-persistence.cjs

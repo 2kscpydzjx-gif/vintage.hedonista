@@ -6,7 +6,7 @@ async function end(p){await p.locator(canvas).evaluate(el=>{el.focus();const ran
 async function imageFile(p,padded=false){const url=await p.evaluate(padded=>{const c=document.createElement('canvas');c.width=padded?800:300;c.height=600;const ctx=c.getContext('2d');ctx.fillStyle='#eadbc7';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#244ba2';ctx.fillRect(padded?100:0,0,padded?600:300,600);return c.toDataURL('image/png')},padded);return {name:padded?'old-padded.png':'portrait.png',mimeType:'image/png',buffer:Buffer.from(url.split(',')[1],'base64')}}
 async function imageSize(img){return img.evaluate(async e=>{const r=await fetch(e.src),b=await createImageBitmap(await r.blob());const size=[b.width,b.height];b.close();return size})}
 (async()=>{const f=await fixture({persistTables:true,reducedMotion:'reduce'});try{
- await seedAdmin(f);const original=f.getData('news')[0];f.data('news',[original,{...original,id:'published-article',slug:'old-public-address',status:'published'}]);
+ await seedAdmin(f);const original=f.getData('news')[0];original.content=original.content.replace('data-vh-align="right"','data-vh-align="free" data-vh-x="75"');f.data('news',[original,{...original,id:'published-article',slug:'old-public-address',status:'published'}]);
  const p=await f.context.newPage();await p.setViewportSize({width:1440,height:1000});
  await p.goto(base+'/admin/admin.html');await p.waitForFunction(()=>typeof VH_ADMIN_HISTORY_READY!=='undefined'&&VH_ADMIN_HISTORY_READY);
  await p.evaluate(()=>editNews('published-article'));await expand(p);
@@ -34,16 +34,14 @@ async function imageSize(img){return img.evaluate(async e=>{const r=await fetch(
  // Real file insertion and pointer/keyboard width controls, plus arbitrary horizontal placement.
  await end(p);await p.locator('#journalBlockEditor input[type=file]').setInputFiles(await imageFile(p));await p.waitForFunction(()=>document.querySelectorAll('#journalBlockEditor figure').length===2);
  let fig=p.locator(canvas+' figure').last();assert.deepEqual(await imageSize(fig.locator('img')),[300,600]);
- await fig.locator('img').click();await fig.locator('select').selectOption('60');await fig.locator('summary').click();
- await fig.getByLabel('Ширина фото у відсотках').fill('37');await fig.getByLabel('Положення фото по горизонталі').fill('75');assert.equal(await fig.getAttribute('data-vh-width'),'37');assert.equal(await fig.getAttribute('data-vh-x'),'75');assert.equal(await fig.getAttribute('data-vh-align'),'free');
- assert.equal(await fig.evaluate(el=>el.style.getPropertyValue('--vh-photo-offset')),'47.25%');
- const resize=fig.getByRole('button',{name:'Змінити ширину фото перетягуванням'});await resize.focus();await p.keyboard.press('ArrowRight');assert.equal(await fig.getAttribute('data-vh-width'),'38');
- await resize.scrollIntoViewIfNeeded();const grip=await resize.boundingBox();await p.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);await p.mouse.down();await p.mouse.move(grip.x+grip.width/2+30,grip.y+grip.height/2,{steps:4});await p.mouse.up();assert.ok(Number(await fig.getAttribute('data-vh-width'))>38);
- const resizedWidth=await fig.getAttribute('data-vh-width');await p.locator('#journalBlockEditor').getByRole('button',{name:'Скасувати зміну',exact:true}).click();assert.equal(await fig.getAttribute('data-vh-width'),'38');await p.locator('#journalBlockEditor').getByRole('button',{name:'Повторити зміну',exact:true}).click();assert.equal(await fig.getAttribute('data-vh-width'),resizedWidth);
+ await fig.locator('img').click();assert.equal(await p.locator('.vh-image-adjustments,#journalBlockEditor .vh-image-controls select').count(),0);
+ const resize=fig.getByRole('button',{name:'Змінити ширину фото перетягуванням'});await resize.focus();await p.keyboard.press('ArrowLeft');assert.equal(await fig.getAttribute('data-vh-width'),'99');
+ await resize.scrollIntoViewIfNeeded();const grip=await resize.boundingBox();await p.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);await p.mouse.down();await p.mouse.move(grip.x+grip.width/2-30,grip.y+grip.height/2,{steps:4});await p.mouse.up();assert.ok(Number(await fig.getAttribute('data-vh-width'))<99);
+ const resizedWidth=await fig.getAttribute('data-vh-width');await p.locator('#journalBlockEditor').getByRole('button',{name:'Скасувати зміну',exact:true}).click();assert.equal(await fig.getAttribute('data-vh-width'),'99');await p.locator('#journalBlockEditor').getByRole('button',{name:'Повторити зміну',exact:true}).click();assert.equal(await fig.getAttribute('data-vh-width'),resizedWidth);
  const index=()=>fig.evaluate(el=>[...el.parentElement.children].indexOf(el));const before=await index();await fig.getByRole('button',{name:'Фото на один блок вище',exact:true}).click();assert.equal(await index(),before-1);
  await fig.getByRole('button',{name:'Перетягнути фото між абзацами',exact:true}).focus();await p.keyboard.press('Alt+ArrowDown');assert.equal(await index(),before);
  // Exercise native HTML drag/drop with its own transfer payload and a real target block.
- await fig.locator('summary').click();await fig.getByRole('button',{name:'Перетягнути фото між абзацами',exact:true}).evaluate(el=>{window.__photoTransfer=new DataTransfer();el.dispatchEvent(new DragEvent('dragstart',{dataTransfer:window.__photoTransfer,bubbles:true,clientX:el.getBoundingClientRect().left+5}))});
+ await fig.getByRole('button',{name:'Перетягнути фото між абзацами',exact:true}).evaluate(el=>{window.__photoTransfer=new DataTransfer();el.dispatchEvent(new DragEvent('dragstart',{dataTransfer:window.__photoTransfer,bubbles:true,clientX:el.getBoundingClientRect().left+5}))});
  await p.locator(canvas+' h2').evaluate(el=>{const box=el.getBoundingClientRect();el.dispatchEvent(new DragEvent('dragover',{dataTransfer:window.__photoTransfer,bubbles:true,cancelable:true,clientY:box.top+1,clientX:box.left+20}));el.dispatchEvent(new DragEvent('drop',{dataTransfer:window.__photoTransfer,bubbles:true,cancelable:true,clientY:box.top+1,clientX:box.left+20}))});
  assert.equal(await fig.evaluate(el=>el.nextElementSibling.tagName),'H2');assert.equal(await p.locator('.vh-image-drop-marker').count(),0);
  // A second photo retains its pixels and the first photo can be reselected and edited.
@@ -52,8 +50,8 @@ async function imageSize(img){return img.evaluate(async e=>{const r=await fetch(
  assert.deepEqual(await imageSize(img),[800,600]);assert.equal(await p.getByRole('button',{name:'Прибрати однотонні поля з фото',exact:true}).count(),0);
  assert.equal(await padded.locator('.vh-image-controls').isVisible(),true);
  await p.locator('#journalBlockEditor').getByRole('button',{name:'Скасувати зміну',exact:true}).click();assert.equal(await p.locator(canvas+' figure').count(),2);await p.locator('#journalBlockEditor').getByRole('button',{name:'Повторити зміну',exact:true}).click();assert.equal(await p.locator(canvas+' figure').count(),3);
- const firstPhoto=p.locator(canvas+' figure[data-vh-align=free]');await firstPhoto.locator('img').click();await firstPhoto.locator('select').selectOption('60');
- assert.equal(await firstPhoto.getAttribute('data-vh-width'),'60');assert.equal(await padded.locator('.vh-image-controls').isVisible(),false);
+ const firstPhoto=p.locator(canvas+' figure[data-vh-align=free]');await firstPhoto.locator('img').click();await firstPhoto.getByRole('button',{name:'Змінити ширину фото перетягуванням'}).focus();await p.keyboard.press('ArrowRight');
+ assert.equal(await firstPhoto.getAttribute('data-vh-width'),'26');assert.equal(await padded.locator('.vh-image-controls').isVisible(),false);
  await padded.locator('img').click();assert.equal(await padded.locator('.vh-image-controls').isVisible(),true);assert.equal(await firstPhoto.locator('.vh-image-controls').isVisible(),false);
  // Delete just this photo, undo it with its controls, redo the deletion, then restore.
  const imageSource=await img.getAttribute('src');await padded.getByRole('button',{name:'Видалити фото',exact:true}).click();assert.equal(await p.locator(canvas+' figure').count(),2);
