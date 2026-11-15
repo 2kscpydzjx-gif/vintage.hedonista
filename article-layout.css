@@ -1,13 +1,13 @@
 /* Journal article layout: wide cover, inset title panel, calm reading column. */
 @layer vh-responsive {
  .article-page.paper{padding:24px 0 72px!important;background:#fff!important;color:#333!important}
- .article-page>.article-wrap{width:min(1360px,calc(100% - 48px))!important;margin:0 auto!important}
+ .article-page>.article-wrap{width:min(1200px,calc(100% - 48px))!important;margin:0 auto!important}
  .article-page .article-back-v71{display:inline-flex!important;align-items:center!important;min-height:32px!important;margin:0 0 16px!important;font:400 10px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.04em!important;color:#796b5f!important}
  .article-page .article-back-v71:focus-visible,.article-page .article-v71-bottom a:focus-visible{outline:2px solid #a77744;outline-offset:4px}
  .article-page .article-editorial{min-width:0!important;max-width:100%!important}
  .article-page .article-editorial.has-cover{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
  .article-page .article-editorial.has-cover>*{grid-column:1!important}
- .article-page .article-editorial>.article-v71-cover{position:relative!important;grid-row:1!important;align-self:stretch!important;aspect-ratio:3/2!important;width:100%!important;margin:0!important;padding:0!important;background:#eee8e0!important;overflow:hidden!important}
+ .article-page .article-editorial>.article-v71-cover{position:relative!important;grid-row:1!important;align-self:stretch!important;aspect-ratio:8/5!important;width:100%!important;margin:0!important;padding:0!important;background:#eee8e0!important;overflow:hidden!important}
  .article-page .article-editorial>.article-v71-cover img{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;max-height:none!important;object-fit:cover!important;object-position:center 40%!important;background:transparent!important}
  .article-page .article-editorial>.article-v71-cover-intro{
   --article-notch:clamp(36px,4vw,54px);position:relative!important;z-index:1!important;
