@@ -89,8 +89,17 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
   const columns=matchMedia('(max-width:1199px)').matches||width<312?Math.max(2,Math.min(5,Math.floor((width-10)/46))):10;
   panel.style.setProperty('--vh-photo-tool-columns',String(columns));
   panel.style.width=Math.max(120,width)+'px';panel.style.maxHeight=Math.max(100,bottom-top)+'px';
-  const left=Math.max(bounds.left+6,Math.min(photo.right-width,bounds.left+visual.clientWidth-width-6));
-  panel.style.left=(left-fig.left)+'px';panel.style.top=(Math.max(top,Math.min(photo.top+6,bottom-panel.getBoundingClientRect().height))-fig.top)+'px';
+  const panelHeight=panel.getBoundingClientRect().height,minLeft=bounds.left+6,maxLeft=bounds.left+visual.clientWidth-width-6;
+  let left=Math.max(minLeft,Math.min(photo.right-width,maxLeft)),panelTop=Math.max(top,Math.min(photo.top+6,bottom-panelHeight));
+  const handle=activeFigure.querySelector('.vh-image-resize')?.getBoundingClientRect(),gap=8;
+  if(handle?.width&&handle.height&&left<handle.right+gap&&left+width>handle.left-gap&&panelTop<handle.bottom+gap&&panelTop+panelHeight>handle.top-gap){
+   if(handle.left-gap-width>=minLeft)left=handle.left-gap-width;
+   else if(handle.right+gap<=maxLeft)left=handle.right+gap;
+   else if(handle.bottom+gap+panelHeight<=bottom)panelTop=handle.bottom+gap;
+   else if(handle.top-gap-panelHeight>=top)panelTop=handle.top-gap-panelHeight;
+   else{const below=bottom-handle.bottom-gap,above=handle.top-gap-top;panel.style.maxHeight=Math.max(0,Math.max(below,above))+'px';panelTop=below>=above?handle.bottom+gap:top}
+  }
+  panel.style.left=(left-fig.left)+'px';panel.style.top=(panelTop-fig.top)+'px';
  }
  function topBlock(node){while(node&&node.parentElement!==visual)node=node.parentElement;return node}
  function updateScale(fig){
