@@ -18,6 +18,9 @@ const rows=[
   assert.equal(await p.locator('.article-v71-deck').textContent(),'Збережений вступ без видимих HTML-тегів.');assert.equal(await p.locator('.article-v71-content figure').getAttribute('data-vh-width'),'40');
   const layout=await p.locator('.article-editorial').evaluate(el=>{const box=s=>el.querySelector(s).getBoundingClientRect().toJSON(),h=el.querySelector('h1');return {cover:box('.article-v71-cover'),panel:box('.article-v71-cover-intro'),heading:box('h1'),content:box('.article-v71-content'),background:getComputedStyle(el.closest('main')).backgroundColor,align:getComputedStyle(h).textAlign,overflow:document.documentElement.scrollWidth>innerWidth+1}});
   assert.ok(layout.cover.top<layout.panel.top&&layout.panel.top<layout.cover.bottom,'cover/panel overlap at '+width);
+  assert.ok(Math.abs(layout.panel.bottom-layout.cover.bottom)<1,'whole title panel ends inside cover at '+width);
+  assert.ok(layout.panel.top-layout.cover.top>=219,'visible photo above title at '+width);
+  assert.ok(layout.heading.bottom<=layout.cover.bottom,'heading leaves photo at '+width);
   assert.ok(layout.heading.left>=layout.panel.left&&layout.heading.right<=layout.panel.right+1,'title overflow at '+width);
   assert.ok(layout.content.top>=layout.panel.bottom,'body overlaps title at '+width);assert.ok(layout.content.width<=780.5);
   assert.equal(layout.align,'center');assert.equal(layout.background,'rgb(255, 255, 255)');assert.equal(layout.overflow,false,'page overflow at '+width);
@@ -31,7 +34,7 @@ const rows=[
  }
  await p.goto(base+'/article.html?slug=unpublished');await p.getByText('Статтю не знайдено або вона ще не опублікована').waitFor();assert.equal(await p.locator('.article-editorial').count(),0);
  assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(c=>c.op!=='select').length,0);assert.equal(f.functionCalls.length,0);
- console.log('PASS: photo-first overlapping title panel at 11 widths, readable body, rich excerpt, three body formats, saved image alignment/gallery/links, no-cover and missing articles, one H1 and no writes.');
+ console.log('PASS: whole title panel inside photo at 11 widths, readable body, rich excerpt, three body formats, saved image alignment/gallery/links, no-cover and missing articles, one H1 and no writes.');
 }finally{await f.browser.close()}
  const staticFixture=await fixture({javaScriptEnabled:false});try{
   const p=await staticFixture.context.newPage();await p.goto(base+'/seo-article/'+encodeURIComponent('5-вінтажних-речей-які-ніколи-не-вийдуть-з-моди')+'/index.html');

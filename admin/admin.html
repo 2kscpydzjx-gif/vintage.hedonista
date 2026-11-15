@@ -844,9 +844,9 @@
               <div class="journal-photo-inline-title">Фотографії статті <span>Обкладинка та галерея</span></div>
               <div class="form-grid">
                 <div class="field">
-                  <label>Головна обкладинка</label>
-                  <div class="photo-guide compact"><b>1600 × 1000 px</b><span>Використовується на сторінці Journal і в самій статті.</span></div>
-                  <input class="input" id="nImage" type="file" accept="image/*">
+                  <label for="nImage">Головна обкладинка</label>
+                  <div class="photo-guide compact" id="newsCoverGuide"><b>Рекомендовано: 2400 × 1600 px · 3:2</b><span>Горизонтальне фото для великої обкладинки статті та картки в Journal. Тримай головний об’єкт ближче до центру й залишай вільне місце внизу під заголовок. На телефоні бічні краї кадру обрізаються.</span></div>
+                  <input class="input" id="nImage" type="file" accept="image/*" aria-describedby="newsCoverGuide">
                   <div id="newsImagePreview" class="preview-row"></div>
                 </div>
                 <div class="field">
@@ -1110,7 +1110,7 @@
     <div id="mediaPickerGrid" class="media-picker-grid-v132"></div>
   </div>
 </div>
-<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=3"></script><script src="vh-rich-editor.js?v=101"></script><script src="../order-delivery.js?v=289"></script><script src="../measurements.js?v=4"></script><script src="measurement-editor.js?v=5"></script><script src="admin.js?v=85"></script><script src="mobile.js?v=1"></script>
+<div class="toast" id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=3"></script><script src="vh-rich-editor.js?v=101"></script><script src="../order-delivery.js?v=289"></script><script src="../measurements.js?v=4"></script><script src="measurement-editor.js?v=5"></script><script src="admin.js?v=86"></script><script src="mobile.js?v=1"></script>
 
 <div class="constructor-nav-drawer" id="constructorNavDrawer">
   <div class="constructor-drawer-head">

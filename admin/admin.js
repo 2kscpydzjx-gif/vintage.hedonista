@@ -2167,7 +2167,7 @@ $('saveNewsBtn').onclick=async()=>{
 
    const original=$('nImage').files[0];
    if(original){
-     const f=await prepareImage(original,1600,1000,'#eadbc7',.92);
+     const f=await prepareImage(original,2400,1600,'#eadbc7',.92);
      cover=await uploadFile(f,`news/${Date.now()}-${crypto.randomUUID()}.jpg`)
    }
 
