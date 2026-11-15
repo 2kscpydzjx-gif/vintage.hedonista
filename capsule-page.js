@@ -9,6 +9,7 @@
   window.VHCMSModel.applyDesign(hero,edit.design,'capsules',edit);
   // Old title positions and animation classes are not part of this presentation.
   const copy=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-copy');
+  window.VHAlignMobileCapsuleHeading?.(copy?.querySelector('h1'));
   copy?.querySelectorAll('.capsule-kicker').forEach(node=>node.textContent='VINTAZHKA');
   const image=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-photo>img');
   if(image)image.alt='Вінтажні речі та натхнення для стильових капсул Vintazhka';

@@ -1,0 +1,13 @@
+/* Align mobile hero lettering with the kicker and description.
+   Desktop indentation, typography and all other page blocks stay unchanged. */
+@layer vh-responsive {
+ @media(max-width:760px){
+  body.capsule-index-live .capsule-hero>.vh-cms-composition>.vh-cms-copy>h1[data-vh-capsule-heading],
+  body.capsule-style-live #capsuleStyleHeroCopy>h1[data-vh-capsule-heading]{
+   /* Compensate the heading font's measured 1px left side bearing. */
+   margin-inline-start:-1px!important;
+  }
+  body.capsule-index-live .capsule-hero>.vh-cms-composition>.vh-cms-copy>p{margin-inline:0!important}
+  :is(.capsule-hero>.vh-cms-composition>.vh-cms-copy,#capsuleStyleHeroCopy)>h1[data-vh-capsule-heading] .vh-capsule-heading-indent{display:none!important}
+ }
+}
