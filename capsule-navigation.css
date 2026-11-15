@@ -19,9 +19,12 @@
  @media(hover:hover){body.capsule-style-live .capsule-page-nav-button:hover:not(:disabled){background:#5a4030;color:#f1e9df;border-color:#5a4030}}
  body.capsule-style-live .capsule-page-nav[hidden]{display:none!important}
  @media(max-width:760px){
-  body.capsule-style-live .capsule-page-nav.capsule-page-nav-compact{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px 12px!important}
+  body.capsule-style-live .capsule-page-nav.capsule-page-nav-compact{grid-template-columns:repeat(2,minmax(0,max-content))!important;justify-content:center!important;gap:10px 8px!important;padding-bottom:14px!important;margin-bottom:20px!important}
   body.capsule-style-live .capsule-page-nav-current{grid-column:1/-1;grid-row:1}
-  body.capsule-style-live .capsule-page-nav-button{width:100%;padding:12px 8px}
+  body.capsule-style-live .capsule-page-nav-button{
+   width:auto!important;min-height:36px!important;height:36px!important;padding:8px 12px!important;
+   font-size:11px!important;line-height:1.2!important;letter-spacing:0!important;white-space:nowrap!important;
+  }
   body.capsule-style-live .capsule-page-nav-button.prev{grid-column:1;grid-row:2}
   body.capsule-style-live .capsule-page-nav-button.next{grid-column:2;grid-row:2}
  }
