@@ -85,7 +85,9 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
   const header=document.querySelector('.topbar')?.getBoundingClientRect().bottom||0,heading=document.querySelector('#newsForm.active>.content-editor-top')?.getBoundingClientRect().bottom||0;
   const top=Math.max(bounds.top+6,header+6,heading+6),bottom=Math.min(bounds.bottom-6,innerHeight-12);
   if(photo.bottom<top||photo.top>bottom||bottom<=top){panel.hidden=true;return}
-  panel.hidden=false;const width=Math.min(300,visual.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-12);
+  panel.hidden=false;const width=Math.min(320,visual.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-12);
+  const columns=matchMedia('(max-width:1199px)').matches||width<312?Math.max(2,Math.min(5,Math.floor((width-10)/46))):10;
+  panel.style.setProperty('--vh-photo-tool-columns',String(columns));
   panel.style.width=Math.max(120,width)+'px';panel.style.maxHeight=Math.max(100,bottom-top)+'px';
   const left=Math.max(bounds.left+6,Math.min(photo.right-width,bounds.left+visual.clientWidth-width-6));
   panel.style.left=(left-fig.left)+'px';panel.style.top=(Math.max(top,Math.min(photo.top+6,bottom-panel.getBoundingClientRect().height))-fig.top)+'px';
@@ -97,6 +99,7 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
   for(const option of [...select.options])if(option.dataset.custom)option.remove();
   if(![...select.options].some(option=>option.value===width)){const option=new Option(width+'%',width);option.dataset.custom='1';select.add(option)}
   select.value=width;
+  for(const button of fig.querySelectorAll('[data-photo-align]'))button.setAttribute('aria-pressed',String(button.dataset.photoAlign===fig.dataset.vhAlign));
  }
  function photoPlacement(fig,align='center'){
   delete fig.dataset.vhX;fig.style.removeProperty('--vh-photo-offset');
@@ -165,8 +168,8 @@ function create(source,opts={}){if(!source||source.dataset.vhRichReady)return nu
    window.VHSafeRich.figureLayout(fig);
    if(fig.querySelector('.vh-image-controls'))return;
    fig.classList.add('vh-inline-figure');fig.setAttribute('contenteditable','false');
-   const panel=document.createElement('div');panel.className='vh-image-controls';panel.hidden=true;panel.setAttribute('contenteditable','false');
-   const make=(key,title,fn,label)=>{const b=document.createElement('button');b.type='button';b.title=title;b.setAttribute('aria-label',title);b.innerHTML=svg[key]?ico(key):(label||key);b.onmousedown=e=>e.preventDefault();b.onclick=e=>{e.preventDefault();updateHistoryMeta();fn(b)};panel.append(b);return b};
+   const panel=document.createElement('div');panel.className='vh-image-controls';panel.hidden=true;panel.setAttribute('contenteditable','false');panel.setAttribute('role','group');panel.setAttribute('aria-label','Керування фото');
+   const make=(key,title,fn,label)=>{const b=document.createElement('button');b.type='button';b.title=title;b.setAttribute('aria-label',title);b.innerHTML=svg[key]?ico(key):(label||key);b.dataset.photoAction=key||'alt';if(['left','center','right'].includes(key))b.dataset.photoAlign=key;b.onmousedown=e=>e.preventDefault();b.onclick=e=>{e.preventDefault();updateHistoryMeta();fn(b)};panel.append(b);return b};
    const size=document.createElement('select');size.className='vh-image-scale';size.title='Масштаб фото';size.setAttribute('aria-label','Масштаб фото');[100,80,60,40,25].forEach(value=>size.add(new Option(value+'%',value)));panel.append(size);
    function update(group=''){window.VHSafeRich.figureLayout(fig);updateScale(fig);sync(group);positionControls()}
    size.onchange=()=>{updateHistoryMeta();fig.dataset.vhWidth=size.value;update()};

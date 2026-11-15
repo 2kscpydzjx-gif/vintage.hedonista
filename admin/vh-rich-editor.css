@@ -25,7 +25,21 @@
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="25"]{--vh-photo-width:25%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="40"]{--vh-photo-width:40%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="60"]{--vh-photo-width:60%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="80"]{--vh-photo-width:80%}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-width="100"]{--vh-photo-width:100%}
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="left"]{float:left;margin:12px 20px 12px 0}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="right"]{float:right;margin:12px 0 12px 20px}#newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align="center"]{float:none;margin:18px auto}
 #newsForm #journalBlockEditor .vh-rte-canvas figure img{display:block;width:100%;height:auto;max-width:100%;margin:0;object-fit:contain}
-.vh-image-controls{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:3px;padding:4px;background:#211a15ed;border:1px solid #997144;border-radius:4px;z-index:5}.vh-image-controls button{display:flex;align-items:center;justify-content:center;width:26px;height:26px;background:transparent;color:#e3c49b;border:0;cursor:pointer}.vh-image-controls button:hover{background:#4b3523}.vh-image-controls select{width:55px;background:#231b16;color:#e3c49b;border:1px solid #80603c;font-size:11px;padding:4px}.vh-image-controls button:last-child{color:#f3b3a7}
+/* Compact photo tools: one desktop strip; a balanced grid for touch screens. */
+.vh-admin-shell #newsForm .vh-image-controls{position:absolute;inset:auto;display:grid;grid-template-columns:repeat(var(--vh-photo-tool-columns,10),minmax(0,1fr));align-items:center;gap:2px;box-sizing:border-box;max-width:none;overflow:auto;margin:0;padding:5px;background:#241d17fa;border:1px solid #8c7150;border-radius:8px;box-shadow:0 5px 16px #0005,0 1px 2px #0003;z-index:5;color:#e2c8a3;color-scheme:dark}
+.vh-admin-shell #newsForm .vh-image-controls button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;min-width:0;height:28px;min-height:28px;padding:0;background:transparent;color:#dbc6a9;border:1px solid transparent;border-radius:4px;font:500 10px/1 Montserrat,Arial,sans-serif;letter-spacing:.02em;cursor:pointer;transition:background .12s,color .12s}
+.vh-admin-shell #newsForm .vh-image-controls button svg{width:15px;height:15px;pointer-events:none}
+.vh-admin-shell #newsForm .vh-image-controls button:is(:hover,[aria-pressed=true]){background:#b5936033;color:#f3ddb8}
+.vh-admin-shell #newsForm .vh-image-controls :is(button,select):focus-visible{outline:2px solid #d2ae78;outline-offset:1px}
+.vh-admin-shell #newsForm .vh-image-controls .vh-image-scale{grid-column:span 2;box-sizing:border-box;width:100%;min-width:0;height:28px;min-height:28px;margin:0;padding:0 3px;background:#17130f;color:#ead4b3;border:1px solid #6c563d;border-radius:4px;font:500 11px/1 Montserrat,Arial,sans-serif;cursor:pointer}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=trash]{color:#d6a394}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=trash]:hover{background:#a4473333;color:#ffc3af}
+.vh-admin-shell #newsForm .vh-image-controls [data-photo-action=alt]{font-size:9px;letter-spacing:.04em}
+@media(max-width:1199px){
+ .vh-admin-shell #newsForm .vh-image-controls button{height:44px}
+ .vh-admin-shell #newsForm .vh-image-controls .vh-image-scale{height:44px;font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.vh-admin-shell #newsForm .vh-image-controls button{transition:none}}
 #newsForm #journalBlockEditor .vh-rte{margin:0}#newsForm #journalBlockEditor .vh-rte-canvas{min-height:390px}
 
 /* One bounded writing window: tools stay outside its scrolling text area. */
@@ -39,8 +53,6 @@
 .vh-rte-canvas :is(p,div,span,strong,b,em,i,h1,h2,h3,li,blockquote,figcaption):not([contenteditable=false]):not(.vh-image-drop-marker){color:inherit!important;background-color:transparent!important}
 .vh-rte-status:empty{display:none}.vh-rte-status{padding:8px 12px;color:#dbc5a7;font-size:12px;line-height:1.5;border-top:1px solid #493727}
 #newsForm #journalBlockEditor .vh-rte-canvas figure[data-vh-align=free]{float:none!important;clear:both!important;margin:18px 0!important;margin-left:var(--vh-photo-offset,0%)!important}
-.vh-image-controls{position:absolute;inset:auto;max-width:none;overflow:auto;margin:0;flex-wrap:wrap;box-sizing:border-box;gap:4px}
-.vh-image-controls button{min-width:28px;width:auto;padding:4px;font-size:11px}
 .vh-image-controls .vh-image-drag{cursor:grab}.vh-image-controls .vh-image-drag:active{cursor:grabbing}
 .vh-image-resize{position:absolute;right:0;top:0;bottom:auto;width:28px;height:28px;min-height:28px;background:#211a15;color:#f1d1a3;border:1px solid #997144;cursor:ew-resize;touch-action:none;z-index:6;padding:2px}
 .vh-image-drop-marker{position:absolute;z-index:12;background:#c9a36e!important;border:1px solid #e5c79d;box-sizing:border-box;margin:0!important;pointer-events:none}.vh-image-drop-marker::before{content:attr(data-label);position:absolute;top:-22px;left:0;width:max-content;max-width:240px;padding:3px 6px;background:#c9a36e;color:#171310;font:11px/1.4 Montserrat,Arial,sans-serif;border-radius:3px}.vh-image-drop-marker[data-placement=left],.vh-image-drop-marker[data-placement=right]{background:#c9a36e25!important;border:2px dashed #c9a36e}
