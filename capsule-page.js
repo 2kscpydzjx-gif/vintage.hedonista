@@ -9,15 +9,6 @@
   window.VHCMSModel.applyDesign(hero,edit.design,'capsules',edit);
   // Old title positions and animation classes are not part of this presentation.
   const copy=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-copy');
-  // The CMS sets important inline heading sizes and a uniform light tone.
-  // Release only page-owned presentation fields so the home type scale can apply.
-  copy?.querySelectorAll('*').forEach(node=>{
-   for(const property of ['font-size','text-align','color'])node.style.removeProperty(property);
-  });
-  // Old saved non-breaking indents must not offset the left edge of the heading.
-  copy?.querySelectorAll('h1').forEach(heading=>{
-   for(const node of heading.childNodes)if(node.nodeType===Node.TEXT_NODE&&(!node.previousSibling||node.previousSibling.nodeName==='BR'))node.textContent=node.textContent.replace(/^[\s\u00a0]+/u,'');
-  });
   copy?.querySelectorAll('.capsule-kicker').forEach(node=>node.textContent='VINTAZHKA');
   const image=hero.querySelector(':scope>.vh-cms-composition>.vh-cms-photo>img');
   if(image)image.alt='Вінтажні речі та натхнення для стильових капсул Vintazhka';

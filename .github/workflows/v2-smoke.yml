@@ -28,6 +28,7 @@ on:
       - 'scripts/storefront-footer.mjs'
       - 'storefront-details.css'
       - 'home-sections.css'
+      - 'capsule-navigation.css'
       - 'capsule-page.css'
       - 'capsule-page.js'
       - 'scripts/generate-app-icons.cjs'
@@ -145,7 +146,7 @@ jobs:
           node tests/cms-visible-motion.cjs
           node tests/feature-entry-motion.cjs
           node tests/capsule-page.cjs
-          node tests/capsule-detail.cjs
+          node tests/capsule-navigation.cjs
           node tests/cms-page-choreography.cjs
           node tests/password-recovery.cjs
           node tests/signup-redirect.cjs

@@ -6,7 +6,7 @@ const description='Від романтики до гранжу, від клас�
  f.user(null);f.session(null);f.delay(450);
  f.data('capsule_page_settings',[{id:1,hero_kicker:'VINTAGE HEDONISTA',hero_title:'КАПСУЛИ',hero_subtitle:'',hero_description:'Previous description',hero_image:base+'/assets/test-upload.png',mood_title:'ОБЕРИ СВІЙ НАСТРІЙ.',mood_text:'Романтика, бунтарство чи стримана елегантність? Досліджуй стилі, експериментуй із поєднаннями та створюй особливий настрій для свого гардеробу.'}]);
  f.data('capsule_styles',[{id:'preppy',title:'PREPPY',slug:'preppy',is_active:true,image_url:base+'/assets/test-upload.png'}]);
- f.set('capsules','published',{shared:{cmsPageDraft:{existing:{'existing-0':{design:{layout:'photo-left',photoPreset:'left',photoWidth:50,headingSize:44},mapped:{'static:.capsule-hero-copy h1:0':'МИСТЕЦТВО ПОЄДНУВАТИ','static:.capsule-hero-copy p:0':description,'static:.capsule-hero-photo:0':base+'/assets/test-upload.png'}}}}}});
+ f.set('capsules','published',{shared:{cmsPageDraft:{existing:{'existing-0':{design:{layout:'photo-left',photoPreset:'left',photoWidth:50},mapped:{'static:.capsule-hero-copy h1:0':'МИСТЕЦТВО ПОЄДНУВАТИ','static:.capsule-hero-copy p:0':description,'static:.capsule-hero-photo:0':base+'/assets/test-upload.png'}}}}}});
  const records=JSON.stringify([...f.records]);
  await f.context.route(photo,route=>route.fulfill({contentType:'image/png',body:f.png}));
  for(const [index,width] of [320,360,390,430,600,760,768,820,1024,1366,1440,1920].entries()){
@@ -19,7 +19,7 @@ const description='Від романтики до гранжу, від клас�
   assert.ok(state.some(s=>s.opacity<.98&&s.animations.some(a=>a.state==='running'&&a.time<900)),'hero did not visibly enter at '+width);
   await p.waitForTimeout(1500);
   const layout=await p.locator('.capsule-page').evaluate(el=>{const box=node=>node.getBoundingClientRect().toJSON(),hero=el.querySelector('.capsule-hero'),copy=hero.querySelector('.vh-cms-copy'),intro=el.querySelector('.capsule-intro'),title=intro.querySelector('h2'),text=intro.querySelector('p');return {hero:box(hero),copy:box(copy),paragraph:box(copy.querySelector('p')),intro:box(intro),title:box(title),text:box(text),innerScroll:copy.scrollHeight>copy.clientHeight+1,overflow:document.documentElement.scrollWidth>innerWidth+1}});
-  assert.equal(await hero.locator('.vh-cms-copy h1').evaluate(el=>getComputedStyle(el).textAlign),'left');assert.equal(await hero.locator('.vh-cms-copy h1').evaluate(el=>getComputedStyle(el).color),'rgb(238, 227, 214)');assert.equal(await hero.locator('.vh-cms-copy .capsule-kicker').evaluate(el=>getComputedStyle(el).color),'rgb(185, 153, 117)');assert.equal(layout.innerScroll,false);assert.equal(layout.overflow,false);assert.ok(layout.paragraph.bottom<=layout.hero.bottom+1);
+  assert.equal(layout.innerScroll,false);assert.equal(layout.overflow,false);assert.ok(layout.paragraph.bottom<=layout.hero.bottom+1);
   assert.ok(layout.intro.height<(width<=760?250:220),'intro is oversized at '+width);
   if(width<=760)assert.ok(layout.title.bottom<=layout.text.top);else assert.ok(layout.title.right<layout.text.left);
   await p.evaluate(()=>dispatchEvent(new Event('vh:capsules-rendered')));assert.equal(await hero.locator(':scope>.vh-cms-composition').count(),1);
