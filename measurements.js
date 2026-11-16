@@ -14,6 +14,13 @@
  function changeTemplate(part,template){const fresh=group(template,part.title),byId=new Map(part.fields.map(field=>[field.id,field]));return {...part,template:fresh.template,fields:[...fresh.fields.map(field=>byId.get(field.id)||field),...part.fields.filter(field=>!fresh.fields.some(next=>next.id===field.id)&&(String(field.value||'').trim()||field.label.trim()&&field.label!==fieldLabels[field.id]))]}}
  function validate(data,draft=false){if(!data||data.version!==1||!Array.isArray(data.groups)||data.groups.length>12||data.layout==='list'&&data.groups.length>1||data.layout!=null&&data.layout!=='list'||typeof data.showLegacy!=='boolean')throw Error('Непідтримуваний формат замірів. Збережені дані не змінено.');const ids=new Set();for(const part of data.groups){if(!part||typeof part.id!=='string'||ids.has(part.id)||typeof part.title!=='string'||!draft&&(!part.title.trim()||part.title.length>120)||!Array.isArray(part.fields)||part.fields.length>(data.layout==='list'?500:40))throw Error('Перевірте назву складової та кількість замірів.');ids.add(part.id);const keys=new Set();for(const f of part.fields){if(!f||typeof f.id!=='string'||keys.has(f.id)||typeof f.label!=='string'||typeof f.value!=='string'||!draft&&(f.label.length>(data.layout==='list'?300:120)||f.value.length>300||f.value.trim()&&!f.label.trim()))throw Error('Кожен заповнений замір має містити назву; значення — до 300 символів.');keys.add(f.id)}}return clone(data)}
  function legacy(product){return legacyKeys.map((key,i)=>{const value=[product?.['measurement_'+key],product?.[key],product?.['measure_'+key]].find(value=>value!=null&&String(value)!=='');return {key:'measurement_'+key,label:legacyLabels[i],value:value==null?'':String(value)}})}
+ // Category order is a presentation preference, never a reason to hide saved values.
+ function legacyRows(product,preferred=[]){
+  const saved=legacy(product),byKey=new Map(saved.map(field=>[field.key.slice('measurement_'.length),field]));
+  const ordered=[...preferred.map(([key,label])=>({...byKey.get(key),label})),...saved.filter(field=>!preferred.some(([key])=>field.key==='measurement_'+key))];
+  const filled=ordered.filter(field=>field.value.trim());
+  return (filled.length?filled:ordered.slice(0,preferred.length)).map(field=>[field.label,field.value]);
+ }
  const reviewHost=host=>host==='localhost'||host==='127.0.0.1'||host.endsWith('.vercel.app');
  const draftKey=id=>'vh-measurements-preview-v1:'+String(id||'new');
  function render(host,product,fallback){const doc=host.ownerDocument;let data=product.measurements_v2,old=legacy(product),preview=false;const win=doc.defaultView;
@@ -28,5 +35,5 @@
   const saved=old.filter(f=>f.value.trim());if(data.showLegacy&&saved.length){const section=doc.createElement('section'),heading=doc.createElement('h3');section.className='vh-measurement-group';heading.textContent=shown?'Раніше вказані заміри':'Заміри';section.append(heading);rows(section,saved.map(f=>[f.label,f.value]));host.append(section);shown++}
   if(!shown)note('Заміри уточнюються — зверніться до нас перед замовленням.');
  }
- return {templates,sets,fieldLabels,legacyKeys,legacyLabels,legacy,group,changeTemplate,validate,stable,clone,uid,guess,reviewHost,draftKey,render};
+ return {templates,sets,fieldLabels,legacyKeys,legacyLabels,legacy,legacyRows,group,changeTemplate,validate,stable,clone,uid,guess,reviewHost,draftKey,render};
 });

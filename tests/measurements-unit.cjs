@@ -16,6 +16,18 @@ test('legacy aliases, zero and raw spacing are retained without conversion',()=>
  const old={measurement_chest:' 54 см ',measurement_waist:0,measure_length:'72 см'},copy=structuredClone(old),rows=M.legacy(old);assert.equal(rows.find(f=>f.key==='measurement_chest').value,' 54 см ');assert.equal(rows.find(f=>f.key==='measurement_waist').value,'0');assert.equal(rows.find(f=>f.key==='measurement_length').value,'72 см');assert.deepEqual(old,copy);
  assert.equal(M.legacy({measurement_shoulders:'',shoulders:'46 см'}).find(f=>f.key==='measurement_shoulders').value,'46 см');
 });
+test('legacy category order retains every filled measurement, aliases and zero without mutating data',()=>{
+ const product={measurement_chest:'38-41',measurement_length:'32',measure_waist:' 35–40 см ',measurement_height:0},before=structuredClone(product);
+ assert.deepEqual(M.legacyRows(product,[['width','ШИРИНА'],['height','ВИСОТА'],['depth','ГЛИБИНА']]),[
+  ['ВИСОТА','0'],['Груди','38-41'],['Талія / пояс',' 35–40 см '],['Довжина виробу','32']
+ ]);
+ assert.deepEqual(M.legacyRows({measurement_chest:'52',measurement_length:'76'},[['length','ДОВЖИНА'],['chest','ГРУДИ']]),[['ДОВЖИНА','76'],['ГРУДИ','52']]);
+ assert.deepEqual(product,before);
+});
+test('empty legacy measurements keep category placeholders without inventing values',()=>{
+ assert.deepEqual(M.legacyRows({},[['insole','ДОВЖИНА УСТІЛКИ']]),[['ДОВЖИНА УСТІЛКИ','']]);
+ assert.deepEqual(M.legacyRows({measurement_width:' ',measurement_height:null},[['width','ШИРИНА'],['height','ВИСОТА']]),[['ШИРИНА',' '],['ВИСОТА','']]);
+});
 test('unknown versions and invalid/duplicate structures fail instead of replacing data',()=>{
  for(const value of [{version:2,showLegacy:true,groups:[]},{version:1,showLegacy:true,groups:new Array(13).fill(M.group())},{version:1,showLegacy:true,groups:[{id:'x',title:'',fields:[]}]}])assert.throws(()=>M.validate(value));
  const part=M.group();part.fields.push({...part.fields[0]});assert.throws(()=>M.validate({version:1,showLegacy:true,groups:[part]}));
