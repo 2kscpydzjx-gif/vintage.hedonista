@@ -4,6 +4,10 @@
 :is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:10px 0;border-bottom:1px solid rgba(70,50,35,.15);min-width:0}
 :is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row span{flex:1;min-width:0;overflow-wrap:anywhere}
 :is(#productMeasurementsV148,.vh-product-measurements) .vh-measurement-row b{max-width:55%;text-align:right;overflow-wrap:anywhere;font-weight:500}
+/* Legacy direct rows also inherit old max-content grid rules from styles.css.
+   Give their values the remaining cell width instead of 55% of a number. */
+:is(#productMeasurementsV148,.vh-product-measurements):not(.vh-measurements-grouped)>.vh-measurement-row{grid-template-columns:minmax(0,120px) minmax(0,1fr)!important;width:auto!important}
+:is(#productMeasurementsV148,.vh-product-measurements):not(.vh-measurements-grouped)>.vh-measurement-row b{max-width:100%;min-width:0;white-space:normal;text-align:left}
 :is(#productMeasurementsV148,.vh-product-measurements) .vh-measurements-note{grid-column:1/-1;font-size:12px;line-height:1.6;margin:0 0 16px;overflow-wrap:anywhere}
 
 :is(#productMeasurementsV148,.vh-product-measurements).vh-measurements-grouped .vh-measurement-row span{font:400 12px/1.55 Montserrat,Arial,sans-serif!important;letter-spacing:0!important;color:#796653!important;white-space:normal!important}

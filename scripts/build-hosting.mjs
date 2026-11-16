@@ -32,6 +32,8 @@ const domainBuild=process.argv.includes('--launch-domain');
 const targetSite=siteBase(process.env.SITE_BASE_URL||((preview||domainBuild)?launchSite(new URL('../',import.meta.url)):sourceSite));
 const analyticsEnabled=!preview&&targetSite===launchSite(new URL('../',import.meta.url));
 const publicConfig=await readFile(path.join(root,'config.js'),'utf8');
+// Refresh both template and existing product snapshots when shared measurements change.
+const measurementVersions=new Map(await Promise.all(['measurements.js','measurements.css'].map(async file=>[file,createHash('sha256').update(await readFile(path.join(root,file))).digest('hex').slice(0,12)])));
 // Keep the notice on existing SEO snapshots in sync with the product template.
 const productPhotoNote=(await readFile(path.join(root,'product.html'),'utf8')).match(/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/)?.[0];
 if(!productPhotoNote)throw Error('Product photo notice is missing from the template');
@@ -45,6 +47,7 @@ for(const file of publicFiles){
  if(/\.(?:html|js|json|xml|txt)$/.test(file)){
   let text=content.toString();if(file.endsWith('.html')&&!file.startsWith('admin/'))text=renderPublishedNavigation(text,navigation);
   if(file.endsWith('.html')){
+   text=text.replace(/((?:src|href)="(?:\.\.\/)?)(measurements\.(?:js|css))(?:\?[^"\s]*)?"/g,(_,prefix,file)=>prefix+file+'?v='+measurementVersions.get(file)+'"');
    text=brand.text(text);
    text=renderBrandLogos(text,file);
    text=renderAppIcons(text,file);

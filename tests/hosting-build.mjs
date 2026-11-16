@@ -3,10 +3,12 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync,existsSync,readdirSync,statSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {gzipSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 import brand from '../brand.js';
 const root=resolve(import.meta.dirname,'..'),build=(preview,domain=false)=>execFileSync(process.execPath,['scripts/build-hosting.mjs',...(domain?['--launch-domain']:[])],{cwd:root,env:{...process.env,SITE_BASE_URL:'',VERCEL_ENV:preview?'preview':'production',VERCEL_PROJECT_ID:preview?'prj_npe9JPYcE2zOAPUENtqSWZAy9kHA':'production-fixture'},encoding:'utf8'});
 const read=file=>readFileSync(join(root,'dist',file),'utf8');
 const sourceConfig=readFileSync(join(root,'config.js'),'utf8'),sourceSitemap=readFileSync(join(root,'sitemap.xml'),'utf8');
+const measurementVersions=new Map(['measurements.js','measurements.css'].map(file=>[file,createHash('sha256').update(readFileSync(join(root,file))).digest('hex').slice(0,12)]));
 const legacy=sourceConfig.match(/siteUrl\s*:\s*"([^"]+)"/)[1],domain=JSON.parse(readFileSync(join(root,'launch-site.json'),'utf8')).siteUrl;
 console.log(build(true).trim());
 assert.equal(read('robots.txt'),'User-agent: *\nDisallow: /\n');
@@ -51,6 +53,7 @@ for(const file of htmlFiles(join(root,'dist'))){
  const html=readFileSync(file,'utf8'),url=new URL(file.slice(join(root,'dist').length),'https://build.example'),base=html.match(/<base\b[^>]*href="([^"]+)"/)?.[1],doc=base?new URL(base,url):url;
  for(const match of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g)){
   const target=new URL(match[1],doc);if(target.origin!=='https://build.example'||!(/\.(?:js|css|png|woff2?|ico|webp|webmanifest)$/.test(target.pathname)))continue;
+  const measurement=target.pathname.slice(1);if(measurementVersions.has(measurement))assert.equal(target.searchParams.get('v'),measurementVersions.get(measurement),'stale measurements asset in '+file);
   assert.equal(existsSync(join(root,'dist',decodeURIComponent(target.pathname))),true,file+' missing '+target.pathname);checked++;
  }
 }

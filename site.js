@@ -1175,54 +1175,34 @@ function recommendedProductCard(p){
 
 function productMeasurementProfileV148(p){
  const text=`${p?.categories?.name||''} ${p?.categories?.slug||''} ${p?.subcategories?.name||''} ${p?.subcategories?.slug||''}`.toLowerCase();
+ const rows=fields=>window.VHMeasurements?.legacyRows?window.VHMeasurements.legacyRows(p,fields):fields.map(([key,label])=>[label,p['measurement_'+key]??p[key]??p['measure_'+key]]);
 
  if(/взут|shoe|boot|чоб|туф|черев|крос|босон/.test(text)){
-   return [
-     ['ДОВЖИНА УСТІЛКИ',p.measurement_insole]
-   ]
+   return rows([['insole','ДОВЖИНА УСТІЛКИ']])
  }
  if(/штан|брюк|джин|trouser|pant/.test(text)){
-   return [
-     ['ТАЛІЯ / ПОЯС',p.measurement_waist],
-     ['СТЕГНА',p.measurement_hips],
-     ['ЗАГАЛЬНА ДОВЖИНА',p.measurement_length],
-     ['ВНУТРІШНІЙ ШОВ',p.measurement_inseam]
-   ]
+   return rows([
+     ['waist','ТАЛІЯ / ПОЯС'],['hips','СТЕГНА'],
+     ['length','ЗАГАЛЬНА ДОВЖИНА'],['inseam','ВНУТРІШНІЙ ШОВ']
+   ])
  }
  if(/спідниц|skirt/.test(text)){
-   return [
-     ['ТАЛІЯ / ПОЯС',p.measurement_waist],
-     ['СТЕГНА',p.measurement_hips],
-     ['ДОВЖИНА',p.measurement_length]
-   ]
+   return rows([['waist','ТАЛІЯ / ПОЯС'],['hips','СТЕГНА'],['length','ДОВЖИНА']])
  }
  if(/сукн|dress/.test(text)){
-   return [
-     ['ПЛЕЧІ',p.measurement_shoulders],
-     ['ГРУДИ',p.measurement_chest],
-     ['ТАЛІЯ',p.measurement_waist],
-     ['СТЕГНА',p.measurement_hips],
-     ['ДОВЖИНА',p.measurement_length],
-     ['РУКАВ',p.measurement_sleeve]
-   ]
+   return rows([
+     ['shoulders','ПЛЕЧІ'],['chest','ГРУДИ'],['waist','ТАЛІЯ'],
+     ['hips','СТЕГНА'],['length','ДОВЖИНА'],['sleeve','РУКАВ']
+   ])
  }
  if(/голов|капелю|шап|берет|hat|headwear/.test(text)){
-   return [['ОБ’ЄМ / ОБХВАТ ГОЛОВИ',p.measurement_head]]
+   return rows([['head','ОБ’ЄМ / ОБХВАТ ГОЛОВИ']])
  }
  if(/сумк|аксес|bag|accessor/.test(text)){
-   return [
-     ['ШИРИНА',p.measurement_width],
-     ['ВИСОТА',p.measurement_height],
-     ['ГЛИБИНА',p.measurement_depth]
-   ]
+   return rows([['width','ШИРИНА'],['height','ВИСОТА'],['depth','ГЛИБИНА']])
  }
 
- return [
-   ['ПЛЕЧІ',p.measurement_shoulders||p.shoulders||p.measure_shoulders],
-   ['ГРУДИ',p.measurement_chest||p.chest||p.measure_chest],
-   ['ДОВЖИНА',p.measurement_length||p.length||p.measure_length],
-   ['РУКАВ',p.measurement_sleeve||p.sleeve||p.measure_sleeve]
- ]
+ return rows([['shoulders','ПЛЕЧІ'],['chest','ГРУДИ'],['length','ДОВЖИНА'],['sleeve','РУКАВ']])
 }
 
 function renderProductMeasurementsV148(p){

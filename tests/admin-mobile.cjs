@@ -41,7 +41,11 @@ const within=async(locator,width)=>{const r=await locator.boundingBox();assert.o
  // iOS-style keyboard: visual viewport shrinks while layout viewport stays tall.
  await p.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:430});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:40});visualViewport.dispatchEvent(new Event('resize'))});
  await p.waitForFunction(()=>document.querySelector('.admin-mobile-actions').getBoundingClientRect().bottom<=470.5);
- await p.evaluate(()=>openOrderModal('admin-order'));await p.locator('#orderModal').waitFor({state:'visible'});await p.waitForFunction(()=>document.querySelector('#orderModal .order-modal-footer').getBoundingClientRect().bottom<=470.5);const footer=await p.locator('#orderModal .order-modal-footer').boundingBox();assert.ok(footer.y>=40&&footer.y+footer.height<=470.5);await p.keyboard.press('Escape');await p.waitForFunction(()=>!document.querySelector('#app').inert);
+ await p.evaluate(()=>openOrderModal('admin-order'));await p.locator('#orderModal').waitFor({state:'visible'});
+ // The overlay stack/focus is synchronized on the next animation frame.
+ // Layout alone can already be ready while Escape still targets the previous overlay.
+ await p.waitForFunction(()=>document.querySelector('#app').inert&&document.querySelector('#orderModal').contains(document.activeElement)&&document.querySelector('#orderModal .order-modal-footer').getBoundingClientRect().bottom<=470.5);
+ const footer=await p.locator('#orderModal .order-modal-footer').boundingBox();assert.ok(footer.y>=40&&footer.y+footer.height<=470.5);await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#orderModal').classList.contains('hidden')&&!document.querySelector('#app').inert);
  await p.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;visualViewport.dispatchEvent(new Event('resize'))});await settle(p);
  await open(p,'customers');await p.locator('.customer-view-btn').first().click();await p.locator('#customerProfileModalV130').waitFor({state:'visible'});await p.locator('#customerProfileContentV130 h2').waitFor();
  const profile=p.locator('.customer-profile-panel-v130');assert.ok(await profile.evaluate(el=>el.scrollWidth<=el.clientWidth),'customer profile overflow');await profile.evaluate(el=>el.scrollTop=el.scrollHeight);await within(p.locator('.customer-profile-close-v130'),390);await p.locator('.customer-profile-close-v130').click();await p.waitForFunction(()=>!document.querySelector('#app').inert);

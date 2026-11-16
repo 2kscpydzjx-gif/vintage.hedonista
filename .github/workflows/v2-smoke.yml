@@ -10,6 +10,8 @@ on:
       - 'cms-published.js'
       - 'cms-shell.js'
       - 'site.js'
+      - 'measurements.js'
+      - 'measurements.css'
       - 'product-photo-request.js'
       - 'capsules-front.js'
       - 'styles.css'
@@ -184,6 +186,7 @@ jobs:
           node tests/article-photo-rows.cjs
           node tests/admin-mobile.cjs
           node tests/product-measurements.cjs
+          node tests/legacy-measurement-display.cjs
           node tests/measurement-persistence.cjs
           node tests/admin-login-mobile.cjs
           node tests/cms-mobile.cjs
