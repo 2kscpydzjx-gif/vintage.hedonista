@@ -1,4 +1,5 @@
 const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
 const {fixture}=require('./cms-browser-fixture.cjs');
 const base='http://127.0.0.1:8765',photo=base+'/assets/test-upload.png';
 const title='Топ-10 вінтажних речей, які варто мати в сучасному гардеробі';
@@ -37,10 +38,20 @@ const rows=[
  console.log('PASS: whole title panel inside photo at 11 widths, readable body, rich excerpt, three body formats, saved image alignment/gallery/links, no-cover and missing articles, one H1 and no writes.');
 }finally{await f.browser.close()}
  const staticFixture=await fixture({javaScriptEnabled:false});try{
-  const p=await staticFixture.context.newPage();await p.goto(base+'/seo-article/'+encodeURIComponent('5-вінтажних-речей-які-ніколи-не-вийдуть-з-моди')+'/index.html');
-  assert.equal(await p.locator('main h1').count(),1);assert.equal(await p.locator('.article-editorial').count(),1);
-  assert.ok(await p.locator('.article-editorial').evaluate(el=>el.firstElementChild.matches('.article-v71-cover')));
-  assert.equal(await p.locator('.article-v71-cover-intro h1').evaluate(el=>getComputedStyle(el).textAlign),'center');
-  console.log('PASS: existing direct article snapshot uses the same layout before JavaScript runs.');
+  // Published article slugs can change independently of the layout code.
+  const snapshots=fs.readdirSync(path.join(__dirname,'../seo-article'),{withFileTypes:true}).filter(entry=>entry.isDirectory()&&fs.existsSync(path.join(__dirname,'../seo-article',entry.name,'index.html')));
+  assert.ok(snapshots.length,'No published article snapshots to verify');
+  const p=await staticFixture.context.newPage();let covers=0;
+  for(const entry of snapshots){
+   const response=await p.goto(base+'/seo-article/'+encodeURIComponent(entry.name)+'/index.html');
+   assert.equal(response.status(),200,'Article snapshot unavailable: '+entry.name);
+   assert.equal(await p.locator('main h1').count(),1);assert.equal(await p.locator('.article-editorial').count(),1);
+   if(await p.locator('.article-v71-cover').count()){
+    assert.ok(await p.locator('.article-editorial').evaluate(el=>el.firstElementChild.matches('.article-v71-cover')));
+    assert.equal(await p.locator('.article-v71-cover-intro h1').evaluate(el=>getComputedStyle(el).textAlign),'center');covers++;
+   }
+  }
+  assert.ok(covers,'No covered article snapshot verified');
+  console.log('PASS: all '+snapshots.length+' current article snapshots use the same layout before JavaScript runs.');
  }finally{await staticFixture.browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
