@@ -22,6 +22,10 @@ async function pagesRouting(f){
  for(const script of ['scripts/audit-seo.mjs','scripts/audit-internal-links.mjs'])execFileSync(process.execPath,[script,'--root=dist',...(script==='scripts/audit-seo.mjs'?['--preview']:[])],{cwd:root,stdio:'pipe'});
  const f=await fixture();try{
   f.session(null);f.user(null);await pagesRouting(f);
+  const merchant=await fetch(base+'/google-merchant.xml');
+  assert.equal(merchant.status,200);assert.match(merchant.headers.get('content-type'),/application\/xml/);
+  assert.match(merchant.headers.get('cache-control'),/max-age=0/);
+  assert.match(await merchant.text(),/<g:image_link>https:\/\//);
   f.data('categories',[{id:'cat',slug:'verkhnii-odyah',name:'Верхній одяг',is_active:true}]);
   f.data('subcategories',[{id:'sub',category_id:'cat',slug:'kimono',name:'Кімоно'}]);
   const product={id:'cf-product',name:'Тест Cloudflare',slug:'vovnyanyi-zhaket-kardyhan',price:1200,status:'published',category_id:'cat',subcategory_id:'sub',cover_image:base+'/assets/test-upload.png',product_images:[],categories:{slug:'verkhnii-odyah',name:'Верхній одяг'},subcategories:{slug:'kimono',name:'Кімоно'}};

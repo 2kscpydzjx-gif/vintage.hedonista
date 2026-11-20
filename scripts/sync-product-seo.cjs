@@ -4,6 +4,7 @@
 // No GitHub API, credentials with write access, or deployment dependency.
 const fs=require('node:fs');
 const path=require('node:path');
+const productCondition=require('./product-condition.cjs');
 const root=path.resolve(__dirname,'..');
 const config=fs.readFileSync(path.join(root,'config.js'),'utf8');
 const url=process.env.SUPABASE_URL||config.match(/supabaseUrl\s*:\s*["']([^"']+)["']/)?.[1];
@@ -26,7 +27,7 @@ async function products(){
  let all=[];
  while(true){
   const u=new URL(url.replace(/\/$/,'')+'/rest/v1/products');
-  u.searchParams.set('select','id,name,slug,status,price,brand,short_description,cover_image');
+  u.searchParams.set('select','id,name,slug,status,price,brand,short_description,cover_image,condition');
   u.searchParams.set('status','in.(published,reserved,sold)');
   u.searchParams.set('limit','1000');u.searchParams.set('offset',String(all.length));
   const res=await fetch(u,{headers:{apikey:key,Authorization:'Bearer '+key,'Accept-Profile':'public'}});
@@ -66,7 +67,7 @@ async function main(){
    if(p.brand)schema.brand={'@type':'Brand',name:p.brand};else delete schema.brand;
    if(p.cover_image)schema.image=[p.cover_image];
    if(p.price!==null&&p.price!==undefined){
-    schema.offers={...(schema.offers||{}),'@type':'Offer',priceCurrency:'UAH',price:String(p.price),itemCondition:'https://schema.org/UsedCondition',availability:'https://schema.org/'+({published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[p.status])};
+    schema.offers={...(schema.offers||{}),'@type':'Offer',priceCurrency:'UAH',price:String(p.price),itemCondition:'https://schema.org/'+(productCondition(p.condition)==='new'?'NewCondition':'UsedCondition'),availability:'https://schema.org/'+({published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[p.status])};
    }
    const safe=JSON.stringify(schema).replace(/</g,'\\u003c');
    html=html.replace(jsonRe,'<script type="application/ld+json" id="vh-static-product-jsonld">'+safe+'</script>');
@@ -86,7 +87,7 @@ async function main(){
     return match?JSON.parse(match[1]):null;
    };
    const before=schema(original),after=schema(html);
-   for(const [field,read] of [['jsonld.name',x=>x?.name],['jsonld.description',x=>x?.description],['jsonld.brand',x=>x?.brand?.name],['jsonld.image',x=>x?.image?.[0]],['jsonld.price',x=>x?.offers?.price],['jsonld.availability',x=>x?.offers?.availability]])inspect(field,read(before),read(after));
+   for(const [field,read] of [['jsonld.name',x=>x?.name],['jsonld.description',x=>x?.description],['jsonld.brand',x=>x?.brand?.name],['jsonld.image',x=>x?.image?.[0]],['jsonld.price',x=>x?.offers?.price],['jsonld.availability',x=>x?.offers?.availability],['jsonld.condition',x=>x?.offers?.itemCondition]])inspect(field,read(before),read(after));
    if(fields.length){changed.push(p.slug);differences.push({id:p.id,slug:p.slug,fields});if(write)fs.writeFileSync(file,html);}
   }
  }

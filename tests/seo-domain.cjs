@@ -38,6 +38,13 @@ async function urls(page,expected){
    assert.equal(await p.evaluate(()=>document.baseURI),base+'/','snapshot resources leave the preview host');
    assert.equal(await p.locator('.brand').first().getAttribute('href'),'index.html');
   }
+  for(const [state,expected] of [['Нова з бірками','NewCondition'],['Ідеальний','UsedCondition'],['Стан нових (вдягались 1 раз)','UsedCondition']]){
+   f.data('products',[{...product,condition:state}]);
+   await p.goto(base+'/product.html?slug='+product.slug);
+   await p.waitForFunction(()=>document.querySelector('#vh-product-breadcrumb-structured-data'));
+   const schemas=await p.locator('script[type="application/ld+json"]').evaluateAll(nodes=>nodes.map(node=>JSON.parse(node.textContent)).filter(schema=>schema['@type']==='Product'));
+   assert.equal(schemas.length,1);assert.equal(schemas[0].offers.itemCondition,'https://schema.org/'+expected);
+  }
   assert.deepEqual(externalSite,[],'preview loaded old/new production resources');
   assert.deepEqual(f.errors,[]);assert.deepEqual(f.calls.filter(x=>x.op!=='select').map(x=>({table:x.table,op:x.op})),[]);assert.equal(f.rpcCalls.length,0);
   console.log('PASS: domain canonicals/OG survive saved page SEO and category filters; nested snapshots use preview assets; live Product/Breadcrumb JSON-LD and noindex remain correct, without external writes.');

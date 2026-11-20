@@ -21,9 +21,11 @@ jobs:
         run: node scripts/sync-product-seo.cjs --check
       - name: Audit generated SEO HTML
         run: node scripts/audit-seo.mjs
+      - name: Refresh Merchant products and image sitemap (public reads only)
+        run: node scripts/generate-merchant-feed.mjs
       - name: Commit updated sitemap if changed
         run: |
-          git add -A robots.txt sitemap.xml catalog.html seo-product seo-article seo-category seo-subcategory product-routes.js
+          git add -A robots.txt sitemap.xml google-merchant.xml catalog.html seo-product seo-article seo-category seo-subcategory product-routes.js
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -14,7 +14,7 @@ import {renderArticleLayout} from './article-layout.mjs';
 import {cleanReferences,cleanAssetFile,cleanRedirects} from './clean-urls.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),out=path.join(root,'dist');
 const publicDirs=['assets','admin','seo-product','seo-category','seo-subcategory','seo-article'];
-const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm|pdf)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
+const publicFile=file=>file.includes('/')?/\.(?:html|css|js|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|mp4|webm|pdf)$/i.test(file)||/\/(?:OFL|LICENSE|NOTICE)\.txt$/i.test(file):/\.(?:html|css|js)$/.test(file)||['robots.txt','sitemap.xml','google-merchant.xml','catalog-seo-content.json','.nojekyll','site.webmanifest','favicon.ico','apple-touch-icon.png'].includes(file);
 async function files(dir=''){
  const result=[];for(const entry of await readdir(path.join(root,dir),{withFileTypes:true})){
   const file=path.posix.join(dir,entry.name);
@@ -110,7 +110,7 @@ if(cloudflare){
   await writeFile(dest,fresh);
  }
  await writeFile(path.join(out,'_redirects'),cleanRedirects(publicFiles));
- const headers='/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'+(cloudflarePreview?'  X-Robots-Tag: noindex, nofollow, noarchive\n':'')+'\n/site.webmanifest\n  Content-Type: application/manifest+json\n\n/admin/site.webmanifest\n  Content-Type: application/manifest+json\n\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n';
+ const headers='/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'+(cloudflarePreview?'  X-Robots-Tag: noindex, nofollow, noarchive\n':'')+'\n/google-merchant.xml\n  Content-Type: application/xml; charset=utf-8\n  Cache-Control: public, max-age=0, must-revalidate\n\n/site.webmanifest\n  Content-Type: application/manifest+json\n\n/admin/site.webmanifest\n  Content-Type: application/manifest+json\n\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex, nofollow, noarchive\n';
  await writeFile(path.join(out,'_headers'),headers);
 }
 console.log(JSON.stringify({files:count,scriptAndStyleBytes:{before,after,saved:before-after},preview,cloudflare,readOnlyData:cloudflarePreview,siteUrl:targetSite}));

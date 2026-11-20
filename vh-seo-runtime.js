@@ -19,6 +19,8 @@ function productStructuredData(product,images=[]){
  const photos=[...new Set(images.filter(x=>typeof x==='string'&&/^https?:\/\//i.test(x)))].slice(0,12);
  if(photos[0])socialImage(photos[0]);
  const rawPrice=Number(product.price);
+ // Same explicit-new rule as scripts/product-condition.cjs; other vintage items are used.
+ const itemCondition=/^(?:new|нов(?:ий|а|е|і))(?:\s|[.,!]|$)/iu.test(String(product.condition??'').trim())?'NewCondition':'UsedCondition';
  const availability={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[product.status]||'OutOfStock';
  const schema={'@context':'https://schema.org','@type':'Product',
   name:cleanText(product.name),url,
@@ -26,7 +28,7 @@ function productStructuredData(product,images=[]){
   ...(product.brand?{brand:{'@type':'Brand',name:cleanText(product.brand)}}:{}),
   ...(product.short_description||product.description?{description:cleanText(product.short_description||product.description).slice(0,1200)}:{}),
   ...(product.sku?{sku:String(product.sku)}:{}),
-  ...(Number.isFinite(rawPrice)&&rawPrice>=0?{offers:{'@type':'Offer',url,priceCurrency:'UAH',price:rawPrice,availability:'https://schema.org/'+availability,itemCondition:'https://schema.org/UsedCondition'}}:{})
+  ...(Number.isFinite(rawPrice)&&rawPrice>=0?{offers:{'@type':'Offer',url,priceCurrency:'UAH',price:rawPrice,availability:'https://schema.org/'+availability,itemCondition:'https://schema.org/'+itemCondition}}:{})
  };
  // Static SEO snapshots already contain Product JSON-LD. Update that same
  // element after loading live inventory instead of creating a duplicate Product.
