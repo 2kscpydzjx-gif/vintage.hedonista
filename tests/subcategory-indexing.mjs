@@ -17,7 +17,7 @@ try{
  for(const file of readdirSync(root).filter(name=>name.endsWith('.html')))copyFileSync(join(root,file),join(work,file));
  for(const file of ['index.html','admin.html','cms-builder.html'])copyFileSync(join(root,'admin',file),join(work,'admin',file));
  for(const file of ['config.js','catalog-seo-content.json'])copyFileSync(join(root,file),join(work,file));
- for(const file of ['generate-sitemap.mjs','article-layout.mjs','seo-editorial.mjs','product-routes.mjs','seo-head.mjs','app-icons.mjs','seo-deployment.mjs','subcategory-indexing.mjs','audit-seo.mjs','clean-urls.mjs','build-product-jsonld.cjs'])copyFileSync(join(root,'scripts',file),join(work,'scripts',file));
+ for(const file of ['generate-sitemap.mjs','article-layout.mjs','seo-editorial.mjs','product-routes.mjs','seo-head.mjs','app-icons.mjs','seo-deployment.mjs','subcategory-indexing.mjs','audit-seo.mjs','clean-urls.mjs','build-product-jsonld.cjs','product-condition.cjs'])copyFileSync(join(root,'scripts',file),join(work,'scripts',file));
  const fixture=join(work,'fixture.json'),mock=join(work,'mock-fetch.mjs');
  writeFileSync(mock,`import {readFileSync} from 'node:fs';
  const data=JSON.parse(readFileSync(${JSON.stringify(fixture)},'utf8'));
