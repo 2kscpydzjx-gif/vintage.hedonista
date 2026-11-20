@@ -4,6 +4,7 @@
 // Uses only existing public HTML. Does not connect to Supabase or modify products.
 const fs=require('node:fs');
 const path=require('node:path');
+const productCondition=require('./product-condition.cjs');
 const root=path.resolve(__dirname,'..','seo-product');
 const decode=s=>s.replace(/&quot;/g,'"').replace(/&#39;|&#x27;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
 const strip=s=>decode(s.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
@@ -23,7 +24,7 @@ for(const file of walk(root)){
  if(description)data.description=description;
  if(/^https?:\/\//.test(image))data.image=[decode(image)];
  if(brand&&brand!=='—')data.brand={'@type':'Brand',name:brand};
- if(price)data.offers={'@type':'Offer',url:canonical,priceCurrency:'UAH',price,itemCondition:'https://schema.org/UsedCondition'};
+ if(price)data.offers={'@type':'Offer',url:canonical,priceCurrency:'UAH',price,itemCondition:'https://schema.org/'+(productCondition(tag(html,'productCondition'))==='new'?'NewCondition':'UsedCondition')};
  const inventory=html.match(/<meta\s+name=["']vh-product-inventory["']\s+content=["']([^"']+)/i)?.[1];
  const availability={published:'InStock',reserved:'OutOfStock',sold:'SoldOut'}[inventory];
  if(data.offers&&availability)data.offers.availability='https://schema.org/'+availability;

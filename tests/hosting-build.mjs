@@ -16,6 +16,11 @@ assert.doesNotMatch(read('index.html'),/src="analytics\.js/,'analytics injected 
 for(const file of ['index.html','catalog.html','checkout.html','product.html','admin/cms-builder.html'])assert.match(read(file),/<meta name="robots" content="noindex,nofollow,noarchive">/);
 assert.ok(read('config.js').includes(domain));assert.ok(!read('sitemap.xml').includes(legacy));
 console.log(build(false,true).trim());
+assert.match(read('google-merchant.xml'),/<rss version="2.0" xmlns:g="http:\/\/base.google.com\/ns\/1.0">/);
+assert.match(read('google-merchant.xml'),/<g:link>https:\/\/vintazhka.com.ua\/product\//);
+assert.doesNotMatch(read('google-merchant.xml'),/sb_publishable_|service_role/);
+assert.match(read('sitemap.xml'),/xmlns:image="http:\/\/www.google.com\/schemas\/sitemap-image\/1.1"/);
+assert.match(read('sitemap.xml'),/<image:image><image:loc>https:\/\//);
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);
 for(const file of ['index.html','catalog.html','product.html','checkout.html'])assert.match(read(file),/<script defer src="analytics\.js\?v=1"><\/script>/);
 for(const file of ['account.html','admin/admin.html','404.html'])assert.doesNotMatch(read(file),/src="analytics\.js/);
