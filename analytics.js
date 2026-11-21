@@ -1,7 +1,7 @@
 /* Storefront analytics. Google and Clarity load only after analytics consent. */
 (()=>{
  'use strict';
- const measurementId='G-15N51M35Y2',clarityId='zgzibhpx7',consentKey='vh_analytics_consent_v1';
+ const measurementId='G-15N51M35Y2',clarityId='zgzibrhpx7',consentKey='vh_analytics_consent_v1';
  if(location.hostname!=='vintazhka.com.ua'||window.VH_DEPLOYMENT?.readOnlyData)return;
  if(/^\/(?:admin(?:\/|$)|account(?:\.html)?(?:\/|$))/i.test(location.pathname))return;
  try{if(window.self!==window.top)return}catch{return}
