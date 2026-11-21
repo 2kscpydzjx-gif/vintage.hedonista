@@ -30,7 +30,7 @@ const consentKey='vh_analytics_consent_v1';
   await p.getByRole('button',{name:'Налаштування cookie',exact:true}).click();
   await p.getByRole('button',{name:'Дозволити',exact:true}).click();
   await p.waitForFunction(()=>window.__clarityCommands);
-  assert.deepEqual(requests,['https://www.clarity.ms/tag/zgzibhpx7']);
+  assert.deepEqual(requests,['https://www.clarity.ms/tag/zgzibrhpx7']);
   assert.deepEqual(await p.evaluate(()=>__clarityCommands[0]),['consentv2',{analytics_Storage:'granted',ad_Storage:'denied'}]);
   // Repeated acceptance neither reloads the tag nor duplicates initialization.
   await p.getByRole('button',{name:'Налаштування cookie',exact:true}).click();

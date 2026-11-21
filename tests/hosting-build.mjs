@@ -22,7 +22,7 @@ assert.doesNotMatch(read('google-merchant.xml'),/sb_publishable_|service_role/);
 assert.match(read('sitemap.xml'),/xmlns:image="http:\/\/www.google.com\/schemas\/sitemap-image\/1.1"/);
 assert.match(read('sitemap.xml'),/<image:image><image:loc>https:\/\//);
 assert.doesNotMatch(read('index.html'),/noindex/);assert.match(read('account.html'),/noindex/);
-for(const file of ['index.html','catalog.html','product.html','checkout.html'])assert.match(read(file),/<script defer src="analytics\.js\?v=2"><\/script>/);
+for(const file of ['index.html','catalog.html','product.html','checkout.html'])assert.match(read(file),/<script defer src="analytics\.js\?v=3"><\/script>/);
 for(const file of ['account.html','admin/admin.html','404.html'])assert.doesNotMatch(read(file),/src="analytics\.js/);
 assert.equal(read('robots.txt'),'User-agent: *\nAllow: /\nDisallow: /admin/\nSitemap: '+domain+'sitemap.xml\n');
 const locs=xml=>[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
