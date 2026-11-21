@@ -2083,7 +2083,7 @@ function vhEnsureGlobalUI(){
    </div>
  </div>
 
- <div class="vh125-login-overlay hidden" id="vh125LoginOverlay">
+ <div class="vh125-login-overlay hidden" id="vh125LoginOverlay" data-clarity-mask="true">
    <aside class="vh125-login-drawer" role="dialog" aria-modal="true" aria-label="Вхід до особистого кабінету">
      <button class="vh125-login-close" type="button" data-vh-close="profile" aria-label="Закрити">×</button>
      <div id="vh125LoginRoot"></div>

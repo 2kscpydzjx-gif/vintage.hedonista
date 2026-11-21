@@ -66,7 +66,7 @@ for(const file of publicFiles){
   if(cloudflare&&/\.(?:html|json|xml)$/.test(file))text=cleanReferences(text,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);
-  if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=1"></script></head>');
+  if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=2"></script></head>');
   if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;window.VH_CONFIG.cleanUrls=true;\n';
   if(cloudflare&&file.endsWith('.html')){
    if(/^seo-/.test(file))text=text.replace(/(<base\b[^>]*\bhref=")[^"]*(")/i,'$1/$2');

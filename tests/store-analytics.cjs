@@ -58,6 +58,7 @@ const events=async p=>(await commands(p)).filter(args=>args[0]==='event');
   f.user(null);f.session(null);f.data('products',[product]);let fail=true;
   f.rpc(async({name})=>name==='vh_create_checkout_order'?fail?{data:null,error:{message:'Isolated failure'}}:{data:{success:true,total:1200,order_ids:['isolated-order'],order_number:123},error:null}:{data:[],error:null});
   const shop=await f.context.newPage();await shop.goto('http://127.0.0.1:8765/product.html?slug='+product.slug);await shop.locator('#buyBtn').waitFor();
+  assert.equal(await shop.locator('#vh125LoginOverlay').getAttribute('data-clarity-mask'),'true','customer login drawer must be masked');
   assert.equal(await shop.evaluate(()=>__analyticsCalls.filter(x=>x[0]==='view_item').length),1);
   await shop.evaluate(()=>{addCurrentProductToCart();addCurrentProductToCart()});assert.equal(await shop.evaluate(()=>__analyticsCalls.filter(x=>x[0]==='add_to_cart').length),1);
   await shop.goto('http://127.0.0.1:8765/checkout.html');await shop.locator('.checkout-item').waitFor();

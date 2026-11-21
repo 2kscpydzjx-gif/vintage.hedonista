@@ -1,18 +1,43 @@
-/* Storefront analytics. Google loads only after the visitor allows analytics. */
+/* Storefront analytics. Google and Clarity load only after analytics consent. */
 (()=>{
  'use strict';
- const measurementId='G-15N51M35Y2',consentKey='vh_analytics_consent_v1';
+ const measurementId='G-15N51M35Y2',clarityId='zgzibhpx7',consentKey='vh_analytics_consent_v1';
  if(location.hostname!=='vintazhka.com.ua'||window.VH_DEPLOYMENT?.readOnlyData)return;
  if(/^\/(?:admin(?:\/|$)|account(?:\.html)?(?:\/|$))/i.test(location.pathname))return;
  try{if(window.self!==window.top)return}catch{return}
  if(/[?&#](?:access_token|refresh_token|token|token_hash|code|error_description)=/i.test(location.search+location.hash))return;
  if(window.VHAnalytics)return;
- let consent=null,loaded=false,initialView=false;
+ let consent=null,loaded=false,initialView=false,clarityLoaded=false,clarityStopped=false;
  const context=new Map(),seen=new Set();
  try{const saved=JSON.parse(localStorage.getItem(consentKey)||'null');if(saved&&Date.now()-saved.at<180*86400000&&['granted','denied'].includes(saved.value))consent=saved.value}catch{}
  if(navigator.globalPrivacyControl===true)consent='denied';
  window.dataLayer=window.dataLayer||[];
  const gtag=function(){window.dataLayer.push(arguments)};
+ function clarityAllowed(){
+  if(/^\/(?:checkout|password-recovery)(?:\.html)?(?:\/|$)/i.test(location.pathname)||location.hash)return false;
+  // Clarity reads the document URL itself. Do not start on URLs containing
+  // personal parameters, free-form search text, or unknown query parameters.
+  const allowed=/^(?:slug|page|sort|category|subcategory|utm_(?:source|medium|campaign|content|term)|gclid|gbraid|wbraid|fbclid|msclkid|srsltid)$/;
+  for(const [key,value] of new URLSearchParams(location.search))if(!allowed.test(key)||value.length>200||/@|\+\d{8,}/.test(value))return false;
+  try{const previous=new URL(document.referrer);if(/[?&#](?:email|phone|name|access_token|refresh_token|token|token_hash|code)=/i.test(previous.href))return false}catch{}
+  return true;
+ }
+ function clarityConsent(value){window.clarity('consentv2',{analytics_Storage:value,ad_Storage:'denied'})}
+ function startClarity(){
+  if(!clarityAllowed()||consent!=='granted')return;
+  if(clarityLoaded){
+   if(clarityStopped){window.clarity('start');clarityStopped=false;clarityConsent('granted')}
+   return;
+  }
+  window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments)};
+  clarityConsent('granted');
+  const script=document.createElement('script');script.async=true;script.src='https://www.clarity.ms/tag/'+clarityId;script.id='vh-microsoft-clarity';
+  document.head.append(script);clarityLoaded=true;
+ }
+ function stopClarity(){
+  if(!clarityLoaded||clarityStopped)return;
+  clarityConsent('denied');window.clarity('stop');clarityStopped=true;
+ }
  function pageLocation(){
   const url=new URL(location.href);url.search='';url.hash='';
   const slug=new URLSearchParams(location.search).get('slug');
@@ -26,7 +51,9 @@
   gtag('event',name,{...params,...page});
  }
  function start(){
-  if(loaded||consent!=='granted')return;
+  if(consent!=='granted')return;
+  startClarity();
+  if(loaded)return;
   window['ga-disable-'+measurementId]=false;
   gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
   gtag('consent','update',{analytics_storage:'granted'});
@@ -40,26 +67,28 @@
  }
  function clearCookies(){
   for(const cookie of document.cookie.split(';')){
-   const name=cookie.trim().split('=')[0];if(!/^_ga(?:_|$)|^_gid$|^_gat(?:_|$)/.test(name))continue;
+   const name=cookie.trim().split('=')[0];if(!/^_ga(?:_|$)|^_gid$|^_gat(?:_|$)|^_clck$|^_clsk$/.test(name))continue;
    for(const domain of ['',location.hostname,'.'+location.hostname])document.cookie=name+'=; Max-Age=0; Path=/; SameSite=Lax'+(domain?'; Domain='+domain:'');
   }
  }
  function choose(value){
+  if(navigator.globalPrivacyControl===true)value='denied';
   consent=value;
   try{localStorage.setItem(consentKey,JSON.stringify({value,at:Date.now()}))}catch{}
   document.getElementById('vh-analytics-choice')?.remove();
   if(value==='granted'){
-   if(loaded){window['ga-disable-'+measurementId]=false;gtag('consent','update',{analytics_storage:'granted'})}else start();
+   if(loaded){window['ga-disable-'+measurementId]=false;gtag('consent','update',{analytics_storage:'granted'});startClarity()}else start();
   }else{
    window['ga-disable-'+measurementId]=true;
    if(loaded)gtag('consent','update',{analytics_storage:'denied'});
+   stopClarity();
    clearCookies();
   }
  }
  function settings(){
   if(document.getElementById('vh-analytics-choice'))return;
   const panel=document.createElement('section');panel.id='vh-analytics-choice';panel.setAttribute('role','region');panel.setAttribute('aria-label','Налаштування аналітики');
-  const text=document.createElement('p');text.textContent='Дозволити аналітичні cookie? Вони допомагають нам розуміти відвідування й покращувати магазин.';panel.append(text);
+  const text=document.createElement('p');text.textContent='Дозволити аналітичні cookie Google Analytics і Microsoft Clarity? Вони допомагають аналізувати відвідування та взаємодію із сайтом і покращувати магазин.';panel.append(text);
   const privacy=document.querySelector('meta[name="vh-privacy-policy"]')?.content;
   if(privacy){const link=document.createElement('a');link.href=privacy;link.target='_blank';link.rel='noopener';link.textContent='Політика конфіденційності';link.style.cssText='display:inline-block;margin:0 0 12px;text-decoration:underline';panel.append(link)}
   const actions=document.createElement('div');
@@ -93,7 +122,7 @@
  }
  window.VHAnalytics=Object.freeze({commerce,settings});
  const style=document.createElement('style');style.textContent='#vh-analytics-choice{position:fixed;z-index:10050;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(500px,calc(100vw - 32px));box-sizing:border-box;padding:18px;background:#f3eadf;color:#211812;border:1px solid #aa9780;box-shadow:0 4px 24px #0002;font:14px/1.5 Arial,sans-serif}#vh-analytics-choice p{margin:0 0 12px}#vh-analytics-choice>div{display:flex;gap:10px}#vh-analytics-choice button{flex:1;min-height:44px;padding:8px 14px;background:#f3eadf;color:#211812;border:1px solid #78634d;font:inherit;cursor:pointer}#vh-analytics-choice button:focus-visible,.vh-analytics-settings:focus-visible{outline:2px solid #78634d;outline-offset:3px}.vh-analytics-settings{display:block;margin:16px auto;padding:10px;background:transparent;border:0;color:inherit;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}';document.head.append(style);
- function ready(){settingsButton();if(consent==='granted')start();else if(consent===null)settings()}
+ function ready(){settingsButton();if(consent==='granted')start();else if(consent===null)settings();else clearCookies()}
  for(const event of ['vh:published-ready','vh:shell-ready'])window.addEventListener(event,settingsButton);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
