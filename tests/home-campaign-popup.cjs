@@ -14,7 +14,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    if(process.env.VH_CAMPAIGN_PHOTO)await f.context.route('**/assets/test-upload.png*',r=>r.fulfill({contentType:'image/png',body:fs.readFileSync(process.env.VH_CAMPAIGN_PHOTO)}));
    const p=await f.context.newPage();p.on('close',()=>{void f.browser.close()});await p.setViewportSize({width,height});
    const time=new Date('2026-11-26T12:00:00Z');await p.clock.install({time});await p.clock.pauseAt(time);
-   await p.route('**/home-campaign-config.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'home-campaign-config.js'),'utf8')+'\nwindow.VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,popup:{...VH_HOME_CAMPAIGN.popup,...'+JSON.stringify({id,...extra})+'}};'}));
+   await p.route('**/home-campaign-config*.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'home-campaign-config.js'),'utf8')+'\nwindow.VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,popup:{...VH_HOME_CAMPAIGN.popup,...'+JSON.stringify({id,...extra})+'}};'}));
    await p.goto(base+'/index.html');await p.locator('.vh-hero-controls').waitFor();return p;
   }
   async function advance(p,at=5000){await p.clock.runFor(Math.max(0,at-await p.evaluate(()=>performance.now())))}
@@ -24,6 +24,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    await advance(p);const dialog=p.getByRole('dialog',{name:'BLACK FRIDAY',exact:true});await dialog.waitFor();
    assert.equal(await dialog.evaluate(el=>el.matches(':modal')),true);
    const b=await dialog.boundingBox();assert.ok(b.x>=0&&b.y>=0&&b.x+b.width<=width+1&&b.y+b.height<=height+1,'popup overflows viewport');
+   assert.ok(Math.abs(b.x+b.width/2-width/2)<1&&Math.abs(b.y+b.height/2-height/2)<1,'popup is not centered in the viewport: '+JSON.stringify({viewportWidth:width,viewportHeight:height,...b}));
    const button=dialog.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}),image=dialog.locator('picture'),copy=dialog.locator('.vh-campaign-popup__copy');
    assert.equal(new URL(await button.getAttribute('href')).searchParams.get('sale'),'1');
    const photoBox=await image.boundingBox(),copyBox=await copy.boundingBox();
@@ -32,7 +33,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    assert.ok(photoBox.width>=b.width-2&&photoBox.height>=b.height-2,'photo does not fill popup');
    assert.ok(copyBox.y>=photoBox.y&&copyBox.y+copyBox.height<=photoBox.y+photoBox.height+1,'copy overflows the photo');
    assert.equal(await dialog.locator('img').getAttribute('src'),new URL(campaign.popup.image,base).href);
-   assert.equal(await dialog.locator('#vh-campaign-popup-description').innerText(),'Знижки до 20%');
+   assert.equal(await dialog.locator('#vh-campaign-popup-description').innerText(),'ЗНИЖКИ ДО -20%');
    const theme=await button.evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopColor}});
    assert.equal(theme.background,'rgba(0, 0, 0, 0)');assert.equal(theme.border,'rgb(199, 167, 106)');
    assert.equal(await p.evaluate(()=>document.documentElement.style.overflow),'hidden');
@@ -46,8 +47,8 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    assert.equal(await p.evaluate(()=>document.documentElement.style.overflow),'');
    await p.reload();await p.locator('.vh-hero-controls').waitFor();await advance(p,10000);assert.equal(await p.locator('.vh-campaign-popup[open]').count(),0,'dismissed campaign reopened');await p.close();
   }
-  const escape=await page('escape');await escape.locator('#heroCatalogBtn').focus();await advance(escape);await escape.keyboard.press('Escape');await escape.clock.runFor(32);
-  await escape.locator('.vh-campaign-popup').waitFor({state:'hidden'});assert.equal(await escape.locator('#heroCatalogBtn').evaluate(el=>el===document.activeElement),true,'Escape did not restore focus');
+  const escape=await page('escape');await escape.locator('#heroCatalogBtn').focus();await advance(escape);await escape.locator('.vh-campaign-popup[open]').waitFor();await escape.keyboard.press('Escape');await escape.clock.runFor(32);
+  await escape.locator('.vh-campaign-popup').waitFor({state:'hidden'});await escape.clock.runFor(32);assert.equal(await escape.locator('#heroCatalogBtn').evaluate(el=>el===document.activeElement),true,'Escape did not restore focus');
   assert.equal(await escape.evaluate(()=>localStorage.getItem('vh_campaign_dismissed_escape')),'1');await escape.close();
   const blocked=await page('blocked');await blocked.evaluate(()=>{const region=document.createElement('section');region.id='vh-analytics-choice';document.body.append(region)});
   await advance(blocked,8000);assert.equal(await blocked.locator('.vh-campaign-popup').count(),0,'popup covered cookie choice');
@@ -64,6 +65,6 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   assert.equal(await click.evaluate(()=>localStorage.getItem('vh_campaign_dismissed_cta')),'1');await click.close();
   const preview=await page('cms-preview');await preview.goto(base+'/index.html?cms-preview=1');await advance(preview,10000);assert.equal(await preview.locator('.vh-campaign-popup,.vh-hero-controls').count(),0);await preview.close();
   for(const f of fixtures){assert.deepEqual(f.records.get('home:published').shared,revision.shared);assert.equal(f.calls.some(c=>c.op!=='select'),false);assert.deepEqual(f.errors,[])}
-  console.log('PASS: larger 8:9 popup opens after five seconds, full photo backdrop, BLACK FRIDAY/discount copy and transparent gold CTA at four viewports, native focus/Escape/backdrop/close, dismissal, cookie/menu deferral, off switch and sale navigation. No CMS writes.');
+  console.log('PASS: centered 8:9 popup opens after five seconds, full photo backdrop, BLACK FRIDAY/discount copy and transparent gold CTA at four viewports, native focus/Escape/backdrop/close, dismissal, cookie/menu deferral, off switch and sale navigation. No CMS writes.');
  }finally{await Promise.all(fixtures.map(f=>f.browser.close()))}
 })().catch(e=>{console.error(e);process.exitCode=1});

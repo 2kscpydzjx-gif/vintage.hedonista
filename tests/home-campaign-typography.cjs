@@ -18,16 +18,22 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
   const p=await f.context.newPage();
   for(const width of [320,390,430,768,820,1024,1366,1536,1920,2560]){
    await p.setViewportSize({width,height:900});await p.goto('http://127.0.0.1:8765/index.html');await p.locator('.vh-hero-controls').waitFor();await p.evaluate(()=>document.fonts.ready);
-   const before=await measure(p,native);await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.locator('.vh-hero-promo__copy[data-vh-copy-synced]').waitFor();
+   const before=await measure(p,native);await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.locator('.vh-hero-promo').waitFor({state:'visible'});
+   if(width>760)await p.locator('.vh-hero-promo__copy[data-vh-copy-synced]').waitFor();
    const after=await measure(p,campaign);
    for(let i=0;i<before.length;i++){
-    for(const name of ['font','size','weight','line','spacing','align'])assert.equal(after[i][name],before[i][name],width+' '+campaign[i]+' '+name);
-    assert.ok(Math.abs(after[i].x-before[i].x)<.5&&Math.abs(after[i].y-before[i].y)<.5,'copy anchor differs from original at '+width+' '+campaign[i]);
+    for(const name of ['font','size','weight','line','spacing','align'])assert.equal(after[i][name],width<=760&&i<3&&name==='align'?'left':before[i][name],width+' '+campaign[i]+' '+name);
+    if(width>760)assert.ok(Math.abs(after[i].x-before[i].x)<.5&&Math.abs(after[i].y-before[i].y)<.5,'copy anchor differs from original at '+width+' '+campaign[i]);
     if(i<3)assert.ok(Math.abs(after[i].w-before[i].w)<.5,'copy width differs at '+width);
    }
    assert.ok(after[1].y+after[1].h<=after[2].y+1,'heading overlaps body at '+width);
    assert.ok(after[2].y+after[2].h<=after[3].y+1,'body overlaps CTA at '+width);
-   assert.ok(Math.abs(after[1].h-before[1].h)<1,'heading block height differs at '+width);
+   if(width>760)assert.ok(Math.abs(after[1].h-before[1].h)<1,'heading block height differs at '+width);
+   else{
+    const box=await p.locator('.hero').boundingBox(),copy=await p.locator('.vh-hero-promo__copy').boundingBox();
+    assert.ok(copy.y>=box.y+box.height*.38,'mobile copy still covers the upper image');
+    assert.ok(copy.y+copy.height<=box.y+box.height-20,'mobile copy runs off the bottom');
+   }
    assert.equal(await p.locator('.vh-hero-promo__discount').innerText(),'ЗНИЖКИ ДО -20%');
    assert.equal(await p.locator('.vh-hero-promo__description').innerText(),'Вінтаж із характером. Ціни, яких ви чекали.\n\nУнікальні знахідки в єдиному екземплярі.');
    assert.equal(await p.locator('.vh-hero-promo__button').innerText(),'ВІДКРИТИ РОЗПРОДАЖ →');
@@ -40,6 +46,6 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
   await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.setViewportSize({width:390,height:900});await p.waitForTimeout(40);
   assert.equal((await measure(p,campaign))[1].size,(await measure(p,native))[1].size);
   assert.deepEqual(f.records.get('home:published').shared,record.shared);assert.equal(f.calls.some(c=>c.op!=='select'),false);assert.deepEqual(f.errors,[]);
-  console.log('PASS: campaign and original Hero match fonts, sizes, line heights, alignment, widths and anchor positions at ten widths; correct sale copy, no overlaps, resize updates and unchanged original CMS data.');
+  console.log('PASS: desktop campaign matches original fonts/anchors; mobile keeps typography with lower, left-aligned copy and clear upper photo at ten widths. Correct sale copy, no overlaps, resize updates and unchanged CMS data.');
  }finally{await f.browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

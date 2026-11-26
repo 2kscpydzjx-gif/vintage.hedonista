@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,process.env.VH_TEST_BUILT==='1'?'../dist':'..'
   f.user(null);f.session(null);await mockCampaignPhotos(f.context,f.png);
   f.set('home','published',{shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPreset:'gradient-hero'},images:{image0:'http://127.0.0.1:8765/assets/test-upload.png'}}}}}});
   const p=await f.context.newPage(),time=new Date('2026-11-26T12:00:00Z');await p.clock.install({time});await p.clock.pauseAt(time);
-  await p.route('**/home-campaign-config.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'home-campaign-config.js'),'utf8')+'\nwindow.VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,popup:{...VH_HOME_CAMPAIGN.popup,enabled:false}};'}));
+  await p.route('**/home-campaign-config*.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'home-campaign-config.js'),'utf8')+'\nwindow.VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,popup:{...VH_HOME_CAMPAIGN.popup,enabled:false}};'}));
   await p.goto('http://127.0.0.1:8765/index.html');await p.locator('.vh-hero-controls').waitFor();await p.evaluate(()=>document.fonts.ready);await p.clock.runFor(100);
   const hero=p.locator('.hero'),index=()=>hero.getAttribute('data-vh-slide'),outside=()=>p.locator('header .brand').first().focus();
   await p.mouse.move(0,0);await p.evaluate(()=>VHHomeCampaign.refresh());

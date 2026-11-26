@@ -24,7 +24,7 @@ window.VH_HOME_CAMPAIGN = Object.freeze({
     image: 'assets/campaigns/black-friday-popup.jpg',
     imagePosition: '58% center',
     title: 'BLACK\nFRIDAY',
-    description: 'Знижки до 20%',
+    description: 'ЗНИЖКИ ДО -20%',
     buttonText: 'ПЕРЕГЛЯНУТИ ЗНИЖКИ'
   }
 });

@@ -110,17 +110,18 @@
    if(destroyed)return;
    const sources=[hero.querySelector('#heroEyebrow'),hero.querySelector('#heroTitle'),hero.querySelector('#heroDescription p')||hero.querySelector('#heroDescription'),hero.querySelector('#heroCatalogBtn')];
    if(sources.some(el=>!el||!el.getBoundingClientRect().width)){delete copy.dataset.vhCopySynced;return}
-   const bounds=hero.getBoundingClientRect(),column=sources[1].getBoundingClientRect().width;
+   const bounds=hero.getBoundingClientRect(),column=sources[1].getBoundingClientRect().width,mobile=matchMedia('(max-width:760px)').matches;
    const headingStyle=getComputedStyle(sources[1]),headingLines=sources[1].getBoundingClientRect().height/parseFloat(headingStyle.lineHeight);
-   titleText.textContent=headingLines<2.5?config.title.replace(/\n/g,' '):config.title;
+   titleText.textContent=mobile||headingLines<2.5?config.title.replace(/\n/g,' '):config.title;
    const typography=['font-family','font-size','font-weight','font-style','font-stretch','line-height','letter-spacing','word-spacing','text-align','text-transform','font-kerning','font-variant-ligatures','text-rendering','color'];
    [eyebrow,title,description,link].forEach((target,i)=>{
     const source=sources[i],rect=source.getBoundingClientRect(),style=getComputedStyle(source);
     for(const name of typography)target.style.setProperty(name,style.getPropertyValue(name),'important');
+    if(mobile&&i<3)target.style.setProperty('text-align','left','important');
     for(const [name,value] of Object.entries({x:rect.x-bounds.x,y:rect.y-bounds.y,width:rect.width,height:rect.height,'column-width':column}))target.style.setProperty('--vh-ref-'+name,value+'px');
     if(i===3)target.style.setProperty('--vh-ref-padding',style.padding);
    });
-   copy.dataset.vhCopySynced='';
+   if(mobile)delete copy.dataset.vhCopySynced;else copy.dataset.vhCopySynced='';
   }
   const textObserver=new ResizeObserver(syncCopy);
   for(const el of [hero,...['#heroEyebrow','#heroTitle','#heroDescription','#heroCatalogBtn'].map(selector=>hero.querySelector(selector))].filter(Boolean))textObserver.observe(el);
