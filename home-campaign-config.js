@@ -12,8 +12,10 @@ window.VH_HOME_CAMPAIGN = Object.freeze({
   mobileImageFrame: {top:6.416667,bottom:6.416667},
   eyebrow: 'VINTAZHKA · BLACK FRIDAY',
   title: 'ЧОРНА\nП’ЯТНИЦЯ',
-  description: 'Обирай вінтажні речі зі знижками.',
-  buttonText: 'ПЕРЕГЛЯНУТИ ЗНИЖКИ',
+  discount: 'ЗНИЖКИ ДО -20%',
+  description: 'Вінтаж із характером. Ціни, яких ви чекали.',
+  detail: 'Унікальні знахідки в єдиному екземплярі.',
+  buttonText: 'ВІДКРИТИ РОЗПРОДАЖ →',
   // Independent popup switch. Change id for a new campaign, not for a text edit.
   popup: {
     enabled: true,
@@ -22,6 +24,7 @@ window.VH_HOME_CAMPAIGN = Object.freeze({
     image: 'assets/campaigns/black-friday-popup.jpg',
     imagePosition: '58% center',
     title: 'BLACK\nFRIDAY',
-    description: 'Знижки до 20%'
+    description: 'Знижки до 20%',
+    buttonText: 'ПЕРЕГЛЯНУТИ ЗНИЖКИ'
   }
 });

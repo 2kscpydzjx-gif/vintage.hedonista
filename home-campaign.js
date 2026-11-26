@@ -60,7 +60,7 @@
    const copy=document.createElement('div');copy.className='vh-campaign-popup__copy';
    const title=document.createElement('h2');title.id='vh-campaign-popup-title';title.textContent=settings.title||config.title.replace(/\n/g,' ');
    const text=document.createElement('p');text.id='vh-campaign-popup-description';text.textContent=settings.description||config.description;
-   const link=document.createElement('a');link.className='vh-campaign-popup__button';link.href=destination();link.textContent=config.buttonText;link.addEventListener('click',close);
+   const link=document.createElement('a');link.className='vh-campaign-popup__button';link.href=destination();link.textContent=settings.buttonText||config.buttonText;link.addEventListener('click',close);
    copy.append(title,text,link);card.append(picture,exit,copy);dialog.append(card);document.body.append(dialog);
    dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;if(e.shiftKey&&document.activeElement===exit){e.preventDefault();link.focus()}else if(!e.shiftKey&&document.activeElement===link){e.preventDefault();exit.focus()}});
    cleanupPhoto=loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||settings.image||config.mobileImage,imageFrame:settings.image?settings.imageFrame:config.imageFrame,mobileImageFrame:settings.mobileImage?settings.mobileImageFrame:settings.image?settings.imageFrame:config.mobileImageFrame},hero);
@@ -88,8 +88,10 @@
   img.alt='';img.decoding='async';img.fetchPriority='low';img.draggable=false;img.style.objectPosition=config.imagePosition||'center';picture.append(img);
   const copy=document.createElement('div');copy.className='vh-hero-promo__copy';
   const eyebrow=document.createElement('p');eyebrow.className='vh-hero-promo__eyebrow';eyebrow.textContent=config.eyebrow;
-  const title=document.createElement('h2');title.className='vh-hero-promo__title';title.textContent=config.title;
-  const description=document.createElement('p');description.className='vh-hero-promo__description';description.textContent=config.description;
+  const title=document.createElement('h2'),titleText=document.createTextNode(config.title);title.className='vh-hero-promo__title';title.append(titleText);
+  if(config.discount){const discount=document.createElement('span');discount.className='vh-hero-promo__discount';discount.textContent=config.discount;title.append(discount)}
+  const description=document.createElement('div');description.className='vh-hero-promo__description';
+  for(const value of [config.description,config.detail].filter(Boolean)){const p=document.createElement('p');p.textContent=value;description.append(p)}
   const link=document.createElement('a');link.className='vh-hero-promo__button';link.textContent=config.buttonText;
   link.href=destination();
   copy.append(eyebrow,title,description,link);promo.append(picture,copy);
@@ -103,6 +105,27 @@
   rotationLabel();rotation.addEventListener('click',()=>{paused=!paused;rotationLabel();restartRotation()});
   const status=document.createElement('span');status.className='vh-hero-status';status.dataset.vhHeroUi='';status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
   controls.append(prev,next,rotation);hero.append(promo,controls,status);hero.classList.add('vh-hero-carousel');
+  // Read the original slide's live typography and anchors, including saved CMS styles.
+  function syncCopy(){
+   if(destroyed)return;
+   const sources=[hero.querySelector('#heroEyebrow'),hero.querySelector('#heroTitle'),hero.querySelector('#heroDescription p')||hero.querySelector('#heroDescription'),hero.querySelector('#heroCatalogBtn')];
+   if(sources.some(el=>!el||!el.getBoundingClientRect().width)){delete copy.dataset.vhCopySynced;return}
+   const bounds=hero.getBoundingClientRect(),column=sources[1].getBoundingClientRect().width;
+   const headingStyle=getComputedStyle(sources[1]),headingLines=sources[1].getBoundingClientRect().height/parseFloat(headingStyle.lineHeight);
+   titleText.textContent=headingLines<2.5?config.title.replace(/\n/g,' '):config.title;
+   const typography=['font-family','font-size','font-weight','font-style','font-stretch','line-height','letter-spacing','word-spacing','text-align','text-transform','font-kerning','font-variant-ligatures','text-rendering','color'];
+   [eyebrow,title,description,link].forEach((target,i)=>{
+    const source=sources[i],rect=source.getBoundingClientRect(),style=getComputedStyle(source);
+    for(const name of typography)target.style.setProperty(name,style.getPropertyValue(name),'important');
+    for(const [name,value] of Object.entries({x:rect.x-bounds.x,y:rect.y-bounds.y,width:rect.width,height:rect.height,'column-width':column}))target.style.setProperty('--vh-ref-'+name,value+'px');
+    if(i===3)target.style.setProperty('--vh-ref-padding',style.padding);
+   });
+   copy.dataset.vhCopySynced='';
+  }
+  const textObserver=new ResizeObserver(syncCopy);
+  for(const el of [hero,...['#heroEyebrow','#heroTitle','#heroDescription','#heroCatalogBtn'].map(selector=>hero.querySelector(selector))].filter(Boolean))textObserver.observe(el);
+  hero.addEventListener('animationend',syncCopy);hero.addEventListener('transitionend',syncCopy);
+  document.fonts?.ready.then(syncCopy);
   function clearRotation(){clearTimeout(rotationTimer);rotationTimer=null}
   function canRotate(){return !destroyed&&!paused&&!hovered&&inView&&!start&&document.visibilityState==='visible'&&!hero.contains(document.activeElement)&&!document.querySelector('dialog[open],#vh-analytics-choice,.vh-modal-open,.vh-mobile-menu-open')}
   function scheduleRotation(){
@@ -118,6 +141,7 @@
   }
   function select(value,announce=true){
    index=(value+2)%2;if(index===1)loadImage();
+   syncCopy();
    const nodes=originals();
    if(index&&nodes.some(el=>el.contains(document.activeElement)))next.focus({preventScroll:true});
    if(!index&&promo.contains(document.activeElement))prev.focus({preventScroll:true});
@@ -146,7 +170,7 @@
   document.addEventListener('visibilitychange',scheduleRotation);window.addEventListener('vh:campaign-popup-change',scheduleRotation);motion.addEventListener('change',motionChange);
   hero.addEventListener('keydown',keydown);hero.addEventListener('pointerdown',down);hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',cancel);
   select(0,false);
-  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;select(0,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('mouseenter',enter);hero.removeEventListener('mouseleave',leave);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);document.removeEventListener('visibilitychange',scheduleRotation);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
+  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;select(0,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();textObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('animationend',syncCopy);hero.removeEventListener('transitionend',syncCopy);hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('mouseenter',enter);hero.removeEventListener('mouseleave',leave);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);document.removeEventListener('visibilitychange',scheduleRotation);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
  }
  function ready(){
   const config=window.VH_HOME_CAMPAIGN,hero=document.querySelector('body.home-page>.hero');

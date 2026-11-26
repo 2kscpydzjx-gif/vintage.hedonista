@@ -40,7 +40,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    assert.equal(await p.locator('#heroTitle').evaluate(el=>!!el.closest('[inert]')),true);
    assert.equal(await p.locator('.vh-hero-promo').getAttribute('aria-hidden'),'false');
    assert.equal(await p.locator('.vh-hero-arrow').count(),2);assert.equal(await p.locator('.vh-hero-dots').count(),0);
-   const href=await p.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}).getAttribute('href');assert.equal(new URL(href).searchParams.get('sale'),'1');
+   const href=await p.getByRole('link',{name:campaign.buttonText}).getAttribute('href');assert.equal(new URL(href).searchParams.get('sale'),'1');
    const appearance=await p.locator('.vh-hero-promo__button').evaluate(el=>{const s=getComputedStyle(el);return {color:s.color,background:s.backgroundColor,size:parseFloat(s.fontSize)}});
    assert.notEqual(appearance.color,appearance.background,'CTA text blends into background');assert.ok(appearance.size>=10,'CTA label is too small');
    for(const el of [p.locator('.vh-hero-controls'),p.locator('.vh-hero-promo__button'),p.locator('.vh-hero-promo__title')]){
@@ -68,7 +68,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    await p.getByRole('button',{name:'Наступний слайд',exact:true}).focus();await p.keyboard.press('ArrowRight');assert.equal(await hero.getAttribute('data-vh-slide'),'0');
    await p.evaluate(()=>window.dispatchEvent(new Event('vh:home-rendered')));assert.equal(await p.locator('.vh-hero-controls').count(),1,'CMS reapply duplicated controls');
   }
-  await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}).click();
+  await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.getByRole('link',{name:campaign.buttonText}).click();
   await p.waitForFunction(()=>document.querySelector('#catalogSaleOnly')?.checked&&document.querySelectorAll('.catalog-luxury-card').length===12);
   assert.equal(new URL(p.url()).searchParams.get('sale'),'1');await p.locator('#catalogSaleNotice').waitFor({state:'visible'});
   assert.equal(await p.locator('#catalogSaleCount').innerText(),'14');

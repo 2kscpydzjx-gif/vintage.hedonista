@@ -26,8 +26,8 @@ const root=path.resolve(__dirname,process.env.VH_TEST_BUILT==='1'?'../dist':'..'
   await p.evaluate(()=>{delete document.visibilityState;document.dispatchEvent(new Event('visibilitychange'))});await p.clock.runFor(7000);assert.equal(await index(),'0');
   await p.getByRole('button',{name:'Зупинити автоматичне листання',exact:true}).focus();await p.keyboard.press('Enter');await outside();await p.clock.runFor(14000);assert.equal(await index(),'0','explicit pause ignored');
   await p.getByRole('button',{name:'Увімкнути автоматичне листання',exact:true}).focus();await p.keyboard.press('Enter');await outside();await p.clock.runFor(7000);assert.equal(await index(),'1');
-  await p.emulateMedia({reducedMotion:'reduce'});await p.clock.runFor(14000);assert.equal(await index(),'1','reduced motion ignored');
-  await p.emulateMedia({reducedMotion:'no-preference'});await p.clock.runFor(7000);assert.equal(await index(),'0');
+  await p.emulateMedia({reducedMotion:'reduce'});await p.getByRole('button',{name:'Увімкнути автоматичне листання',exact:true}).waitFor({state:'attached'});await p.clock.runFor(14000);assert.equal(await index(),'1','reduced motion ignored');
+  await p.emulateMedia({reducedMotion:'no-preference'});await p.getByRole('button',{name:'Зупинити автоматичне листання',exact:true}).waitFor({state:'attached'});await p.clock.runFor(7000);assert.equal(await index(),'0');
   // A manual swipe starts a fresh seven-second interval.
   await hero.dispatchEvent('pointerdown',{pointerId:9,isPrimary:true,button:0,clientX:800,clientY:200});await hero.dispatchEvent('pointerup',{pointerId:9,isPrimary:true,button:0,clientX:680,clientY:200});assert.equal(await index(),'1');
   await p.clock.runFor(6999);assert.equal(await index(),'1');await p.clock.runFor(1);assert.equal(await index(),'0');

@@ -8,10 +8,16 @@
  .vh-hero-promo>picture{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;overflow:hidden}
  .vh-hero-promo>picture>img{position:absolute!important;left:var(--vh-campaign-image-left,0px)!important;top:var(--vh-campaign-image-top,0px)!important;width:var(--vh-campaign-image-width,100%)!important;height:var(--vh-campaign-image-height,100%)!important;max-width:none!important;max-height:none!important;display:block!important;object-fit:cover!important}
  .vh-hero-promo::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,7,5,.94),rgba(9,7,5,.76) 35%,rgba(9,7,5,.22) 100%);pointer-events:none}
- .vh-hero-promo__copy{position:relative;z-index:1;box-sizing:border-box;width:min(740px,65%);padding:clamp(48px,5vw,96px);text-align:left}
+ .vh-hero-promo__copy{position:relative;z-index:1;box-sizing:border-box;width:min(660px,65%);padding:clamp(30px,5vw,80px);text-align:left}
  .vh-hero-promo .vh-hero-promo__eyebrow{margin:0 0 24px!important;color:#c7aa83!important;font:500 clamp(10px,1.1vw,15px)/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.2em!important}
- .vh-hero-promo .vh-hero-promo__title{margin:0!important;color:#eee3d6!important;font:400 clamp(38px,5.2vw,78px)/1.12 'VH Prata Aligned',Prata,Georgia,serif!important;letter-spacing:0!important;white-space:pre-line!important;overflow-wrap:normal!important}
+ .vh-hero-promo .vh-hero-promo__title{margin:0!important;color:#eee3d6!important;font:400 clamp(27px,2.85vw,42px)/1.115 'VH Prata Aligned',Prata,Georgia,serif!important;letter-spacing:0!important;white-space:pre-line!important;overflow-wrap:normal!important}
+ .vh-hero-promo__discount{display:block;color:#c7aa83!important}
  .vh-hero-promo .vh-hero-promo__description{max-width:32ch;margin:24px 0 28px!important;color:#ded0bf!important;font:400 clamp(13px,1.3vw,18px)/1.65 Montserrat,Arial,sans-serif!important}
+ .vh-hero-promo__description p{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;font:inherit!important;letter-spacing:inherit!important;text-align:inherit!important;color:inherit!important}
+ .vh-hero-promo__description p+p{margin-top:8px!important;opacity:.9}
+ .vh-hero-promo__copy[data-vh-copy-synced]{position:absolute!important;inset:0;width:100%!important;height:100%!important;padding:0!important;margin:0!important}
+ .vh-hero-promo__copy[data-vh-copy-synced]>:is(.vh-hero-promo__eyebrow,.vh-hero-promo__title,.vh-hero-promo__description,.vh-hero-promo__button){position:absolute!important;left:var(--vh-ref-x)!important;top:var(--vh-ref-y)!important;width:var(--vh-ref-width)!important;max-width:none!important;margin:0!important;padding:0!important}
+ .vh-hero-promo__copy[data-vh-copy-synced]>.vh-hero-promo__button{width:max-content!important;min-width:var(--vh-ref-width)!important;max-width:var(--vh-ref-column-width)!important;height:var(--vh-ref-height)!important;min-height:var(--vh-ref-height)!important;padding:var(--vh-ref-padding)!important;white-space:nowrap}
  .vh-hero-promo__button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;box-sizing:border-box;max-width:100%;padding:14px 24px;background:#eee3d6!important;color:#211812!important;border:1px solid #eee3d6;text-decoration:none;font:500 11px/1.4 Montserrat,Arial,sans-serif!important;letter-spacing:.06em;text-align:center;transition:background .2s,color .2s}
  .vh-hero-promo__button:hover{background:#c7aa83!important;border-color:#c7aa83}
  .vh-hero-carousel>.vh-hero-controls{position:absolute!important;z-index:10!important;inset:0;pointer-events:none;color:#d7bc8b}
