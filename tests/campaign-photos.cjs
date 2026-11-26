@@ -6,7 +6,8 @@ async function mockCampaignPhotos(context,png){
  for(const url of new Set([campaign.image,campaign.mobileImage,campaign.popup?.image,campaign.popup?.mobileImage].filter(Boolean))){
   const local=!/^https?:/.test(url)&&path.resolve(root,url);
   const file=local||(process.env.VH_CAMPAIGN_IMAGE_DIR&&path.join(process.env.VH_CAMPAIGN_IMAGE_DIR,url===campaign.image?'banner-desktop.webp':'banner-mobile.webp'));
-  await context.route(new URL(url,'http://127.0.0.1:8765/').href,r=>r.fulfill({contentType:file?.endsWith('.webp')?'image/webp':'image/png',body:file?fs.readFileSync(file):png}));
+  const type=file?.endsWith('.webp')?'image/webp':/\.jpe?g$/i.test(file||'')?'image/jpeg':'image/png';
+  await context.route(new URL(url,'http://127.0.0.1:8765/').href,r=>r.fulfill({contentType:type,body:file?fs.readFileSync(file):png}));
  }
 }
 async function verifyFrame(image,inset){

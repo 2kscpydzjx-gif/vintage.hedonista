@@ -1,4 +1,4 @@
-/* A manual two-slide Hero. Published CMS content remains the original slide. */
+/* Two-slide campaign Hero. Published CMS content remains the original slide. */
 (()=>{
  'use strict';
  if(!document.body.classList.contains('home-page')||new URLSearchParams(location.search).get('cms-preview')==='1')return;
@@ -44,7 +44,7 @@
   function remember(){try{localStorage.setItem(key,'1')}catch{}try{sessionStorage.setItem(key,'1')}catch{}}
   function close(){dialog.close();closed()}
   function release(){if(locked){locked=false;document.documentElement.style.overflow=previousOverflow}}
-  function closed(){stopped=true;release();remember();cleanupPhoto()}
+  function closed(){stopped=true;release();remember();cleanupPhoto();window.dispatchEvent(new Event('vh:campaign-popup-change'))}
   function blocked(){
    return document.visibilityState!=='visible'||document.querySelector('#vh-analytics-choice,dialog[open],.vh-modal-open,.vh-mobile-menu-open')||
     document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
@@ -54,21 +54,21 @@
    if(blocked()){timer=setTimeout(show,1000);return}
    dialog=document.createElement('dialog');dialog.className='vh-campaign-popup';dialog.setAttribute('aria-labelledby','vh-campaign-popup-title');dialog.setAttribute('aria-describedby','vh-campaign-popup-description');
    const card=document.createElement('div');card.className='vh-campaign-popup__card';
-   const picture=document.createElement('picture'),img=document.createElement('img');img.alt='';img.decoding='async';img.fetchPriority='low';img.style.objectPosition=config.imagePosition||'center';picture.append(img);
+   const picture=document.createElement('picture'),img=document.createElement('img');img.alt='';img.decoding='async';img.fetchPriority='low';img.style.objectPosition=settings.imagePosition||config.imagePosition||'center';picture.append(img);
    const exit=document.createElement('button');exit.type='button';exit.className='vh-campaign-popup__close';exit.setAttribute('aria-label','Закрити оголошення');exit.autofocus=true;
    exit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>';exit.addEventListener('click',close);
    const copy=document.createElement('div');copy.className='vh-campaign-popup__copy';
-   const eyebrow=document.createElement('p');eyebrow.className='vh-campaign-popup__eyebrow';eyebrow.textContent='VINTAZHKA · ОСОБЛИВІ ПРОПОЗИЦІЇ';
-   const title=document.createElement('h2');title.id='vh-campaign-popup-title';title.textContent=config.title.replace(/\n/g,' ');
-   const text=document.createElement('p');text.id='vh-campaign-popup-description';text.textContent=config.description;
+   const title=document.createElement('h2');title.id='vh-campaign-popup-title';title.textContent=settings.title||config.title.replace(/\n/g,' ');
+   const text=document.createElement('p');text.id='vh-campaign-popup-description';text.textContent=settings.description||config.description;
    const link=document.createElement('a');link.className='vh-campaign-popup__button';link.href=destination();link.textContent=config.buttonText;link.addEventListener('click',close);
-   copy.append(eyebrow,title,text,link);card.append(picture,exit,copy);dialog.append(card);document.body.append(dialog);
+   copy.append(title,text,link);card.append(picture,exit,copy);dialog.append(card);document.body.append(dialog);
    dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;if(e.shiftKey&&document.activeElement===exit){e.preventDefault();link.focus()}else if(!e.shiftKey&&document.activeElement===link){e.preventDefault();exit.focus()}});
-   cleanupPhoto=loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||config.mobileImage,imageFrame:settings.imageFrame||config.imageFrame,mobileImageFrame:settings.mobileImageFrame||config.mobileImageFrame},hero);
+   cleanupPhoto=loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||settings.image||config.mobileImage,imageFrame:settings.image?settings.imageFrame:config.imageFrame,mobileImageFrame:settings.mobileImage?settings.mobileImageFrame:settings.image?settings.imageFrame:config.mobileImageFrame},hero);
    dialog.addEventListener('close',closed);
    dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
    dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))close()});
    previousOverflow=document.documentElement.style.overflow;dialog.showModal();locked=true;document.documentElement.style.overflow='hidden';
+   window.dispatchEvent(new Event('vh:campaign-popup-change'));
   }
   // Count from page initialization; wait until CMS and other dialogs are ready.
   timer=setTimeout(show,Math.max(0,Math.ceil((Number(settings.delayMs)||5000)-performance.now())));
@@ -78,6 +78,9 @@
  }
  function mount(hero,config){
   let index=0,start=null,imageLoaded=false,cleanupPhoto=()=>{};
+  let rotationTimer=null,hovered=false,inView=false,destroyed=false;
+  const motion=matchMedia('(prefers-reduced-motion:reduce)');let paused=motion.matches;
+  const interval=Math.max(1000,Number(config.autoSlideMs)||7000);
   const saved=new WeakMap();
   const promo=document.createElement('div');promo.className='vh-hero-promo';promo.dataset.vhHeroUi='';promo.id='vh-hero-promotion';promo.setAttribute('aria-label','Чорна п’ятниця');
   if(config.desktopImageFit==='contain')promo.classList.add('vh-hero-promo--contain');
@@ -92,12 +95,22 @@
   copy.append(eyebrow,title,description,link);promo.append(picture,copy);
   const controls=document.createElement('div');controls.className='vh-hero-controls';controls.dataset.vhHeroUi='';controls.setAttribute('role','group');controls.setAttribute('aria-label','Листання головного банера');
   const button=(label,html)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',label);b.innerHTML=html;return b};
-  const prev=button('Попередній слайд','<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5"/></svg>');
-  const next=button('Наступний слайд','<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>');
-  const dots=document.createElement('div');dots.className='vh-hero-dots';
-  const choices=['Слайд 1: Vintazhka','Слайд 2: Чорна п’ятниця'].map((label,i)=>{const b=button(label,'<span aria-hidden="true"></span>');b.addEventListener('click',()=>select(i));dots.append(b);return b});
+  const prev=button('Попередній слайд','<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M26 12H6m8-7-8 7 8 7"/></svg>');prev.className='vh-hero-arrow vh-hero-arrow--prev';
+  const next=button('Наступний слайд','<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M6 12h20m-8-7 8 7-8 7"/></svg>');next.className='vh-hero-arrow vh-hero-arrow--next';
+  // Keyboard and screen-reader users can also stop rotation explicitly.
+  const rotation=button('','');rotation.className='vh-hero-rotation';
+  function rotationLabel(){rotation.textContent=paused?'Увімкнути автоматичне листання':'Зупинити автоматичне листання'}
+  rotationLabel();rotation.addEventListener('click',()=>{paused=!paused;rotationLabel();restartRotation()});
   const status=document.createElement('span');status.className='vh-hero-status';status.dataset.vhHeroUi='';status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
-  controls.append(prev,dots,next);hero.append(promo,controls,status);hero.classList.add('vh-hero-carousel');
+  controls.append(prev,next,rotation);hero.append(promo,controls,status);hero.classList.add('vh-hero-carousel');
+  function clearRotation(){clearTimeout(rotationTimer);rotationTimer=null}
+  function canRotate(){return !destroyed&&!paused&&!hovered&&inView&&!start&&document.visibilityState==='visible'&&!hero.contains(document.activeElement)&&!document.querySelector('dialog[open],#vh-analytics-choice,.vh-modal-open,.vh-mobile-menu-open')}
+  function scheduleRotation(){
+   if(!canRotate()){clearRotation();return}
+   if(rotationTimer!==null)return;
+   rotationTimer=setTimeout(()=>{rotationTimer=null;if(canRotate())select(index+1,false);else scheduleRotation()},interval);
+  }
+  function restartRotation(){clearRotation();scheduleRotation()}
   function originals(){return [...hero.children].filter(el=>!el.hasAttribute('data-vh-hero-ui'))}
   function loadImage(){
    if(imageLoaded)return;imageLoaded=true;
@@ -116,18 +129,24 @@
     else{const prior=saved.get(el);el.inert=prior.inert;if(prior.aria===null)el.removeAttribute('aria-hidden');else el.setAttribute('aria-hidden',prior.aria)}
    }
    promo.inert=index!==1;promo.setAttribute('aria-hidden',String(index!==1));
-   choices.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===index)));
    if(announce)status.textContent=index?'Слайд 2 з 2. Чорна п’ятниця.':'Слайд 1 з 2. Vintazhka.';
+   restartRotation();
   }
   const previous=()=>select(index-1),following=()=>select(index+1);
   prev.addEventListener('click',previous);next.addEventListener('click',following);
   function keydown(e){if(e.target.closest('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();select(index+(e.key==='ArrowRight'?1:-1))}}
-  function down(e){if(!e.isPrimary||e.button!==0||e.target.closest('a,button,input,textarea,select'))return;start={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now()};try{hero.setPointerCapture?.(e.pointerId)}catch{}}
-  function up(e){if(!start||start.id!==e.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,elapsed=performance.now()-start.at;start=null;if(Math.abs(dx)>=50&&Math.abs(dx)>Math.abs(dy)*1.4&&elapsed<1200)select(index+(dx<0?1:-1))}
-  const cancel=()=>{start=null};
+  function down(e){if(!e.isPrimary||e.button!==0||e.target.closest('a,button,input,textarea,select'))return;start={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now()};scheduleRotation();try{hero.setPointerCapture?.(e.pointerId)}catch{}}
+  function up(e){if(!start||start.id!==e.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,elapsed=performance.now()-start.at;start=null;if(Math.abs(dx)>=50&&Math.abs(dx)>Math.abs(dy)*1.4&&elapsed<1200)select(index+(dx<0?1:-1));else scheduleRotation()}
+  const cancel=()=>{start=null;scheduleRotation()};
+  const enter=()=>{hovered=true;scheduleRotation()},leave=()=>{hovered=false;scheduleRotation()},focusOut=()=>queueMicrotask(scheduleRotation);
+  const motionChange=()=>{paused=motion.matches;rotationLabel();scheduleRotation()};
+  const viewObserver=new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;scheduleRotation()},{threshold:0});viewObserver.observe(hero);
+  const modalObserver=new MutationObserver(scheduleRotation);modalObserver.observe(document.body,{childList:true,attributes:true,attributeFilter:['class']});
+  hero.addEventListener('mouseenter',enter);hero.addEventListener('mouseleave',leave);hero.addEventListener('focusin',scheduleRotation);hero.addEventListener('focusout',focusOut);
+  document.addEventListener('visibilitychange',scheduleRotation);window.addEventListener('vh:campaign-popup-change',scheduleRotation);motion.addEventListener('change',motionChange);
   hero.addEventListener('keydown',keydown);hero.addEventListener('pointerdown',down);hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',cancel);
   select(0,false);
-  return {hero,refresh:()=>select(index,false),destroy(){select(0,false);cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel)}};
+  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;select(0,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('mouseenter',enter);hero.removeEventListener('mouseleave',leave);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);document.removeEventListener('visibilitychange',scheduleRotation);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
  }
  function ready(){
   const config=window.VH_HOME_CAMPAIGN,hero=document.querySelector('body.home-page>.hero');

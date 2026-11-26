@@ -39,7 +39,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    const visible=await hero.boundingBox();assert.ok(Math.abs(visible.height-initial.height)<1,'slide changes Hero height at '+width);
    assert.equal(await p.locator('#heroTitle').evaluate(el=>!!el.closest('[inert]')),true);
    assert.equal(await p.locator('.vh-hero-promo').getAttribute('aria-hidden'),'false');
-   assert.equal(await p.getByRole('button',{name:'Слайд 2: Чорна п’ятниця'}).getAttribute('aria-pressed'),'true');
+   assert.equal(await p.locator('.vh-hero-arrow').count(),2);assert.equal(await p.locator('.vh-hero-dots').count(),0);
    const href=await p.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}).getAttribute('href');assert.equal(new URL(href).searchParams.get('sale'),'1');
    const appearance=await p.locator('.vh-hero-promo__button').evaluate(el=>{const s=getComputedStyle(el);return {color:s.color,background:s.backgroundColor,size:parseFloat(s.fontSize)}});
    assert.notEqual(appearance.color,appearance.background,'CTA text blends into background');assert.ok(appearance.size>=10,'CTA label is too small');

@@ -184,6 +184,7 @@ jobs:
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
           node tests/home-campaign.cjs
+          node tests/home-campaign-autoplay.cjs
           node tests/home-campaign-popup.cjs
           node tests/home-mobile-copy.cjs
           node tests/home-editorial-flow.cjs
