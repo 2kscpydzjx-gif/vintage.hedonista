@@ -17,8 +17,8 @@
   if(/^\/(?:checkout|password-recovery)(?:\.html)?(?:\/|$)/i.test(location.pathname)||location.hash)return false;
   // Clarity reads the document URL itself. Do not start on URLs containing
   // personal parameters, free-form search text, or unknown query parameters.
-  const allowed=/^(?:slug|page|sort|category|subcategory|utm_(?:source|medium|campaign|content|term)|gclid|gbraid|wbraid|fbclid|msclkid|srsltid)$/;
-  for(const [key,value] of new URLSearchParams(location.search))if(!allowed.test(key)||value.length>200||/@|\+\d{8,}/.test(value))return false;
+  const allowed=/^(?:slug|page|sort|category|subcategory|sale|utm_(?:source|medium|campaign|content|term)|gclid|gbraid|wbraid|fbclid|msclkid|srsltid)$/;
+  for(const [key,value] of new URLSearchParams(location.search))if(!allowed.test(key)||(key==='sale'&&value!=='1')||value.length>200||/@|\+\d{8,}/.test(value))return false;
   try{const previous=new URL(document.referrer);if(/[?&#](?:email|phone|name|access_token|refresh_token|token|token_hash|code)=/i.test(previous.href))return false}catch{}
   return true;
  }

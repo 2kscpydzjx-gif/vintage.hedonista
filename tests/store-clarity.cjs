@@ -46,7 +46,9 @@ const consentKey='vh_analytics_consent_v1';
   assert.equal(requests.length,1);await p.close();
   const saved=await open('https://vintazhka.com.ua/product/a-jacket/','granted');
   await saved.waitForFunction(()=>window.__clarityCommands);assert.equal(requests.length,2);await saved.close();
-  for(const target of ['/account','/account.html','/admin/admin.html','/checkout','/checkout.html','/password-recovery.html','/catalog?email=customer%40example.test','/catalog?code=secret','/catalog?slug=jacket&phone=private','/catalog#private-fragment']){
+  const sale=await open('https://vintazhka.com.ua/catalog?sale=1','granted');
+  await sale.waitForFunction(()=>window.__clarityCommands);assert.equal(requests.length,3,'sale filter blocked Clarity');await sale.close();
+  for(const target of ['/account','/account.html','/admin/admin.html','/checkout','/checkout.html','/password-recovery.html','/catalog?email=customer%40example.test','/catalog?code=secret','/catalog?slug=jacket&phone=private','/catalog?sale=private','/catalog#private-fragment']){
    const before=requests.length,privatePage=await open('https://vintazhka.com.ua'+target,'granted');
    assert.equal(await privatePage.locator('#vh-microsoft-clarity').count(),0,'Clarity injected on '+target);
    assert.equal(requests.length,before);await privatePage.close();

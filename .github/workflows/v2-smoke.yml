@@ -30,6 +30,9 @@ on:
       - 'scripts/storefront-footer.mjs'
       - 'storefront-details.css'
       - 'home-sections.css'
+      - 'home-campaign.js'
+      - 'home-campaign-config.js'
+      - 'campaign.css'
       - 'article-layout.css'
       - 'scripts/article-layout.mjs'
       - 'scripts/generate-sitemap.mjs'
@@ -180,6 +183,7 @@ jobs:
           node tests/brand-mobile.cjs
           node tests/capsule-orders.cjs
           node tests/home-presentation.cjs
+          node tests/home-campaign.cjs
           node tests/home-mobile-copy.cjs
           node tests/home-editorial-flow.cjs
           node tests/mobile-storefront.cjs

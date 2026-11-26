@@ -53,6 +53,7 @@ for(const file of publicFiles){
    text=renderAppIcons(text,file);
    text=renderStorefrontFooter(text,file);
    if(file==='article.html'||file.startsWith('seo-article/'))text=renderArticleLayout(text);
+   if((file==='catalog.html'||/^seo-(?:category|subcategory)\//.test(file))&&!/href="campaign\.css/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="campaign.css?v=1"></head>');
    if(file==='product.html'||file.startsWith('seo-product/')){
     const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
     text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);
@@ -66,7 +67,7 @@ for(const file of publicFiles){
   if(cloudflare&&/\.(?:html|json|xml)$/.test(file))text=cleanReferences(text,targetSite);
   if(cloudflare)text=prettySiteReferences(text,targetSite);
   if(file.endsWith('.html'))text=localNavigation(snapshotBase(text,file),[targetSite,sourceSite]);
-  if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=3"></script></head>');
+  if(analyticsEnabled&&file.endsWith('.html')&&!file.startsWith('admin/')&&!['account.html','404.html'].includes(file))text=text.replace(/<\/head>/i,'<script defer src="analytics.js?v=4"></script></head>');
   if(file==='config.js'&&cloudflare)text+='\nwindow.VH_CONFIG.prettyUrls=true;window.VH_CONFIG.cleanUrls=true;\n';
   if(cloudflare&&file.endsWith('.html')){
    if(/^seo-/.test(file))text=text.replace(/(<base\b[^>]*\bhref=")[^"]*(")/i,'$1/$2');
@@ -93,7 +94,7 @@ for(const file of publicFiles){
 if(cloudflare){
  // Route parsers must not share cache keys with the pre-migration scripts.
  // Keep aliases at the root so document.currentScript-relative imports work.
- const routingFiles=['site.js','config.js','product-routes.js','vh-seo-runtime.js','vh-page-seo.js','cms-published.js','product-photo-request.js'];
+ const routingFiles=['site.js','config.js','product-routes.js','vh-seo-runtime.js','vh-page-seo.js','cms-published.js','product-photo-request.js','home-campaign.js','home-campaign-config.js'];
  const routingNames=new Map();
  for(const file of routingFiles){
   const bytes=await readFile(path.join(out,file));
