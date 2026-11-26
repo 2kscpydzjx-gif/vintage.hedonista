@@ -32,7 +32,25 @@
  .catalog-luxury-price:has(del){display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
  .catalog-luxury-price del{color:#806f5f;font-size:.8em;font-weight:400}
  .catalog-badge.sale{color:#f6ebdf;background:#765236;border:1px solid #765236}
+ dialog.vh-campaign-popup{position:fixed!important;inset:0!important;margin:auto!important;box-sizing:border-box;width:min(400px,calc(100vw - 32px))!important;max-width:none!important;max-height:calc(100dvh - 32px)!important;padding:0!important;border:1px solid #bda587!important;background:#eee3d6!important;color:#211812!important;overflow:auto!important;overscroll-behavior:contain;box-shadow:0 20px 80px #0006}
+ dialog.vh-campaign-popup[open]{display:block!important;animation:vh-campaign-popup-enter .28s ease-out both}
+ .vh-campaign-popup::backdrop{background:#0d0c0999;backdrop-filter:blur(3px)}
+ .vh-campaign-popup__card{position:relative!important}
+ .vh-campaign-popup picture{display:block!important;width:100%!important;height:224px!important;background:#33271d}
+ .vh-campaign-popup picture img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+ .vh-campaign-popup .vh-campaign-popup__close{position:absolute!important;top:10px!important;right:10px!important;display:flex!important;align-items:center;justify-content:center;width:44px!important;height:44px!important;padding:0!important;border:1px solid #eee3d670!important;border-radius:50%!important;background:#100c08d9!important;color:#fff4e6!important;cursor:pointer}
+ .vh-campaign-popup__close svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.3}
+ .vh-campaign-popup__copy{padding:26px 28px 28px!important;text-align:center!important}
+ .vh-campaign-popup .vh-campaign-popup__eyebrow{margin:0 0 12px!important;color:#73583c!important;font:500 9px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.13em!important}
+ .vh-campaign-popup #vh-campaign-popup-title{margin:0!important;color:#211812!important;font:400 clamp(25px,6vw,32px)/1.3 'VH Prata Aligned',Prata,Georgia,serif!important;letter-spacing:0!important;text-shadow:none!important}
+ .vh-campaign-popup #vh-campaign-popup-description{margin:14px 0 22px!important;color:#6b5947!important;font:400 13px/1.6 Montserrat,Arial,sans-serif!important}
+ .vh-campaign-popup .vh-campaign-popup__button{display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:100%!important;min-height:48px!important;padding:12px 16px!important;border:1px solid #211812!important;background:#211812!important;color:#f6ebdf!important;text-decoration:none!important;text-align:center;font:500 10px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.06em!important;transition:background .2s}
+ .vh-campaign-popup .vh-campaign-popup__button:hover{background:#503c29!important}
+ .vh-campaign-popup__close:focus-visible,.vh-campaign-popup__button:focus-visible{outline:2px solid #b99565!important;outline-offset:3px!important}
  @media(max-width:760px){
+  dialog.vh-campaign-popup{inset:auto 0 max(12px,env(safe-area-inset-bottom,0px))!important;margin:0 auto!important;width:min(360px,calc(100vw - 24px))!important;max-height:calc(100dvh - 24px)!important}
+  .vh-campaign-popup picture{height:clamp(128px,26dvh,200px)!important}
+  .vh-campaign-popup__copy{padding:22px 22px 24px!important}
   .vh-hero-carousel>.vh-hero-controls{top:14px;right:14px;bottom:auto}
   .vh-hero-promo__copy{width:100%;padding:88px 24px 48px}
   .vh-hero-promo .vh-hero-promo__eyebrow{font-size:10px!important;letter-spacing:.14em!important;margin-bottom:20px!important}
@@ -42,4 +60,6 @@
  }
  @media(pointer:coarse){.vh-hero-controls button{width:44px;height:44px}.vh-hero-dots button{width:34px}}
  @media(prefers-reduced-motion:reduce){.vh-hero-carousel>[data-vh-original-slide],.vh-hero-carousel>.vh-hero-promo,.vh-hero-dots button span,.vh-hero-promo__button{transition:none!important}}
+ @media(prefers-reduced-motion:reduce){dialog.vh-campaign-popup[open]{animation:none!important}.vh-campaign-popup__button{transition:none!important}}
 }
+@keyframes vh-campaign-popup-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}

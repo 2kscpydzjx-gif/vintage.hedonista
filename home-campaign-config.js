@@ -9,5 +9,13 @@ window.VH_HOME_CAMPAIGN = Object.freeze({
   eyebrow: 'VINTAZHKA · BLACK FRIDAY',
   title: 'ЧОРНА\nП’ЯТНИЦЯ',
   description: 'Обирай вінтажні речі зі знижками.',
-  buttonText: 'ПЕРЕГЛЯНУТИ ЗНИЖКИ'
+  buttonText: 'ПЕРЕГЛЯНУТИ ЗНИЖКИ',
+  // Independent popup switch. Change id for a new campaign, not for a text edit.
+  popup: {
+    enabled: true,
+    id: 'black-friday-2026',
+    delayMs: 5000,
+    image: '',
+    mobileImage: ''
+  }
 });

@@ -10,6 +10,8 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
 (async()=>{
  const f=await fixture({reducedMotion:'reduce',hasTouch:true});
  try{
+  // Exercise carousel/catalog independently of the timed popup's dedicated suite.
+  await f.context.addInitScript(()=>{try{localStorage.setItem('vh_campaign_dismissed_black-friday-2026','1')}catch{}});
   f.user(null);f.session(null);f.settings({hero_title:'VINTAZHKA — МИСТЕЦТВО БУТИ СОБОЮ',hero_main_image:photo,hero_top_image:photo,hero_bottom_image:photo});
   f.data('products',products);f.data('categories',categories);f.set('home','published',revision);
   let clean=false;
