@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {fixture}=require('./cms-browser-fixture.cjs');
+const {campaign,mockCampaignPhotos,verifyFrame}=require('./campaign-photos.cjs');
 const base='http://127.0.0.1:8765',photo=base+'/assets/test-upload.png';
 const root=path.resolve(__dirname,process.env.VH_TEST_BUILT==='1'?'../dist':'..');
 const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPreset:'gradient-hero'},images:{image0:photo}}}}}};
@@ -9,6 +10,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   async function page(id,width=390,height=844,extra={}){
    const f=await fixture({reducedMotion:'reduce',hasTouch:true});fixtures.push(f);
    f.user(null);f.session(null);f.settings({hero_title:'VINTAZHKA',hero_main_image:photo});f.set('home','published',revision);
+   await mockCampaignPhotos(f.context,f.png);
    if(process.env.VH_CAMPAIGN_PHOTO)await f.context.route('**/assets/test-upload.png*',r=>r.fulfill({contentType:'image/png',body:fs.readFileSync(process.env.VH_CAMPAIGN_PHOTO)}));
    const p=await f.context.newPage();p.on('close',()=>{void f.browser.close()});await p.setViewportSize({width,height});
    const time=new Date('2026-11-26T12:00:00Z');await p.clock.install({time});await p.clock.pauseAt(time);
@@ -25,12 +27,13 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    const button=dialog.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}),image=dialog.locator('picture'),copy=dialog.locator('.vh-campaign-popup__copy');
    assert.equal(new URL(await button.getAttribute('href')).searchParams.get('sale'),'1');
    assert.ok((await copy.boundingBox()).y>=(await image.boundingBox()).y+(await image.boundingBox()).height-1,'copy must follow photo');
-   assert.equal(await dialog.locator('img').getAttribute('src'),photo);
+   assert.equal(await dialog.locator('img').getAttribute('src'),campaign.popup.image);
    assert.equal(await p.evaluate(()=>document.documentElement.style.overflow),'hidden');
    assert.equal(await p.getByRole('button',{name:'Закрити оголошення'}).evaluate(el=>el===document.activeElement),true);
    await p.keyboard.press('Tab');assert.equal(await button.evaluate(el=>el===document.activeElement),true);
    await p.keyboard.press('Tab');assert.equal(await p.getByRole('button',{name:'Закрити оголошення'}).evaluate(el=>el===document.activeElement),true,'focus left the modal');
    await dialog.locator('img').evaluate(el=>el.decode());
+   await verifyFrame(dialog.locator('img'),campaign.popup.imageFrame);
    if(width===390&&height===844||width===1440){fs.mkdirSync('test-results/black-friday',{recursive:true});await p.screenshot({path:'test-results/black-friday/popup-'+width+'.png'})}
    await p.getByRole('button',{name:'Закрити оголошення'}).click();await dialog.waitFor({state:'hidden'});await p.clock.runFor(32);
    assert.equal(await p.evaluate(()=>document.documentElement.style.overflow),'');

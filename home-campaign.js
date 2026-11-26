@@ -16,18 +16,35 @@
  function loadPhoto(picture,img,config,hero){
   const fallback=currentPhoto(hero),desktop=imageUrl(config.image)||fallback;
   const mobile=imageUrl(config.mobileImage);
+  let usingFallback=false;
+  const properties=['width','height','left','top'].map(name=>'--vh-campaign-image-'+name);
+  function frame(){
+   const inset=!usingFallback&&(mobile&&matchMedia('(max-width:760px)').matches?config.mobileImageFrame:config.imageFrame);
+   properties.forEach(name=>img.style.removeProperty(name));
+   if(!inset||!img.naturalWidth)return;
+   const top=Math.max(0,Number(inset.top)||0)/100,bottom=Math.max(0,Number(inset.bottom)||0)/100;
+   if(top+bottom>=1)return;
+   const box=picture.getBoundingClientRect(),photoHeight=img.naturalHeight*(1-top-bottom);
+   if(!box.width||!box.height)return;
+   const scale=Math.max(box.width/img.naturalWidth,box.height/photoHeight),width=img.naturalWidth*scale,height=img.naturalHeight*scale;
+   const [x,y]=getComputedStyle(img).objectPosition.split(' ').map(value=>Math.min(1,Math.max(0,(parseFloat(value)||0)/100)));
+   const values=[width,height,(box.width-width)*x,-img.naturalHeight*top*scale+(box.height-photoHeight*scale)*y];
+   properties.forEach((name,i)=>img.style.setProperty(name,values[i]+'px'));
+  }
+  const observer=new ResizeObserver(frame);observer.observe(picture);img.addEventListener('load',frame);
   if(mobile){const source=document.createElement('source');source.media='(max-width:760px)';source.srcset=mobile;picture.prepend(source)}
-  img.addEventListener('error',()=>{picture.querySelector('source')?.remove();if(fallback&&img.src!==fallback)img.src=fallback},{once:true});
+  img.addEventListener('error',()=>{usingFallback=true;frame();picture.querySelector('source')?.remove();if(fallback&&img.src!==fallback)img.src=fallback},{once:true});
   if(desktop)img.src=desktop;
+  return ()=>{observer.disconnect();img.removeEventListener('load',frame)};
  }
  function mountPopup(hero,config){
   const settings=config.popup,key='vh_campaign_dismissed_'+settings.id;
-  let timer,dialog=null,stopped=false,previousOverflow='',locked=false;
+  let timer,dialog=null,stopped=false,previousOverflow='',locked=false,cleanupPhoto=()=>{};
   function dismissed(){try{if(localStorage.getItem(key)==='1')return true}catch{}try{return sessionStorage.getItem(key)==='1'}catch{return false}}
   function remember(){try{localStorage.setItem(key,'1')}catch{}try{sessionStorage.setItem(key,'1')}catch{}}
   function close(){dialog.close();closed()}
   function release(){if(locked){locked=false;document.documentElement.style.overflow=previousOverflow}}
-  function closed(){stopped=true;release();remember()}
+  function closed(){stopped=true;release();remember();cleanupPhoto()}
   function blocked(){
    return document.visibilityState!=='visible'||document.querySelector('#vh-analytics-choice,dialog[open],.vh-modal-open,.vh-mobile-menu-open')||
     document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
@@ -47,7 +64,7 @@
    const link=document.createElement('a');link.className='vh-campaign-popup__button';link.href=destination();link.textContent=config.buttonText;link.addEventListener('click',close);
    copy.append(eyebrow,title,text,link);card.append(picture,exit,copy);dialog.append(card);document.body.append(dialog);
    dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;if(e.shiftKey&&document.activeElement===exit){e.preventDefault();link.focus()}else if(!e.shiftKey&&document.activeElement===link){e.preventDefault();exit.focus()}});
-   loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||config.mobileImage},hero);
+   cleanupPhoto=loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||config.mobileImage,imageFrame:settings.imageFrame||config.imageFrame,mobileImageFrame:settings.mobileImageFrame||config.mobileImageFrame},hero);
    dialog.addEventListener('close',closed);
    dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
    dialog.addEventListener('click',e=>{const r=dialog.getBoundingClientRect();if(e.target===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom))close()});
@@ -57,10 +74,10 @@
   timer=setTimeout(show,Math.max(0,Math.ceil((Number(settings.delayMs)||5000)-performance.now())));
   const storage=e=>{if(e.key===key&&e.newValue==='1'){stopped=true;clearTimeout(timer);if(dialog?.open)close()}};
   window.addEventListener('storage',storage);
-  return {key,destroy(){stopped=true;clearTimeout(timer);window.removeEventListener('storage',storage);if(dialog){dialog.removeEventListener('close',closed);if(dialog.open)dialog.close();release();dialog.remove()}}};
+  return {key,destroy(){stopped=true;clearTimeout(timer);cleanupPhoto();window.removeEventListener('storage',storage);if(dialog){dialog.removeEventListener('close',closed);if(dialog.open)dialog.close();release();dialog.remove()}}};
  }
  function mount(hero,config){
-  let index=0,start=null,imageLoaded=false;
+  let index=0,start=null,imageLoaded=false,cleanupPhoto=()=>{};
   const saved=new WeakMap();
   const promo=document.createElement('div');promo.className='vh-hero-promo';promo.dataset.vhHeroUi='';promo.id='vh-hero-promotion';promo.setAttribute('aria-label','Чорна п’ятниця');
   const picture=document.createElement('picture'),img=document.createElement('img');
@@ -83,7 +100,7 @@
   function originals(){return [...hero.children].filter(el=>!el.hasAttribute('data-vh-hero-ui'))}
   function loadImage(){
    if(imageLoaded)return;imageLoaded=true;
-   loadPhoto(picture,img,config,hero);
+   cleanupPhoto=loadPhoto(picture,img,config,hero);
   }
   function select(value,announce=true){
    index=(value+2)%2;if(index===1)loadImage();
@@ -109,7 +126,7 @@
   const cancel=()=>{start=null};
   hero.addEventListener('keydown',keydown);hero.addEventListener('pointerdown',down);hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',cancel);
   select(0,false);
-  return {hero,refresh:()=>select(index,false),destroy(){select(0,false);hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel)}};
+  return {hero,refresh:()=>select(index,false),destroy(){select(0,false);cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel)}};
  }
  function ready(){
   const config=window.VH_HOME_CAMPAIGN,hero=document.querySelector('body.home-page>.hero');

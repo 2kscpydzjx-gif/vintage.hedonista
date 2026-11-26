@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {fixture}=require('./cms-browser-fixture.cjs');
+const {campaign,mockCampaignPhotos,verifyFrame}=require('./campaign-photos.cjs');
 const base='http://127.0.0.1:8765',photo=base+'/assets/test-upload.png';
 const root=path.resolve(__dirname,process.env.VH_TEST_BUILT==='1'?'../dist':'..');
 const categories=[{id:'outerwear-id',slug:'outerwear',name:'Верхній одяг',is_active:true},{id:'shoes-id',slug:'shoes',name:'Взуття',is_active:true}];
@@ -14,6 +15,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   await f.context.addInitScript(()=>{try{localStorage.setItem('vh_campaign_dismissed_black-friday-2026','1')}catch{}});
   f.user(null);f.session(null);f.settings({hero_title:'VINTAZHKA — МИСТЕЦТВО БУТИ СОБОЮ',hero_main_image:photo,hero_top_image:photo,hero_bottom_image:photo});
   f.data('products',products);f.data('categories',categories);f.set('home','published',revision);
+  await mockCampaignPhotos(f.context,f.png);
   let clean=false;
   await f.context.route('**/config.js',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'config.js'),'utf8')+(clean?'\nwindow.VH_CONFIG.cleanUrls=true;window.VH_CONFIG.prettyUrls=true;':'')}));
   await f.context.route(base+'/catalog**',r=>r.request().resourceType()==='document'?r.fulfill({contentType:'text/html; charset=utf-8',body:fs.readFileSync(path.join(root,'catalog.html'),'utf8').replace('<head>','<head><base href="/">')}):r.fallback());
@@ -27,6 +29,9 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    assert.equal(await p.locator('.vh-hero-promo img').getAttribute('src'),null,'second photo should not compete with first Hero load');
    await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();
    await p.locator('.vh-hero-promo').waitFor({state:'visible'});
+   const photoNode=p.locator('.vh-hero-promo img');await photoNode.evaluate(el=>el.decode());
+   assert.equal(await photoNode.evaluate(el=>el.currentSrc),width<=760?campaign.mobileImage:campaign.image,'responsive campaign photo');
+   await verifyFrame(photoNode,width<=760?campaign.mobileImageFrame:campaign.imageFrame);
    const visible=await hero.boundingBox();assert.ok(Math.abs(visible.height-initial.height)<1,'slide changes Hero height at '+width);
    assert.equal(await p.locator('#heroTitle').evaluate(el=>!!el.closest('[inert]')),true);
    assert.equal(await p.locator('.vh-hero-promo').getAttribute('aria-hidden'),'false');
@@ -61,7 +66,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   }
   await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.getByRole('link',{name:'ПЕРЕГЛЯНУТИ ЗНИЖКИ'}).click();
   await p.waitForFunction(()=>document.querySelector('#catalogSaleOnly')?.checked&&document.querySelectorAll('.catalog-luxury-card').length===12);
-  assert.equal(new URL(p.url()).searchParams.get('sale'),'1');assert.equal(await p.locator('#catalogSaleNotice').isVisible(),true);
+  assert.equal(new URL(p.url()).searchParams.get('sale'),'1');await p.locator('#catalogSaleNotice').waitFor({state:'visible'});
   assert.equal(await p.locator('#catalogSaleCount').innerText(),'14');
   assert.equal(await p.locator('.catalog-luxury-card .catalog-luxury-price del').count(),12);
   assert.equal(await p.locator('.catalog-luxury-card .catalog-badge.sale').count(),12);

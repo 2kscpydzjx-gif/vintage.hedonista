@@ -53,7 +53,7 @@ for(const file of publicFiles){
    text=renderAppIcons(text,file);
    text=renderStorefrontFooter(text,file);
    if(file==='article.html'||file.startsWith('seo-article/'))text=renderArticleLayout(text);
-   if((file==='catalog.html'||/^seo-(?:category|subcategory)\//.test(file))&&!/href="campaign\.css/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="campaign.css?v=2"></head>');
+   if((file==='catalog.html'||/^seo-(?:category|subcategory)\//.test(file))&&!/href="campaign\.css/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="campaign.css?v=3"></head>');
    if(file==='product.html'||file.startsWith('seo-product/')){
     const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
     text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);
