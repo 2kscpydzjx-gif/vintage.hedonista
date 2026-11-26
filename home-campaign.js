@@ -80,6 +80,7 @@
   let index=0,start=null,imageLoaded=false,cleanupPhoto=()=>{};
   const saved=new WeakMap();
   const promo=document.createElement('div');promo.className='vh-hero-promo';promo.dataset.vhHeroUi='';promo.id='vh-hero-promotion';promo.setAttribute('aria-label','Чорна п’ятниця');
+  if(config.desktopImageFit==='contain')promo.classList.add('vh-hero-promo--contain');
   const picture=document.createElement('picture'),img=document.createElement('img');
   img.alt='';img.decoding='async';img.fetchPriority='low';img.draggable=false;img.style.objectPosition=config.imagePosition||'center';picture.append(img);
   const copy=document.createElement('div');copy.className='vh-hero-promo__copy';

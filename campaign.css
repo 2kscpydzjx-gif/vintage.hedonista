@@ -48,6 +48,11 @@
  .vh-campaign-popup .vh-campaign-popup__button{display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:100%!important;min-height:48px!important;padding:12px 16px!important;border:1px solid #211812!important;background:#211812!important;color:#f6ebdf!important;text-decoration:none!important;text-align:center;font:500 10px/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.06em!important;transition:background .2s}
  .vh-campaign-popup .vh-campaign-popup__button:hover{background:#503c29!important}
  .vh-campaign-popup__close:focus-visible,.vh-campaign-popup__button:focus-visible{outline:2px solid #b99565!important;outline-offset:3px!important}
+ @media(min-width:761px){
+  .vh-hero-promo--contain>picture>img{left:auto!important;right:0!important;width:auto!important;height:100%!important;max-width:100%!important;object-fit:contain!important;object-position:right center!important;mask-image:linear-gradient(90deg,transparent,#000 14%)}
+  .vh-hero-promo--contain::after{background:linear-gradient(90deg,#0d0c09 0%,rgba(13,12,9,.95) 15%,rgba(13,12,9,.65) 34%,transparent 60%)}
+  .vh-hero-carousel[data-vh-slide="1"]>.vh-hero-promo--contain~.vh-hero-controls{left:50%;right:auto;transform:translateX(-50%)}
+ }
  @media(max-width:760px){
   dialog.vh-campaign-popup{inset:auto 0 max(12px,env(safe-area-inset-bottom,0px))!important;margin:0 auto!important;width:min(360px,calc(100vw - 24px))!important;max-height:calc(100dvh - 24px)!important}
   .vh-campaign-popup picture{height:clamp(128px,26dvh,200px)!important}

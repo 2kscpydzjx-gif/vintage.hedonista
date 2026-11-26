@@ -22,7 +22,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   const actualPhoto=process.env.VH_CAMPAIGN_PHOTO;
   if(actualPhoto)await f.context.route('**/assets/test-upload.png*',r=>r.fulfill({contentType:'image/png',body:fs.readFileSync(actualPhoto)}));
   const p=await f.context.newPage();
-  for(const width of [320,390,820,1440]){
+  for(const width of [320,390,820,1366,1440,1920,2560]){
    await p.setViewportSize({width,height:900});await p.goto(base+'/index.html');await p.waitForFunction(()=>VHCMSBoot?.state==='ready');await p.locator('.vh-hero-controls').waitFor();
    const hero=p.locator('.hero'),initial=await hero.boundingBox(),original=await p.locator('#heroTitle').innerText();
    assert.equal(await p.locator('h1').count(),1);assert.equal(await hero.getAttribute('data-vh-slide'),'0');
@@ -30,7 +30,11 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();
    await p.locator('.vh-hero-promo').waitFor({state:'visible'});
    const photoNode=p.locator('.vh-hero-promo img');await photoNode.evaluate(el=>el.decode());
-   assert.equal(await photoNode.evaluate(el=>el.currentSrc),width<=760?campaign.mobileImage:campaign.image,'responsive campaign photo');
+   assert.equal(await photoNode.evaluate(el=>el.currentSrc),new URL(width<=760?campaign.mobileImage:campaign.image,base).href,'responsive campaign photo');
+   if(width>760&&campaign.desktopImageFit==='contain'){
+    const fit=await photoNode.evaluate(el=>{const s=getComputedStyle(el),p=el.parentElement.getBoundingClientRect(),r=el.getBoundingClientRect();return {fit:s.objectFit,position:s.objectPosition,source:[el.naturalWidth,el.naturalHeight],inside:r.x>=p.x-1&&r.y>=p.y-1&&r.right<=p.right+1&&r.bottom<=p.bottom+1}});
+    assert.equal(fit.fit,'contain','desktop photo must remain fully visible');assert.equal(fit.position,'100% 50%');assert.deepEqual(fit.source,[1916,821]);assert.equal(fit.inside,true);
+   }
    await verifyFrame(photoNode,width<=760?campaign.mobileImageFrame:campaign.imageFrame);
    const visible=await hero.boundingBox();assert.ok(Math.abs(visible.height-initial.height)<1,'slide changes Hero height at '+width);
    assert.equal(await p.locator('#heroTitle').evaluate(el=>!!el.closest('[inert]')),true);
@@ -43,7 +47,7 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
     const b=await el.boundingBox();assert.ok(b.x>=initial.x-1&&b.x+b.width<=initial.x+initial.width+1,'campaign UI overflows at '+width);
    }
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'horizontal overflow '+width);
-   if(width===390||width===1440){fs.mkdirSync('test-results/black-friday',{recursive:true});await hero.screenshot({path:'test-results/black-friday/promotion-'+width+'.png'})}
+   if([390,1366,1440,1920,2560].includes(width)){fs.mkdirSync('test-results/black-friday',{recursive:true});await hero.screenshot({path:'test-results/black-friday/promotion-'+width+'.png'})}
    await p.getByRole('button',{name:'Попередній слайд',exact:true}).click();assert.equal(await p.locator('#heroTitle').innerText(),original);assert.equal(await p.locator('#heroCatalogBtn').isVisible(),true);
    // A horizontal touch gesture changes slides; vertical motion does not.
    const box=await hero.boundingBox(),x=box.x+box.width*.75,y=box.y+120;
@@ -90,6 +94,6 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
   await p.evaluate(()=>{window.VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,enabled:false};VHHomeCampaign.refresh()});
   assert.equal(await p.locator('.vh-hero-controls,.vh-hero-promo').count(),0);assert.equal(await p.locator('#heroCatalogBtn').isVisible(),true);assert.equal(await p.locator('#heroTitle').evaluate(el=>!!el.closest('[inert]')),false);
   assert.deepEqual(f.records.get('home:published').shared,revision.shared);assert.equal(f.calls.some(c=>c.op!=='select'),false,'unexpected live content write');assert.deepEqual(f.errors,[]);
-  console.log('PASS: two-slide Hero at four widths, manual controls/keyboard/swipe, stable height, deferred photo, CMS reapply, sale CTA/filter/old prices/pagination/category URLs/reload/reset/empty state, and campaign off switch. No content writes.');
+  console.log('PASS: two-slide Hero at seven widths, complete desktop photo without cropping, manual controls/keyboard/swipe, stable height, deferred photo, CMS reapply, sale CTA/filter/old prices/pagination/category URLs/reload/reset/empty state, and campaign off switch. No content writes.');
  }finally{await f.browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
