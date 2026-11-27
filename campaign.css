@@ -1,10 +1,11 @@
 /* Isolated campaign controls; the existing first Hero slide keeps its CMS layout. */
 @layer vh-responsive {
- .home-page>.hero.vh-hero-carousel{position:relative!important;isolation:isolate;touch-action:pan-y pinch-zoom}
- .vh-hero-carousel>[data-vh-original-slide]{transition:opacity .35s ease,visibility .35s ease}
- .vh-hero-carousel[data-vh-slide="1"]>[data-vh-original-slide]{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
- .vh-hero-carousel>.vh-hero-promo{position:absolute!important;inset:0!important;z-index:8!important;display:flex!important;align-items:center!important;background:#0d0c09!important;color:#eee3d6!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s ease,visibility .4s ease;overflow:hidden}
- .vh-hero-carousel[data-vh-slide="1"]>.vh-hero-promo{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+ .home-page>.hero.vh-hero-carousel{position:relative!important;isolation:isolate;overflow:clip!important;touch-action:pan-y pinch-zoom}
+ .vh-hero-carousel[data-vh-slide="1"]>[data-vh-original-slide]{visibility:hidden!important;pointer-events:none!important}
+ .vh-hero-carousel>.vh-hero-promo{position:absolute!important;inset:0!important;z-index:8!important;display:flex!important;align-items:center!important;background:#0d0c09!important;color:#eee3d6!important;visibility:hidden;pointer-events:none;overflow:hidden}
+ .vh-hero-carousel[data-vh-slide="1"]>.vh-hero-promo{visibility:visible!important;pointer-events:auto!important}
+ .vh-hero-carousel[data-vh-moving]>[data-vh-original-slide],.vh-hero-carousel[data-vh-moving]>.vh-hero-promo{visibility:visible!important;opacity:1!important;will-change:translate}
+ .vh-hero-carousel[data-vh-moving] .vh-hero-arrow{pointer-events:none}
  .vh-hero-promo>picture{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;overflow:hidden}
  .vh-hero-promo>picture>img{position:absolute!important;left:var(--vh-campaign-image-left,0px)!important;top:var(--vh-campaign-image-top,0px)!important;width:var(--vh-campaign-image-width,100%)!important;height:var(--vh-campaign-image-height,100%)!important;max-width:none!important;max-height:none!important;display:block!important;object-fit:cover!important}
  .vh-hero-promo::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,7,5,.94),rgba(9,7,5,.76) 35%,rgba(9,7,5,.22) 100%);pointer-events:none}

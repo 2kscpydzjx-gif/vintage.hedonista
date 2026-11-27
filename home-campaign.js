@@ -98,9 +98,10 @@
  }
  function mount(hero,config){
   let index=0,start=null,imageLoaded=false,cleanupPhoto=()=>{};
-  let rotationTimer=null,hovered=false,inView=false,destroyed=false;
+  let rotationTimer=null,inView=false,destroyed=false,animations=[],animationGeneration=0;
   const motion=matchMedia('(prefers-reduced-motion:reduce)');let paused=motion.matches;
   const interval=Math.max(1000,Number(config.autoSlideMs)||7000);
+  const slideDuration=Math.max(0,Number(config.slideDurationMs??700)||0);
   const saved=new WeakMap();
   const promo=document.createElement('div');promo.className='vh-hero-promo';promo.dataset.vhHeroUi='';promo.id='vh-hero-promotion';promo.setAttribute('aria-label','Чорна п’ятниця');
   if(config.desktopImageFit==='contain')promo.classList.add('vh-hero-promo--contain');
@@ -138,7 +139,8 @@
     const source=sources[i],rect=source.getBoundingClientRect(),style=getComputedStyle(source);
     for(const name of typography)target.style.setProperty(name,style.getPropertyValue(name),'important');
     if(mobile&&i<3)target.style.setProperty('text-align','left','important');
-    for(const [name,value] of Object.entries({x:rect.x-bounds.x,y:rect.y-bounds.y,width:rect.width,height:rect.height,'column-width':column}))target.style.setProperty('--vh-ref-'+name,value+'px');
+    const slide=source.closest('[data-vh-original-slide]'),offset=slide?parseFloat(getComputedStyle(slide).translate)||0:0;
+    for(const [name,value] of Object.entries({x:rect.x-bounds.x-offset,y:rect.y-bounds.y,width:rect.width,height:rect.height,'column-width':column}))target.style.setProperty('--vh-ref-'+name,value+'px');
     if(i===3)target.style.setProperty('--vh-ref-padding',style.padding);
    });
    if(mobile)delete copy.dataset.vhCopySynced;else copy.dataset.vhCopySynced='';
@@ -148,7 +150,7 @@
   hero.addEventListener('animationend',syncCopy);hero.addEventListener('transitionend',syncCopy);
   document.fonts?.ready.then(syncCopy);
   function clearRotation(){clearTimeout(rotationTimer);rotationTimer=null}
-  function canRotate(){return !destroyed&&!paused&&!hovered&&inView&&!start&&document.visibilityState==='visible'&&!hero.contains(document.activeElement)&&!document.querySelector('dialog[open],#vh-analytics-choice,.vh-modal-open,.vh-mobile-menu-open')}
+  function canRotate(){return !destroyed&&!paused&&inView&&!start&&document.visibilityState==='visible'&&!(hero.contains(document.activeElement)&&document.activeElement.matches(':focus-visible'))&&!document.querySelector('dialog[open],#vh-analytics-choice,.vh-modal-open,.vh-mobile-menu-open')}
   function scheduleRotation(){
    if(!canRotate()){clearRotation();return}
    if(rotationTimer!==null)return;
@@ -160,8 +162,25 @@
    if(imageLoaded)return;imageLoaded=true;
    cleanupPhoto=loadPhoto(picture,img,config,hero);
   }
-  function select(value,announce=true){
-   index=(value+2)%2;if(index===1)loadImage();
+  function finishMotion(){
+   animationGeneration++;delete hero.dataset.vhMoving;
+   animations.forEach(animation=>animation.cancel());animations=[];
+   prev.removeAttribute('aria-disabled');next.removeAttribute('aria-disabled');
+  }
+  function slide(from,to,direction){
+   if(motion.matches||!slideDuration)return;
+   const width=hero.getBoundingClientRect().width,token=++animationGeneration;
+   hero.dataset.vhMoving='';prev.setAttribute('aria-disabled','true');next.setAttribute('aria-disabled','true');
+   const outgoing=from? [promo]:originals(),incoming=to? [promo]:originals();
+   const options={duration:slideDuration,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'};
+   for(const el of outgoing)animations.push(el.animate([{translate:'0px 0px'},{translate:(-direction*width)+'px 0px'}],options));
+   for(const el of incoming)animations.push(el.animate([{translate:(direction*width)+'px 0px'},{translate:'0px 0px'}],options));
+   Promise.allSettled(animations.map(animation=>animation.finished)).then(()=>{if(!destroyed&&token===animationGeneration){finishMotion();syncCopy()}});
+  }
+  function select(value,announce=true,animate=true){
+   const target=(value+2)%2;if(animations.length&&target!==index)return;
+   const previousIndex=index,direction=value<index?-1:1;
+   index=target;if(index===1)loadImage();
    syncCopy();
    const nodes=originals();
    if(index&&nodes.some(el=>el.contains(document.activeElement)))next.focus({preventScroll:true});
@@ -174,6 +193,7 @@
     else{const prior=saved.get(el);el.inert=prior.inert;if(prior.aria===null)el.removeAttribute('aria-hidden');else el.setAttribute('aria-hidden',prior.aria)}
    }
    promo.inert=index!==1;promo.setAttribute('aria-hidden',String(index!==1));
+   if(animate&&index!==previousIndex)slide(previousIndex,index,direction);
    if(announce)status.textContent=index?'Слайд 2 з 2. Чорна п’ятниця.':'Слайд 1 з 2. Vintazhka.';
    restartRotation();
   }
@@ -183,15 +203,19 @@
   function down(e){if(!e.isPrimary||e.button!==0||e.target.closest('a,button,input,textarea,select'))return;start={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now()};scheduleRotation();try{hero.setPointerCapture?.(e.pointerId)}catch{}}
   function up(e){if(!start||start.id!==e.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,elapsed=performance.now()-start.at;start=null;if(Math.abs(dx)>=50&&Math.abs(dx)>Math.abs(dy)*1.4&&elapsed<1200)select(index+(dx<0?1:-1));else scheduleRotation()}
   const cancel=()=>{start=null;scheduleRotation()};
-  const enter=()=>{hovered=true;scheduleRotation()},leave=()=>{hovered=false;scheduleRotation()},focusOut=()=>queueMicrotask(scheduleRotation);
-  const motionChange=()=>{paused=motion.matches;rotationLabel();scheduleRotation()};
+  const focusOut=()=>queueMicrotask(scheduleRotation);
+  const motionChange=()=>{paused=motion.matches;if(motion.matches)finishMotion();rotationLabel();scheduleRotation()};
+  const resume=()=>{finishMotion();start=null;const rect=hero.getBoundingClientRect();inView=rect.bottom>0&&rect.top<innerHeight;syncCopy();restartRotation()};
+  const pageHide=()=>{clearRotation();finishMotion();start=null};
+  const visibility=()=>{if(document.visibilityState==='visible')resume();else pageHide()};
+  const pointerFocus=()=>queueMicrotask(scheduleRotation);
   const viewObserver=new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;scheduleRotation()},{threshold:0});viewObserver.observe(hero);
   const modalObserver=new MutationObserver(scheduleRotation);modalObserver.observe(document.body,{childList:true,attributes:true,attributeFilter:['class']});
-  hero.addEventListener('mouseenter',enter);hero.addEventListener('mouseleave',leave);hero.addEventListener('focusin',scheduleRotation);hero.addEventListener('focusout',focusOut);
-  document.addEventListener('visibilitychange',scheduleRotation);window.addEventListener('vh:campaign-popup-change',scheduleRotation);motion.addEventListener('change',motionChange);
+  hero.addEventListener('focusin',scheduleRotation);hero.addEventListener('focusout',focusOut);hero.addEventListener('pointerdown',pointerFocus);
+  document.addEventListener('visibilitychange',visibility);window.addEventListener('pageshow',resume);window.addEventListener('pagehide',pageHide);window.addEventListener('resize',resume);window.addEventListener('vh:campaign-popup-change',scheduleRotation);motion.addEventListener('change',motionChange);
   hero.addEventListener('keydown',keydown);hero.addEventListener('pointerdown',down);hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',cancel);
-  select(0,false);
-  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;select(0,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();textObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('animationend',syncCopy);hero.removeEventListener('transitionend',syncCopy);hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('mouseenter',enter);hero.removeEventListener('mouseleave',leave);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);document.removeEventListener('visibilitychange',scheduleRotation);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
+  select(0,false,false);
+  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;finishMotion();select(0,false,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();textObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('animationend',syncCopy);hero.removeEventListener('transitionend',syncCopy);hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);hero.removeEventListener('pointerdown',pointerFocus);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('pagehide',pageHide);window.removeEventListener('resize',resume);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
  }
  function ready(){
   const config=window.VH_HOME_CAMPAIGN,hero=document.querySelector('body.home-page>.hero');

@@ -52,8 +52,9 @@ for(const file of publicFiles){
    text=renderBrandLogos(text,file);
    text=renderAppIcons(text,file);
    text=renderStorefrontFooter(text,file);
+   if(!file.startsWith('admin/')&&/\bsrc="site\.js(?:\?|"|$)/.test(text)&&!/\bsrc="price-display\.js/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="price-display.css?v=1"><script defer src="price-display.js?v=1"></script></head>');
    if(file==='article.html'||file.startsWith('seo-article/'))text=renderArticleLayout(text);
-   if((file==='catalog.html'||/^seo-(?:category|subcategory)\//.test(file))&&!/href="campaign\.css/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="campaign.css?v=11"></head>');
+   if((file==='catalog.html'||/^seo-(?:category|subcategory)\//.test(file))&&!/href="campaign\.css/.test(text))text=text.replace(/<\/head>/i,'<link rel="stylesheet" href="campaign.css?v=12"></head>');
    if(file==='product.html'||file.startsWith('seo-product/')){
     const prior=/<aside\b[^>]*data-vh-photo-note\b[^>]*>[\s\S]*?<\/aside>/;
     text=prior.test(text)?text.replace(prior,()=>productPhotoNote):text.replace(/(\s*<\/div>\s*<aside\b[^>]*class="product-info-panel)/,match=>'\n'+productPhotoNote+match);

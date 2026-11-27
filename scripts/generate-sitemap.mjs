@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {fillCatalogEditorial,stripStaticProductLinks,staticProductFallback} from './seo-editorial.mjs';
 import {renderProductRoutes} from './product-routes.mjs';
+import prices from '../price-display.js';
 import {sharingHead} from './seo-head.mjs';
 import {renderArticleLayout} from './article-layout.mjs';
 import {subcategoryHasProducts,subcategoryIndexing} from './subcategory-indexing.mjs';
@@ -27,7 +28,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];
 const entries=staticPages.map(p=>pageAddress(p,base));
 const [products,news,categories,subcategories]=await Promise.all([
- rows('products','id,slug,name,status,category_id,subcategory_id,cover_image,price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
+ rows('products','id,slug,name,status,category_id,subcategory_id,cover_image,price,old_price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
  rows('news','id,slug,title,excerpt,cover_image,content,category','status=eq.published'),
  rows('categories','id,name,slug','is_active=eq.true'),
  rows('subcategories','id,category_id,name,slug','id=not.is.null')
@@ -195,6 +196,7 @@ function snapshot(kind,row){
   replaceText('productShortDescription',row.short_description||'');
   replaceText('productDesc',plain||'Опис буде додано.');
   replaceText('productPrice',row.price!=null?new Intl.NumberFormat('uk-UA').format(Number(row.price))+' грн':'Ціну уточнюйте');
+  html=prices.decorate(html,row);
   for(const [id,value] of [['productBrandFact',row.brand],['productSeason',row.season],['productMaterial',row.material],['productCondition',row.condition],['productSize',row.size],['productColor',row.color]])replaceText(id,value||'—');
   if(row.cover_image){html=html.replace(/(<img\s+id="galleryMainImg"[^>]*)(>)/i,(_,a,b)=>a.replace(/\s+alt="[^"]*"/gi,'')+' src="'+htmlEscape(row.cover_image)+'" alt="'+htmlEscape(row.name||'Фото товару')+'"'+b)}
  }else{

@@ -949,9 +949,7 @@ function productMatchesMultiValue(productValue,selected){
 }
 
 function productHasDiscount(product){
- if(product?.price==null||product.price===''||product.old_price==null||product.old_price==='')return false;
- const price=Number(product.price),old=Number(product.old_price);
- return Number.isFinite(price)&&Number.isFinite(old)&&price>=0&&old>price;
+ return !!window.VHPrices.discount(product);
 }
 
 
@@ -1054,7 +1052,7 @@ function catalogProductCard(p,index=0){
 
      <div class="catalog-card-badges">
        ${sold?'<span class="catalog-badge sold" style="'+VH_STATUS_INLINE_STYLE+'">ПРОДАНО</span>':reserved?'<span class="catalog-badge reserved" style="'+VH_STATUS_INLINE_STYLE+'">ЗАРЕЗЕРВОВАНО</span>':'<span class="catalog-badge one">1 / 1</span>'}
-       ${productHasDiscount(p)?'<span class="catalog-badge sale">ЗНИЖКА</span>':''}
+       ${productHasDiscount(p)?'<span class="catalog-badge sale">'+window.VHPrices.discount(p).badge+'</span>':''}
      </div>
    </a>
 
@@ -1278,7 +1276,7 @@ function renderProduct(){
  $('productName').textContent=vhPlainText(p.name);
  const photoRequest=$('productPhotoRequestLink');
  if(photoRequest)photoRequest.onclick=()=>window.VHPhotoRequest.open({name:$('productName').textContent,url:window.VHProductRoutes?.canonical(p)||location.href,settings:SITE_SETTINGS,client:publicSb,opener:photoRequest});
- $('productPrice').textContent=money(p.price);
+ window.VHPrices.update($('productPrice'),p);
  $('productShortDescription').textContent=vhPlainText(p.short_description);
  $('productShortDescription').classList.toggle('hidden',!p.short_description);
  window.VHSafeRich.render($('productDesc'),p.description||p.short_description||'Опис буде додано.');
@@ -1594,12 +1592,15 @@ async function submitOrder(){
  window.VHCheckoutFeedback?.busy('order',true);
  if(btn){btn.disabled=true;btn.textContent='ПЕРЕВІРЯЄМО...'}
  try{
-   const {data:live,error:availabilityError}=await publicSb.from('products').select('id,price,status,stock').eq('id',product.id).maybeSingle();
+   const {data:live,error:availabilityError}=await publicSb.from('products').select('id,price,old_price,status,stock').eq('id',product.id).maybeSingle();
    if(availabilityError)throw availabilityError;
    if(!live||live.status!=='published'||!(Number(live.stock)>0))throw VHCheckoutFeedback.problem(live?.status==='reserved'?'Товар щойно зарезервував інший покупець':live?.status==='sold'?'Товар уже продано':'Товар зараз недоступний');
    if(!Number.isFinite(Number(live.price))||Number(live.price)<0)throw VHCheckoutFeedback.problem('Не вдалося підтвердити ціну товару. Спробуйте пізніше.');
-   if(Math.abs(Number(live.price)-Number(product.price))>.009){
-     product.price=Number(live.price);$('productPrice').textContent=money(product.price);$('orderProduct').textContent=product.name+' · '+money(product.price);
+   const priceChanged=Math.abs(Number(live.price)-Number(product.price))>.009;
+   product.old_price=live.old_price;if(priceChanged)product.price=Number(live.price);
+   window.VHPrices.update($('productPrice'),product);
+   if(priceChanged){
+     $('orderProduct').textContent=product.name+' · '+money(product.price);
      throw VHCheckoutFeedback.problem('Ціна змінилася на '+money(product.price)+'. Перевірте суму та підтвердьте замовлення повторно.');
    }
    if(btn)btn.textContent='НАДСИЛАЄМО...';

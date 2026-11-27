@@ -33,6 +33,8 @@ on:
       - 'home-campaign.js'
       - 'home-campaign-config.js'
       - 'campaign.css'
+      - 'price-display.js'
+      - 'price-display.css'
       - 'article-layout.css'
       - 'scripts/article-layout.mjs'
       - 'scripts/generate-sitemap.mjs'
@@ -95,6 +97,7 @@ jobs:
           node --check analytics.js
           node --check brand.js
           node tests/brand-unit.cjs
+          node tests/price-display-unit.cjs
           node --check image-variants.js
           node --check product-routes.js
           node --check vh-seo-runtime.js
@@ -187,6 +190,8 @@ jobs:
           node tests/home-campaign-typography.cjs
           node tests/home-campaign-autoplay.cjs
           node tests/home-campaign-popup.cjs
+          node tests/product-sale-prices.cjs
+          node tests/home-campaign-motion.cjs
           node tests/home-mobile-copy.cjs
           node tests/home-editorial-flow.cjs
           node tests/mobile-storefront.cjs
