@@ -34,7 +34,7 @@ try{
   return {xml:readFileSync(join(work,'sitemap.xml'),'utf8'),page:readFileSync(emptyPage,'utf8'),parent:readFileSync(join(work,'seo-category/aksesuary/index.html'),'utf8'),product:readFileSync(join(work,'seo-product/always/index.html'),'utf8')};
  }
  let result=run(null);assert.ok(!result.xml.includes(emptyUrl));assert.match(result.page,/noindex,follow/);assert.ok(result.page.includes('<h1'));assert.ok(result.parent.includes(encodeURIComponent(sub.slug)),'Empty subcategory disappeared from navigation');
- assert.match(result.product,/<del[^>]*>625 грн<\/del>/);assert.match(result.product,/−20%/);assert.match(result.product,/Економія 125 грн/);
+ assert.match(result.product,/<del[^>]*>625 грн<\/del>/);assert.match(result.product,/−20%/);assert.doesNotMatch(result.product,/Економія|data-vh-price-after/);
  assert.equal(JSON.parse(result.product.match(/id="vh-static-product-jsonld">([\s\S]*?)<\/script>/)[1]).offers.price,'500','old price contaminated the structured offer price');
  // The audit must catch a missing directive even though the page is excluded.
  writeFileSync(emptyPage,subcategoryIndexing(result.page,true));assert.throws(()=>execFileSync(process.execPath,[join(work,'scripts/audit-seo.mjs')],{stdio:'pipe'}));

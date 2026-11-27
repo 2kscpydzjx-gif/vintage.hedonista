@@ -12,7 +12,7 @@
  }
  function parts(product){
   const d=discount(product);if(!d)return {before:'',after:''};
-  return {before:'<div class="vh-price-before" data-vh-price-before><del aria-label="Стара ціна '+money(d.old)+'">'+money(d.old)+'</del><span class="vh-price-discount" aria-label="'+(d.percent?'Знижка '+d.percent+' відсотків':'Знижка')+'">'+d.badge+'</span></div>',after:'<p class="vh-price-saving" data-vh-price-after>Економія '+money(d.saving)+'</p>'};
+  return {before:'<div class="vh-price-before" data-vh-price-before><del aria-label="Стара ціна '+money(d.old)+'">'+money(d.old)+'</del><span class="vh-price-discount" aria-label="'+(d.percent?'Знижка '+d.percent+' відсотків':'Знижка')+'">'+d.badge+'</span></div>',after:''};
  }
  function update(element,product){
   if(!element)return;
