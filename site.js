@@ -410,6 +410,7 @@ const catalogState={
  minPrice:null,
  maxPrice:null,
  availability:'all',
+ saleOnly:false,
  query:'',
  sort:'new'
 };
@@ -434,7 +435,7 @@ async function initCatalog(){
  const [, {data:productsData,error:productsError},{data:categoriesData,error:categoriesError},{data:subcategoriesData,error:subcategoriesError}]=await Promise.all([
    loadSettings(),
    publicSb.from('products')
-     .select('id,name,slug,brand,price,size,color,season,material,short_description,description,cover_image,status,created_at,category_id,subcategory_id,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(image_url,sort_order)')
+     .select('id,name,slug,brand,price,old_price,size,color,season,material,short_description,description,cover_image,status,created_at,category_id,subcategory_id,categories(id,name,slug),subcategories(id,name,slug,category_id),product_images(image_url,sort_order)')
      .in('status',['published','reserved','sold'])
      .order('created_at',{ascending:false}),
    publicSb.from('categories')
@@ -461,6 +462,7 @@ async function initCatalog(){
  catalogSubcategories=subcategoriesData||[];
 
  const params=new URLSearchParams(location.search);
+ catalogState.saleOnly=params.get('sale')==='1';
  const staticCategory=location.pathname.match(/\/(?:seo-category|catalog)\/([^/]+)\/(?:index\.html)?$/);
  const staticSubcategory=location.pathname.match(/\/(?:seo-subcategory|catalog)\/([^/]+)\/([^/]+)\/(?:index\.html)?$/);
  const pathCategory=staticCategory?decodeURIComponent(staticCategory[1]):staticSubcategory?decodeURIComponent(staticSubcategory[1]):null;
@@ -546,6 +548,18 @@ function renderCategoryFilters(){
 
 function buildCatalogFilters(){
  renderCategoryFilters();
+ if(!$('catalogSaleOnly')){
+  const section=document.createElement('div');section.className='catalog-sale-filter';
+  section.innerHTML='<label class="filter-option"><input id="catalogSaleOnly" type="checkbox"><span>Зі знижкою</span><small class="filter-option-count" id="catalogSaleCount"></small></label>';
+  $('categoryFilters').closest('.filter-section').after(section);
+ }
+ $('catalogSaleOnly').checked=catalogState.saleOnly;
+ $('catalogSaleCount').textContent=catalogProducts.filter(productHasDiscount).length;
+ if(!$('catalogSaleNotice')){
+  const note=document.createElement('div');note.id='catalogSaleNotice';note.className='catalog-sale-notice';note.hidden=true;
+  note.innerHTML='<span>Показуємо товари зі знижками</span><button type="button" id="catalogClearSale">Прибрати фільтр знижок</button>';
+  document.querySelector('.catalog-result-meta').before(note);
+ }
  const legacySubcategorySection=$('subcategoryFilterSection');
  if(legacySubcategorySection)legacySubcategorySection.classList.add('hidden');
 
@@ -582,6 +596,9 @@ function buildCatalogFilters(){
 }
 
 function bindCatalogControls(){
+ const chooseSale=value=>{catalogState.saleOnly=value;$('catalogSaleOnly').checked=value;updateCatalogUrl();applyCatalog(true)};
+ $('catalogSaleOnly').addEventListener('change',e=>chooseSale(e.target.checked));
+ $('catalogClearSale').addEventListener('click',()=>chooseSale(false));
  const search=$('catalogSearch');
  const suggestions=$('catalogSearchSuggestions');
  const renderCatalogSuggestions=()=>{
@@ -882,13 +899,14 @@ function updateCatalogUrl(){
  if(window.VH_CONFIG?.cleanUrls){
   document.querySelector('meta[name="vh-static-canonical"]')?.remove();
   const route=catalogState.category?(catalogState.subcategory?vhPublicRoute('subcategory',catalogState.category,catalogState.subcategory):vhPublicRoute('category',catalogState.category)):'catalog';
-  const url=new URL(route,document.baseURI),query=new URLSearchParams(location.search);query.delete('category');query.delete('subcategory');url.search=query;
+  const url=new URL(route,document.baseURI),query=new URLSearchParams(location.search);query.delete('category');query.delete('subcategory');if(catalogState.saleOnly)query.set('sale','1');else query.delete('sale');url.search=query;
   history.replaceState(history.state,'',url);void applySelectedCategorySEO();void renderCatalogEditorial();return;
  }
  if(onSeoSnapshot){
   document.querySelector('meta[name="vh-static-canonical"]')?.remove();
  }
  const url=onSeoSnapshot?new URL('catalog.html',document.baseURI):new URL(location.href);
+ if(catalogState.saleOnly)url.searchParams.set('sale','1');else url.searchParams.delete('sale');
  if(catalogState.category)url.searchParams.set('category',catalogState.category);
  else url.searchParams.delete('category');
  if(catalogState.subcategory)url.searchParams.set('subcategory',catalogState.subcategory);
@@ -908,6 +926,8 @@ function resetCatalogFilters(){
  catalogState.minPrice=null;
  catalogState.maxPrice=null;
  catalogState.availability='all';
+ catalogState.saleOnly=false;
+ if($('catalogSaleOnly'))$('catalogSaleOnly').checked=false;
 
  document.querySelectorAll('input[name="category"]').forEach(x=>x.checked=x.value==='');
  renderSubcategoryFilters();
@@ -928,6 +948,12 @@ function productMatchesMultiValue(productValue,selected){
  return [...selected].some(v=>productTokens.includes(normalizeFilterValue(v)))
 }
 
+function productHasDiscount(product){
+ if(product?.price==null||product.price===''||product.old_price==null||product.old_price==='')return false;
+ const price=Number(product.price),old=Number(product.old_price);
+ return Number.isFinite(price)&&Number.isFinite(old)&&price>=0&&old>price;
+}
+
 
 function animateProductCards(grid){
  if(!grid)return;
@@ -943,6 +969,7 @@ function applyCatalog(resetVisible=false){
  const q=normalizeFilterValue(catalogState.query);
 
  catalogFiltered=catalogProducts.filter(p=>{
+   if(catalogState.saleOnly&&!productHasDiscount(p))return false;
    if(catalogState.category&&p.categories?.slug!==catalogState.category)return false;
    if(catalogState.subcategory&&p.subcategories?.slug!==catalogState.subcategory)return false;
    if(catalogState.brands.size&&![...catalogState.brands].some(v=>normalizeFilterValue(v)===normalizeFilterValue(p.brand)))return false;
@@ -973,6 +1000,7 @@ function applyCatalog(resetVisible=false){
 }
 
 function renderCatalogResults(append=false){
+ if($('catalogSaleNotice'))$('catalogSaleNotice').hidden=!catalogState.saleOnly;
  const visible=catalogFiltered.slice(0,catalogVisibleCount);
  const grid=$('catalogProducts'),count=grid.querySelectorAll(':scope>.catalog-luxury-card').length;
  // Load more retains already visible cards and their event/UI state.
@@ -1026,6 +1054,7 @@ function catalogProductCard(p,index=0){
 
      <div class="catalog-card-badges">
        ${sold?'<span class="catalog-badge sold" style="'+VH_STATUS_INLINE_STYLE+'">ПРОДАНО</span>':reserved?'<span class="catalog-badge reserved" style="'+VH_STATUS_INLINE_STYLE+'">ЗАРЕЗЕРВОВАНО</span>':'<span class="catalog-badge one">1 / 1</span>'}
+       ${productHasDiscount(p)?'<span class="catalog-badge sale">ЗНИЖКА</span>':''}
      </div>
    </a>
 
@@ -1036,7 +1065,7 @@ function catalogProductCard(p,index=0){
        ${p.size?`<div class="catalog-luxury-size">РОЗМІР ${p.size}</div>`:''}
      </div>
      <div class="catalog-luxury-bottom">
-       <div class="catalog-luxury-price">${money(p.price)}</div>
+       <div class="catalog-luxury-price">${productHasDiscount(p)?'<del>'+money(p.old_price)+'</del> ':''}<span>${money(p.price)}</span></div>
        <button class="catalog-luxury-heart heart" type="button" aria-label="Додати в обране">♡</button>
      </div>
    </div>
@@ -1061,6 +1090,7 @@ function renderActiveFilters(){
  if(catalogState.maxPrice!==null)chips.push({label:`до ${money(catalogState.maxPrice)}`,action:'maxPrice'});
  if(catalogState.availability==='published')chips.push({label:'В наявності',action:'availability'});
  if(catalogState.availability==='sold')chips.push({label:'Продані',action:'availability'});
+ if(catalogState.saleOnly)chips.push({label:'Зі знижкою',action:'sale'});
 
  $('catalogActiveChips').innerHTML='';
  $('catalogActiveChips').classList.add('hidden');
