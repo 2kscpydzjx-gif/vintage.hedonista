@@ -56,7 +56,7 @@
  @media(min-width:761px){
   .home-page>.hero.vh-hero-carousel:has(>.vh-hero-promo--contain){aspect-ratio:1916/821!important}
   .vh-hero-promo--contain>picture>img{left:0!important;right:0!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:right center!important}
-  .vh-hero-promo--contain::after{background:linear-gradient(90deg,rgba(9,7,5,.8) 0%,rgba(9,7,5,.62) 20%,rgba(9,7,5,.32) 42%,rgba(9,7,5,.08) 64%,transparent 82%)}
+  .vh-hero-promo--contain::after{background:linear-gradient(90deg,rgba(9,7,5,.84) 0%,rgba(9,7,5,.69) 20%,rgba(9,7,5,.37) 42%,rgba(9,7,5,.08) 64%,transparent 82%)}
  }
  @media(max-width:760px){
   .vh-hero-promo__copy{position:absolute!important;left:30px;right:30px;bottom:24px;width:auto;padding:0!important;text-align:left;display:flex;flex-direction:column;align-items:flex-start}
