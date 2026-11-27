@@ -32,8 +32,10 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    const photoNode=p.locator('.vh-hero-promo img');await photoNode.evaluate(el=>el.decode());
    assert.equal(await photoNode.evaluate(el=>el.currentSrc),new URL(width<=760?campaign.mobileImage:campaign.image,base).href,'responsive campaign photo');
    if(width>760&&campaign.desktopImageFit==='contain'){
-    const fit=await photoNode.evaluate(el=>{const s=getComputedStyle(el),p=el.parentElement.getBoundingClientRect(),r=el.getBoundingClientRect();return {fit:s.objectFit,position:s.objectPosition,source:[el.naturalWidth,el.naturalHeight],inside:r.x>=p.x-1&&r.y>=p.y-1&&r.right<=p.right+1&&r.bottom<=p.bottom+1}});
+    const fit=await photoNode.evaluate(el=>{const s=getComputedStyle(el),p=el.parentElement.getBoundingClientRect(),r=el.getBoundingClientRect();return {fit:s.objectFit,position:s.objectPosition,source:[el.naturalWidth,el.naturalHeight],viewport:[p.width,p.height],mask:s.maskImage,inside:r.x>=p.x-1&&r.y>=p.y-1&&r.right<=p.right+1&&r.bottom<=p.bottom+1}});
     assert.equal(fit.fit,'contain','desktop photo must remain fully visible');assert.equal(fit.position,'100% 50%');assert.deepEqual(fit.source,[1916,821]);assert.equal(fit.inside,true);
+    assert.ok(Math.abs(fit.viewport[0]/fit.viewport[1]-fit.source[0]/fit.source[1])<.01,'desktop frame leaves a blank strip at '+width);
+    assert.equal(fit.mask,'none','a second mask obscures the left photo details');
    }
    await verifyFrame(photoNode,width<=760?campaign.mobileImageFrame:campaign.imageFrame);
    const visible=await hero.boundingBox();assert.ok(Math.abs(visible.height-initial.height)<1,'slide changes Hero height at '+width);
