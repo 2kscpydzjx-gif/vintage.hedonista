@@ -20,11 +20,11 @@
  .vh-hero-promo__copy[data-vh-copy-synced]>.vh-hero-promo__button{width:max-content!important;min-width:var(--vh-ref-width)!important;max-width:var(--vh-ref-column-width)!important;height:var(--vh-ref-height)!important;min-height:var(--vh-ref-height)!important;padding:var(--vh-ref-padding)!important;white-space:nowrap}
  .vh-hero-promo__button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;box-sizing:border-box;max-width:100%;padding:14px 24px;background:#eee3d6!important;color:#211812!important;border:1px solid #eee3d6;text-decoration:none;font:500 11px/1.4 Montserrat,Arial,sans-serif!important;letter-spacing:.06em;text-align:center;transition:background .2s,color .2s}
  .vh-hero-promo__button:hover{background:#c7aa83!important;border-color:#c7aa83}
- .vh-hero-carousel>.vh-hero-controls{position:absolute!important;z-index:10!important;inset:0;pointer-events:none;color:#d7bc8b}
- .vh-hero-controls .vh-hero-arrow{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:36px;height:44px;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;touch-action:manipulation;pointer-events:auto;filter:drop-shadow(0 1px 3px #000)}
+ .vh-hero-carousel>.vh-hero-controls{position:absolute!important;z-index:10!important;inset:0;pointer-events:none;color:#f0d7a4}
+ .vh-hero-controls .vh-hero-arrow{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:44px;height:48px;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;touch-action:manipulation;pointer-events:auto;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 5px #000e)}
  .vh-hero-arrow--prev{left:6px}.vh-hero-arrow--next{right:6px}
  .vh-hero-controls .vh-hero-arrow:hover{color:#fff0cf}
- .vh-hero-controls svg{width:26px;height:24px;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+ .vh-hero-controls svg{width:32px;height:28px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
  .vh-hero-rotation{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:auto}
  .vh-hero-rotation:focus-visible{left:50%;bottom:12px;transform:translateX(-50%);width:auto;height:auto;clip-path:none;padding:8px 12px;border:1px solid #bda587;background:#100c08ed;color:#eee3d6;font:12px/1.4 Montserrat,Arial,sans-serif;white-space:nowrap}
  .vh-hero-controls button:focus-visible,.vh-hero-promo__button:focus-visible{outline:2px solid #c7aa83;outline-offset:3px}
