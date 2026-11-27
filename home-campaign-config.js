@@ -21,6 +21,8 @@ window.VH_HOME_CAMPAIGN = Object.freeze({
     enabled: true,
     id: 'black-friday-2026',
     delayMs: 5000,
+    // Shared seven-day deadline in Kyiv time; null hides the countdown.
+    countdownEndsAt: '2026-12-04T08:43:34+02:00',
     image: 'assets/campaigns/black-friday-popup.jpg',
     imagePosition: '58% center',
     title: 'BLACK\nFRIDAY',

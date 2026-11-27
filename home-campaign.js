@@ -37,14 +37,33 @@
   if(desktop)img.src=desktop;
   return ()=>{observer.disconnect();img.removeEventListener('load',frame)};
  }
+ function mountCountdown(copy,endsAt){
+  const end=Date.parse(endsAt);
+  if(!Number.isFinite(end))return ()=>{};
+  const row=document.createElement('div');row.className='vh-campaign-popup__countdown';row.setAttribute('role','timer');row.setAttribute('aria-live','off');
+  const label=document.createElement('span');label.textContent='До завершення:';
+  const value=document.createElement('time');row.append(label,value);copy.insertBefore(row,copy.lastElementChild);
+  let timer;
+  function render(){
+   clearTimeout(timer);
+   const remaining=Math.max(0,Math.ceil((end-Date.now())/1000));
+   if(!remaining){label.textContent='Акцію завершено';value.hidden=true;row.setAttribute('aria-label','Акцію завершено');return}
+   const days=Math.floor(remaining/86400),hours=Math.floor(remaining%86400/3600),minutes=Math.floor(remaining%3600/60),seconds=remaining%60,pad=n=>String(n).padStart(2,'0');
+   value.textContent=pad(days)+' дн · '+[hours,minutes,seconds].map(pad).join(':');value.dateTime=`P${days}DT${hours}H${minutes}M${seconds}S`;
+   row.setAttribute('aria-label',`До завершення акції. Днів: ${days}, годин: ${hours}, хвилин: ${minutes}, секунд: ${seconds}`);
+   if(!document.hidden)timer=setTimeout(render,1000);
+  }
+  document.addEventListener('visibilitychange',render);render();
+  return ()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',render)};
+ }
  function mountPopup(hero,config){
   const settings=config.popup,key='vh_campaign_dismissed_'+settings.id;
-  let timer,dialog=null,stopped=false,previousOverflow='',locked=false,cleanupPhoto=()=>{};
+  let timer,dialog=null,stopped=false,previousOverflow='',locked=false,cleanupPhoto=()=>{},cleanupCountdown=()=>{};
   function dismissed(){try{if(localStorage.getItem(key)==='1')return true}catch{}try{return sessionStorage.getItem(key)==='1'}catch{return false}}
   function remember(){try{localStorage.setItem(key,'1')}catch{}try{sessionStorage.setItem(key,'1')}catch{}}
   function close(){dialog.close();closed()}
   function release(){if(locked){locked=false;document.documentElement.style.overflow=previousOverflow}}
-  function closed(){stopped=true;release();remember();cleanupPhoto();window.dispatchEvent(new Event('vh:campaign-popup-change'))}
+  function closed(){stopped=true;release();remember();cleanupPhoto();cleanupCountdown();window.dispatchEvent(new Event('vh:campaign-popup-change'))}
   function blocked(){
    return document.visibilityState!=='visible'||document.querySelector('#vh-analytics-choice,dialog[open],.vh-modal-open,.vh-mobile-menu-open')||
     document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
@@ -62,6 +81,7 @@
    const text=document.createElement('p');text.id='vh-campaign-popup-description';text.textContent=settings.description||config.description;
    const link=document.createElement('a');link.className='vh-campaign-popup__button';link.href=destination();link.textContent=settings.buttonText||config.buttonText;link.addEventListener('click',close);
    copy.append(title,text,link);card.append(picture,exit,copy);dialog.append(card);document.body.append(dialog);
+   cleanupCountdown=mountCountdown(copy,settings.countdownEndsAt);
    dialog.addEventListener('keydown',e=>{if(e.key!=='Tab')return;if(e.shiftKey&&document.activeElement===exit){e.preventDefault();link.focus()}else if(!e.shiftKey&&document.activeElement===link){e.preventDefault();exit.focus()}});
    cleanupPhoto=loadPhoto(picture,img,{...config,image:settings.image||config.image,mobileImage:settings.mobileImage||settings.image||config.mobileImage,imageFrame:settings.image?settings.imageFrame:config.imageFrame,mobileImageFrame:settings.mobileImage?settings.mobileImageFrame:settings.image?settings.imageFrame:config.mobileImageFrame},hero);
    dialog.addEventListener('close',closed);
@@ -74,7 +94,7 @@
   timer=setTimeout(show,Math.max(0,Math.ceil((Number(settings.delayMs)||5000)-performance.now())));
   const storage=e=>{if(e.key===key&&e.newValue==='1'){stopped=true;clearTimeout(timer);if(dialog?.open)close()}};
   window.addEventListener('storage',storage);
-  return {key,destroy(){stopped=true;clearTimeout(timer);cleanupPhoto();window.removeEventListener('storage',storage);if(dialog){dialog.removeEventListener('close',closed);if(dialog.open)dialog.close();release();dialog.remove()}}};
+  return {key,destroy(){stopped=true;clearTimeout(timer);cleanupPhoto();cleanupCountdown();window.removeEventListener('storage',storage);if(dialog){dialog.removeEventListener('close',closed);if(dialog.open)dialog.close();release();dialog.remove()}}};
  }
  function mount(hero,config){
   let index=0,start=null,imageLoaded=false,cleanupPhoto=()=>{};

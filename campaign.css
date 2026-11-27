@@ -50,6 +50,9 @@
  .vh-campaign-popup__copy{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:clamp(20px,7cqw,44px)!important;text-align:center!important}
  .vh-campaign-popup #vh-campaign-popup-title{margin:0!important;color:#f5eadc!important;font:400 clamp(30px,11cqw,60px)/1.04 'VH Prata Aligned',Prata,Georgia,serif!important;letter-spacing:.04em!important;white-space:pre-line!important;text-shadow:0 2px 16px #0008!important}
  .vh-campaign-popup #vh-campaign-popup-description{margin:clamp(12px,3cqw,18px) 0 clamp(18px,5cqw,28px)!important;color:#e6c895!important;font:400 clamp(15px,3.5cqw,22px)/1.5 Montserrat,Arial,sans-serif!important}
+ .vh-campaign-popup__copy:has(.vh-campaign-popup__countdown) #vh-campaign-popup-description{margin-bottom:clamp(8px,2cqw,12px)!important}
+ .vh-campaign-popup__countdown{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:4px 8px;margin:0 0 clamp(14px,3cqw,20px);color:#d5c5ad;font:400 clamp(10px,2.8cqw,14px)/1.5 Montserrat,Arial,sans-serif}
+ .vh-campaign-popup__countdown time{color:#e6c895;font-size:clamp(12px,3.3cqw,17px);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
  .vh-campaign-popup .vh-campaign-popup__button{display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;width:100%!important;min-height:48px!important;padding:12px 16px!important;border:1px solid #c7a76a!important;background:transparent!important;color:#f5eadc!important;text-decoration:none!important;text-align:center;font:500 clamp(10px,2.4cqw,13px)/1.5 Montserrat,Arial,sans-serif!important;letter-spacing:.08em!important;transition:background .2s}
  .vh-campaign-popup .vh-campaign-popup__button:hover{background:#c7a76a18!important}
  .vh-campaign-popup__close:focus-visible,.vh-campaign-popup__button:focus-visible{outline:2px solid #b99565!important;outline-offset:3px!important}
