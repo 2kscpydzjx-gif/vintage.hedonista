@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {subcategoryHasProducts,subcategoryIndexing} from '../scripts/subcategory-indexing.mjs';
 const sub={id:'empty',category_id:'accessories',slug:'пояси',name:'Пояси'};
-const product={id:'fixture',slug:'fixture-product',name:'Публічна річ',price:500,status:'published',category_id:'accessories',subcategory_id:'empty',brand:'Fixture',cover_image:'https://example.test/photo.webp',short_description:'Test copy',description:'Test description'};
+const product={id:'fixture',slug:'fixture-product',name:'Публічна річ',price:500,old_price:625,status:'published',category_id:'accessories',subcategory_id:'empty',brand:'Fixture',cover_image:'https://example.test/photo.webp',short_description:'Test copy',description:'Test description'};
 for(const status of ['published','reserved','sold'])assert.equal(subcategoryHasProducts(sub,[{...product,status}]),true);
 for(const p of [{...product,status:'draft'},{...product,category_id:'wrong'},{...product,subcategory_id:null},{...product,slug:''}])assert.equal(subcategoryHasProducts(sub,[p]),false);
 const source='<html><head><meta name="robots" content="max-image-preview:large"></head><body><h1>Пояси</h1></body></html>';
@@ -16,7 +16,7 @@ try{
  mkdirSync(join(work,'scripts'));mkdirSync(join(work,'admin'));
  for(const file of readdirSync(root).filter(name=>name.endsWith('.html')))copyFileSync(join(root,file),join(work,file));
  for(const file of ['index.html','admin.html','cms-builder.html'])copyFileSync(join(root,'admin',file),join(work,'admin',file));
- for(const file of ['config.js','catalog-seo-content.json'])copyFileSync(join(root,file),join(work,file));
+ for(const file of ['config.js','catalog-seo-content.json','price-display.js','price-display.css'])copyFileSync(join(root,file),join(work,file));
  for(const file of ['generate-sitemap.mjs','article-layout.mjs','seo-editorial.mjs','product-routes.mjs','seo-head.mjs','app-icons.mjs','seo-deployment.mjs','subcategory-indexing.mjs','audit-seo.mjs','clean-urls.mjs','build-product-jsonld.cjs','product-condition.cjs'])copyFileSync(join(root,'scripts',file),join(work,'scripts',file));
  const fixture=join(work,'fixture.json'),mock=join(work,'mock-fetch.mjs');
  writeFileSync(mock,`import {readFileSync} from 'node:fs';
@@ -31,9 +31,11 @@ try{
   execFileSync(process.execPath,['--import',mock,join(work,'scripts/generate-sitemap.mjs')],{stdio:'pipe'});
   execFileSync(process.execPath,[join(work,'scripts/build-product-jsonld.cjs')],{stdio:'pipe'});
   execFileSync(process.execPath,[join(work,'scripts/audit-seo.mjs')],{stdio:'pipe'});
-  return {xml:readFileSync(join(work,'sitemap.xml'),'utf8'),page:readFileSync(emptyPage,'utf8'),parent:readFileSync(join(work,'seo-category/aksesuary/index.html'),'utf8')};
+  return {xml:readFileSync(join(work,'sitemap.xml'),'utf8'),page:readFileSync(emptyPage,'utf8'),parent:readFileSync(join(work,'seo-category/aksesuary/index.html'),'utf8'),product:readFileSync(join(work,'seo-product/always/index.html'),'utf8')};
  }
  let result=run(null);assert.ok(!result.xml.includes(emptyUrl));assert.match(result.page,/noindex,follow/);assert.ok(result.page.includes('<h1'));assert.ok(result.parent.includes(encodeURIComponent(sub.slug)),'Empty subcategory disappeared from navigation');
+ assert.match(result.product,/<del[^>]*>625 грн<\/del>/);assert.match(result.product,/−20%/);assert.doesNotMatch(result.product,/Економія|data-vh-price-after/);
+ assert.equal(JSON.parse(result.product.match(/id="vh-static-product-jsonld">([\s\S]*?)<\/script>/)[1]).offers.price,'500','old price contaminated the structured offer price');
  // The audit must catch a missing directive even though the page is excluded.
  writeFileSync(emptyPage,subcategoryIndexing(result.page,true));assert.throws(()=>execFileSync(process.execPath,[join(work,'scripts/audit-seo.mjs')],{stdio:'pipe'}));
  for(const status of ['published','reserved','sold']){result=run(status);assert.ok(result.xml.includes(emptyUrl));assert.doesNotMatch(result.page,/noindex|data-vh-empty-subcategory/)}
