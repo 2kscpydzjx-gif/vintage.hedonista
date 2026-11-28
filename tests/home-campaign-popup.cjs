@@ -93,7 +93,21 @@ const revision={shared:{cmsPageDraft:{existing:{'existing-0':{design:{photoPrese
    const disabledClock=await page('clock-'+String(countdownEndsAt),390,844,{countdownEndsAt});await advance(disabledClock);await disabledClock.locator('.vh-campaign-popup[open]').waitFor();
    assert.equal(await disabledClock.getByRole('timer').count(),0);await disabledClock.close();
   }
+  // Hero and popup share one clock, including second boundaries and late mounting.
+  const synced=await page('hero-clock-sync');await synced.getByRole('button',{name:'Наступний слайд',exact:true}).click();await advance(synced,5457);await synced.locator('.vh-campaign-popup[open]').waitFor();
+  const pair=()=>synced.evaluate(()=>['.vh-hero-promo__countdown time','.vh-campaign-popup__countdown time'].map(selector=>{const el=document.querySelector(selector);return {text:el.textContent,duration:el.dateTime}}));
+  for(const elapsed of [0,13,431,555,900,1250]){await synced.clock.runFor(elapsed);const values=await pair();assert.deepEqual(values[0],values[1],'Hero and popup disagree between second boundaries')}
+  const styles=await synced.evaluate(()=>['.vh-hero-promo__countdown','.vh-campaign-popup__countdown'].map(selector=>{const el=document.querySelector(selector),row=getComputedStyle(el),time=getComputedStyle(el.querySelector('time'));return {font:row.fontFamily,color:row.color,valueColor:time.color,numeric:time.fontVariantNumeric}}));
+  assert.deepEqual(styles[0],styles[1],'countdown themes differ');
+  const hidden=await pair();await synced.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))});await synced.clock.runFor(61000);assert.deepEqual(await pair(),hidden);
+  await synced.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))});assert.deepEqual(...await pair());assert.notDeepEqual(await pair(),hidden,'both clocks failed to catch up');
+  const returned=await pair();await synced.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));await synced.clock.runFor(5000);assert.deepEqual(await pair(),returned);
+  await synced.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));assert.deepEqual(...await pair());assert.notDeepEqual(await pair(),returned);
+  await synced.getByRole('button',{name:'Закрити оголошення'}).click();const beforeTick=await pair();await synced.clock.runFor(1000);const afterTick=await pair();
+  assert.notEqual(afterTick[0].text,beforeTick[0].text,'closing the popup stopped the Hero clock');assert.equal(afterTick[1].text,beforeTick[1].text,'closed popup is still ticking');
+  const detached=await synced.locator('.vh-hero-promo__countdown time').elementHandle(),lastHero=await detached.textContent();
+  await synced.evaluate(()=>{VH_HOME_CAMPAIGN={...VH_HOME_CAMPAIGN,enabled:false};VHHomeCampaign.refresh()});await synced.clock.runFor(3000);assert.equal(await detached.textContent(),lastHero,'disabled Hero clock is still ticking');await synced.close();
   for(const f of fixtures){assert.deepEqual(f.records.get('home:published').shared,revision.shared);assert.equal(f.calls.some(c=>c.op!=='select'),false);assert.deepEqual(f.errors,[])}
-  console.log('PASS: centered 8:9 popup at four viewports, shared seven-day countdown surviving reload/new visits, day rollover, expiry, timer cleanup and disable; focus/Escape/backdrop/close, dismissal, cookie/menu deferral, sale navigation and no CMS writes.');
+  console.log('PASS: popup layouts, shared deadline, exact Hero/popup synchronization and theme, hidden-tab/BFCache return, closure/disable cleanup, reload, expiry, keyboard/dismissal, sale navigation and no CMS writes.');
  }finally{await Promise.all(fixtures.map(f=>f.browser.close()))}
 })().catch(e=>{console.error(e);process.exitCode=1});

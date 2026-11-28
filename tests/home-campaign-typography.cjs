@@ -37,6 +37,10 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
    assert.equal(await p.locator('.vh-hero-promo__discount').innerText(),'ЗНИЖКИ ДО -20%');
    assert.equal(await p.locator('.vh-hero-promo__description').innerText(),'Вінтаж із характером. Ціни, яких ви чекали.\n\nУнікальні знахідки в єдиному екземплярі.');
    assert.equal(await p.locator('.vh-hero-promo__button').innerText(),'ВІДКРИТИ РОЗПРОДАЖ →');
+   const countdown=await p.locator('.vh-hero-promo__countdown').boundingBox(),heroBox=await p.locator('.hero').boundingBox();
+   assert.ok(countdown.y>=after[3].y+after[3].h+6,'Hero countdown is not below the CTA at '+width);
+   assert.ok(countdown.x>=heroBox.x&&countdown.x+countdown.width<=heroBox.x+heroBox.width+1,'Hero countdown overflows horizontally at '+width);
+   assert.ok(countdown.y+countdown.height<=heroBox.y+heroBox.height-3,'Hero countdown is clipped at '+width);
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await p.locator('.vh-hero-promo img').evaluate(el=>el.decode());
    if([390,1366,1920].includes(width)){fs.mkdirSync('test-results/black-friday',{recursive:true});await p.locator('.hero').screenshot({path:'test-results/black-friday/matched-copy-'+width+'.png'})}
