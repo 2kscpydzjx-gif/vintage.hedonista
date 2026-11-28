@@ -10,7 +10,7 @@ export function renderStorefrontFooter(html,file=''){
   return '<footer'+attrs+'>'+content.replace(/[ \t]+(?=\r?\n)/g,'').trimEnd()+`
    <nav class="wrap vh-footer-navigation" data-vh-footer-navigation aria-label="Посилання у футері">
     <div><h2>Магазин</h2><a href="catalog.html">Каталог</a><a href="capsule.html">Стильові капсули</a><a href="about.html">Про нас</a><a href="journal.html">Vintazhka Journal</a></div>
-    <div><h2>Покупцеві</h2><a href="delivery.html">Доставка і оплата</a><a href="account.html" data-vh-footer-account>Особистий кабінет</a><a href="contacts.html">Контакти</a>${privacyLink}</div>
+    <div><h2>Покупцеві</h2><a href="delivery.html">Доставка і оплата</a><a data-vh-returns-link href="returns.html">Повернення товарів</a><a href="account.html" data-vh-footer-account>Особистий кабінет</a><a href="contacts.html">Контакти</a>${privacyLink}</div>
     <div><h2>Будьмо на зв’язку</h2><p>Маєте запитання про річ або замовлення?</p><a href="contacts.html">Зв’язатися з нами →</a></div>
    </nav>
    <div class="wrap vh-footer-bottom"><div class="footer-v64-copy">${copyright}</div><div class="vh-footer-legal"><button type="button" class="vh-analytics-settings" data-vh-analytics-settings hidden>Налаштування cookie</button></div></div>

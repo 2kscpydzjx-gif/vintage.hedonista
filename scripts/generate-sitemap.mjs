@@ -25,7 +25,7 @@ async function rows(table,select,filter){
  }return all;
 }
 const root=fileURLToPath(new URL('../',import.meta.url));
-const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html'];
+const staticPages=['index.html','catalog.html','about.html','journal.html','delivery.html','contacts.html','capsule.html','privacy.html','returns.html'];
 const entries=staticPages.map(p=>pageAddress(p,base));
 const [products,news,categories,subcategories]=await Promise.all([
  rows('products','id,slug,name,status,category_id,subcategory_id,cover_image,price,old_price,brand,size,color,condition,material,season,short_description,description','status=in.(published,reserved,sold)'),
