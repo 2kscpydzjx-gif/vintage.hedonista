@@ -19,6 +19,7 @@ const origin='https://vintazhka.com.ua',root=path.resolve(__dirname,'../dist');
    await link.click();await p.waitForURL('**/returns*');assert.equal(await p.locator('main h1').innerText(),'Повернення товарів і коштів');
   }
   const text=await p.locator('main').innerText();
+  assert.match(text,/прямого обміну на інший товар не здійснюємо/);
   assert.match(text,/14 календарних днів після отримання/);assert.match(text,/3 робочих днів після отримання та перевірки/);
   assert.match(text,/Час доставки посилки до магазину до цих 3 робочих днів не входить/);
   assert.match(text,/зворотну доставку оплачує покупець/);assert.match(text,/зворотну доставку оплачує Vintazhka/);
