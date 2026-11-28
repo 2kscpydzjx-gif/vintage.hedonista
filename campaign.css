@@ -75,6 +75,10 @@
   .vh-hero-promo__button{width:max-content;max-width:100%;min-height:44px;padding:10px 16px}
   .vh-hero-promo::after{background:linear-gradient(180deg,rgba(9,7,5,.02) 0%,rgba(9,7,5,.08) 34%,rgba(9,7,5,.62) 56%,rgba(9,7,5,.94) 100%)}
  }
+ @media(min-width:761px) and (max-width:900px){
+  .vh-hero-promo__copy[data-vh-copy-synced]>.vh-hero-promo__countdown{top:calc(var(--vh-countdown-y) - 8px);font-size:11px}
+  .vh-hero-promo__countdown time{font-size:13px}
+ }
  @media(pointer:coarse){.vh-hero-controls .vh-hero-arrow{width:44px;height:44px}}
  @media(prefers-reduced-motion:reduce){.vh-hero-carousel>[data-vh-original-slide],.vh-hero-carousel>.vh-hero-promo,.vh-hero-promo__button{transition:none!important}}
  @media(prefers-reduced-motion:reduce){dialog.vh-campaign-popup[open]{animation:none!important}.vh-campaign-popup__button{transition:none!important}}
