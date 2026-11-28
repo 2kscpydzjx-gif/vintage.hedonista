@@ -200,6 +200,7 @@ jobs:
           node tests/navigation-first-paint.cjs
           node tests/catalog-footer-spacing.cjs
           node tests/footer-details.cjs
+          node tests/return-policy.cjs
           node tests/direct-order.cjs
           node tests/checkout-feedback.cjs
           node tests/cms-image-upload.cjs
