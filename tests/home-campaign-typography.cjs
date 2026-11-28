@@ -16,7 +16,7 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
   f.user(null);f.session(null);f.set('home','published',record);await mockCampaignPhotos(f.context,f.png);
   await f.context.addInitScript(()=>{try{localStorage.setItem('vh_campaign_dismissed_black-friday-2026','1')}catch{}});
   const p=await f.context.newPage();
-  for(const width of [320,390,430,768,820,1024,1366,1536,1920,2560]){
+  for(const width of [320,390,430,761,768,780,820,900,901,1024,1366,1536,1920,2560]){
    await p.setViewportSize({width,height:900});await p.goto('http://127.0.0.1:8765/index.html');await p.locator('.vh-hero-controls').waitFor();await p.evaluate(()=>document.fonts.ready);
    const before=await measure(p,native);await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.locator('.vh-hero-promo').waitFor({state:'visible'});
    if(width>760)await p.locator('.vh-hero-promo__copy[data-vh-copy-synced]').waitFor();
@@ -37,6 +37,10 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
    assert.equal(await p.locator('.vh-hero-promo__discount').innerText(),'ЗНИЖКИ ДО -20%');
    assert.equal(await p.locator('.vh-hero-promo__description').innerText(),'Вінтаж із характером. Ціни, яких ви чекали.\n\nУнікальні знахідки в єдиному екземплярі.');
    assert.equal(await p.locator('.vh-hero-promo__button').innerText(),'ВІДКРИТИ РОЗПРОДАЖ →');
+   const countdown=await p.locator('.vh-hero-promo__countdown').boundingBox(),heroBox=await p.locator('.hero').boundingBox();
+   assert.ok(countdown.y>=after[3].y+after[3].h+6,'Hero countdown is not below the CTA at '+width);
+   assert.ok(countdown.x>=heroBox.x&&countdown.x+countdown.width<=heroBox.x+heroBox.width+1,'Hero countdown overflows horizontally at '+width);
+   assert.ok(countdown.y+countdown.height<=heroBox.y+heroBox.height-3,'Hero countdown is clipped at '+width);
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await p.locator('.vh-hero-promo img').evaluate(el=>el.decode());
    if([390,1366,1920].includes(width)){fs.mkdirSync('test-results/black-friday',{recursive:true});await p.locator('.hero').screenshot({path:'test-results/black-friday/matched-copy-'+width+'.png'})}
@@ -46,6 +50,6 @@ const measure=(p,selectors)=>p.evaluate(list=>list.map(selector=>{const el=docum
   await p.getByRole('button',{name:'Наступний слайд',exact:true}).click();await p.setViewportSize({width:390,height:900});await p.waitForTimeout(40);
   assert.equal((await measure(p,campaign))[1].size,(await measure(p,native))[1].size);
   assert.deepEqual(f.records.get('home:published').shared,record.shared);assert.equal(f.calls.some(c=>c.op!=='select'),false);assert.deepEqual(f.errors,[]);
-  console.log('PASS: desktop campaign matches original fonts/anchors; mobile keeps typography with lower, left-aligned copy and clear upper photo at ten widths. Correct sale copy, no overlaps, resize updates and unchanged CMS data.');
+  console.log('PASS: desktop campaign matches original fonts/anchors; mobile keeps typography with lower, left-aligned copy and clear upper photo at fourteen widths. Correct sale copy, no overlaps, resize updates and unchanged CMS data.');
  }finally{await f.browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

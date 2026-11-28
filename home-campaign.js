@@ -3,6 +3,7 @@
  'use strict';
  if(!document.body.classList.contains('home-page')||new URLSearchParams(location.search).get('cms-preview')==='1')return;
  let instance=null,popup=null;
+ const countdownClocks=new Map();
  const imageUrl=value=>{if(typeof value!=='string'||!value.trim())return '';try{const u=new URL(value,document.baseURI);return /^https?:$/.test(u.protocol)?u.href:''}catch{return ''}};
  function destination(){const url=new URL(window.VH_CONFIG?.cleanUrls?'catalog':'catalog.html',document.baseURI);url.searchParams.set('sale','1');return url.href}
  function currentPhoto(hero){
@@ -37,24 +38,38 @@
   if(desktop)img.src=desktop;
   return ()=>{observer.disconnect();img.removeEventListener('load',frame)};
  }
- function mountCountdown(copy,endsAt){
+ function subscribeCountdown(end,render){
+  let clock=countdownClocks.get(end);
+  if(!clock){
+   const listeners=new Set();let timer;
+   const stop=()=>{clearTimeout(timer);timer=null};
+   function tick(){
+    stop();if(!listeners.size)return;
+    const remaining=Math.max(0,Math.ceil((end-Date.now())/1000));
+    listeners.forEach(listener=>listener(remaining));
+    if(remaining&&!document.hidden)timer=setTimeout(tick,Math.max(1,end-(remaining-1)*1000-Date.now()));
+   }
+   document.addEventListener('visibilitychange',tick);window.addEventListener('pageshow',tick);window.addEventListener('pagehide',stop);
+   clock={listeners,tick,destroy(){stop();document.removeEventListener('visibilitychange',tick);window.removeEventListener('pageshow',tick);window.removeEventListener('pagehide',stop);countdownClocks.delete(end)}};
+   countdownClocks.set(end,clock);
+  }
+  clock.listeners.add(render);clock.tick();
+  return ()=>{if(clock.listeners.delete(render)&&!clock.listeners.size)clock.destroy()};
+ }
+ function mountCountdown(copy,endsAt,{after=false,className='vh-campaign-popup__countdown'}={}){
   const end=Date.parse(endsAt);
   if(!Number.isFinite(end))return ()=>{};
-  const row=document.createElement('div');row.className='vh-campaign-popup__countdown';row.setAttribute('role','timer');row.setAttribute('aria-live','off');
+  const row=document.createElement('div');row.className='vh-campaign-countdown '+className;row.setAttribute('role','timer');row.setAttribute('aria-live','off');
   const label=document.createElement('span');label.textContent='До завершення:';
-  const value=document.createElement('time');row.append(label,value);copy.insertBefore(row,copy.lastElementChild);
-  let timer;
-  function render(){
-   clearTimeout(timer);
-   const remaining=Math.max(0,Math.ceil((end-Date.now())/1000));
+  const value=document.createElement('time');row.append(label,value);if(after)copy.append(row);else copy.insertBefore(row,copy.lastElementChild);
+  function render(remaining){
    if(!remaining){label.textContent='Акцію завершено';value.hidden=true;row.setAttribute('aria-label','Акцію завершено');return}
+   label.textContent='До завершення:';value.hidden=false;
    const days=Math.floor(remaining/86400),hours=Math.floor(remaining%86400/3600),minutes=Math.floor(remaining%3600/60),seconds=remaining%60,pad=n=>String(n).padStart(2,'0');
    value.textContent=pad(days)+' дн · '+[hours,minutes,seconds].map(pad).join(':');value.dateTime=`P${days}DT${hours}H${minutes}M${seconds}S`;
    row.setAttribute('aria-label',`До завершення акції. Днів: ${days}, годин: ${hours}, хвилин: ${minutes}, секунд: ${seconds}`);
-   if(!document.hidden)timer=setTimeout(render,1000);
   }
-  document.addEventListener('visibilitychange',render);render();
-  return ()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',render)};
+  return subscribeCountdown(end,render);
  }
  function mountPopup(hero,config){
   const settings=config.popup,key='vh_campaign_dismissed_'+settings.id;
@@ -116,6 +131,7 @@
   const link=document.createElement('a');link.className='vh-hero-promo__button';link.textContent=config.buttonText;
   link.href=destination();
   copy.append(eyebrow,title,description,link);promo.append(picture,copy);
+  const cleanupCountdown=mountCountdown(copy,config.popup?.countdownEndsAt,{after:true,className:'vh-hero-promo__countdown'});
   const controls=document.createElement('div');controls.className='vh-hero-controls';controls.dataset.vhHeroUi='';controls.setAttribute('role','group');controls.setAttribute('aria-label','Листання головного банера');
   const button=(label,html)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',label);b.innerHTML=html;return b};
   const prev=button('Попередній слайд','<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M26 12H6m8-7-8 7 8 7"/></svg>');prev.className='vh-hero-arrow vh-hero-arrow--prev';
@@ -141,7 +157,12 @@
     if(mobile&&i<3)target.style.setProperty('text-align','left','important');
     const slide=source.closest('[data-vh-original-slide]'),offset=slide?parseFloat(getComputedStyle(slide).translate)||0:0;
     for(const [name,value] of Object.entries({x:rect.x-bounds.x-offset,y:rect.y-bounds.y,width:rect.width,height:rect.height,'column-width':column}))target.style.setProperty('--vh-ref-'+name,value+'px');
-    if(i===3)target.style.setProperty('--vh-ref-padding',style.padding);
+    if(i===3){
+     target.style.setProperty('--vh-ref-padding',style.padding);
+     copy.style.setProperty('--vh-countdown-x',rect.x-bounds.x-offset+'px');
+     copy.style.setProperty('--vh-countdown-y',rect.y-bounds.y+rect.height+14+'px');
+     copy.style.setProperty('--vh-countdown-width',column+'px');
+    }
    });
    if(mobile)delete copy.dataset.vhCopySynced;else copy.dataset.vhCopySynced='';
   }
@@ -215,7 +236,7 @@
   document.addEventListener('visibilitychange',visibility);window.addEventListener('pageshow',resume);window.addEventListener('pagehide',pageHide);window.addEventListener('resize',resume);window.addEventListener('vh:campaign-popup-change',scheduleRotation);motion.addEventListener('change',motionChange);
   hero.addEventListener('keydown',keydown);hero.addEventListener('pointerdown',down);hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',cancel);
   select(0,false,false);
-  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;finishMotion();select(0,false,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();textObserver.disconnect();cleanupPhoto();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('animationend',syncCopy);hero.removeEventListener('transitionend',syncCopy);hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);hero.removeEventListener('pointerdown',pointerFocus);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('pagehide',pageHide);window.removeEventListener('resize',resume);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
+  return {hero,refresh:()=>select(index,false),destroy(){destroyed=true;finishMotion();select(0,false,false);clearRotation();viewObserver.disconnect();modalObserver.disconnect();textObserver.disconnect();cleanupPhoto();cleanupCountdown();hero.classList.remove('vh-hero-carousel');delete hero.dataset.vhSlide;originals().forEach(el=>delete el.dataset.vhOriginalSlide);promo.remove();controls.remove();status.remove();hero.removeEventListener('animationend',syncCopy);hero.removeEventListener('transitionend',syncCopy);hero.removeEventListener('keydown',keydown);hero.removeEventListener('pointerdown',down);hero.removeEventListener('pointerup',up);hero.removeEventListener('pointercancel',cancel);hero.removeEventListener('focusin',scheduleRotation);hero.removeEventListener('focusout',focusOut);hero.removeEventListener('pointerdown',pointerFocus);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener('pagehide',pageHide);window.removeEventListener('resize',resume);window.removeEventListener('vh:campaign-popup-change',scheduleRotation);motion.removeEventListener('change',motionChange)}};
  }
  function ready(){
   const config=window.VH_HOME_CAMPAIGN,hero=document.querySelector('body.home-page>.hero');
